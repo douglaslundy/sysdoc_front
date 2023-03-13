@@ -1,0 +1,202 @@
+import React, { useState, useEffect, useContext } from 'react';
+import AlertModal from '../../messagesModal'
+import { useDispatch, useSelector } from 'react-redux';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+
+import {
+    Grid,
+    Stack,
+    TextField,
+    Alert,
+    Button,
+} from "@mui/material";
+
+import BaseCard from "../../baseCard/BaseCard";
+
+import { showLetter } from '../../../store/ducks/letters';
+import { editLetterFetch, addLetterFetch } from '../../../store/fetchActions/letter';
+import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: "90%",
+    height: "98%",
+    bgcolor: 'background.paper',
+    border: '0px solid #000',
+    boxShadow: 24,
+    p: 4,
+    overflow: "scroll",
+};
+
+export default function LetterModal(props) {
+
+
+    const [form, setForm] = useState({
+        sender: "",
+        recipient: "",
+        subject_matter: "",
+        cpf_cnpj: "",
+        obs: "",
+    });
+
+    const { sender, recipient, subject_matter, obs } = form;
+    const { letter } = useSelector(state => state.letters);
+    const { isOpenModal } = useSelector(state => state.layout);
+    const dispatch = useDispatch();
+
+    const [texto, setTexto] = useState();
+
+    const changeItem = ({ target }) => {
+        setForm({ ...form, [target.name]: target.value });
+    };
+
+    const cleanForm = () => {
+        setForm({
+            sender: "",
+            recipient: "",
+            subject_matter: "",
+            cpf_cnpj: "",
+            obs: "",
+        });
+        setTexto('');
+        dispatch(turnModal());
+        dispatch(showLetter({}));
+    }
+
+
+    const handleSaveData = async () => {
+        letter && letter.id ? handlePutData() : handlePostData()
+    }
+
+    const handlePostData = async () => {
+        dispatch(changeTitleAlert(`O Ofício foi Cadastrado com sucesso!`));
+        dispatch(addLetterFetch(form, cleanForm));
+    };
+
+    const handlePutData = async () => {
+        dispatch(changeTitleAlert(`O Ofício ${form.number} foi atualizado com sucesso!`));
+        dispatch(editLetterFetch(form, cleanForm));
+    };
+
+    const handleClose = () => {
+        cleanForm();
+    };
+
+    useEffect(() => {
+
+        if (letter && letter.id)
+            setForm(letter);
+
+    }, [letter]);
+
+    return (
+        <div>
+            {props.children}
+            <Modal
+                keepMounted
+                open={isOpenModal}
+                onClose={handleClose}
+                aria-labelledby="keep-mounted-modal-title"
+                aria-describedby="keep-mounted-modal-description"
+            >
+                <Box sx={style}>
+
+                    <AlertModal />
+
+                    <Grid container spacing={0}>
+                        <Grid item xs={12} lg={12}>
+                            <BaseCard title={letter && letter.id ? "Editar Ofício " : "Enviar Ofício"}>
+                                {texto &&
+                                    <Alert variant="filled" severity="warning">
+                                        {texto}
+                                    </Alert>
+                                }
+
+                                <br />
+
+                                {/* <FormGroup > */}
+                                <Stack spacing={3}>
+                                    <TextField
+                                        id="sender"
+                                        label="Remetente"
+                                        variant="outlined"
+                                        name="sender"
+                                        value={sender ? sender : ''}
+                                        onChange={changeItem}
+                                        required
+                                        inputProps={{
+                                            style: {
+                                                textTransform: "uppercase"
+                                            }
+                                        }}
+                                    />
+                                    <TextField
+                                        id="recipient"
+                                        label="Destinatário"
+                                        variant="outlined"
+                                        name="recipient"
+                                        value={recipient ? recipient : ''}
+                                        onChange={changeItem}
+                                        inputProps={{
+                                            style: {
+                                                textTransform: "uppercase"
+                                            }
+                                        }}
+                                    />
+                                    <TextField
+                                        id="subject_matter"
+                                        label="Assunto"
+                                        variant="outlined"
+                                        name="subject_matter"
+                                        multiline
+                                        rows={3}
+                                        value={subject_matter ? subject_matter : ''}
+                                        onChange={changeItem}
+                                        inputProps={{
+                                            style: {
+                                                textTransform: "uppercase"
+                                            }
+                                        }}
+                                        required
+                                    />
+
+                                    <TextField
+                                        id="obs"
+                                        label="OBS"
+                                        multiline
+                                        rows={3}
+                                        value={obs ? obs : ''}
+                                        name="obs"
+                                        onChange={changeItem}
+                                        inputProps={{
+                                            style: {
+                                                textTransform: "uppercase"
+                                            }
+                                        }}
+                                    />
+                                </Stack>
+                                {/* </FormGroup> */}
+                                <br />
+                                <Box sx={{ "& button": { mx: 1 } }}>
+                                    <Button onClick={handleSaveData} variant="contained" mt={2}>
+                                        Gravar
+                                    </Button>
+
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
+                                        Cancelar
+                                    </Button>
+                                </Box>
+                            </BaseCard>
+                        </Grid>
+                    </Grid>
+
+                </Box>
+            </Modal>
+        </div>
+    );
+}
