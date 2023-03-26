@@ -169,6 +169,7 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
+                                                            fontSize: "38px",
                                                         }}
                                                     >
                                                         {letter && letter.number}
@@ -199,7 +200,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.sender}
+                                                        {letter && letter.sender.toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -207,14 +208,14 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.recipient}
+                                                        {letter && letter.recipient.toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
                                         </TableCell>
 
                                         <TableCell>
-                                            <Typography variant="h6">{letter && letter.subject_matter}</Typography>
+                                            <Typography variant="h6">{letter && letter.subject_matter.toUpperCase()}</Typography>
                                         </TableCell>
 
                                         <TableCell align="center">
