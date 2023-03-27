@@ -2,7 +2,9 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
 	letters: [],
-	letter: {}
+	letter: {},
+	textOpenAi: "false"
+
 }
 
 
@@ -10,6 +12,7 @@ export const addLetter = createAction('ADD_LETTER');
 export const editLetter = createAction('EDIT_LETTER');
 export const addLetters = createAction('ADD_LETTERS');
 export const showLetter = createAction('SHOW_LETTER');
+export const getTextOpenAi = createAction('GET_TEXT_OPEN_AI');
 export const inactiveLetter = createAction('INACTIVE_LETTER');
 
 
@@ -19,7 +22,9 @@ export default createReducer(INITIAL_STATE, {
 	[addLetter.type]: (state, action) => ({ letters: [action.payload, ...state.letters] }),
 
 	// editLetter  persiste no banco uma atualização e altera o elemento na lista letters
-	[editLetter.type]: (state, action) => ({ letters: [action.payload, ...state.letters.filter((lett) => lett.id !== action.payload.id)] }),	
+	[editLetter.type]: (state, action) => ({ letters: [action.payload, ...state.letters.filter((lett) => lett.id !== action.payload.id)] }),
+
+	[getTextOpenAi.type]: (state, action) => ({...state, textOpenAi: action.payload}),	
 
 	// editLetter  persiste no banco uma atualização de inativação e remove o elemento na lista letters
 	[inactiveLetter.type]: (state, action) => ({ letters: [...state.letters.filter((lett) => lett.id !== action.payload.id)] }),

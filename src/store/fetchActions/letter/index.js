@@ -1,8 +1,5 @@
-import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
-import { getCurrency, setCurrency } from "../../../components/helpers/formatt/currency";
-import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
-import { inactiveLetter, addLetter, editLetter, addLetters } from "../../ducks/letters";
+import { inactiveLetter, addLetter, editLetter, addLetters, getTextOpenAi } from "../../ducks/letters";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 
@@ -43,6 +40,39 @@ export const addLetterFetch = (letter, cleanForm) => {
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+};
+
+
+export const getTextAI = (letter) => {
+    // const {'sysvendas.id' : user} = parseCookies();
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+        letter = {
+            ...letter,
+            "article" : letter.article,
+            "treatment_pronoun" : "Excelentissimo senhor",
+            'wishes': "estima e consideração"
+        }
+
+        console.log(JSON.stringify(letter));
+        api.post('/letters/newLetter', letter)
+            .then((res) =>
+            (
+                // dispatch(addLetter(res.data.letter)),
+                // dispatch(addLetter(res))
+                dispatch(getTextOpenAi(res.data)),
+                dispatch(addMessage(`Modelo Gerado com Sucesso`)),
+                // dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                // cleanForm()
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));

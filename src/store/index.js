@@ -12,6 +12,5 @@ export default configureStore({
         layout: layoutReducer, 
         users: userReducer,
         auth: authReducer,
-
     },
 });

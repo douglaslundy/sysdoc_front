@@ -14,9 +14,9 @@ import {
 
 import BaseCard from "../../baseCard/BaseCard";
 
-import { showLetter } from '../../../store/ducks/letters';
-import { editLetterFetch, addLetterFetch } from '../../../store/fetchActions/letter';
+import { getTextOpenAi, showLetter } from '../../../store/ducks/letters';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { editLetterFetch, addLetterFetch, getTextAI } from '../../../store/fetchActions/letter';
 
 
 const style = {
@@ -42,10 +42,11 @@ export default function LetterModal(props) {
         subject_matter: "",
         cpf_cnpj: "",
         obs: "",
+        article: "",
     });
 
-    const { sender, recipient, subject_matter, obs } = form;
-    const { letter } = useSelector(state => state.letters);
+    const { sender, recipient, subject_matter, obs, article } = form;
+    const { letter, textOpenAi } = useSelector(state => state.letters);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
@@ -62,8 +63,10 @@ export default function LetterModal(props) {
             subject_matter: "",
             cpf_cnpj: "",
             obs: "",
+            article: "",
         });
         setTexto('');
+        dispatch(getTextOpenAi(""));
         dispatch(turnModal());
         dispatch(showLetter({}));
     }
@@ -73,6 +76,14 @@ export default function LetterModal(props) {
         letter && letter.id ? handlePutData() : handlePostData()
     }
 
+    const handleGetTextAI = async () => {
+        handlePostTextAI()
+    }
+
+    const handlePostTextAI = async () => {
+        // dispatch(changeTitleAlert(`O Ofício foi Cadastrado com sucesso!`));        
+        dispatch(getTextAI(form));
+    };
     const handlePostData = async () => {
         dispatch(changeTitleAlert(`O Ofício foi Cadastrado com sucesso!`));
         dispatch(addLetterFetch(form, cleanForm));
@@ -88,11 +99,14 @@ export default function LetterModal(props) {
     };
 
     useEffect(() => {
-
         if (letter && letter.id)
             setForm(letter);
 
     }, [letter]);
+
+    useEffect(() => {
+        setForm({ obs: textOpenAi });
+    }, [textOpenAi]);
 
     return (
         <div>
@@ -110,7 +124,7 @@ export default function LetterModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={letter && letter.id ? "Editar Ofício " : "Enviar Ofício"}>
+                            <BaseCard title={letter && letter.id ? "Editar Ofício " : "Enviar Ofício "}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
@@ -140,6 +154,7 @@ export default function LetterModal(props) {
                                         label="Destinatário"
                                         variant="outlined"
                                         name="recipient"
+                                        required
                                         value={recipient ? recipient : ''}
                                         onChange={changeItem}
                                         inputProps={{
@@ -154,7 +169,6 @@ export default function LetterModal(props) {
                                         variant="outlined"
                                         name="subject_matter"
                                         multiline
-                                        rows={3}
                                         value={subject_matter ? subject_matter : ''}
                                         onChange={changeItem}
                                         inputProps={{
@@ -166,12 +180,12 @@ export default function LetterModal(props) {
                                     />
 
                                     <TextField
-                                        id="obs"
-                                        label="OBS"
+                                        id="article"
+                                        label="Resumo"
                                         multiline
-                                        rows={3}
-                                        value={obs ? obs : ''}
-                                        name="obs"
+                                        rows={2}
+                                        value={article ? article : ''}
+                                        name="article"
                                         onChange={changeItem}
                                         inputProps={{
                                             style: {
@@ -179,10 +193,30 @@ export default function LetterModal(props) {
                                             }
                                         }}
                                     />
+
+                                    <TextField
+                                        id="obs"
+                                        label="Modelo gerado pela IA"
+                                        multiline
+                                        rows={10}
+                                        value={obs ? obs : ''}
+                                        disabled
+                                        name="obs"
+                                        onChange={changeItem}
+                                    // inputProps={{
+                                    //     style: {
+                                    //         textTransform: "uppercase"
+                                    //     }
+                                    // }}
+                                    />
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
+                                    <Button onClick={handleGetTextAI} variant="contained" mt={2}>
+                                        Gerar um texto com IA
+                                    </Button>
+
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
                                     </Button>
