@@ -40,12 +40,11 @@ export default function LetterModal(props) {
         sender: "",
         recipient: "",
         subject_matter: "",
-        cpf_cnpj: "",
         obs: "",
-        article: "",
+        summary: "",
     });
 
-    const { sender, recipient, subject_matter, obs, article } = form;
+    const { sender, recipient, subject_matter, obs, summary } = form;
     const { letter, textOpenAi } = useSelector(state => state.letters);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -61,9 +60,8 @@ export default function LetterModal(props) {
             sender: "",
             recipient: "",
             subject_matter: "",
-            cpf_cnpj: "",
             obs: "",
-            article: "",
+            summary: "",
         });
         setTexto('');
         dispatch(getTextOpenAi(""));
@@ -77,13 +75,9 @@ export default function LetterModal(props) {
     }
 
     const handleGetTextAI = async () => {
-        handlePostTextAI()
+        dispatch(getTextAI(form));
     }
 
-    const handlePostTextAI = async () => {
-        // dispatch(changeTitleAlert(`O Ofício foi Cadastrado com sucesso!`));        
-        dispatch(getTextAI(form));
-    };
     const handlePostData = async () => {
         dispatch(changeTitleAlert(`O Ofício foi Cadastrado com sucesso!`));
         dispatch(addLetterFetch(form, cleanForm));
@@ -105,7 +99,7 @@ export default function LetterModal(props) {
     }, [letter]);
 
     useEffect(() => {
-        setForm({ obs: textOpenAi });
+        setForm({ ...form, obs: textOpenAi });
     }, [textOpenAi]);
 
     return (
@@ -180,12 +174,12 @@ export default function LetterModal(props) {
                                     />
 
                                     <TextField
-                                        id="article"
+                                        id="summary"
                                         label="Resumo"
                                         multiline
                                         rows={2}
-                                        value={article ? article : ''}
-                                        name="article"
+                                        value={summary ? summary : ''}
+                                        name="summary"
                                         onChange={changeItem}
                                         inputProps={{
                                             style: {
@@ -213,12 +207,12 @@ export default function LetterModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleGetTextAI} variant="contained" mt={2}>
-                                        Gerar um texto com IA
-                                    </Button>
-
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
+                                    </Button>
+
+                                    <Button onClick={handleGetTextAI} variant="contained" color="success" mt={2}>
+                                        Gerar um Modelo com IA
                                     </Button>
 
                                     <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>

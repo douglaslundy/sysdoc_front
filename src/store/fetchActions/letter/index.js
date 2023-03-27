@@ -51,13 +51,13 @@ export const addLetterFetch = (letter, cleanForm) => {
 
 
 export const getTextAI = (letter) => {
-    // const {'sysvendas.id' : user} = parseCookies();
+    const {'sysvendas.id' : user} = parseCookies();
 
     return (dispatch) => {
         dispatch(turnLoading());
         letter = {
             ...letter,
-            "article" : letter.article,
+            "id_user" : user,
             "treatment_pronoun" : "Excelentissimo senhor",
             'wishes': "estima e consideração"
         }
