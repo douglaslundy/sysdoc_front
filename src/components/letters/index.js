@@ -139,7 +139,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Usuário
+                                    Usuário / Assunto
                                 </Typography>
                             </TableCell>
 
@@ -215,7 +215,31 @@ export default () => {
                                         </TableCell>
 
                                         <TableCell>
-                                            <Typography variant="h6">{letter && letter.subject_matter.toUpperCase()}</Typography>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                        }}
+                                                    >
+                                                        {letter && letter.user.name}
+                                                    </Typography>
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {letter && letter.subject_matter.toUpperCase()}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
                                         </TableCell>
 
                                         <TableCell align="center">

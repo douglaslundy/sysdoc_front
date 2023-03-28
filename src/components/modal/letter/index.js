@@ -131,7 +131,7 @@ export default function LetterModal(props) {
                                 <Stack spacing={3}>
                                     <TextField
                                         id="sender"
-                                        label="Remetente"
+                                        label={sender && sender.length > 0 ? `Remetente: ${50 - sender.length} caracteres restantes` : 'Remetente'}
                                         variant="outlined"
                                         name="sender"
                                         value={sender ? sender : ''}
@@ -139,13 +139,14 @@ export default function LetterModal(props) {
                                         required
                                         inputProps={{
                                             style: {
-                                                textTransform: "uppercase"
-                                            }
+                                                textTransform: "uppercase",
+                                            },
+                                            maxLength: 50
                                         }}
                                     />
                                     <TextField
                                         id="recipient"
-                                        label="Destinatário"
+                                        label={recipient && recipient.length > 0 ? `Destinatário: ${50 - recipient.length} caracteres restantes` : 'Destinatário'}
                                         variant="outlined"
                                         name="recipient"
                                         required
@@ -154,12 +155,13 @@ export default function LetterModal(props) {
                                         inputProps={{
                                             style: {
                                                 textTransform: "uppercase"
-                                            }
+                                            },
+                                            maxLength: 50
                                         }}
                                     />
                                     <TextField
                                         id="subject_matter"
-                                        label="Assunto"
+                                        label={subject_matter && subject_matter.length > 0 ? `Assunto: ${100 - subject_matter.length} caracteres restantes` : 'Assunto'}
                                         variant="outlined"
                                         name="subject_matter"
                                         multiline
@@ -168,14 +170,15 @@ export default function LetterModal(props) {
                                         inputProps={{
                                             style: {
                                                 textTransform: "uppercase"
-                                            }
+                                            },
+                                            maxLength: 100
                                         }}
                                         required
                                     />
 
                                     <TextField
                                         id="summary"
-                                        label="Resumo"
+                                        label={summary && summary.length > 0 ? `Resumo: ${500 - summary.length} caracteres restantes` : 'Resumo'}
                                         multiline
                                         rows={2}
                                         value={summary ? summary : ''}
@@ -184,13 +187,14 @@ export default function LetterModal(props) {
                                         inputProps={{
                                             style: {
                                                 textTransform: "uppercase"
-                                            }
+                                            },
+                                            maxLength: 500
                                         }}
                                     />
 
                                     <TextField
                                         id="obs"
-                                        label="Modelo gerado pela IA"
+                                        label={obs ? `O Modelo gerado pela IA possui ${obs.length} caracteres gerados` : 'Campo destinado a IA'}
                                         multiline
                                         rows={10}
                                         value={obs ? obs : ''}

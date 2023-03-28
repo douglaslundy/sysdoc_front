@@ -62,7 +62,6 @@ export const getTextAI = (letter) => {
             'wishes': "estima e consideração"
         }
 
-        console.log(JSON.stringify(letter));
         api.post('/letters/newLetter', letter)
             .then((res) =>
             (
@@ -74,7 +73,7 @@ export const getTextAI = (letter) => {
                 dispatch(turnLoading()),
                 // cleanForm()
             ))
-            .catch((error) => {
+            .catch((error) => {                
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';

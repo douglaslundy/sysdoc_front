@@ -3,7 +3,7 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 const INITIAL_STATE = {
 	letters: [],
 	letter: {},
-	textOpenAi: "false"
+	textOpenAi: ""
 
 }
 
