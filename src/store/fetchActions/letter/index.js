@@ -25,6 +25,7 @@ export const getAllLetters = () => {
 
 export const addLetterFetch = (letter, cleanForm) => {
     const {'sysvendas.id' : user} = parseCookies();
+    const {'sysvendas.username' : username} = parseCookies();
 
     return (dispatch) => {
         dispatch(turnLoading());
@@ -35,8 +36,15 @@ export const addLetterFetch = (letter, cleanForm) => {
         api.post('/letters', letter)
             .then((res) =>
             (
-                dispatch(addLetter(res.data.letter)),
-                dispatch(addMessage(`O Ofício ${res.data.letter.number} foi adicionado com sucesso!`)),
+                res = {
+                    ...res.data.letter,
+                    user : {
+                        name : username
+                    }
+                },
+
+                dispatch(addLetter(res)),
+                dispatch(addMessage(`O Ofício ${res.number} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -65,13 +73,9 @@ export const getTextAI = (letter) => {
         api.post('/letters/newLetter', letter)
             .then((res) =>
             (
-                // dispatch(addLetter(res.data.letter)),
-                // dispatch(addLetter(res))
                 dispatch(getTextOpenAi(res.data)),
                 dispatch(addMessage(`Modelo Gerado com Sucesso`)),
-                // dispatch(turnAlert()),
                 dispatch(turnLoading()),
-                // cleanForm()
             ))
             .catch((error) => {                
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
