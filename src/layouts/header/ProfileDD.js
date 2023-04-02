@@ -7,15 +7,11 @@ import {
   Menu,
   Typography,
   Link,
-  ListItemButton,
-  List,
-  ListItemText,
   Button,
   Divider,
 } from "@mui/material";
 
-import { useSelector, useDispatch } from "react-redux";
-import Router from "next/router";
+import { useDispatch } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
 import { logoutFetch } from "../../store/fetchActions/auth";
 

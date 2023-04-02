@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import NextLink from "next/link";
 import PropTypes from "prop-types";
 import {
@@ -6,11 +6,7 @@ import {
   Drawer,
   useMediaQuery,
   List,
-  Link,
-  Button,
-  Typography,
   ListItem,
-  Collapse,
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
@@ -18,8 +14,12 @@ import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
 import Menuitems from "./MenuItems";
 import { useRouter } from "next/router";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
+
+  const { profile } = useContext(AuthContext);
+
   const [open, setOpen] = React.useState(true);
 
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up("lg"));
@@ -34,58 +34,61 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
   let curl = useRouter();
   const location = curl.pathname;
 
+  const Lista = (item, index) => {
+    return (
+      <List component="li" disablePadding key={item.title}>
+        <NextLink href={item.href}>
+          <ListItem
+            onClick={() => handleClick(index)}
+            button
+            selected={location === item.href}
+            sx={{
+              mb: 1,
+              ...(location === item.href && {
+                color: "white",
+                backgroundColor: (theme) =>
+                  `${theme.palette.primary.main}!important`,
+              }),
+            }}
+          >
+            <ListItemIcon>
+              <FeatherIcon
+                style={{
+                  color: `${location === item.href ? "white" : ""} `,
+                }}
+                icon={item.icon}
+                width="20"
+                height="20"
+              />
+            </ListItemIcon>
+
+            <ListItemText onClick={onSidebarClose}>
+              {item.title}
+            </ListItemText>
+          </ListItem>
+        </NextLink>
+      </List>
+    )
+  }
+
   const SidebarContent = (
     <Box p={2} height="100%">
       <LogoIcon />
       <Box mt={2}>
         <List>
-          {Menuitems.map((item, index) => (
-            <List component="li" disablePadding key={item.title}>
-              <NextLink href={item.href}>
-                <ListItem
-                  onClick={() => handleClick(index)}
-                  button
-                  selected={location === item.href}
-                  sx={{
-                    mb: 1,
-                    ...(location === item.href && {
-                      color: "white",
-                      backgroundColor: (theme) =>
-                        `${theme.palette.primary.main}!important`,
-                    }),
-                  }}
-                >
-                  <ListItemIcon>
-                    <FeatherIcon
-                      style={{
-                        color: `${location === item.href ? "white" : ""} `,
-                      }}
-                      icon={item.icon}
-                      width="20"
-                      height="20"
-                    />
-                  </ListItemIcon>
 
-                  <ListItemText onClick={onSidebarClose}>
-                    {item.title}
-                  </ListItemText>
-                </ListItem>
-              </NextLink>
-            </List>
+          {Menuitems.map((item, index) => (
+
+            profile == "admin" && 
+              Lista(item, index) 
+            ||
+            profile == "user" && item.profile == "user" &&
+              Lista(item, index)  
+
           ))}
+
         </List>
       </Box>
-
-      {/* <Typography
-        variant="h5"
-        fontWeight="700"
-        sx={{
-          ml: 1,
-        }}
-      >
-        Licença: {(new Date('2025-02-01') - new Date((`${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`).toString())) / (1000 * 60 * 60 * 24)} dias restantes 
-      </Typography> */}
-
 
     </Box>
   );

@@ -24,6 +24,8 @@ import { getAllUsers, inactiveUserFetch } from "../../store/fetchActions/user";
 import { showUser } from "../../store/ducks/users";
 import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
+import { AuthContext } from "../../contexts/AuthContext";
+import Router from "next/router";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -36,7 +38,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
 }));
 
+
 export default () => {
+    const { profile } = useContext(AuthContext);
+
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -83,6 +88,14 @@ export default () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    useEffect(() => {
+    
+        if (profile == "user") {
+          Router.push('/');
+        }
+      }, []);
+
 
     return (
         <BaseCard title="Usuários">

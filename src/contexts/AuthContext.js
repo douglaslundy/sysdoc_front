@@ -1,9 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { parseCookies } from 'nookies';
-import axios from "axios";
 
 export const AuthContext = createContext({});
-
 
 export function AuthProvider({ children }) {
 
