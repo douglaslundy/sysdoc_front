@@ -200,7 +200,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.sender.toUpperCase()}
+                                                        {letter && letter.sender.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -208,7 +208,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.recipient.toUpperCase()}
+                                                        {letter && letter.recipient.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -228,7 +228,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.user.name}
+                                                        {letter && letter.user.name.substring(0, 10)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -236,7 +236,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.subject_matter.toUpperCase()}
+                                                        {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -244,10 +244,6 @@ export default () => {
 
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
-
-                                                {/* <Button title="Receber" onClick={() => { HandleGetSales(letter) }} color="primary" size="medium" variant="contained">
-                                                    <FeatherIcon icon="dollar-sign" width="20" height="20" />
-                                                </Button> */}
 
                                                 <Button title="Editar lettere" onClick={() => { HandleEditletter(letter) }} color="primary" size="medium" variant="contained">
                                                     <FeatherIcon icon="edit" width="20" height="20" />
