@@ -3,11 +3,6 @@ import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
 import { inactiveUser, addUser, editUser, addUsers } from "../../ducks/users";
 import { turnLoading, turnAlert, addMessage, addAlertMessage } from "../../ducks/Layout";
 
-// function getToken() {
-//     const { 'sysvendas.token': token } = parseCookies();
-//     token ? api.defaults.headers['Authorization'] = `Bearer ${token}` : Router.push('/login');
-// }
-
 export const getAllUsers = () => {
     // getToken();
     return (dispatch) => {

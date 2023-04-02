@@ -42,11 +42,7 @@ const profiles = [
     {
         "id": "admin",
         "name": "Administrador"
-    },
-    {
-        "id": "operator",
-        "name": "Operário"
-    },
+    },    
     {
         "id": "user",
         "name": "Usuário"
@@ -55,7 +51,6 @@ const profiles = [
 
 export default function UserModal(props) {
 
-
     const [form, setForm] = useState({
         profile: "",
         name: "",
@@ -63,6 +58,7 @@ export default function UserModal(props) {
         cpf: "",
         password: "",
     });
+
     const { user } = useSelector(state => state.users);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -142,7 +138,7 @@ export default function UserModal(props) {
 
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
-                                    {/* <FormControl fullWidth required>
+                                    <FormControl fullWidth required>
                                         <InputLabel>Perfil do Usuário</InputLabel>
                                         <Select
                                             id="profile"
@@ -156,7 +152,7 @@ export default function UserModal(props) {
                                                 <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
                                             ))}
                                         </Select>
-                                    </FormControl> */}
+                                    </FormControl>
 
                                     <TextField
                                         id="name"
@@ -183,7 +179,7 @@ export default function UserModal(props) {
                                         required
                                     />
 
-                                    <CpfCnpj value={cpf}
+                                    <CpfCnpj value={cpf ? cpf : ''}
                                         label={'CPF'}
                                         name={'cpf'}
                                         changeItem={changeItem}
@@ -196,7 +192,7 @@ export default function UserModal(props) {
                                         name="password"
                                         label="Senha"
                                         type="password"
-                                        value={password}
+                                        value={password ? password : ''}
                                         onChange={changeItem}
                                         id="password"
                                     />
