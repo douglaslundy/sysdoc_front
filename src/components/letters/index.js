@@ -18,11 +18,12 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import LetterModal from "../modal/letter";
+import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/letter";
 import { showLetter } from "../../store/ducks/letters";
-import { changeTitleAlert, turnModal, turnModalGetSales } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
@@ -49,6 +50,7 @@ export default () => {
     const { letters, letter } = useSelector(state => state.letters);
     const [searchValue, setSearchValue] = useState();
     const [allLetters, setAllLetters] = useState(letters);
+    const { user, profile } = useContext(AuthContext);
 
     useEffect(() => {
         dispatch(getAllLetters());
@@ -58,17 +60,19 @@ export default () => {
         setAllLetters(searchValue ? [...letters.filter(lett => lett.number.toString().includes(searchValue.toString()))] : letters);
     }, [letters]);
 
-    // const HandleGetLetters = async letter => {
-    //     dispatch(getAllLetter(letter, 'no'));
-    //     dispatch(showLetter(letter));
-    // }
 
-    const HandleEditletter = async letter => {
+
+    const HandleViewLetter = async letter => {
         dispatch(showLetter(letter));
         dispatch(turnModal());
     }
 
-    const HandleInactiveletter = async letter => {
+    const HandleEditLetter = async letter => {
+        dispatch(showLetter(letter));
+        dispatch(turnModal());
+    }
+
+    const HandleInactiveLetter = async letter => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${letter.number}`, confirm: inactiveLetterFetch(letter) })
         dispatch(changeTitleAlert(`O lettere ${letter.number} foi excluido com sucesso!`))
     }
@@ -228,7 +232,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.user.name.substring(0, 10)}
+                                                        {letter && letter.user.name.substring(0, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -245,14 +249,19 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar lettere" onClick={() => { HandleEditletter(letter) }} color="primary" size="medium" variant="contained">
+                                                {/* <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
+                                                    <FeatherIcon icon="eye" width="20" height="20" />
+                                                </Button> */}
+
+                                                <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && letter.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Inativar lettere" onClick={() => { HandleInactiveletter(letter) }} color="error" size="medium" variant="contained">
+                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
+                                                    disabled={letter.id_user == user ? allLetters.length - index !== allLetters.length : true  }>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
-
 
                                             </Box>
                                         </TableCell>
