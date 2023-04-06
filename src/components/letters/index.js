@@ -249,9 +249,9 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                {/* <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button> */}
+                                                </Button>
 
                                                 <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && letter.id_user != user}>
@@ -259,7 +259,7 @@ export default () => {
                                                 </Button>
 
                                                 <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
-                                                    disabled={letter.id_user == user ? allLetters.length - index !== allLetters.length : true  }>
+                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true  }>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
