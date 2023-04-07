@@ -17,13 +17,13 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-// import ModelModal from "../modal/model";
+import ViewModelModal from "../modal/model/view";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllModels } from "../../store/fetchActions/models";
 import { showModel } from "../../store/ducks/models";
-import { turnModal } from "../../store/ducks/Layout";
+import { turnModalViewModel } from "../../store/ducks/Layout";
 import Router from "next/router";
 
 import { parseISO, format } from 'date-fns';
@@ -43,10 +43,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 export default () => {
 
     const dispatch = useDispatch();
-    const { models, model } = useSelector(state => state.models);
+    const { models } = useSelector(state => state.models);
     const [searchValue, setSearchValue] = useState();
     const [allModels, setAllModels] = useState(models);
-    const { user, profile } = useContext(AuthContext);
+    const { profile } = useContext(AuthContext);
 
     useEffect(() => {
         dispatch(getAllModels());
@@ -66,7 +66,7 @@ export default () => {
 
     const HandleViewModel = async model => {
         dispatch(showModel(model));
-        dispatch(turnModal());
+        dispatch(turnModalViewModel());
     }
 
     const HandleEditModel = async model => {
@@ -98,7 +98,7 @@ export default () => {
 
     return (
         <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
-            <AlertModal />
+            <ViewModelModal />
 
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -182,7 +182,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {model && format(parseISO(model.created_at), 'dd/MM/yyyy H:m:s')}
+                                                        {model && format(parseISO(model.created_at), 'dd/MM/yyyy HH:mm:ss')}
                                                     </Typography>
                                                 </Box>
                                             </Box>

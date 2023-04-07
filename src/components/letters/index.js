@@ -18,12 +18,13 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import LetterModal from "../modal/letter";
+import ViewLetterModal from "../modal/letter/view";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/letter";
 import { showLetter } from "../../store/ducks/letters";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
@@ -48,7 +49,7 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { letters, letter } = useSelector(state => state.letters);
+    const { letters } = useSelector(state => state.letters);
     const [searchValue, setSearchValue] = useState();
     const [allLetters, setAllLetters] = useState(letters);
     const { user, profile } = useContext(AuthContext);
@@ -65,7 +66,7 @@ export default () => {
 
     const HandleViewLetter = async letter => {
         dispatch(showLetter(letter));
-        dispatch(turnModal());
+        dispatch(turnModalViewLetter());
     }
 
     const HandleEditLetter = async letter => {
@@ -104,7 +105,7 @@ export default () => {
     return (
         <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
             <AlertModal />
-
+            <ViewLetterModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
                 'display': 'flex',
@@ -119,7 +120,6 @@ export default () => {
                     onChange={searchletters}
 
                 />
-
 
                 <LetterModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
@@ -193,7 +193,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy H:m:s')}
+                                                        {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}
                                                     </Typography>
                                                 </Box>
                                             </Box>

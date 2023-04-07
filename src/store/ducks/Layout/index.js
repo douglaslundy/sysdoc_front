@@ -5,6 +5,8 @@ const INITIAL_STATE = {
     alertMessages:[],
     isOpenLoading: false,
     isOpenModal: false, 
+    isOpenModelModal: false, 
+    isOpenLetterModal: false, 
     isOpenModalGetSales: false, 
     isOpenModalGetSale: false, 
     isOpenAlert: false,
@@ -22,6 +24,10 @@ export const removeAlertMessage = createAction('REMOVE_ALERT_MESSAGE');
 export const turnLoading = createAction('IS_OPEN_LOADING');
 
 export const turnModal = createAction('IS_OPEN_MODAL');
+
+export const turnModalViewModel = createAction('IS_OPEN_MODEL_MODAL');
+
+export const turnModalViewLetter = createAction('IS_OPEN_LETTER_MODAL');
 
 export const turnModalGetSales = createAction('IS_OPEN_MODAL_GET_SALES');
 
@@ -43,6 +49,10 @@ export default createReducer(INITIAL_STATE, {
    [turnLoading.type] : (state, action) => ({...state, isOpenLoading: ( !state.isOpenLoading)}),
 
    [turnModal.type] : (state, action) => ({...state, isOpenModal: ( !state.isOpenModal)}),
+
+   [turnModalViewModel.type] : (state, action) => ({...state, isOpenModelModal: ( !state.isOpenModelModal)}),
+   
+   [turnModalViewLetter.type] : (state, action) => ({...state, isOpenLetterModal: ( !state.isOpenLetterModal)}),
    
    [turnModalGetSale.type] : (state, action) => ({...state, isOpenModalGetSale: ( !state.isOpenModalGetSale)}),
    
@@ -54,60 +64,3 @@ export default createReducer(INITIAL_STATE, {
 
    [changeSubTitleALert.type] : (state, action) => ({...state, subTitleAlert: action.payload})
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Codigo abaixo foi subistituido com a refatoração utilizando @reduxjs/toolkit
-// const INITIAL_STATE = {
-//     showMessage: false
-// };
-
-// export default (state = INITIAL_STATE, action) => {
-//     switch (action.type) {
-//         case 'SHOW_MESSAGE':
-//             return { ...state, showMessage: true };
-//         case 'HIDE_MESSAGE':
-//             return { ...state, showMessage: false };
-//         default:
-//             return state;
-//     }
-// }
-
-// export const Types = {
-//     SHOW_MESSAGE: 'SHOW_MESSAGE'
-// }
-
-// export const showMessage = () => {
-//     return {
-//         type: 'SHOW_MESSAGE'
-//     };
-// };
-
-// export const hideMessage = () => {
-//     return {
-//         type: 'HIDE_MESSAGE'
-//     };
-// };

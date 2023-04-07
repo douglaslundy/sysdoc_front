@@ -2,7 +2,8 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
 	models: [],
-    model: {}
+	// md = model
+    md: {}
 }
 
 
@@ -15,6 +16,6 @@ export default createReducer(INITIAL_STATE, {
 	// addModels cria a lista de letteres atraves de consulta no banco
 	[addModels.type]: (state, action) => ({ models: [...action.payload] }),
 
-	[showModel.type]: (state, action) => ({ ...state, model: action.payload }),
+	[showModel.type]: (state, action) => ({ ...state, md: action.payload }),
 });
 
