@@ -81,7 +81,12 @@ export default () => {
 
     const searchletters = ({ target }) => {
         setSearchValue(target.value);
-        setAllLetters([...letters.filter(lett => lett.number.toString().includes(target.value.toString()))]);
+        setAllLetters([...letters.filter(
+            lett => lett.number && lett.number.toString().includes(target.value.toString()) ||
+                lett.sender && lett.sender.toString().includes(target.value.toString()) ||
+                lett.recipient && lett.recipient.toString().includes(target.value.toString()) ||
+                lett.subject_matter && lett.subject_matter.toString().includes(target.value.toString())
+        )]);
     }
 
     const [page, setPage] = useState(0);
@@ -99,13 +104,13 @@ export default () => {
     return (
         <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
             <AlertModal />
-            
+
             <Box sx={{
                 '& > :not(style)': { m: 2 },
                 'display': 'flex',
                 'justify-content': 'stretch'
             }}>
-                 
+
                 <TextField
                     sx={{ width: "85%" }}
                     label="Pesquisar ofício"
@@ -263,7 +268,7 @@ export default () => {
                                                 </Button>
 
                                                 <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
-                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true  }>
+                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 

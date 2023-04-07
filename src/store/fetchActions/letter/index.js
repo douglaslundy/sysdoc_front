@@ -114,7 +114,6 @@ export const inactiveLetterFetch = (letter) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                console.log(JSON.stringify(error.response.data.message));
                 dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
                 dispatch(turnLoading());
             })

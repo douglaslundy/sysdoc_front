@@ -3,11 +3,6 @@ import { turnLoading, addAlertMessage } from "../../ducks/Layout";
 import Router from "next/router";
 import { parseCookies, setCookie, destroyCookie } from 'nookies'
 
-// function getToken() {
-//     const { 'sysvendas.token': token } = parseCookies();
-//     api.defaults.headers['Authorization'] = `Bearer ${token}`;
-// }
-
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
         dispatch(turnLoading())

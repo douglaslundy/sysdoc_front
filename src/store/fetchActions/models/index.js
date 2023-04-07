@@ -1,8 +1,6 @@
 import { api } from "../../../services/api";
 import { turnLoading } from "../../ducks/Layout";
-import { parseCookies } from "nookies";
 import { addModels } from "../../ducks/models";
-
 
 export const getAllModels = () => {
 

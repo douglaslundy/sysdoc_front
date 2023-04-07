@@ -21,7 +21,7 @@ import FeatherIcon from "feather-icons-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllModels} from "../../store/fetchActions/models";
+import { getAllModels } from "../../store/fetchActions/models";
 import { showModel } from "../../store/ducks/models";
 import { turnModal } from "../../store/ducks/Layout";
 import Router from "next/router";
@@ -41,7 +41,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
-   
+
     const dispatch = useDispatch();
     const { models, model } = useSelector(state => state.models);
     const [searchValue, setSearchValue] = useState();
@@ -76,7 +76,12 @@ export default () => {
 
     const searchmodels = ({ target }) => {
         setSearchValue(target.value);
-        setAllModels([...models.filter(lett => lett.number.toString().includes(target.value.toString()))]);
+        setAllModels([...models.filter(
+            mod => mod.sender && mod.sender.toString().includes(target.value.toString()) ||
+                mod.recipient && mod.recipient.toString().includes(target.value.toString()) ||
+                mod.summary && mod.summary.toString().includes(target.value.toString()) ||
+                mod.model && mod.model.toString().includes(target.value.toString())
+        )]);
     }
 
     const [page, setPage] = useState(0);
@@ -94,13 +99,13 @@ export default () => {
     return (
         <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
             <AlertModal />
-            
+
             <Box sx={{
                 '& > :not(style)': { m: 2 },
                 'display': 'flex',
                 'justify-content': 'stretch'
             }}>
-                 
+
                 <TextField
                     sx={{ width: "85%" }}
                     label="Pesquisar um modelo criado"
@@ -244,7 +249,7 @@ export default () => {
 
                                                 <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>                                               
+                                                </Button>
 
                                             </Box>
                                         </TableCell>
@@ -262,7 +267,7 @@ export default () => {
                     rowsPerPage={rowsPerPage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
-            </TableContainer>          
+            </TableContainer>
         </BaseCard >
     );
 };
