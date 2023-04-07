@@ -61,7 +61,7 @@ export default function ViewLetterModal(props) {
     }
 
     const handleClose = () => {
-        cleanForm();
+        cleanLett();
     };
 
     useEffect(() => {
@@ -191,10 +191,19 @@ export default function ViewLetterModal(props) {
                                                 textAlign: "right"
                                             }}
                                         >
-                                        {created_at && "Criado em " + format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                            {/* Data */}
-                                        </Typography>                                        
+                                            {letter && letter.user && letter.user.name}
+                                        </Typography>
+
+                                        <Typography
+                                            variant="h6"
+                                            sx={{
+                                                textAlign: "right"
+                                            }}
+                                        >
+                                            {created_at && format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                        </Typography>
                                     </Box>
+
                                     
                                 </Stack>
                                 <br />

@@ -213,8 +213,16 @@ export default function ViewModelModal(props) {
                                                 textAlign: "right"
                                             }}
                                         >
-                                            {created_at && "Criado em " + format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                            {/* Data */}
+                                            {md && md.user && md.user.name}
+                                        </Typography>
+
+                                        <Typography
+                                            variant="h6"
+                                            sx={{
+                                                textAlign: "right"
+                                            }}
+                                        >
+                                            {created_at && format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}
                                         </Typography>
                                     </Box>
 
