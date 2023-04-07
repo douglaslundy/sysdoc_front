@@ -27,7 +27,7 @@ const Header = ({ sx, customClass, toggleMobileSidebar, position }) => {
         {/* ------------------------------------------- */}
         {/* Search Dropdown */}
         {/* ------------------------------------------- */}
-        <SearchDD />
+        {/* <SearchDD /> */}
         {/* ------------ End Menu icon ------------- */}
 
         <Box flexGrow={1} />

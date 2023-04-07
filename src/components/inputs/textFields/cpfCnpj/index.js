@@ -14,7 +14,7 @@ const CpfCnpjInput = React.forwardRef((props, ref) => {
 
 export default function index(props) {
 
-    const { label, name, value, changeItem } = props;
+    const { label, name, value, changeItem, disabled = false } = props;
     return (
         <TextField
             id="phone"
@@ -22,8 +22,8 @@ export default function index(props) {
             variant="outlined"
             name={name}
             value={value ? value : ''}
-            onChange={changeItem}
-
+            onChange={changeItem}            
+            disabled={disabled}
             InputProps={{
                 inputComponent: CpfCnpjInput,
             }}

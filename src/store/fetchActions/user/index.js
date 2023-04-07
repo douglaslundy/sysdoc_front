@@ -1,10 +1,9 @@
 import { api } from "../../../services/api";
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
-import { inactiveUser, addUser, editUser, addUsers } from "../../ducks/users";
+import { inactiveUser, addUser, editUser, addUsers, showUser } from "../../ducks/users";
 import { turnLoading, turnAlert, addMessage, addAlertMessage } from "../../ducks/Layout";
 
 export const getAllUsers = () => {
-    // getToken();
     return (dispatch) => {
         dispatch(turnLoading())
         api
@@ -60,6 +59,23 @@ export const editUserFetch = (user, cleanForm) => {
                     dispatch(turnAlert()),
                     dispatch(turnLoading()),
                     cleanForm()
+                ))
+                .catch((error) => {
+                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(turnLoading());
+                    return error.response ? error.response.data : 'erro desconhecido';
+                })
+    };
+}
+
+export const getUserFetch = (user) => {
+    return (dispatch) => {
+        dispatch(turnLoading()),
+            api.get(`/users/${user}`)
+                .then((res) =>
+                (
+                    dispatch(showUser(res.data.users)),
+                    dispatch(turnLoading()),
                 ))
                 .catch((error) => {
                     dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));

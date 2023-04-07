@@ -45,8 +45,7 @@ export default function ViewModelModal(props) {
 
     const { summary, prompt, model, subject, sender, recipient, created_at } = mod;
 
-    // md = model 
-    const { md } = useSelector(state => state.models);
+    const { model: md } = useSelector(state => state.models);
     const { isOpenModelModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 

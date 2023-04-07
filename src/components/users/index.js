@@ -17,12 +17,11 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import UserModal from "../modal/user";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllUsers, inactiveUserFetch } from "../../store/fetchActions/user";
 import { showUser } from "../../store/ducks/users";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnUserModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import { AuthContext } from "../../contexts/AuthContext";
 import Router from "next/router";
@@ -63,7 +62,7 @@ export default () => {
 
     const HandleEditUser = async user => {
         dispatch(showUser(user));
-        dispatch(turnModal());
+        dispatch(turnUserModal());
     }
 
     const HandleInactiveUser = async user => {
@@ -114,11 +113,11 @@ export default () => {
 
                 />
 
-                <UserModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
+                {/* <UserModal> */}
+                    <Fab onClick={() => { dispatch(turnUserModal()) }} color="primary" aria-label="add">
                         <FeatherIcon icon="user-plus" />
                     </Fab>
-                </UserModal>
+                {/* </UserModal> */}
             </Box>
 
             <TableContainer>
@@ -179,7 +178,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {/* {user.profile ? user.profile.toUpperCase() : ''} */}
+                                                        {user.profile ? user.profile.toUpperCase() : ''}
                                                     </Typography>
                                                 </Box>
                                             </Box>

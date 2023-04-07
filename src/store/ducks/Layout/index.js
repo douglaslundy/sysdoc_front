@@ -5,6 +5,7 @@ const INITIAL_STATE = {
     alertMessages:[],
     isOpenLoading: false,
     isOpenModal: false, 
+    isOpenUserModal: false, 
     isOpenModelModal: false, 
     isOpenLetterModal: false, 
     isOpenModalGetSales: false, 
@@ -24,6 +25,8 @@ export const removeAlertMessage = createAction('REMOVE_ALERT_MESSAGE');
 export const turnLoading = createAction('IS_OPEN_LOADING');
 
 export const turnModal = createAction('IS_OPEN_MODAL');
+
+export const turnUserModal = createAction('IS_OPEN_USER_MODAL');
 
 export const turnModalViewModel = createAction('IS_OPEN_MODEL_MODAL');
 
@@ -49,6 +52,8 @@ export default createReducer(INITIAL_STATE, {
    [turnLoading.type] : (state, action) => ({...state, isOpenLoading: ( !state.isOpenLoading)}),
 
    [turnModal.type] : (state, action) => ({...state, isOpenModal: ( !state.isOpenModal)}),
+   
+   [turnUserModal.type] : (state, action) => ({...state, isOpenUserModal: ( !state.isOpenUserModal)}),
 
    [turnModalViewModel.type] : (state, action) => ({...state, isOpenModelModal: ( !state.isOpenModelModal)}),
    

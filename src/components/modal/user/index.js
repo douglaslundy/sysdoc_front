@@ -21,7 +21,8 @@ import BaseCard from "../../baseCard/BaseCard";
 
 import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store/ducks/Layout';
+import { AuthContext } from '../../../contexts/AuthContext';
 
 
 const style = {
@@ -42,7 +43,7 @@ const profiles = [
     {
         "id": "admin",
         "name": "Administrador"
-    },    
+    },
     {
         "id": "user",
         "name": "Usuário"
@@ -57,13 +58,15 @@ export default function UserModal(props) {
         email: "",
         cpf: "",
         password: "",
+        password2: "",
     });
 
     const { user } = useSelector(state => state.users);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenUserModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    const { user: userId,  profile: userProfile } = useContext(AuthContext);
 
-    const { profile, name, email, cpf, password } = form;
+    const { profile, name, email, cpf, password, password2 } = form;
     const [texto, setTexto] = useState();
 
     const changeItem = ({ target }) => {
@@ -77,24 +80,27 @@ export default function UserModal(props) {
             email: "",
             cpf: "",
             password: "",
+            password2: "",
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(turnUserModal());
         dispatch(showUser({}));
     }
 
 
     const handleSaveData = async () => {
-        user && user.id ? handlePutData() : handlePostData()
+        password && password !== password2 ? dispatch(addAlertMessage("As senhas precisam ser iguais")) : user && user.id ? handlePutData() : handlePostData()
     }
 
     const handlePostData = async () => {
-
         dispatch(changeTitleAlert(`O usuário ${form.name} foi Cadastrado com sucesso!`));
         dispatch(addUserFetch(form, cleanForm));
     };
 
     const handlePutData = async () => {
+
+        if (password && password !== password2)
+            alert("erro")
 
         dispatch(changeTitleAlert(`O usuário ${form.name} foi atualizado com sucesso!`));
         dispatch(editUserFetch(form, cleanForm));
@@ -116,7 +122,7 @@ export default function UserModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenUserModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
@@ -138,21 +144,25 @@ export default function UserModal(props) {
 
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
-                                    <FormControl fullWidth required>
-                                        <InputLabel>Perfil do Usuário</InputLabel>
-                                        <Select
-                                            id="profile"
-                                            value={profile}
-                                            name="profile"
-                                            label="Perfil do Usuário"
-                                            onChange={changeItem}
-                                            variant="outlined"
-                                        >
-                                            {profiles.map((d) => (
-                                                <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+
+                                    {userProfile && userProfile == "admin" && 
+                                        <FormControl fullWidth required>
+                                            <InputLabel>Perfil do Usuário</InputLabel>
+                                            <Select
+                                                id="profile"
+                                                value={profile}
+                                                name="profile"
+                                                label="Perfil do Usuário"
+                                                onChange={changeItem}
+                                                variant="outlined"
+                                                disabled={user && user.id == userId ? true : false}
+                                            >
+                                                {profiles.map((d) => (
+                                                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    }
 
                                     <TextField
                                         id="name"
@@ -183,6 +193,7 @@ export default function UserModal(props) {
                                         label={'CPF'}
                                         name={'cpf'}
                                         changeItem={changeItem}
+                                        disabled={user && user.id ? true : false }
                                     />
 
                                     <TextField
@@ -197,9 +208,22 @@ export default function UserModal(props) {
                                         id="password"
                                     />
 
+                                    <TextField
+                                        margin="normal"
+                                        required
+                                        fullWidth
+                                        name="password2"
+                                        label="Repita a Senha"
+                                        type="password"
+                                        value={password2 ? password2 : ''}
+                                        onChange={changeItem}
+                                        id="password2"
+                                    />
+
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
+                                {texto}
                                 <Box sx={{ "& button": { mx: 1 } }}>
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
