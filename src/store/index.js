@@ -4,13 +4,15 @@ import layoutReducer from './ducks/Layout';
 import letterReducer from './ducks/letters';
 import userReducer from './ducks/users';
 import authReducer from './ducks/auth';
+import modelReducer from './ducks/models';
 
 
 export default configureStore({
     reducer: {
-        letters: letterReducer,
+        auth: authReducer, 
         layout: layoutReducer, 
         users: userReducer,
-        auth: authReducer,
+        letters: letterReducer,
+        models: modelReducer
     },
 });

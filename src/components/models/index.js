@@ -17,14 +17,14 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import LetterModal from "../modal/letter";
+// import ModelModal from "../modal/model";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/letter";
-import { showLetter } from "../../store/ducks/letters";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
-import ConfirmDialog from "../confirmDialog";
+import { getAllModels} from "../../store/fetchActions/models";
+import { showModel } from "../../store/ducks/models";
+import { turnModal } from "../../store/ducks/Layout";
+import Router from "next/router";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
@@ -41,47 +41,42 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
-    const [confirmDialog, setConfirmDialog] = useState({
-        isOpen: false,
-        title: 'Deseja realmente excluir',
-        subTitle: 'Esta ação não poderá ser desfeita',
-    });
-
+   
     const dispatch = useDispatch();
-    const { letters, letter } = useSelector(state => state.letters);
+    const { models, model } = useSelector(state => state.models);
     const [searchValue, setSearchValue] = useState();
-    const [allLetters, setAllLetters] = useState(letters);
+    const [allModels, setAllModels] = useState(models);
     const { user, profile } = useContext(AuthContext);
 
     useEffect(() => {
-        dispatch(getAllLetters());
+        dispatch(getAllModels());
     }, []);
 
     useEffect(() => {
-        setAllLetters(searchValue ? [...letters.filter(lett => lett.number.toString().includes(searchValue.toString()))] : letters);
-    }, [letters]);
+        setAllModels(searchValue ? [...models.filter(lett => lett.number.toString().includes(searchValue.toString()))] : models);
+    }, [models]);
+
+    useEffect(() => {
+
+        if (profile == "user") {
+            Router.push('/');
+        }
+    }, []);
 
 
-
-    const HandleViewLetter = async letter => {
-        dispatch(showLetter(letter));
+    const HandleViewModel = async model => {
+        dispatch(showModel(model));
         dispatch(turnModal());
     }
 
-    const HandleEditLetter = async letter => {
-        dispatch(showLetter(letter));
+    const HandleEditModel = async model => {
+        dispatch(showModel(model));
         dispatch(turnModal());
     }
 
-    const HandleInactiveLetter = async letter => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${letter.number}`, confirm: inactiveLetterFetch(letter) })
-        dispatch(changeTitleAlert(`O lettere ${letter.number} foi excluido com sucesso!`))
-    }
-
-
-    const searchletters = ({ target }) => {
+    const searchmodels = ({ target }) => {
         setSearchValue(target.value);
-        setAllLetters([...letters.filter(lett => lett.number.toString().includes(target.value.toString()))]);
+        setAllModels([...models.filter(lett => lett.number.toString().includes(target.value.toString()))]);
     }
 
     const [page, setPage] = useState(0);
@@ -97,7 +92,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
+        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
             <AlertModal />
             
             <Box sx={{
@@ -108,19 +103,13 @@ export default () => {
                  
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar ofício"
+                    label="Pesquisar um modelo criado"
                     name="search"
                     value={searchValue}
-                    onChange={searchletters}
+                    onChange={searchmodels}
 
                 />
 
-
-                <LetterModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
-                    </Fab>
-                </LetterModal>
             </Box>
 
             <TableContainer>
@@ -136,7 +125,7 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Numero / Data
+                                    Usuário / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
@@ -147,7 +136,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Usuário / Assunto
+                                    Resumo / Modelo Criado
                                 </Typography>
                             </TableCell>
 
@@ -160,10 +149,10 @@ export default () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allLetters
+                        {allModels
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((letter, index) => (
-                                <StyledTableRow key={letter.id} hover>
+                            .map((model, index) => (
+                                <StyledTableRow key={model.id} hover>
                                     <>
                                         <TableCell>
                                             <Box
@@ -177,10 +166,10 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
-                                                            fontSize: "38px",
+                                                            fontSize: "16px",
                                                         }}
                                                     >
-                                                        {letter && letter.number}
+                                                        {model && model.user.name.substring(0, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -188,7 +177,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy H:m:s')}
+                                                        {model && format(parseISO(model.created_at), 'dd/MM/yyyy H:m:s')}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -208,7 +197,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.sender.substring(0, 30).toUpperCase()}
+                                                        {model.sender && model.sender.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -216,7 +205,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.recipient.substring(0, 30).toUpperCase()}
+                                                        {model.recipient && model.recipient.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -236,7 +225,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.user.name.substring(0, 30)}
+                                                        {model.summary && model.summary.substring(0, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -244,7 +233,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
+                                                        {model.model && model.model.substring(0, 40).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -253,19 +242,9 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && letter.id_user != user}>
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
-                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true  }>
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
+                                                </Button>                                               
 
                                             </Box>
                                         </TableCell>
@@ -277,17 +256,13 @@ export default () => {
                 </Table>
                 <TablePagination
                     component="div"
-                    count={allLetters.length}
+                    count={allModels.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
-            </TableContainer>
-            <ConfirmDialog
-                confirmDialog={confirmDialog}
-                setConfirmDialog={setConfirmDialog} />
-
+            </TableContainer>          
         </BaseCard >
     );
 };

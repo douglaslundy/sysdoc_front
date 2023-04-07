@@ -3,11 +3,6 @@ import { inactiveLetter, addLetter, editLetter, addLetters, getTextOpenAi } from
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 
-// function getToken() {
-//     const { 'sysvendas.token': token } = parseCookies();    
-//     token ? api.defaults.headers['Authorization'] = `Bearer ${token}` : Router.push('/login');
-// }
-
 export const getAllLetters = () => {
 
     return (dispatch) => {
@@ -119,7 +114,8 @@ export const inactiveLetterFetch = (letter) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addMessage(`ERROR - ${error} `));
+                console.log(JSON.stringify(error.response.data.message));
+                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
                 dispatch(turnLoading());
             })
     }

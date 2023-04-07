@@ -1,6 +1,5 @@
 import { Grid } from "@mui/material";
 import Users from "../src/components/users";
-import { parseCookies } from 'nookies';
 
 const Tables = () => {
   return (
