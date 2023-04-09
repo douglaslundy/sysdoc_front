@@ -4,10 +4,10 @@ import { parseCookies } from 'nookies';
 const { 'sysvendas.token': token } = parseCookies();
 
 export const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL
+    baseURL: 'https://doc.dlsistemas.com.br/api'
+    // baseURL: 'http://localhost:8000/api'
 });
 
 if (token) {
     api.defaults.headers['Authorization'] = `Bearer ${token}`;
 }
-
