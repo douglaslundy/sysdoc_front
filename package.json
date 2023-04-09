@@ -114,6 +114,7 @@
     "dom-helpers": "^5.2.1",
     "domain-browser": "^4.22.0",
     "domexception": "^2.0.1",
+    "dotenv": "^16.0.3",
     "duplexer2": "^0.1.4",
     "electron-to-chromium": "^1.4.80",
     "elliptic": "^6.5.4",
