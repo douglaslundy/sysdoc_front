@@ -22,6 +22,24 @@ const Menuitems = [
     icon: "list",
     href: "/models",
     profile: "admin",
+  },
+  {
+    title: "Serviços", 
+    icon: "list",
+    href: "/service_calls",
+    profile: "admin",
+  }  ,
+  {
+    title: "Salas", 
+    icon: "list",
+    href: "/service_calls",
+    profile: "admin",
+  }  ,
+  {
+    title: "Atendimento", 
+    icon: "list",
+    href: "/service_calls",
+    profile: "admin",
   }  
 ];
 

@@ -5,6 +5,7 @@ import letterReducer from './ducks/letters';
 import userReducer from './ducks/users';
 import authReducer from './ducks/auth';
 import modelReducer from './ducks/models';
+import serviceReducer from './ducks/service_calls';
 
 
 export default configureStore({
@@ -13,6 +14,7 @@ export default configureStore({
         layout: layoutReducer, 
         users: userReducer,
         letters: letterReducer,
-        models: modelReducer
+        models: modelReducer,
+        services: serviceReducer
     },
 });
