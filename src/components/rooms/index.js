@@ -17,13 +17,13 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import ServiceModal from "../modal/service_calls";
+import RoomModal from "../modal/rooms";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllServices, inactiveServiceFetch } from "../../store/fetchActions/service_calls";
-import { showService } from "../../store/ducks/service_calls";
-import { changeTitleAlert, turnModal, turnModalViewService } from "../../store/ducks/Layout";
+import { getAllRooms, inactiveRoomFetch } from "../../store/fetchActions/rooms";
+import { showRoom } from "../../store/ducks/rooms";
+import { changeTitleAlert, turnModal, turnModalViewRoom } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
@@ -49,40 +49,40 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { services } = useSelector(state => state.services);
+    const { rooms } = useSelector(state => state.rooms);
     const [searchValue, setSearchValue] = useState();
-    const [allServices, setAllServices] = useState(services);
+    const [allRooms, setAllRooms] = useState(rooms);
     const { user, profile } = useContext(AuthContext);
 
     useEffect(() => {
-        dispatch(getAllServices());
+        dispatch(getAllRooms());
     }, []);
 
     useEffect(() => {
-        setAllServices(searchValue ? [...services.filter(serv => serv.number.toString().includes(searchValue.toString()))] : services);
-    }, [services]);
+        setAllRooms(searchValue ? [...rooms.filter(room => room.name.toString().includes(searchValue.toString()))] : rooms);
+    }, [rooms]);
 
-    const HandleViewService = async service => {
-        dispatch(showService(service));
-        dispatch(turnModalViewService());
+    const HandleViewRoom = async room => {
+        dispatch(showRoom(room));
+        dispatch(turnModalViewRoom());
     }
 
-    const HandleEditService = async service => {
-        dispatch(showService(service));
+    const HandleEditRoom = async room => {
+        dispatch(showRoom(room));
         dispatch(turnModal());
     }
 
-    const HandleInactiveService = async service => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Serviço ${service.name}`, confirm: inactiveServiceFetch(service) })
-        dispatch(changeTitleAlert(`O servico ${service.name} foi excluido com sucesso!`))
+    const HandleInactiveRoom = async room => {
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${room.name}`, confirm: inactiveRoomFetch(room) })
+        dispatch(changeTitleAlert(`O sala ${room.name} foi excluido com sucesso!`))
     }
 
 
-    const searchservices = ({ target }) => {
+    const searchRooms = ({ target }) => {
         setSearchValue(target.value);
-        setAllServices([...services.filter(
-            serv => serv.name && serv.name.toString().includes(target.value.toString()) ||
-                serv.id && serv.id.toString().includes(target.value.toString())
+        setAllRooms([...rooms.filter(
+            room => room.name && room.name.toString().includes(target.value.toString()) ||
+                room.description && room.description.toString().includes(target.value.toString())
         )]);
     }
 
@@ -99,7 +99,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allServices.length} Serviços Cadastrados`}>
+        <BaseCard title={`Você possui ${allRooms.length} Salas Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -109,18 +109,18 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar serviço"
+                    label="Pesquisar Sala"
                     name="search"
                     value={searchValue}
-                    onChange={searchservices}
+                    onChange={searchRooms}
 
                 />
 
-                <ServiceModal>
+                <RoomModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
                         <FeatherIcon icon="user-plus" />
                     </Fab>
-                </ServiceModal>
+                </RoomModal>
             </Box>
 
             <TableContainer>
@@ -136,12 +136,12 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    ID
+                                    Nome / Status
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Nome / Descrição
+                                    Serviço / Descrição
                                 </Typography>
                             </TableCell>
                             <TableCell align="center">
@@ -152,10 +152,10 @@ export default () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allServices
+                        {allRooms
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((service, index) => (
-                                <StyledTableRow key={service.id} hover>
+                            .map((room, index) => (
+                                <StyledTableRow key={room.id} hover>
                                     <>
                                         <TableCell>
                                             <Box
@@ -172,7 +172,7 @@ export default () => {
                                                             fontSize: "20px",
                                                         }}
                                                     >
-                                                        {service && service.id}
+                                                        {room.name && room.name.substring(0, 50).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -180,7 +180,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {service.created_at && format(parseISO(service.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                                        {room.status && room.status == "OPEN" ? "ABERTO" : room.status == "BUSY" ? "OCUPADO" : "FECHADO" }
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -200,7 +200,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {service && service.name.substring(0, 30).toUpperCase()}
+                                                        {room && room.call_service.name.toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -208,7 +208,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {service && service.description.substring(0, 30).toUpperCase()}
+                                                        {room.description && room.description.substring(0, 50).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -217,14 +217,14 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar Ofício" onClick={() => { HandleEditService(service) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                <Button title="Editar Ofício" onClick={() => { HandleEditRoom(room) }} color="primary" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveService(service) }} color="error" size="medium" variant="contained"
-                                                    // disabled={service.id_user == user || profile == "admin" ? allServices.length - index !== allServices.length : true}>
-                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveRoom(room) }} color="error" size="medium" variant="contained"
+                                                    // disabled={room.id_user == user || profile == "admin" ? allRooms.length - index !== allRooms.length : true}>
+                                                    disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
@@ -238,7 +238,7 @@ export default () => {
                 </Table>
                 <TablePagination
                     component="div"
-                    count={allServices.length}
+                    count={allRooms.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

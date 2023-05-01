@@ -32,7 +32,7 @@ const Menuitems = [
   {
     title: "Salas", 
     icon: "list",
-    href: "/service_calls",
+    href: "/rooms",
     profile: "admin",
   }  ,
   {
