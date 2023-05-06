@@ -38,7 +38,7 @@ const Menuitems = [
   {
     title: "Atendimento", 
     icon: "list",
-    href: "/service_calls",
+    href: "/calls",
     profile: "admin",
   }  
 ];

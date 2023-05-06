@@ -200,7 +200,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {service && service.name.substring(0, 30).toUpperCase()}
+                                                        {service.name && service.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -208,7 +208,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {service && service.description.substring(0, 30).toUpperCase()}
+                                                        {service.description && service.description.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                 </Box>
                                             </Box>

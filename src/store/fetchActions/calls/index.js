@@ -1,38 +1,30 @@
 import { api } from "../../../services/api";
-import { inactiveRoom, addRoom, editRoom, addRooms } from "../../ducks/rooms";
+import { inactiveCall, addCall, editCall, addCalls } from "../../ducks/calls";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 
-export const getAllRooms = () => {
+export const getAllCalls = () => {
 
     return (dispatch) => {
         dispatch(turnLoading());
         api
-            .get('/rooms')
+            .get('/calls')
             .then((res) => {
-                dispatch(addRooms(res.data));
+                dispatch(addCalls(res.data));
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
     }
 }
 
-export const addRoomFetch = (room, cleanForm) => {
+export const addCallFetch = (call, cleanForm) => {
 
     return (dispatch) => {
         dispatch(turnLoading());        
-        api.post('/rooms', room)
+        api.post('/calls', call)
             .then((res) =>
             (
-                res = {
-                    ...res.data.room,
-                    call_service : {
-                        'id': res.data.room.id,
-                        'name' : room.name
-                    }
-                    
-                },
-                dispatch(addRoom(res)),
-                dispatch(addMessage(`O Sala ${res.name} foi adicionadacom sucesso!`)),
+                dispatch(addCall(res.data)),
+                dispatch(addMessage(`O atendimento ${res.name} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -45,15 +37,15 @@ export const addRoomFetch = (room, cleanForm) => {
     };
 };
 
-export const editRoomFetch = (room, cleanForm) => {
+export const editCallFetch = (call, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
-        api.put(`/rooms/${room.id}`, room)
+        api.put(`/calls/${call.id}`, call)
             .then((res) =>
             (
-                dispatch(editRoom(room)),
-                dispatch(addMessage(`O Sala ${room.name} foi atualizada com sucesso!`)),
+                dispatch(editCall(call)),
+                dispatch(addMessage(`O atendimento ${call.name} foi atualizado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -66,15 +58,15 @@ export const editRoomFetch = (room, cleanForm) => {
     };
 }
 
-export const inactiveRoomFetch = (room) => {
+export const inactiveCallFetch = (call) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/rooms/${room.id}`)
+        api.delete(`/calls/${call.id}`)
             .then((res) =>
             (
-                dispatch(inactiveRoom(room)),
-                dispatch(addMessage(`O Sala ${room.name} foi excluida com sucesso!`)),
+                dispatch(inactiveCall(call)),
+                dispatch(addMessage(`O atendimento ${call.name} foi excluido com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
             ))

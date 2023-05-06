@@ -114,7 +114,6 @@ export default function ServiceModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
                                     <TextField
-                                        id="name"
                                         label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome'}
                                         variant="outlined"
                                         name="name"

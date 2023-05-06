@@ -23,7 +23,7 @@ export const addServiceFetch = (service, cleanForm) => {
         api.post('/services', service)
             .then((res) =>
             (
-                dispatch(addService(res.data)),
+                dispatch(addService(res.data.call_service)),
                 dispatch(addMessage(`O Serviço ${res.name} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
