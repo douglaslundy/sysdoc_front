@@ -113,7 +113,7 @@ export default function RoomModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={room && room.id ? "Editar Serviço " : "Enviar Serviço "}>
+                            <BaseCard title={room && room.id ? "Editar Sala " : "Enviar Sala "}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
@@ -125,7 +125,7 @@ export default function RoomModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
                                     <TextField
-                                        label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome'}
+                                        label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome da sala'}
                                         variant="outlined"
                                         name="name"
                                         value={name ? name : ''}
@@ -172,7 +172,6 @@ export default function RoomModal(props) {
                                                 "name": "FECHADO"
                                             },
                                         ]}
-                                        // getAllSelects={getAllStatusToSelect}
                                         changeItem={changeItem}
                                     />
 
@@ -180,7 +179,6 @@ export default function RoomModal(props) {
                                         label={'Serviço'}
                                         name={'call_service_id'}
                                         store={services}
-                                        // getAllSelects={getAllStatusToSelect}
                                         changeItem={changeItem}
                                     />
 

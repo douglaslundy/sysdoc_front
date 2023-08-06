@@ -15,8 +15,10 @@ import BaseCard from "../../baseCard/BaseCard";
 
 import { showService } from '../../../store/ducks/service_calls';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
-import { editServiceFetch, addServiceFetch } from '../../../store/fetchActions/service_calls';
+import { getAllServices } from '../../../store/fetchActions/service_calls';
 import AlertModal from '../../messagesModal'
+import Select from '../../inputs/selects';
+import { addCallFetch, editCallFetch } from '../../../store/fetchActions/calls';
 
 const style = {
     position: 'absolute',
@@ -32,16 +34,16 @@ const style = {
     overflow: "scroll",
 };
 
-export default function ServiceModal(props) {
+export default function CreateCallModal(props) {
 
 
     const [form, setForm] = useState({
-        name: "",
-        description: ""
+        call_service_id: "",
+        reason: ""
     });
 
-    const { name, description } = form;
-    const { service } = useSelector(state => state.services);
+    const { call_service_id, reason } = form;
+    const { services, service } = useSelector(state => state.services);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
@@ -53,8 +55,8 @@ export default function ServiceModal(props) {
 
     const cleanForm = () => {
         setForm({
-            name: "",
-            description: ""
+            call_service_id: "",
+            reason: ""
         });
         setTexto('');
         dispatch(turnModal());
@@ -67,25 +69,29 @@ export default function ServiceModal(props) {
     }
 
     const handlePostData = async () => {
-        dispatch(changeTitleAlert(`O serviço foi Cadastrado com sucesso!`));
-        dispatch(addServiceFetch(form, cleanForm));
+        dispatch(changeTitleAlert(`Atendimento criado com sucesso!`));
+        dispatch(addCallFetch(form, cleanForm));
     };
 
     const handlePutData = async () => {
-        dispatch(changeTitleAlert(`O serviço ${form.name} foi atualizado com sucesso!`));
-        dispatch(editServiceFetch(form, cleanForm));
+        dispatch(changeTitleAlert(`Atendimento atualizado com sucesso!`));
+        dispatch(editCallFetch(form, cleanForm));
     };
 
     const handleClose = () => {
         cleanForm();
     };
 
-    useEffect(() => {
-        if (service && service.id)
-            setForm(service);
+    // useEffect(() => {
+    //     if (service && service.id)
+    //         setForm(service);
 
-    }, [service]);
-    
+    // }, [service]);
+
+    useEffect(() => {
+        dispatch(getAllServices());
+    }, []);
+
     return (
         <div>
             {props.children}
@@ -102,7 +108,7 @@ export default function ServiceModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={service && service.id ? "Editar Serviço " : "Cadastrar Serviço "}>
+                            <BaseCard title={service && service.id ? "Editar Atendimento " : "Novo Atendimento "}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
@@ -111,30 +117,23 @@ export default function ServiceModal(props) {
 
                                 <br />
 
-                                {/* <FormGroup > */}
                                 <Stack spacing={3}>
-                                    <TextField
-                                        label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome'}
-                                        variant="outlined"
-                                        name="name"
-                                        value={name ? name : ''}
-                                        onChange={changeItem}
-                                        required
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase",
-                                            },
-                                            maxLength: 50
-                                        }}
+
+                                    <Select
+                                        value={call_service_id}
+                                        label={'Serviço'}
+                                        name={'call_service_id'}
+                                        store={services}
+                                        changeItem={changeItem}
                                     />
 
                                     <TextField
-                                        id="description"
-                                        label={description && description.length > 0 ? `Resumo: ${200 - description.length} caracteres restantes` : 'Descrição'}
+                                        id="reason"
+                                        label={reason && reason.length > 0 ? `Resumo: ${200 - reason.length} caracteres restantes` : 'Motivo do atendimento'}
                                         multiline
                                         rows={2}
-                                        value={description ? description : ''}
-                                        name="description"
+                                        value={reason ? reason : ''}
+                                        name="reason"
                                         onChange={changeItem}
                                         inputProps={{
                                             style: {
@@ -142,16 +141,17 @@ export default function ServiceModal(props) {
                                             },
                                             maxLength: 200
                                         }}
-                                    />                                    
+                                    />
                                 </Stack>
-                                {/* </FormGroup> */}
+                                
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
+                                    
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
                                     </Button>
-                                    
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
+
+                                    <Button onClick={cleanForm} variant="outlined" mt={2}>
                                         Cancelar
                                     </Button>
                                 </Box>

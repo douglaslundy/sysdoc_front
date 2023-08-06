@@ -1,22 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
-    Typography,
     Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
     TableRow,
-    Fab,
     Button,
     styled,
-    TableContainer,
-    TablePagination,
-    TextField
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -27,6 +17,8 @@ import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+
+import CreateCallModal from "../../components/modal/create_call";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -97,6 +89,10 @@ export default () => {
         setPage(0);
     };
 
+    const handleStart = () => {
+        dispatch(turnModal());
+    }
+
     return (
         <BaseCard title={`Inserir no atendimento`}>
             <AlertModal />
@@ -117,9 +113,11 @@ export default () => {
 
             </Box> */}
 
+            <CreateCallModal />
+
             <Button
                 title="Criar atendimento"
-                onClick={() => { alert('letter') }}
+                onClick={handleStart}
                 color="primary"
                 size="large"
                 variant="contained"
