@@ -241,7 +241,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.user.name.substring(0, 30)}
+                                                        {letter && letter.user.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"

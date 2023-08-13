@@ -144,6 +144,11 @@ export default () => {
                                     Nome / Descrição
                                 </Typography>
                             </TableCell>
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    Atendimentos
+                                </Typography>
+                            </TableCell>
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
                                     Ações
@@ -212,7 +217,54 @@ export default () => {
                                                     </Typography>
                                                 </Box>
                                             </Box>
-                                        </TableCell>                                       
+                                        </TableCell>
+
+
+                                        
+
+                                        <TableCell align="left">
+                                            <Box sx={{ "& button": { mx: 1 } }}>
+                                              
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleEditservice(service) }} color="warning" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                    <FeatherIcon icon="alert-triangle" width="20" height="20" />
+
+                                                    <div style={{ marginLeft: '5px' }}>
+                                                        {service.calls.filter(a => a.status == 'NOT_STARTED').length}
+                                                    </div>
+                                                </Button>
+
+                                                <Button title="Atendimentos em progresso" onClick={() => { HandleEditservice(service) }} color="primary" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                    <FeatherIcon icon="clock" width="20" height="20" />
+
+                                                    <div style={{ marginLeft: '5px' }}>
+                                                        {service.calls.filter(a => a.status == 'IN_PROGRESS').length}
+                                                    </div>
+                                                </Button>
+
+
+                                                <Button title="Atendimentos finalizados" onClick={() => { HandleInactiveservice(service) }} color="success" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                    <FeatherIcon icon="smile" width="20" height="20" />
+
+                                                    <div style={{ marginLeft: '5px' }}>
+                                                        {service.calls.filter(a => a.status == 'CLOSED').length}
+                                                    </div>
+                                                </Button>
+
+                                                <Button title="Desistências" onClick={() => { HandleInactiveservice(service) }} color="error" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && service.id_user != user}>
+                                                    <FeatherIcon icon="frown" width="20" height="20" />
+
+                                                    <div style={{ marginLeft: '5px' }}>
+                                                        {service.calls.filter(a => a.status == 'ABANDONED').length}
+                                                    </div>
+                                                </Button>
+
+                                            </Box>
+                                        </TableCell>
+
 
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>

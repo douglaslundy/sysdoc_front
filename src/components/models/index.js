@@ -174,7 +174,7 @@ export default () => {
                                                             fontSize: "16px",
                                                         }}
                                                     >
-                                                        {model && model.user.name.substring(0, 30)}
+                                                        {model && model.user.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -230,7 +230,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {model.summary && model.summary.substring(0, 30)}
+                                                        {model.summary && model.summary.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"

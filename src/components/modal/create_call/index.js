@@ -39,10 +39,10 @@ export default function CreateCallModal(props) {
 
     const [form, setForm] = useState({
         call_service_id: "",
-        reason: ""
+        subject: ""
     });
 
-    const { call_service_id, reason } = form;
+    const { call_service_id, subject } = form;
     const { services, service } = useSelector(state => state.services);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -56,7 +56,7 @@ export default function CreateCallModal(props) {
     const cleanForm = () => {
         setForm({
             call_service_id: "",
-            reason: ""
+            subject: ""
         });
         setTexto('');
         dispatch(turnModal());
@@ -128,12 +128,12 @@ export default function CreateCallModal(props) {
                                     />
 
                                     <TextField
-                                        id="reason"
-                                        label={reason && reason.length > 0 ? `Resumo: ${200 - reason.length} caracteres restantes` : 'Motivo do atendimento'}
+                                        id="subject"
+                                        label={subject && subject.length > 0 ? `Resumo: ${200 - subject.length} caracteres restantes` : 'Motivo do atendimento'}
                                         multiline
                                         rows={2}
-                                        value={reason ? reason : ''}
-                                        name="reason"
+                                        value={subject ? subject : ''}
+                                        name="subject"
                                         onChange={changeItem}
                                         inputProps={{
                                             style: {
