@@ -28,6 +28,8 @@ import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { useRouter } from "next/router";
+import { setFilteredCalls } from "../../store/ducks/calls";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -53,13 +55,14 @@ export default () => {
     const [searchValue, setSearchValue] = useState();
     const [allServices, setAllServices] = useState(services);
     const { user, profile } = useContext(AuthContext);
+    const router = useRouter();
 
     useEffect(() => {
         dispatch(getAllServices());
     }, []);
 
     useEffect(() => {
-        setAllServices(searchValue ? [...services.filter(serv => serv.number.toString().includes(searchValue.toString()))] : services);
+        setAllServices(searchValue ? [...services.filter(serv => serv.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : services);
     }, [services]);
 
     const HandleViewService = async service => {
@@ -72,16 +75,22 @@ export default () => {
         dispatch(turnModal());
     }
 
+    const HandleGoCalls = services => {
+        // console.log(JSON.stringify(services));
+        dispatch(setFilteredCalls(services));
+        router.push('/listing_calls');
+    }
+
     const HandleInactiveService = async service => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Serviço ${service.name}`, confirm: inactiveServiceFetch(service) })
         dispatch(changeTitleAlert(`O servico ${service.name} foi excluido com sucesso!`))
     }
 
 
-    const searchservices = ({ target }) => {
+    const searchServices = ({ target }) => {
         setSearchValue(target.value);
         setAllServices([...services.filter(
-            serv => serv.name && serv.name.toString().includes(target.value.toString()) ||
+            serv => serv.name && serv.name.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
                 serv.id && serv.id.toString().includes(target.value.toString())
         )]);
     }
@@ -112,7 +121,7 @@ export default () => {
                     label="Pesquisar serviço"
                     name="search"
                     value={searchValue}
-                    onChange={searchservices}
+                    onChange={searchServices}
 
                 />
 
@@ -220,12 +229,12 @@ export default () => {
                                         </TableCell>
 
 
-                                        
+
 
                                         <TableCell align="left">
                                             <Box sx={{ "& button": { mx: 1 } }}>
-                                              
-                                                <Button title="Atendimentos em espera" onClick={() => { HandleEditservice(service) }} color="warning" size="medium" variant="contained"
+
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'NOT_STARTED')) }} color="warning" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
@@ -234,7 +243,7 @@ export default () => {
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Atendimentos em progresso" onClick={() => { HandleEditservice(service) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Atendimentos em progresso" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'IN_PROGRESS')) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="clock" width="20" height="20" />
 
@@ -244,7 +253,7 @@ export default () => {
                                                 </Button>
 
 
-                                                <Button title="Atendimentos finalizados" onClick={() => { HandleInactiveservice(service) }} color="success" size="medium" variant="contained"
+                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'CLOSED')) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 
@@ -253,7 +262,7 @@ export default () => {
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Desistências" onClick={() => { HandleInactiveservice(service) }} color="error" size="medium" variant="contained"
+                                                <Button title="Desistências" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'ABANDONED')) }} color="error" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 

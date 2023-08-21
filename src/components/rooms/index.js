@@ -28,6 +28,8 @@ import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { setFilteredCalls } from "../../store/ducks/calls";
+import { useRouter } from "next/router";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -53,6 +55,7 @@ export default () => {
     const [searchValue, setSearchValue] = useState();
     const [allRooms, setAllRooms] = useState(rooms);
     const { user, profile } = useContext(AuthContext);
+    const router = useRouter();
 
     useEffect(() => {
         dispatch(getAllRooms());
@@ -75,6 +78,12 @@ export default () => {
     const HandleInactiveRoom = async room => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${room.name}`, confirm: inactiveRoomFetch(room) })
         dispatch(changeTitleAlert(`O sala ${room.name} foi excluido com sucesso!`))
+    }
+
+    const HandleGoCalls = services => {
+        // console.log(JSON.stringify(services));
+        dispatch(setFilteredCalls(services));
+        router.push('/listing_calls');
     }
 
 
@@ -224,8 +233,8 @@ export default () => {
 
                                         <TableCell align="left">
                                             <Box sx={{ "& button": { mx: 1 } }}>
-                                              
-                                                <Button title="Atendimentos em espera" onClick={() => { HandleEditRoom(room) }} color="warning" size="medium" variant="contained"
+
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'NOT_STARTED')) }} color="warning" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
@@ -234,7 +243,7 @@ export default () => {
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Atendimentos em progresso" onClick={() => { HandleEditRoom(room) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Atendimentos em progresso" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'IN_PROGRESS')) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="clock" width="20" height="20" />
 
@@ -244,7 +253,7 @@ export default () => {
                                                 </Button>
 
 
-                                                <Button title="Atendimentos finalizados" onClick={() => { HandleInactiveRoom(room) }} color="success" size="medium" variant="contained"
+                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'CLOSED')) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 
@@ -253,7 +262,7 @@ export default () => {
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Desistências" onClick={() => { HandleInactiveRoom(room) }} color="error" size="medium" variant="contained"
+                                                <Button title="Desistências" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'ABANDONED')) }} color="error" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 

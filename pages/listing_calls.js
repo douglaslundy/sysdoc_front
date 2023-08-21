@@ -1,11 +1,11 @@
 import { Grid } from "@mui/material";
-import Call from "../src/components/calls";
+import Calls from "../src/components/listing_calls";
 
 const Tables = () => {
   return (
     <Grid container spacing={0}>
       <Grid item xs={12} lg={12}>
-        <Call />
+        <Calls />
       </Grid>
     </Grid>
   );

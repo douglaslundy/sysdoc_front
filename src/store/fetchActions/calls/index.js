@@ -1,6 +1,6 @@
 import { parseCookies } from "nookies";
 import { api } from "../../../services/api";
-import { inactiveCall, addCall, editCall, addCalls } from "../../ducks/calls";
+import { addCall, editCall, addCalls } from "../../ducks/calls";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 
 export const getAllCalls = () => {

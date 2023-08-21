@@ -17,14 +17,12 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import LetterModal from "../modal/letter";
-import ViewLetterModal from "../modal/letter/view";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/letter";
-import { showLetter } from "../../store/ducks/letters";
-import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
+import { getAllcalls, inactiveCallFetch } from "../../store/fetchActions/calls";
+import { showCall } from "../../store/ducks/calls";
+import { changeTitleAlert, turnModal, turnModalViewCall } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
@@ -42,6 +40,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
+
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -49,45 +48,23 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { letters } = useSelector(state => state.letters);
+    const { filteredCalls } = useSelector(state => state.calls);
     const [searchValue, setSearchValue] = useState();
-    const [allLetters, setAllLetters] = useState(letters);
-    const { user, profile } = useContext(AuthContext);
+    const [allCalls, setAllCalls] = useState(filteredCalls);
 
+ 
     useEffect(() => {
-        dispatch(getAllLetters());
-    }, []);
+        setAllCalls(searchValue ? [...filteredCalls.filter(call => call.subject && call.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : filteredCalls);
+    }, [filteredCalls]);
 
-    useEffect(() => {
-        setAllLetters(searchValue ? [...letters.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : letters);
-    }, [letters]);
+ 
 
-
-
-    const HandleViewLetter = async letter => {
-        dispatch(showLetter(letter));
-        dispatch(turnModalViewLetter());
-    }
-
-    const HandleEditLetter = async letter => {
-        dispatch(showLetter(letter));
-        dispatch(turnModal());
-    }
-
-    const HandleInactiveLetter = async letter => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${letter.number}`, confirm: inactiveLetterFetch(letter) })
-        dispatch(changeTitleAlert(`O lettere ${letter.number} foi excluido com sucesso!`))
-    }
-
-
-    const searchLetters = ({ target }) => {
+    const searchCalls = ({ target }) => {
         setSearchValue(target.value);
-
-        setAllLetters([...letters.filter(
-            lett => lett.number && lett.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.sender && lett.sender.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.recipient && lett.recipient.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.subject_matter && lett.subject_matter.toString().toLowerCase().includes(target.value.toString().toLowerCase())
+        
+        setAllCalls([...filteredCalls.filter(
+            call => call.subject && call.subject.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                call.id && call.id == target.value
         )]);
     }
 
@@ -104,9 +81,8 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
+        <BaseCard title={`Você possui ${allCalls.length} Chamados`}>
             <AlertModal />
-            <ViewLetterModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
                 'display': 'flex',
@@ -115,18 +91,13 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar ofício"
+                    label="Pesquisar Chamado"
                     name="search"
                     value={searchValue}
-                    onChange={searchLetters}
+                    onChange={searchCalls}
 
                 />
 
-                <LetterModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
-                    </Fab>
-                </LetterModal>
             </Box>
 
             <TableContainer>
@@ -142,18 +113,12 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Numero / Data
+                                    Senha / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Remetente / Destinatário
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell>
-                                <Typography color="textSecondary" variant="h6">
-                                    Usuário / Assunto
+                                    Cliente / Assunto
                                 </Typography>
                             </TableCell>
 
@@ -166,10 +131,10 @@ export default () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allLetters
+                        {allCalls
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((letter, index) => (
-                                <StyledTableRow key={letter.id} hover>
+                            .map((call, index) => (
+                                <StyledTableRow key={call.id} hover>
                                     <>
                                         <TableCell>
                                             <Box
@@ -186,7 +151,7 @@ export default () => {
                                                             fontSize: "38px",
                                                         }}
                                                     >
-                                                        {letter && letter.number}
+                                                        {call && call.id}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -194,7 +159,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                                        {call.call_datetime && format(parseISO(call.call_datetime), 'dd/MM/yyyy HH:mm:ss')}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -214,7 +179,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {letter && letter.sender.substring(0, 30).toUpperCase()}
+                                                        {call.client_id ? call.client_id.substring(0, 30).toUpperCase(): 'Cliente não cadastrado'}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -222,35 +187,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {letter && letter.recipient.substring(0, 30).toUpperCase()}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {letter && letter.user.name.substring(0, 30).toUpperCase()}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
+                                                        {call.subject ? call.subject.substring(0, 30).toUpperCase(): 'assunto não cadastrado'}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -259,18 +196,8 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleEditCall(call) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && letter.id_user != user}>
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
-                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
                                             </Box>
@@ -281,9 +208,10 @@ export default () => {
                             ))}
                     </TableBody>
                 </Table>
+
                 <TablePagination
                     component="div"
-                    count={allLetters.length}
+                    count={allCalls.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
