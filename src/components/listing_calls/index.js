@@ -17,16 +17,14 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllcalls, inactiveCallFetch } from "../../store/fetchActions/calls";
-import { showCall } from "../../store/ducks/calls";
-import { changeTitleAlert, turnModal, turnModalViewCall } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { parseCookies } from "nookies";
+import { getFilteredCalls } from "../../store/fetchActions/calls";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -48,21 +46,27 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { filteredCalls } = useSelector(state => state.calls);
+    const { calls } = useSelector(state => state.calls);
     const [searchValue, setSearchValue] = useState();
-    const [allCalls, setAllCalls] = useState(filteredCalls);
+    const [allCalls, setAllCalls] = useState(calls);
+    // const cookies = parseCookies();
+    const {'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
+
+    useEffect(() => {
+        dispatch(getFilteredCalls({status, call_service_id, room_id}));
+    },[])
 
  
     useEffect(() => {
-        setAllCalls(searchValue ? [...filteredCalls.filter(call => call.subject && call.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : filteredCalls);
-    }, [filteredCalls]);
+        setAllCalls(searchValue ? [...calls.filter(call => call.subject && call.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : calls);
+    }, [calls]);
 
  
 
     const searchCalls = ({ target }) => {
         setSearchValue(target.value);
         
-        setAllCalls([...filteredCalls.filter(
+        setAllCalls([...calls.filter(
             call => call.subject && call.subject.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
                 call.id && call.id == target.value
         )]);
@@ -79,6 +83,15 @@ export default () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    const HandleCallClient = (call) => {
+        alert(`Chamar Cliente ${JSON.stringify(call)}`);
+    };
+    const HandleStartCall = (call) => {
+        alert(`Atender Cliente ${JSON.stringify(call)}`);
+    };
+
+
 
     return (
         <BaseCard title={`Você possui ${allCalls.length} Chamados`}>
@@ -196,8 +209,11 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleEditCall(call) }} color="success" size="medium" variant="contained">
-                                                    <FeatherIcon icon="eye" width="20" height="20" />
+                                                <Button title="Chamar Cliente" onClick={() => { HandleCallClient(call) }} color="warning" size="medium" variant="contained">
+                                                    <FeatherIcon icon="monitor" width="20" height="20" />
+                                                </Button>
+                                                <Button title="Atender Cliente" onClick={() => { HandleStartCall(call) }} color="primary" size="medium" variant="contained">
+                                                    <FeatherIcon icon="edit-3" width="20" height="20" />
                                                 </Button>
 
                                             </Box>

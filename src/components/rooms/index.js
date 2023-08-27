@@ -30,6 +30,7 @@ import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 import { setFilteredCalls } from "../../store/ducks/calls";
 import { useRouter } from "next/router";
+import { setCookie } from "nookies";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -65,11 +66,6 @@ export default () => {
         setAllRooms(searchValue ? [...rooms.filter(room => room.name.toString().includes(searchValue.toString()))] : rooms);
     }, [rooms]);
 
-    const HandleViewRoom = async room => {
-        dispatch(showRoom(room));
-        dispatch(turnModalViewRoom());
-    }
-
     const HandleEditRoom = async room => {
         dispatch(showRoom(room));
         dispatch(turnModal());
@@ -80,9 +76,28 @@ export default () => {
         dispatch(changeTitleAlert(`O sala ${room.name} foi excluido com sucesso!`))
     }
 
-    const HandleGoCalls = services => {
-        // console.log(JSON.stringify(services));
-        dispatch(setFilteredCalls(services));
+    const SetCookie = async room => {
+
+        setCookie(undefined, 'sysvendas.status', room.status_filter, {
+            maxAge: 60 * 60 * 72,
+        });
+
+        setCookie(undefined, 'sysvendas.call_service_id', room.call_service_id, {
+            maxAge: 60 * 60 * 72,
+        });
+
+        setCookie(undefined, 'sysvendas.room_id', room.id, {
+            maxAge: 60 * 60 * 72,
+        });
+
+    }
+
+    const HandleGoCalls = async room => {
+
+        // apagar este metodo do duck
+        // dispatch(setFilteredCalls(room));
+
+        await SetCookie(room);
         router.push('/listing_calls');
     }
 
@@ -214,7 +229,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {room && room.call_service.name.toUpperCase()}
+                                                        {room.call_service && room.call_service.name.toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -228,46 +243,43 @@ export default () => {
                                             </Box>
                                         </TableCell>
 
-
-
-
                                         <TableCell align="left">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'NOT_STARTED')) }} color="warning" size="medium" variant="contained"
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STARTED' }) }} color="warning" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls.filter(a => a.status == 'NOT_STARTED').length}
+                                                        {room.calls_per_service.filter(a => a.status == 'NOT_STARTED').length}
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Atendimentos em progresso" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'IN_PROGRESS')) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Atendimentos em progresso" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'IN_PROGRESS' }) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="clock" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls.filter(a => a.status == 'IN_PROGRESS').length}
+                                                        {room.calls_per_service.filter(a => a.room_id == room.id && a.status == 'IN_PROGRESS').length}
                                                     </div>
                                                 </Button>
 
 
-                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'CLOSED')) }} color="success" size="medium" variant="contained"
+                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STCLOSEDARTED' }) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls.filter(a => a.status == 'CLOSED').length}
+                                                        {room.calls_per_service.filter(a => a.status == 'CLOSED').length}
                                                     </div>
                                                 </Button>
 
-                                                <Button title="Desistências" onClick={() => { HandleGoCalls(room.calls.filter(a => a.status == 'ABANDONED')) }} color="error" size="medium" variant="contained"
+                                                <Button title="Desistências" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'ABANDONED' }) }} color="error" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls.filter(a => a.status == 'ABANDONED').length}
+                                                        {room.calls_per_service.filter(a => a.status == 'ABANDONED').length}
                                                     </div>
                                                 </Button>
 

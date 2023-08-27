@@ -17,21 +17,47 @@ export const getAllCalls = () => {
     }
 }
 
+
+export const getFilteredCalls = ({ status, call_service_id, room_id } = data) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+        api
+            .get('/calls')
+            .then((res) => {
+                dispatch(
+                    addCalls(
+                        res.data.filter(
+                            call =>(
+                                room_id != 'null' ?
+                                    call.room_id == room_id
+                                     :
+                                    call.status == status &&
+                                    call.call_service_id == call_service_id
+                            )                                
+                        )
+                    )
+                );
+                dispatch(turnLoading());
+            })
+            .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
 export const addCallFetch = (call, cleanForm) => {
-    const {'sysvendas.id' : user} = parseCookies();
+    const { 'sysvendas.id': user } = parseCookies();
 
     return (dispatch) => {
         dispatch(turnLoading());
-        
+
         call = {
             user_id: user,
             ...call
         }
-        
+
         api.post('/calls', call)
             .then((res) =>
             (
-                dispatch(addCall(res.data)),                
+                dispatch(addCall(res.data)),
                 dispatch(addMessage(`O atendimento ${res.data.call.id} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),

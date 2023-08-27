@@ -104,15 +104,6 @@ export default () => {
 
             </Box>
 
-
-            {/* <Box sx={{ "& button": { mx: 1 } }}>
-
-                <Button title="Visualizar Ofício" onClick={() => { alert('letter') }} color="success" size="medium" variant="contained">
-                    <FeatherIcon icon="eye" width="20" height="20" />
-                </Button>
-
-            </Box> */}
-
             <CreateCallModal />
 
             <Button
@@ -125,9 +116,6 @@ export default () => {
             >
                 Iniciar
             </Button>
-
-
-
 
             <ConfirmDialog
                 confirmDialog={confirmDialog}

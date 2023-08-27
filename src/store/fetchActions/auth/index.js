@@ -1,7 +1,7 @@
 import { api } from "../../../services/api";
 import { turnLoading, addAlertMessage } from "../../ducks/Layout";
 import Router from "next/router";
-import { parseCookies, setCookie, destroyCookie } from 'nookies'
+import { setCookie, destroyCookie } from 'nookies'
 
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
