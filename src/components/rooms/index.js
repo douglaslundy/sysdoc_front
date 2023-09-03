@@ -246,7 +246,7 @@ export default () => {
                                         <TableCell align="left">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STARTED' }) }} color="warning" size="medium" variant="contained"
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STARTED', 'id':null }) }} color="warning" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 

@@ -24,7 +24,8 @@ import ConfirmDialog from "../confirmDialog";
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 import { parseCookies } from "nookies";
-import { getFilteredCalls } from "../../store/fetchActions/calls";
+import { editCallFetch, getFilteredCalls } from "../../store/fetchActions/calls";
+import { changeTitleAlert } from "../../store/ducks/Layout";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -50,22 +51,22 @@ export default () => {
     const [searchValue, setSearchValue] = useState();
     const [allCalls, setAllCalls] = useState(calls);
     // const cookies = parseCookies();
-    const {'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
+    const { 'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
 
     useEffect(() => {
-        dispatch(getFilteredCalls({status, call_service_id, room_id}));
-    },[])
+        dispatch(getFilteredCalls({ status, call_service_id, room_id }));
+    }, [])
 
- 
+
     useEffect(() => {
         setAllCalls(searchValue ? [...calls.filter(call => call.subject && call.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : calls);
     }, [calls]);
 
- 
+
 
     const searchCalls = ({ target }) => {
         setSearchValue(target.value);
-        
+
         setAllCalls([...calls.filter(
             call => call.subject && call.subject.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
                 call.id && call.id == target.value
@@ -84,8 +85,14 @@ export default () => {
         setPage(0);
     };
 
-    const HandleCallClient = (call) => {
-        alert(`Chamar Cliente ${JSON.stringify(call)}`);
+    const HandleCallClient = call => {
+        call = {
+            ...call,
+            'is_called': 'now'
+        }
+
+        dispatch(changeTitleAlert(`A senha ${call.id} foi chamada com sucesso!`));
+        dispatch(editCallFetch(call));
     };
     const HandleStartCall = (call) => {
         alert(`Atender Cliente ${JSON.stringify(call)}`);
@@ -192,7 +199,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {call.client_id ? call.client_id.substring(0, 30).toUpperCase(): 'Cliente não cadastrado'}
+                                                        {call.client_id ? call.client_id.substring(0, 30).toUpperCase() : 'Cliente não cadastrado'}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -200,7 +207,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {call.subject ? call.subject.substring(0, 30).toUpperCase(): 'assunto não cadastrado'}
+                                                        {call.subject ? call.subject.substring(0, 30).toUpperCase() : 'assunto não cadastrado'}
                                                     </Typography>
                                                 </Box>
                                             </Box>

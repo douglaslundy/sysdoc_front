@@ -71,26 +71,33 @@ export const addCallFetch = (call, cleanForm) => {
     };
 };
 
-// export const editCallFetch = (call, cleanForm) => {
-//     return (dispatch) => {
-//         dispatch(turnLoading());
+export const editCallFetch = (call, cleanForm) => {
+    const { 'sysvendas.id': user } = parseCookies();
 
-//         api.put(`/calls/${call.id}`, call)
-//             .then((res) =>
-//             (
-//                 dispatch(editCall(call)),
-//                 dispatch(addMessage(`O atendimento ${call.name} foi atualizado com sucesso!`)),
-//                 dispatch(turnAlert()),
-//                 dispatch(turnLoading()),
-//                 cleanForm()
-//             ))
-//             .catch((error) => {
-//                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
-//                 dispatch(turnLoading());
-//                 return error.response ? error.response.data : 'erro desconhecido';
-//             })
-//     };
-// }
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        call = {
+            user_id: user,
+            ...call
+        }
+
+        api.put(`/calls/${call.id}`, call)
+            .then((res) =>
+            (
+                dispatch(editCall(res.data.call)),
+                dispatch(addMessage(`A Senha ${res.data.call.id} foi chamada com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm && cleanForm()
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}
 
 // export const inactiveCallFetch = (call) => {
 //     return (dispatch) => {
