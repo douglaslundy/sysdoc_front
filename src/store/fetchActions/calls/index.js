@@ -1,7 +1,8 @@
-import { parseCookies } from "nookies";
+import { destroyCookie, parseCookies, setCookie } from "nookies";
 import { api } from "../../../services/api";
-import { addCall, editCall, addCalls } from "../../ducks/calls";
+import { addCall, editCall, addCalls, inactiveCall } from "../../ducks/calls";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
+import Router from "next/router";
 
 export const getAllCalls = () => {
 
@@ -27,13 +28,10 @@ export const getFilteredCalls = ({ status, call_service_id, room_id } = data) =>
                 dispatch(
                     addCalls(
                         res.data.filter(
-                            call =>(
-                                room_id != 'null' ?
-                                    call.room_id == room_id
-                                     :
-                                    call.status == status &&
-                                    call.call_service_id == call_service_id
-                            )                                
+                            call => (
+                                call.status == status &&
+                                call.call_service_id == call_service_id
+                            )
                         )
                     )
                 );
@@ -92,28 +90,92 @@ export const editCallFetch = (call, cleanForm) => {
                 cleanForm && cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(error ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
     };
 }
 
-// export const inactiveCallFetch = (call) => {
-//     return (dispatch) => {
-//         dispatch(turnLoading())
+export const startCallFetch = (call, cleanForm) => {
+    const { 'sysvendas.id': user, 'sysvendas.room_id': room_id } = parseCookies();
 
-//         api.delete(`/calls/${call.id}`)
-//             .then((res) =>
-//             (
-//                 dispatch(inactiveCall(call)),
-//                 dispatch(addMessage(`O atendimento ${call.name} foi excluido com sucesso!`)),
-//                 dispatch(turnAlert()),
-//                 dispatch(turnLoading())
-//             ))
-//             .catch((error) => {
-//                 dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
-//                 dispatch(turnLoading());
-//             })
-//     }
-// }
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        call = {
+            ...call,
+            'user_id': user,
+            'room_id': room_id,
+            // 'status': 'IN_PROGRESS',
+        }
+
+
+        if (!call.room_id) {
+            dispatch(addAlertMessage(`Para realizar esta operação você precisa entrar em uma sala`));
+            dispatch(turnLoading());
+            return;
+        }
+
+        api.put(`/calls/${call.id}/start`, call)
+            .then((res) =>
+            (
+                dispatch(inactiveCall(res.data.call)),
+                dispatch(addMessage(`O atendimento da senha ${res.data.call.id} foi iniciado!`)),
+
+                setCookie(undefined, 'sysvendas.call_id', res.data.call.id, {
+                    maxAge: 60 * 60 * 72,
+                }),
+
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm && cleanForm(),
+                Router.push('/attending'),
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}
+
+export const finishCallFetch = (call, cleanForm) => {
+    const { 'sysvendas.id': user, 'sysvendas.room_id': room_id } = parseCookies();
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        call = {
+            ...call,
+            'user_id': user,
+            'room_id': room_id,
+        }
+
+
+        if (!call.room_id) {
+            dispatch(addAlertMessage(`Para realizar esta operação você precisa entrar em uma sala`));
+            dispatch(turnLoading());
+            return;
+        }
+
+        api.put(`/calls/${call.call_id}/end`, call)
+            .then((res) =>
+            (
+                dispatch(inactiveCall(res.data.call)),
+                dispatch(addMessage(`O atendimento da senha ${res.data.call.id} foi finalizado com sucesso!`)),
+
+                destroyCookie(null, 'sysvendas.call_id'),
+
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm && cleanForm(),
+                Router.push('/listing_calls')
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}

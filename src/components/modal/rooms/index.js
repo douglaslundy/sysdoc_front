@@ -175,7 +175,8 @@ export default function RoomModal(props) {
                                         changeItem={changeItem}
                                     />
 
-                                    <Select value={call_service_id}
+                                    <Select
+                                        value={call_service_id}
                                         label={'Serviço'}
                                         name={'call_service_id'}
                                         store={services}

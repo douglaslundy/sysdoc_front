@@ -26,9 +26,7 @@ import { showRoom } from "../../store/ducks/rooms";
 import { changeTitleAlert, turnModal, turnModalViewRoom } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
-import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
-import { setFilteredCalls } from "../../store/ducks/calls";
 import { useRouter } from "next/router";
 import { setCookie } from "nookies";
 
@@ -246,7 +244,7 @@ export default () => {
                                         <TableCell align="left">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STARTED', 'id':null }) }} color="warning" size="medium" variant="contained"
+                                                <Button title="Atendimentos em espera" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STARTED'}) }} color="warning" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
@@ -265,7 +263,7 @@ export default () => {
                                                 </Button>
 
 
-                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'NOT_STCLOSEDARTED' }) }} color="success" size="medium" variant="contained"
+                                                <Button title="Atendimentos finalizados" onClick={() => { HandleGoCalls({ ...room, 'status_filter': 'CLOSED' }) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && room.id_user != user}>
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 

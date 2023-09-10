@@ -24,7 +24,7 @@ import ConfirmDialog from "../confirmDialog";
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 import { parseCookies } from "nookies";
-import { editCallFetch, getFilteredCalls } from "../../store/fetchActions/calls";
+import { editCallFetch, startCallFetch, getFilteredCalls } from "../../store/fetchActions/calls";
 import { changeTitleAlert } from "../../store/ducks/Layout";
 
 
@@ -50,19 +50,16 @@ export default () => {
     const { calls } = useSelector(state => state.calls);
     const [searchValue, setSearchValue] = useState();
     const [allCalls, setAllCalls] = useState(calls);
-    // const cookies = parseCookies();
-    const { 'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
+    
+    const { 'sysvendas.id': user_id, 'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
 
     useEffect(() => {
         dispatch(getFilteredCalls({ status, call_service_id, room_id }));
     }, [])
 
-
     useEffect(() => {
         setAllCalls(searchValue ? [...calls.filter(call => call.subject && call.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : calls);
     }, [calls]);
-
-
 
     const searchCalls = ({ target }) => {
         setSearchValue(target.value);
@@ -90,15 +87,14 @@ export default () => {
             ...call,
             'is_called': 'now'
         }
-
         dispatch(changeTitleAlert(`A senha ${call.id} foi chamada com sucesso!`));
         dispatch(editCallFetch(call));
     };
+
     const HandleStartCall = (call) => {
-        alert(`Atender Cliente ${JSON.stringify(call)}`);
+        dispatch(changeTitleAlert(`Atendimento da senha ${call.id} foi iniciado!`));
+        dispatch(startCallFetch(call));
     };
-
-
 
     return (
         <BaseCard title={`Você possui ${allCalls.length} Chamados`}>

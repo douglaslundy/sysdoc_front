@@ -7,9 +7,9 @@ import {
     Button
 } from '@mui/material';
 import FeatherIcon from "feather-icons-react";
-import {makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 
-import { turnAlert } from '../../store/ducks/Layout';
+import { alterTypeOfAlert, turnAlert } from '../../store/ducks/Layout';
 import { useSelector, useDispatch } from 'react-redux';
 
 import React from 'react';
@@ -40,8 +40,13 @@ const useStyles = makeStyles(
 export default function AlertDialog() {
     const classes = useStyles();
 
-    const { isOpenAlert, titleAlert, subTitleAlert } = useSelector(state => state.layout);
+    const { isOpenAlert, titleAlert, subTitleAlert, typeAlertIsSuccess } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    
+    const handleOk = () => {
+        dispatch(turnAlert());
+        dispatch(alterTypeOfAlert(true));
+    }
 
     return (
 
@@ -50,7 +55,7 @@ export default function AlertDialog() {
             classes={{ paper: classes.dialog }}
         >
             <DialogTitle className={classes.dialogTitle}>
-                <FeatherIcon icon="check-circle" size="66" />
+                <FeatherIcon icon={typeAlertIsSuccess ? 'check-circle' : 'x-circle'} size="66" />
             </DialogTitle>
 
             <DialogContent className={classes.dialogContent}>
@@ -68,7 +73,7 @@ export default function AlertDialog() {
             <DialogActions className={classes.dialogAction}>
 
                 <Button
-                    onClick={() => dispatch(turnAlert())}
+                    onClick={handleOk}
                     color="error" size="medium" variant="contained">
                     <FeatherIcon icon="check-circle" size="36" width="80" height="30" />
                 </Button>
