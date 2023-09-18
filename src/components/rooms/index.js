@@ -249,7 +249,7 @@ export default () => {
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls_per_service.filter(a => a.status == 'NOT_STARTED').length}
+                                                        {room.calls_per_service?.filter(a => a.status == 'NOT_STARTED').length}
                                                     </div>
                                                 </Button>
 
@@ -258,7 +258,7 @@ export default () => {
                                                     <FeatherIcon icon="clock" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls_per_service.filter(a => a.room_id == room.id && a.status == 'IN_PROGRESS').length}
+                                                        {room.calls_per_service?.filter(a => a.room_id == room.id && a.status == 'IN_PROGRESS').length}
                                                     </div>
                                                 </Button>
 
@@ -268,7 +268,7 @@ export default () => {
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls_per_service.filter(a => a.status == 'CLOSED').length}
+                                                        {room.calls_per_service?.filter(a => a.status == 'CLOSED').length}
                                                     </div>
                                                 </Button>
 
@@ -277,7 +277,7 @@ export default () => {
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {room.calls_per_service.filter(a => a.status == 'ABANDONED').length}
+                                                        {room.calls_per_service?.filter(a => a.status == 'ABANDONED').length}
                                                     </div>
                                                 </Button>
 

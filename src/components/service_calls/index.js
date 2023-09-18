@@ -239,7 +239,7 @@ export default () => {
                                                     <FeatherIcon icon="alert-triangle" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {service.calls.filter(a => a.status == 'NOT_STARTED').length}
+                                                        {service.calls?.filter(a => a.status == 'NOT_STARTED').length}
                                                     </div>
                                                 </Button>
 
@@ -248,7 +248,7 @@ export default () => {
                                                     <FeatherIcon icon="clock" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {service.calls.filter(a => a.status == 'IN_PROGRESS').length}
+                                                        {service.calls?.filter(a => a.status == 'IN_PROGRESS').length}
                                                     </div>
                                                 </Button>
 
@@ -258,7 +258,7 @@ export default () => {
                                                     <FeatherIcon icon="smile" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {service.calls.filter(a => a.status == 'CLOSED').length}
+                                                        {service.calls?.filter(a => a.status == 'CLOSED').length}
                                                     </div>
                                                 </Button>
 
@@ -267,7 +267,7 @@ export default () => {
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 
                                                     <div style={{ marginLeft: '5px' }}>
-                                                        {service.calls.filter(a => a.status == 'ABANDONED').length}
+                                                        {service.calls?.filter(a => a.status == 'ABANDONED').length}
                                                     </div>
                                                 </Button>
 
