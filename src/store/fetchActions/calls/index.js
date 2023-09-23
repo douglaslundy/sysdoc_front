@@ -107,7 +107,6 @@ export const startCallFetch = (call, cleanForm) => {
             ...call,
             'user_id': user,
             'room_id': room_id,
-            // 'status': 'IN_PROGRESS',
         }
 
 
@@ -159,6 +158,12 @@ export const finishCallFetch = (call, cleanForm) => {
             return;
         }
 
+        if (call.service_status == 'forwarded' && !call.call_service_forwarded_id) {
+            dispatch(addAlertMessage(`Você não selecionou um serviço ao encaminhar este atendimento`));
+            dispatch(turnLoading());
+            return;
+        }
+
         api.put(`/calls/${call.call_id}/end`, call)
             .then((res) =>
             (
@@ -173,7 +178,7 @@ export const finishCallFetch = (call, cleanForm) => {
                 Router.push('/listing_calls')
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(error ? `ERROR - ${error.response ? error.response.data.error : error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })

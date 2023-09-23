@@ -46,7 +46,6 @@ export default function Attending() {
             client_id: "",
             service_status: "finished"
         });
-        dispatch(turnModal());
     }
 
     const handleIsVisible = () => {
