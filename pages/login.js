@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import FeatherIcon from "feather-icons-react";
 import Button from '@mui/material/Button';
-// import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -12,7 +10,7 @@ import Container from '@mui/material/Container';
 import { parseCookies } from 'nookies';
 import AlertModal from '../src/components/messagesModal';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 
 import { loginFetch } from '../src/store/fetchActions/auth';

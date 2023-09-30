@@ -4,43 +4,49 @@ const Menuitems = [
     icon: "home",
     href: "/",
     profile: "user",
-  },  
+  },
   {
-    title: "Usuarios", 
+    title: "Usuarios",
     icon: "users",
     href: "/users",
     profile: "admin",
   },
   {
-    title: "Oficios", 
+    title: "Oficios",
     icon: "send",
     href: "/letters",
     profile: "user",
   },
   {
-    title: "Modelos IA", 
+    title: "Modelos IA",
     icon: "list",
     href: "/models",
     profile: "admin",
   },
   {
-    title: "Serviços", 
+    title: "Serviços",
     icon: "list",
     href: "/service_calls",
     profile: "admin",
-  }  ,
+  },
   {
-    title: "Salas", 
+    title: "Salas",
     icon: "list",
     href: "/rooms",
     profile: "admin",
-  }  ,
+  },
   {
-    title: "Atendimento", 
+    title: "Atendimento",
     icon: "list",
     href: "/call",
     profile: "admin",
-  }  
+  },
+  {
+    title: "Painel",
+    icon: "list",
+    href: "/panel",
+    profile: "admin",
+  }
 ];
 
 export default Menuitems;
