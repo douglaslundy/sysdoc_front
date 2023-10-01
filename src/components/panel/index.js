@@ -24,7 +24,7 @@ const CustomerServiceScreen = () => {
 
                 {/* Grid à Direita */}
                 <Grid item xs={3}>
-                    <Paper style={{ height: '60vh', backgroundColor: 'blue', color: 'white', padding: 20 }}>
+                    <Paper style={{ height: '60vh', backgroundColor: 'blue', display: 'flex', justifyContent:'center', color: 'white', padding: 20 }}>
                         <Typography variant="h6" gutterBottom>
                             Chamadas Anteriores
                         </Typography>
