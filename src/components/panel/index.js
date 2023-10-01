@@ -15,7 +15,7 @@ const CustomerServiceScreen = () => {
                 {/* Grid Central */}
                 <Grid item xs={9}>
                     <Paper style={{ height: '60vh', backgroundColor: 'white', padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                        <Typography variant="h4" align="center" gutterBottom>
+                        <Typography variant="h1" align="center" gutterBottom>
                             Senha Atual: 12345
                         </Typography>
                         {/* Conteúdo do atendimento ao cliente */}
