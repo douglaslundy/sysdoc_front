@@ -1,6 +1,6 @@
 import { destroyCookie, parseCookies, setCookie } from "nookies";
 import { api } from "../../../services/api";
-import { addCall, editCall, addCalls, inactiveCall } from "../../ducks/calls";
+import { addCall, editCall, addCalls, inactiveCall, showCall } from "../../ducks/calls";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import Router from "next/router";
 
@@ -15,6 +15,40 @@ export const getAllCalls = () => {
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
+export const getCalledCalls = () => {
+
+    return (dispatch) => {
+        // dispatch(turnLoading());
+        api
+            .get('/calls/called')
+            .then((res) => {
+                dispatch(showCall(res.data));
+                // console.log(JSON.stringify(res.data))
+                // dispatch(turnLoading());
+            })
+            .catch(() => { 
+                dispatch(turnLoading()); 
+            })
+    }
+}
+
+export const getLastsCalls = () => {
+
+    return (dispatch) => {
+        // dispatch(turnLoading());
+        api
+            .get('/calls/lasts')
+            .then((res) => {
+                dispatch(addCalls(res.data));
+                // console.log(JSON.stringify(res.data))
+                // dispatch(turnLoading());
+            })
+            .catch(() => { 
+                dispatch(turnLoading()); 
+            })
     }
 }
 

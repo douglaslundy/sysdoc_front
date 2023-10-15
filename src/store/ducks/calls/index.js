@@ -22,4 +22,5 @@ export default createReducer(INITIAL_STATE, {
 	[addCalls.type]: (state, action) => ({ calls: [...action.payload] }),
 
 	[showCall.type]: (state, action) => ({ ...state, call: action.payload }),
+
 });
