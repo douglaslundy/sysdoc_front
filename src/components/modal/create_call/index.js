@@ -18,7 +18,11 @@ import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllServices } from '../../../store/fetchActions/service_calls';
 import AlertModal from '../../messagesModal'
 import Select from '../../inputs/selects';
+import InputSelect from "../../inputs/inputSelect";
 import { addCallFetch, editCallFetch } from '../../../store/fetchActions/calls';
+import { getAllClients } from '../../../store/fetchActions/clients';
+import { addClient, addClients, showClient } from '../../../store/ducks/clients';
+
 
 const style = {
     position: 'absolute',
@@ -39,15 +43,18 @@ export default function CreateCallModal(props) {
 
     const [form, setForm] = useState({
         call_service_id: "",
+        client_id: "",
         subject: ""
     });
 
-    const { call_service_id, subject } = form;
+    const { call_service_id, client_id, subject } = form;
     const { services, service } = useSelector(state => state.services);
+    const { clients, client } = useSelector(state => state.clients);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const [texto, setTexto] = useState();
+    const [customer, setCustomer] = useState();
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
@@ -56,6 +63,7 @@ export default function CreateCallModal(props) {
     const cleanForm = () => {
         setForm({
             call_service_id: "",
+            client_id: "",
             subject: ""
         });
         setTexto('');
@@ -92,6 +100,22 @@ export default function CreateCallModal(props) {
         dispatch(getAllServices());
     }, []);
 
+    useEffect(() => {
+        dispatch(getAllClients());
+    }, []);
+
+    useEffect(() => {
+
+        if(customer?.id && customer.id != 'undefined'){
+
+            setForm({
+                ...form,
+                client_id: customer?.id,
+            });
+        }
+
+    }, [customer])
+
     return (
         <div>
             {props.children}
@@ -119,9 +143,18 @@ export default function CreateCallModal(props) {
 
                                 <Stack spacing={3}>
 
+                                    <InputSelect
+                                        label="Selecione o Cliente"
+                                        name="client_id"
+                                        data={clients}
+                                        setData={setCustomer}
+                                        state={isOpenModal}
+                                    // wd={"100%"}
+                                    />
+
                                     <Select
-                                        value={call_service_id}
                                         label={'Serviço'}
+                                        value={call_service_id}
                                         name={'call_service_id'}
                                         store={services}
                                         changeItem={changeItem}
@@ -143,10 +176,10 @@ export default function CreateCallModal(props) {
                                         }}
                                     />
                                 </Stack>
-                                
+
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    
+
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
                                     </Button>

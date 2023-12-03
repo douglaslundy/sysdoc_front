@@ -195,7 +195,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {call.client_id ? call.client_id.substring(0, 30).toUpperCase() : 'Cliente não cadastrado'}
+                                                        {call.client ? call.client.name : 'Cliente não cadastrado'}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"

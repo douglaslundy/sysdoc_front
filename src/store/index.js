@@ -8,6 +8,7 @@ import modelReducer from './ducks/models';
 import serviceReducer from './ducks/service_calls';
 import roomReducer from './ducks/rooms';
 import callReducer from './ducks/calls';
+import clientReducer from './ducks/clients';
 
 
 export default configureStore({
@@ -19,6 +20,7 @@ export default configureStore({
         models: modelReducer,
         services: serviceReducer,
         rooms: roomReducer,
-        calls: callReducer
+        calls: callReducer,
+        clients: clientReducer
     },
 });
