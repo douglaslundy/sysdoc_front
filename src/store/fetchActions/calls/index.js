@@ -90,7 +90,7 @@ export const addCallFetch = (call, cleanForm) => {
             .then((res) =>
             (
                 dispatch(addCall(res.data)),
-                dispatch(addMessage(`O atendimento ${res.data.call.id} foi adicionado com sucesso!`)),
+                dispatch(addMessage(`O atendimento ${res.data.call.call_prefix} ${res.data.call.call_number} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -117,7 +117,7 @@ export const editCallFetch = (call, cleanForm) => {
         api.put(`/calls/${call.id}`, call)
             .then((res) =>
             (
-                dispatch(editCall(res.data.call)),
+                dispatch(editCall(call)),
                 dispatch(addMessage(`A Senha ${res.data.call.id} foi chamada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),

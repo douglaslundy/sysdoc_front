@@ -40,7 +40,7 @@ export default () => {
             if (call && call.id && (call.id !== actualCall?.id || call.when_was_called !== actualCall?.when_was_called)) {
                 setActualCall(call);
                 await playSound();
-                await speakText(`Senha numero ${call?.id},  por favor se dirija até a sala 2`);
+                await speakText(`Senha  ${call?.call_prefix} ${call?.id}, {${call.client?.name != null ? call.client.name : ''}}  por favor se dirija até a sala 2`);
                 dispatch(getLastsCalls());
             }
         };
@@ -89,8 +89,12 @@ export default () => {
                 <Grid item xs={9}>
                     <Paper style={{ height: '60vh', backgroundColor: 'white', padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                         <Typography variant="h1" align="center">
-                            {actualCall && actualCall.id ? `senha: ${actualCall.id}` : "Fila zerada"}
-                            <div style={{ fontSize: 50 }}>
+                            {actualCall && actualCall.id ? `senha: ${actualCall.call_prefix} ${actualCall.call_number}` : "Fila zerada"}
+                           
+                            <div style={{ fontSize: 30 }}>
+                                {`${actualCall.client?.name != null ? actualCall.client.name : ''}`}
+                            </div>
+                            <div style={{ fontSize: 60 }}>
                                 sala: 02
                             </div>
                         </Typography>
@@ -108,7 +112,7 @@ export default () => {
                                 calls.map((call, index) => (
                                     <>
                                         <div key={call.id} style={{ fontSize: index == 0 ? 70 : index == 1 ? 50 : 40 }}>
-                                            {call.id}
+                                            {`${call.call_prefix} ${call.call_number}`}
                                         </div>
                                         <div style={{ fontSize: 20 }}>
                                             sala: 02 - {call.when_was_called && format(parseISO(call.when_was_called), 'HH:mm:ss')}

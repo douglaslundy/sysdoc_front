@@ -167,7 +167,7 @@ export default () => {
                                                             fontSize: "38px",
                                                         }}
                                                     >
-                                                        {call && call.id}
+                                                        {call && `${call.call_prefix} ${call.call_number}`}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -193,6 +193,7 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
+                                                            fontSize: "20px",
                                                         }}
                                                     >
                                                         {call.client ? call.client.name : 'Cliente não cadastrado'}
