@@ -50,11 +50,15 @@ export default () => {
     const { calls } = useSelector(state => state.calls);
     const [searchValue, setSearchValue] = useState();
     const [allCalls, setAllCalls] = useState(calls);
+
+    // define that query only return today calls
+    
+    const verb = 'calls/today';
     
     const { 'sysvendas.id': user_id, 'sysvendas.status': status, 'sysvendas.call_service_id': call_service_id, 'sysvendas.room_id': room_id } = parseCookies();
 
     useEffect(() => {
-        dispatch(getFilteredCalls({ status, call_service_id, room_id }));
+        dispatch(getFilteredCalls({ status, call_service_id, room_id, verb }));
     }, [])
 
     useEffect(() => {
@@ -87,12 +91,12 @@ export default () => {
             ...call,
             'is_called': 'now'
         }
-        dispatch(changeTitleAlert(`A senha ${call.id} foi chamada com sucesso!`));
+        dispatch(changeTitleAlert(`A senha ${call.call_prefix} ${call.call_number} foi chamada com sucesso!`));
         dispatch(editCallFetch(call));
     };
 
     const HandleStartCall = (call) => {
-        dispatch(changeTitleAlert(`Atendimento da senha ${call.id} foi iniciado!`));
+        dispatch(changeTitleAlert(`Atendimento da senha ${call.call_prefix} ${call.call_number} foi iniciado!`));
         dispatch(startCallFetch(call));
     };
 
@@ -213,10 +217,10 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Chamar Cliente" onClick={() => { HandleCallClient(call) }} color="warning" size="medium" variant="contained">
+                                                <Button title="Chamar Cliente" onClick={() => { HandleCallClient(call) }} disabled={call.status == 'CLOSED' ? true : false} color="warning" size="medium" variant="contained">
                                                     <FeatherIcon icon="monitor" width="20" height="20" />
                                                 </Button>
-                                                <Button title="Atender Cliente" onClick={() => { HandleStartCall(call) }} color="primary" size="medium" variant="contained">
+                                                <Button title="Atender Cliente" onClick={() => { HandleStartCall(call) }} disabled={call.status == 'CLOSED' ? true : false} color="primary" size="medium" variant="contained">
                                                     <FeatherIcon icon="edit-3" width="20" height="20" />
                                                 </Button>
 

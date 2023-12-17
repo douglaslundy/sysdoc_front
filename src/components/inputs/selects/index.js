@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 
 export default function BasicSelect(props) {
   
-  const { label, store,  name, value, changeItem, getAllSelects, valueDefault, wd } = props;
+  const { label, store,  name, value, changeItem, getAllSelects, valueDefault, wd, disabled=false } = props;
   const dispatch = useDispatch();
 
    useEffect(() => {
@@ -23,6 +23,7 @@ export default function BasicSelect(props) {
         <Select
           id={name}
           value={value}
+          disabled={disabled}
           name={name}
           label={label}
           onChange={changeItem}

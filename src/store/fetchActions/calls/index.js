@@ -18,6 +18,34 @@ export const getAllCalls = () => {
     }
 }
 
+export const getShowCall = (id) => {
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+        api
+            .get(`/calls/${id}`)
+            .then((res) => {
+                dispatch(showCall(res.data));
+                dispatch(turnLoading());
+            })
+            .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
+export const getTodayCalls = () => {
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+        api
+            .get('/calls/today')
+            .then((res) => {
+                dispatch(addCalls(res.data));
+                dispatch(turnLoading());
+            })
+            .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
 export const getCalledCalls = () => {
 
     return (dispatch) => {
@@ -53,11 +81,11 @@ export const getLastsCalls = () => {
 }
 
 
-export const getFilteredCalls = ({ status, call_service_id, room_id } = data) => {
+export const getFilteredCalls = ({ status, call_service_id, room_id, verb = 'calls' } = data) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api
-            .get('/calls')
+            .get(`/${verb}`)
             .then((res) => {
                 dispatch(
                     addCalls(
@@ -89,7 +117,7 @@ export const addCallFetch = (call, cleanForm) => {
         api.post('/calls', call)
             .then((res) =>
             (
-                dispatch(addCall(res.data)),
+                dispatch(addCall(res.data.call)),
                 dispatch(addMessage(`O atendimento ${res.data.call.call_prefix} ${res.data.call.call_number} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
@@ -117,8 +145,8 @@ export const editCallFetch = (call, cleanForm) => {
         api.put(`/calls/${call.id}`, call)
             .then((res) =>
             (
-                dispatch(editCall(call)),
-                dispatch(addMessage(`A Senha ${res.data.call.id} foi chamada com sucesso!`)),
+                dispatch(editCall(res.data.call)),
+                dispatch(addMessage(`Atendimento ${res.data.call.call_prefix} ${res.data.call.call_number} foi editado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm && cleanForm()
@@ -154,7 +182,7 @@ export const startCallFetch = (call, cleanForm) => {
             .then((res) =>
             (
                 dispatch(inactiveCall(res.data.call)),
-                dispatch(addMessage(`O atendimento da senha ${res.data.call.id} foi iniciado!`)),
+                dispatch(addMessage(`Atendimento ${res.data.call.call_prefix} ${res.data.call.call_number} foi iniciado com sucesso!`)),
 
                 setCookie(undefined, 'sysvendas.call_id', res.data.call.id, {
                     maxAge: 60 * 60 * 72,
@@ -202,7 +230,7 @@ export const finishCallFetch = (call, cleanForm) => {
             .then((res) =>
             (
                 dispatch(inactiveCall(res.data.call)),
-                dispatch(addMessage(`O atendimento da senha ${res.data.call.id} foi finalizado com sucesso!`)),
+                dispatch(addMessage(`Atendimento ${res.data.call.call_prefix} ${res.data.call.call_number} foi finalizado com sucesso!`)),
 
                 destroyCookie(null, 'sysvendas.call_id'),
 

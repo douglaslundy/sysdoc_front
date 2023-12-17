@@ -21,7 +21,7 @@ import RoomModal from "../modal/rooms";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllRooms, inactiveRoomFetch } from "../../store/fetchActions/rooms";
+import { getAllRoomsWithTodayCalls, inactiveRoomFetch } from "../../store/fetchActions/rooms";
 import { showRoom } from "../../store/ducks/rooms";
 import { changeTitleAlert, turnModal, turnModalViewRoom } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
@@ -57,7 +57,7 @@ export default () => {
     const router = useRouter();
 
     useEffect(() => {
-        dispatch(getAllRooms());
+        dispatch(getAllRoomsWithTodayCalls());
     }, []);
 
     useEffect(() => {

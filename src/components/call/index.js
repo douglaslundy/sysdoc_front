@@ -10,16 +10,14 @@ import BaseCard from "../baseCard/BaseCard";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllCalls, inactiveCallFetch } from "../../store/fetchActions/calls";
+import { getTodayCalls, inactiveCallFetch } from "../../store/fetchActions/calls";
 import { showCall } from "../../store/ducks/calls";
 import { changeTitleAlert, turnModal, turnModalViewService } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
-import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
 import CreateCallModal from "../../components/modal/create_call";
-
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -42,15 +40,14 @@ export default () => {
     const dispatch = useDispatch();
     const { calls } = useSelector(state => state.calls);
     const [searchValue, setSearchValue] = useState();
-    const [allCalls, setAllCalls] = useState(calls);
-    const { user, profile } = useContext(AuthContext);
+    const [todayCalls, setTodayCalls] = useState(calls);
 
     useEffect(() => {
-        dispatch(getAllCalls());
+        dispatch(getTodayCalls());
     }, []);
 
     useEffect(() => {
-        setAllCalls(searchValue ? [...calls.filter(serv => serv.number.toString().includes(searchValue.toString()))] : calls);
+        setTodayCalls(searchValue ? [...calls.filter(serv => serv.number.toString().includes(searchValue.toString()))] : calls);
     }, [calls]);
 
     const HandleViewCall = async call => {
@@ -71,7 +68,7 @@ export default () => {
 
     const searchcalls = ({ target }) => {
         setSearchValue(target.value);
-        setAllCalls([...calls.filter(
+        setTodayCalls([...calls.filter(
             serv => serv.name && serv.name.toString().includes(target.value.toString()) ||
                 serv.id && serv.id.toString().includes(target.value.toString())
         )]);

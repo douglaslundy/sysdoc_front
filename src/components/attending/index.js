@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import BaseCard from "../baseCard/BaseCard";
-import { Alert, Box, Button, FormControlLabel, FormGroup, Stack, Switch, TextField } from "@mui/material";
+import { Alert, Box, Button, FormControlLabel, FormGroup, Stack, Switch, TextField, Typography } from "@mui/material";
 import { parseCookies } from "nookies";
 import { useRouter } from "next/router";
 import { alterTypeOfAlert, changeTitleAlert, turnAlert, turnModal } from "../../store/ducks/Layout";
@@ -8,7 +8,8 @@ import { useDispatch, useSelector } from "react-redux";
 import AlertModal from "../messagesModal";
 import { getAllServices } from '../../store/fetchActions/service_calls';
 import Select from '../inputs/selects';
-import { finishCallFetch } from "../../store/fetchActions/calls";
+import { finishCallFetch, getShowCall } from "../../store/fetchActions/calls";
+import CreateCallModal from "../modal/create_call";
 
 
 
@@ -16,6 +17,7 @@ export default function Attending() {
 
     const { 'sysvendas.call_id': id_call } = parseCookies();
     const { services } = useSelector(state => state.services);
+    const { call, calls } = useSelector(state => state.calls);
 
     const [form, setForm] = useState({
         call_id: id_call,
@@ -53,6 +55,9 @@ export default function Attending() {
         setForm({ ...form, service_status: isVisible ? 'finished' : 'forwarded' })
     }
 
+    const handleOpenCreateClientModal = async () => {
+        dispatch(turnModal());
+    }
     const handleSaveData = async () => {
         call_id && call_id != 'null' ? handlePostData() : dispatch(turnAlert()) && router.push('/listing_calls');
     }
@@ -70,16 +75,18 @@ export default function Attending() {
 
     useEffect(() => {
         (!call_id || call_id == 'null') && prohibitedAction();
-    }, []);
+        dispatch(getShowCall(call_id));
+    }, [calls]);
 
     useEffect(() => {
         dispatch(getAllServices());
     }, []);
 
     return (
-        <BaseCard title={`Você está atendendo a senha de Nº ${id_call}`}>
+        <BaseCard title={`Você está atendendo a senha de Nº ${call?.call_prefix} ${call?.call_number}`}>
 
             <AlertModal />
+            <CreateCallModal />
 
             {texto &&
                 <Alert variant="filled" severity="warning">
@@ -89,6 +96,40 @@ export default function Attending() {
 
             {/* <FormGroup > */}
             <Stack spacing={3}>
+
+                {call?.client &&
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontWeight: "600",
+                            fontSize: "20px",
+                        }}
+                    >
+                        Cliente: {call?.client?.name}
+                    </Typography>
+                }
+                {call?.subject &&
+                    <>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: "600",
+                                fontSize: "16px",
+                            }}
+                        >
+                            Motivo:
+                        </Typography>
+                        {call?.subject.toUpperCase()}
+                    </>
+                }
+
+                {!call?.client &&
+                    <Box sx={{ "& button": { mx: 1 } }}>
+                        <Button onClick={handleOpenCreateClientModal} variant="contained" mt={2}>
+                            Informar cliente
+                        </Button>
+                    </Box>
+                }
 
                 <TextField
                     id="description"

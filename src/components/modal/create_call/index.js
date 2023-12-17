@@ -21,7 +21,6 @@ import Select from '../../inputs/selects';
 import InputSelect from "../../inputs/inputSelect";
 import { addCallFetch, editCallFetch } from '../../../store/fetchActions/calls';
 import { getAllClients } from '../../../store/fetchActions/clients';
-import { addClient, addClients, showClient } from '../../../store/ducks/clients';
 
 
 const style = {
@@ -49,6 +48,7 @@ export default function CreateCallModal(props) {
 
     const { call_service_id, client_id, subject } = form;
     const { services, service } = useSelector(state => state.services);
+    const { call } = useSelector(state => state.calls);
     const { clients, client } = useSelector(state => state.clients);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -73,7 +73,7 @@ export default function CreateCallModal(props) {
 
 
     const handleSaveData = async () => {
-        service && service.id ? handlePutData() : handlePostData()
+        call && call.id ? handlePutData() : handlePostData()
     }
 
     const handlePostData = async () => {
@@ -105,8 +105,17 @@ export default function CreateCallModal(props) {
     }, []);
 
     useEffect(() => {
+        if (isOpenModal) {
+            setForm({
+                ...call
+            });
+        }
 
-        if(customer?.id && customer.id != 'undefined'){
+    }, [call, isOpenModal]);
+
+    useEffect(() => {
+
+        if (customer?.id && customer.id != 'undefined') {
 
             setForm({
                 ...form,
@@ -132,7 +141,7 @@ export default function CreateCallModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={service && service.id ? "Editar Atendimento " : "Novo Atendimento "}>
+                            <BaseCard title={call && call.id ? "Editar Atendimento " : "Novo Atendimento "}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
@@ -157,6 +166,7 @@ export default function CreateCallModal(props) {
                                         value={call_service_id}
                                         name={'call_service_id'}
                                         store={services}
+                                        disabled={call?.id ? true : false}
                                         changeItem={changeItem}
                                     />
 
@@ -167,6 +177,7 @@ export default function CreateCallModal(props) {
                                         rows={2}
                                         value={subject ? subject : ''}
                                         name="subject"
+                                        disabled={call?.id ? true : false}
                                         onChange={changeItem}
                                         inputProps={{
                                             style: {

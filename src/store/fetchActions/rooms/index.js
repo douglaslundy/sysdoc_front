@@ -15,6 +15,19 @@ export const getAllRooms = () => {
             .catch(() => { dispatch(turnLoading()) })
     }
 }
+export const getAllRoomsWithTodayCalls = () => {
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+        api
+            .get('/rooms/todaycalls')
+            .then((res) => {
+                dispatch(addRooms(res.data));
+                dispatch(turnLoading());
+            })
+            .catch(() => { dispatch(turnLoading()) })
+    }
+}
 
 export const addRoomFetch = (room, cleanForm) => {
 
