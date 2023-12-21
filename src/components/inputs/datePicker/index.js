@@ -5,8 +5,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ptBrLocale from 'date-fns/locale/pt-BR';
 
-export default function BasicDatePicker() {
-    const [value, setValue] = React.useState(null);
+export default function BasicDatePicker(props) {
+
+    const { label, name, value, setValue, disabled = false, sx } = props;
 
     return (
         <LocalizationProvider
@@ -14,13 +15,13 @@ export default function BasicDatePicker() {
             adapterLocale={ptBrLocale}
         >
             <DatePicker
-                label="Data"
+                label={label}
+                name={name}
+                disabled={disabled}
                 views={['year', 'month', 'day']}
                 value={value}
-                onChange={(newValue) => {
-                    setValue(newValue);
-                }}
-                renderInput={(params) => <TextField {...params} />}
+                onChange={(value) => {setValue(value)}}
+                renderInput={(params) => <TextField {...params} sx={sx} />}
             />
         </LocalizationProvider>
     );

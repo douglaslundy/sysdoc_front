@@ -1,14 +1,30 @@
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
-import { getCurrency, setCurrency } from "../../../components/helpers/formatt/currency";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
 import { inactiveClient, addClient, editClient, addClients } from "../../ducks/clients";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
+import { format, parse, parseISO } from 'date-fns';
 
 // function getToken() {
 //     const { 'sysvendas.token': token } = parseCookies();    
 //     token ? api.defaults.headers['Authorization'] = `Bearer ${token}` : Router.push('/login');
 // }
+
+const converterData = (dataString) => {
+    // Converter a string para um objeto de data usando a função parse
+    const data = parse(dataString, 'yyyy/MM/dd', new Date());
+
+    // Verificar se a conversão foi bem-sucedida
+    if (isNaN(data.getTime())) {
+        throw new Error('Data inválida');
+    }
+
+    // Formatar a data no novo formato desejado
+    const dataFormatada = format(data, 'yyyy-MM-dd');
+
+    return dataFormatada;
+};
+
 
 export const getAllClients = () => {
     // getToken();
@@ -51,7 +67,6 @@ export const getAllClients = () => {
                 dispatch(turnLoading());
             })
             .catch((error) => { 
-                console.log("Erro na consulta de clientes" + error),
                 dispatch(turnLoading()) })
     }
 }
@@ -61,34 +76,34 @@ export const addClientFetch = (client, cleanForm) => {
         dispatch(turnLoading());
 
         client = {
-            name: client.full_name,
-            mother: client.surname,
-            cpf: cleanCpfCnpj(client.cpf_cnpj),
+            name: client.name,
+            mother: client.mother,
+            cpf: cleanCpfCnpj(client.cpf),
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,
-            born_date: client.born_date,
+            born_date: client?.born_date ? format(client?.born_date, 'yyyy/MM/dd'): null,
             sexo: client.sexo,
-            active: client.active,
+            // active: client.active,
 
-            // addresses: {
-            //     zip_code: client.zip_code,
-            //     city: client.city,
-            //     street: client.street,
-            //     number: client.number,
-            //     district: client.district,
-            //     complement: client.complement
-            // }
+            addresses: {
+                zip_code: client.zip_code,
+                city: client.city,
+                street: client.street,
+                number: client.number,
+                district: client.district,
+                complement: client.complement
+            }
         };
 
         api.post('/clients', client)
             .then((res) =>
             (
-                // client = {
-                //     ...res.data.client,
-                //     limit: getCurrency(res.data.client.limit),
-                //     ...client.addresses,
-                // },
+                client = {
+                    ...res.data.client,
+                    born_date: res?.data?.client?.born_date ?  converterData(res.data.client.born_date) : null,
+                },
+                
                 dispatch(addClient(client)),
                 dispatch(addMessage(`O cliente ${client.name} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
@@ -96,7 +111,7 @@ export const addClientFetch = (client, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(error ? `ERROR - ${error?.response?.data?.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })

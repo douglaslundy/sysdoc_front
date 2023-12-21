@@ -12,6 +12,12 @@ const Menuitems = [
     profile: "admin",
   },
   {
+    title: "Clientes",
+    icon: "users",
+    href: "/clients",
+    profile: "admin",
+  },
+  {
     title: "Oficios",
     icon: "send",
     href: "/letters",
