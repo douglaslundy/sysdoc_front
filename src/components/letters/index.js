@@ -26,6 +26,7 @@ import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/let
 import { showLetter } from "../../store/ducks/letters";
 import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
+import Select from '../inputs/selects';
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
@@ -54,12 +55,34 @@ export default () => {
     const [allLetters, setAllLetters] = useState(letters);
     const { user, profile } = useContext(AuthContext);
 
+    const [year, setYear] = useState(new Date().getFullYear());
+    const uniqueYears = Array.from(new Set(letters.map(item => new Date(item.created_at).getFullYear())));
+
+    // Transforma a variável years em um array JSON
+    const transformedYears = Object.values({ ...uniqueYears }).map(year => ({
+        id: year,
+        name: year,
+    }));
+
+    const changeYear = ({ target }) => {
+        setYear(target.value)
+    }
+
+
     useEffect(() => {
         dispatch(getAllLetters());
     }, []);
 
     useEffect(() => {
-        setAllLetters(searchValue ? [...letters.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))] : letters);
+        setAllLetters([...letters.filter(lett => new Date(lett.created_at).getFullYear() == year)]);
+    }, [year]);
+
+    useEffect(() => {
+        // executado apenas quando é carregado a pagina a primeira vez, ou quando é adicionado um registro 
+        setAllLetters(searchValue ?
+            [...letters.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
+                .filter(lett => new Date(lett.created_at).getFullYear() == year)]
+            : [...letters.filter(lett => new Date(lett.created_at).getFullYear() == year)]);
     }, [letters]);
 
 
@@ -83,12 +106,13 @@ export default () => {
     const searchLetters = ({ target }) => {
         setSearchValue(target.value);
 
-        setAllLetters([...letters.filter(
-            lett => lett.number && lett.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.sender && lett.sender.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.recipient && lett.recipient.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.subject_matter && lett.subject_matter.toString().toLowerCase().includes(target.value.toString().toLowerCase())
-        )]);
+        setAllLetters([...letters.filter(lett => new Date(lett.created_at).getFullYear() == year)
+            .filter(
+                lett => lett.number && lett.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    lett.sender && lett.sender.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    lett.recipient && lett.recipient.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    lett.subject_matter && lett.subject_matter.toString().toLowerCase().includes(target.value.toString().toLowerCase())
+            )]);
     }
 
     const [page, setPage] = useState(0);
@@ -107,14 +131,16 @@ export default () => {
         <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
             <AlertModal />
             <ViewLetterModal />
+
             <Box sx={{
-                '& > :not(style)': { m: 2 },
+                '& > :not(style)': { mb: 0, mt: 2 },
                 'display': 'flex',
-                'justify-content': 'stretch'
-            }}>
+                'justify-content': 'space-between'
+            }}
+            >
 
                 <TextField
-                    sx={{ width: "85%" }}
+                    sx={{ width: "65%" }}
                     label="Pesquisar ofício"
                     name="search"
                     value={searchValue}
@@ -122,12 +148,24 @@ export default () => {
 
                 />
 
+                <Select
+                    label="Ano"
+                    name="year"
+                    value={year}
+                    store={transformedYears}
+                    changeItem={changeYear}
+                    wd={"20%"}
+                />
+
                 <LetterModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
+                        <FeatherIcon icon="plus" />
                     </Fab>
                 </LetterModal>
             </Box>
+
+
+
 
             <TableContainer>
 

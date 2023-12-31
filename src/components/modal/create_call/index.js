@@ -21,6 +21,7 @@ import Select from '../../inputs/selects';
 import InputSelect from "../../inputs/inputSelect";
 import { addCallFetch, editCallFetch } from '../../../store/fetchActions/calls';
 import { getAllClients } from '../../../store/fetchActions/clients';
+import { useRouter } from 'next/router';
 
 
 const style = {
@@ -59,6 +60,7 @@ export default function CreateCallModal(props) {
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
     };
+    const router = useRouter();
 
     const cleanForm = () => {
         setForm({
@@ -72,6 +74,10 @@ export default function CreateCallModal(props) {
     }
 
 
+    const handleGoClient = async () => {
+        cleanForm();
+        router.push('/clients');
+    }
     const handleSaveData = async () => {
         call && call.id ? handlePutData() : handlePostData()
     }
@@ -193,6 +199,10 @@ export default function CreateCallModal(props) {
 
                                     <Button onClick={handleSaveData} variant="contained" mt={2}>
                                         Gravar
+                                    </Button>
+                                    
+                                    <Button onClick={handleGoClient} color='success' variant="contained" mt={2}>
+                                        Cadastrar Cliente
                                     </Button>
 
                                     <Button onClick={cleanForm} variant="outlined" mt={2}>

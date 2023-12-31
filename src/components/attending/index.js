@@ -55,7 +55,7 @@ export default function Attending() {
         setForm({ ...form, service_status: isVisible ? 'finished' : 'forwarded' })
     }
 
-    const handleOpenCreateClientModal = async () => {
+    const handleOpenCallModalToSetClient = async () => {
         dispatch(turnModal());
     }
     const handleSaveData = async () => {
@@ -125,7 +125,7 @@ export default function Attending() {
 
                 {!call?.client &&
                     <Box sx={{ "& button": { mx: 1 } }}>
-                        <Button onClick={handleOpenCreateClientModal} variant="contained" mt={2}>
+                        <Button onClick={handleOpenCallModalToSetClient} variant="contained" mt={2}>
                             Informar cliente
                         </Button>
                     </Box>

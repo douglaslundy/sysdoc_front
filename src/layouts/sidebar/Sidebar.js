@@ -37,6 +37,7 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
   const Lista = (item, index) => {
     return (
       <List component="li" disablePadding key={item.title}>
+
         <NextLink href={item.href}>
           <ListItem
             onClick={() => handleClick(index)}
@@ -67,6 +68,7 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
             </ListItemText>
           </ListItem>
         </NextLink>
+        
       </List>
     )
   }

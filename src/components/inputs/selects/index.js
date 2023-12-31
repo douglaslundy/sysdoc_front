@@ -31,7 +31,7 @@ export default function BasicSelect(props) {
           {valueDefault && <MenuItem key={0} value={0}>{valueDefault}</MenuItem> }
 
           {store.map((d) => (
-             <MenuItem key={d.id} value={d.id}>{d.name.toUpperCase()}</MenuItem>
+             <MenuItem key={d.id} value={d.id}>{d.name.toString().toUpperCase()}</MenuItem>
           ))}
         </Select>
       </FormControl>

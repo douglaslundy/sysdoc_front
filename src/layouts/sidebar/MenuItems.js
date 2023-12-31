@@ -42,7 +42,20 @@ const Menuitems = [
     profile: "admin",
   },
   {
-    title: "Atendimento",
+    title: "Minha Sala",
+    icon: "list",
+    href: "/listing_calls",
+    profile: "admin",
+  },
+  
+  {
+    title: "Em Atendimento",
+    icon: "list",
+    href: "/attending",
+    profile: "admin",
+  },
+  {
+    title: "Novo Atendimento",
     icon: "list",
     href: "/call",
     profile: "admin",
