@@ -203,121 +203,132 @@ export default () => {
 
                         </TableRow>
                     </TableHead>
-                    <TableBody>
-                        {allLetters
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((letter, index) => (
-                                <StyledTableRow key={letter.id} hover>
-                                    <>
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                            fontSize: "38px",
-                                                        }}
-                                                    >
-                                                        {letter && letter.number}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "13px",
-                                                        }}
-                                                    >
-                                                        {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                                    </Typography>
+                    {allLetters.length >= 1 ?
+                        <TableBody>
+                            {allLetters
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((letter, index) => (
+                                    <StyledTableRow key={letter.id} hover>
+                                        <>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                                fontSize: "38px",
+                                                            }}
+                                                        >
+                                                            {letter && letter.number}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                            }}
+                                                        >
+                                                            {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        </TableCell>
+                                            </TableCell>
 
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {letter && letter.sender.substring(0, 30).toUpperCase()}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {letter && letter.recipient.substring(0, 30).toUpperCase()}
-                                                    </Typography>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "left"
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                            }}
+                                                        >
+                                                            {letter && letter.sender.substring(0, 30).toUpperCase()}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "12px",
+                                                            }}
+                                                        >
+                                                            {letter && letter.recipient.substring(0, 30).toUpperCase()}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        </TableCell>
+                                            </TableCell>
 
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {letter && letter.user.name.substring(0, 30).toUpperCase()}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
-                                                    </Typography>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "left"
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                            }}
+                                                        >
+                                                            {letter && letter.user.name.substring(0, 30).toUpperCase()}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "12px",
+                                                            }}
+                                                        >
+                                                            {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        </TableCell>
+                                            </TableCell>
 
-                                        <TableCell align="center">
-                                            <Box sx={{ "& button": { mx: 1 } }}>
+                                            <TableCell align="center">
+                                                <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
-                                                    <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>
+                                                    <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
+                                                        <FeatherIcon icon="eye" width="20" height="20" />
+                                                    </Button>
 
-                                                <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && letter.id_user != user}>
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
+                                                    <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
+                                                        disabled={profile != "admin" && letter.id_user != user}>
+                                                        <FeatherIcon icon="edit" width="20" height="20" />
+                                                    </Button>
 
-                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
-                                                    disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
+                                                    <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
+                                                        disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
+                                                        <FeatherIcon icon="trash" width="20" height="20" />
+                                                    </Button>
 
-                                            </Box>
-                                        </TableCell>
-                                    </>
+                                                </Box>
+                                            </TableCell>
+                                        </>
 
-                                </StyledTableRow>
-                            ))}
-                    </TableBody>
+                                    </StyledTableRow>
+                                ))}
+                        </TableBody>
+
+                        :
+
+                        <TableCell align="center">
+                            Nenhum registro encontrado!
+
+                        </TableCell>
+
+                    }
+
                 </Table>
                 <TablePagination
                     component="div"
