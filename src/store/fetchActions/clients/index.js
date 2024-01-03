@@ -41,7 +41,9 @@ export const getAllClients = () => {
                     "id": d.id,
                     "name": d.name,
                     "mother": d.mother,
+                    "father": d.father,
                     "cpf": cleanCpfCnpj(d.cpf),
+                    "cns": cleanCpfCnpj(d.cns),
                     "phone": cleanPhone(d.phone),
                     "email": d.email,
                     "obs": d.obs,
@@ -78,7 +80,9 @@ export const addClientFetch = (client, cleanForm) => {
         client = {
             name: client.name,
             mother: client.mother,
+            father: client.father,
             cpf: cleanCpfCnpj(client.cpf),
+            cns: cleanCpfCnpj(client.cns),
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,
@@ -124,9 +128,11 @@ export const editClientFetch = (client, cleanForm) => {
 
         client = {
             ...client,
-            name: client.full_name,
-            mother: client.surname,
+            name: client.name,
+            mother: client.mother,
+            father: client.father,
             cpf: cleanCpfCnpj(client.cpf_cnpj),
+            cns: cleanCpfCnpj(client.cns),
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,

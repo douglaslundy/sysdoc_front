@@ -214,34 +214,6 @@ export default () => {
                                             </Box>
                                         </TableCell>
 
-                                        {/* <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {client.street && client.number ? client.street.substring(0, 35).toUpperCase() + ', ' + client.number : ''}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "13px",
-                                                        }}
-                                                    >
-                                                        {client.district && client.city ? client.district.substring(0, 30).toUpperCase() + ', ' + client.city.substring(0, 30).toUpperCase() : ''}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell> */}
-
                                         <TableCell>
                                             <Box
                                                 sx={{
@@ -256,7 +228,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        { client?.mother.substring(0, 30).toUpperCase()}
+                                                        { client?.mother?.substring(0, 30).toUpperCase()}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
