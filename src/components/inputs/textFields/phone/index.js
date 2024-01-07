@@ -17,7 +17,7 @@ export default function index(props) {
     const { label,  name, value, changeItem } = props;
     return (
         <TextField
-            id="phone"
+            id={name}
             label={label}
             variant="outlined"
             name={name}

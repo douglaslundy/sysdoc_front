@@ -27,43 +27,43 @@ const converterData = (dataString) => {
 
 
 export const getAllClients = () => {
-    // getToken();
-    const config = {
-        transformResponse: [function (data) {
-            const payload = JSON.parse(data).map(d => {
-                // const zip_code = d.addresses ? d.addresses.zip_code : null;
-                // const city = d.addresses ? d.addresses.city : null;
-                // const street = d.addresses ? d.addresses.street : null;
-                // const number = d.addresses ? d.addresses.number : null;
-                // const district = d.addresses ? d.addresses.district : null;
-                // const complement = d.addresses ? d.addresses.complement : null;
-                return {
-                    "id": d.id,
-                    "name": d.name,
-                    "mother": d.mother,
-                    "father": d.father,
-                    "cpf": cleanCpfCnpj(d.cpf),
-                    "cns": cleanCpfCnpj(d.cns),
-                    "phone": cleanPhone(d.phone),
-                    "email": d.email,
-                    "obs": d.obs,
-                    "born_date": d.born_date,
-                    "sexo": d.sexo,
-                    "active": d.active,
-                    "created_at": d.created_at,
-                    "updated_at": d.updated_at,
-                };
-            });
-            return payload;
-        }]
-    }
+    // // getToken();
+    // const config = {
+    //     transformResponse: [function (data) {
+    //         const payload = JSON.parse(data).map(d => {
+    //             const zip_code = d.addresses ? d.addresses.zip_code : null;
+    //             const city = d.addresses ? d.addresses.city : null;
+    //             const street = d.addresses ? d.addresses.street : null;
+    //             const number = d.addresses ? d.addresses.number : null;
+    //             const district = d.addresses ? d.addresses.district : null;
+    //             const complement = d.addresses ? d.addresses.complement : null;
+    //             return {
+    //                 "id": d.id,
+    //                 "name": d.name,
+    //                 "mother": d.mother,
+    //                 "father": d.father,
+    //                 "cpf": cleanCpfCnpj(d.cpf),
+    //                 "cns": cleanCpfCnpj(d.cns),
+    //                 "phone": cleanPhone(d.phone),
+    //                 "email": d.email,
+    //                 "obs": d.obs,
+    //                 "born_date": d.born_date,
+    //                 "sexo": d.sexo,
+    //                 "active": d.active,
+    //                 "created_at": d.created_at,
+    //                 "updated_at": d.updated_at,
+    //             };
+    //         });
+    //         return payload;
+    //     }]
+    // }
 
     
     return (dispatch) => {
         dispatch(turnLoading());
         
         api
-        .get('/clients', config)
+        .get('/clients')
         .then((res) => {
                 dispatch(addClients(res.data));
                 dispatch(turnLoading());
@@ -139,14 +139,14 @@ export const editClientFetch = (client, cleanForm) => {
             born_date: client.born_date,
             sexo: client.sexo,
             active: client.active,
-            // addresses: {
-            //     zip_code: client.zip_code,
-            //     city: client.city,
-            //     street: client.street,
-            //     number: client.number,
-            //     district: client.district,
-            //     complement: client.complement
-            // }
+            addresses: {
+                zip_code: client.zip_code,
+                city: client.city,
+                street: client.street,
+                number: client.number,
+                district: client.district,
+                complement: client.complement
+            }
         };
 
         api.put(`/clients/${client.id}`, client)

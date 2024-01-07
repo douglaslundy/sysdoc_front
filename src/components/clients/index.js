@@ -107,9 +107,10 @@ export default () => {
             const name = removeAccents(cli.name.toString().trim().toLowerCase());
             const cnsMatch = cli.cns && cli.cns.toString() === search;
             const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condição para pesquisa por CPF
+            const phoneMatch = cli?.phone?.includes(search);
             const nameMatch = name.includes(search);
 
-            return cnsMatch || cpfMatch || nameMatch; // Inclui a pesquisa por CPF na condição de retorno
+            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condição de retorno
         });
 
         setAllClients(filteredClients);
@@ -126,7 +127,7 @@ export default () => {
             }}>
                 <TextField
                     sx={{ width: "100%" }}
-                    label="Pesquisar cliente: Nome / CPF ou CNS"
+                    label="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
                     name="search"
                     autoComplete="off"
                     value={searchValue}
@@ -168,7 +169,7 @@ export default () => {
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    E-mail / Telefone / Obs
+                                    Telefone / Endereço / Obs
                                 </Typography>
                             </TableCell>                         
 
@@ -251,9 +252,9 @@ export default () => {
                                         </TableCell>
 
                                         <TableCell>
-                                            <Typography variant="h6">{client?.email}</Typography>
                                             <Typography variant="h6">{client?.phone}</Typography>
-                                            <Typography variant="h6">{client?.obs?.substring(0, 30).toUpperCase()}</Typography>
+                                            <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
+                                            <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
                                         </TableCell>
 
                                         <TableCell align="center">
