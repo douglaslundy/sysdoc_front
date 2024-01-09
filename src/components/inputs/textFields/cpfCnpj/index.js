@@ -14,13 +14,14 @@ const CpfCnpjInput = React.forwardRef((props, ref) => {
 
 export default function index(props) {
 
-    const { label, name, value, changeItem, disabled = false } = props;
+    const { label, name, value, changeItem, disabled = false, sx } = props;
     return (
         <TextField
             id="phone"
             label={label}
             variant="outlined"
             name={name}
+            sx={sx}
             value={value ? value : ''}
             onChange={changeItem}            
             disabled={disabled}

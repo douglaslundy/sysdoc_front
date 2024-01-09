@@ -27,37 +27,6 @@ const converterData = (dataString) => {
 
 
 export const getAllClients = () => {
-    // // getToken();
-    // const config = {
-    //     transformResponse: [function (data) {
-    //         const payload = JSON.parse(data).map(d => {
-    //             const zip_code = d.addresses ? d.addresses.zip_code : null;
-    //             const city = d.addresses ? d.addresses.city : null;
-    //             const street = d.addresses ? d.addresses.street : null;
-    //             const number = d.addresses ? d.addresses.number : null;
-    //             const district = d.addresses ? d.addresses.district : null;
-    //             const complement = d.addresses ? d.addresses.complement : null;
-    //             return {
-    //                 "id": d.id,
-    //                 "name": d.name,
-    //                 "mother": d.mother,
-    //                 "father": d.father,
-    //                 "cpf": cleanCpfCnpj(d.cpf),
-    //                 "cns": cleanCpfCnpj(d.cns),
-    //                 "phone": cleanPhone(d.phone),
-    //                 "email": d.email,
-    //                 "obs": d.obs,
-    //                 "born_date": d.born_date,
-    //                 "sexo": d.sexo,
-    //                 "active": d.active,
-    //                 "created_at": d.created_at,
-    //                 "updated_at": d.updated_at,
-    //             };
-    //         });
-    //         return payload;
-    //     }]
-    // }
-
     
     return (dispatch) => {
         dispatch(turnLoading());
@@ -82,7 +51,7 @@ export const addClientFetch = (client, cleanForm) => {
             mother: client.mother,
             father: client.father,
             cpf: cleanCpfCnpj(client.cpf),
-            cns: cleanCpfCnpj(client.cns),
+            cns: client.cns,
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,
@@ -132,7 +101,7 @@ export const editClientFetch = (client, cleanForm) => {
             mother: client.mother,
             father: client.father,
             cpf: cleanCpfCnpj(client.cpf_cnpj),
-            cns: cleanCpfCnpj(client.cns),
+            cns: client.cns,
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,
@@ -152,12 +121,6 @@ export const editClientFetch = (client, cleanForm) => {
         api.put(`/clients/${client.id}`, client)
             .then((res) =>
             (
-                // client = {
-                //     ...res.data.client,
-                //     limit: getCurrency(res.data.client.limit),
-                //     debit_balance: getCurrency(res.data.client.debit_balance),
-                //     ...client.addresses,
-                // },
 
                 dispatch(editClient(client)),
                 dispatch(addMessage(`O cliente ${client.name} foi atualizado com sucesso!`)),

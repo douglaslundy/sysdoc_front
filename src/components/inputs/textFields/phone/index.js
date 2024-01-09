@@ -14,13 +14,14 @@ const PhoneMask = React.forwardRef((props, ref) => {
 
 export default function index(props) {
 
-    const { label,  name, value, changeItem } = props;
+    const { label,  name, value, changeItem, sx} = props;
     return (
         <TextField
             id={name}
             label={label}
             variant="outlined"
             name={name}
+            sx={sx}
             value={value ? value : ''}
             onChange={changeItem}
 

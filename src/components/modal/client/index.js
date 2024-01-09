@@ -47,6 +47,7 @@ export default function ClientModal(props) {
         name: "",
         mother: "",
         cpf: "",
+        cns: "",
         phone: "",
         email: "",
         obs: "",
@@ -64,7 +65,7 @@ export default function ClientModal(props) {
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
-    const { name, mother, cpf, phone, email, obs, born_date, sexo, zip_code, city, street, number, district, complement } = form;
+    const { name, mother, cpf, cns, phone, email, obs, born_date, sexo, zip_code, city, street, number, district, complement } = form;
     const [texto, setTexto] = useState();
 
     const changeItem = ({ target }) => {
@@ -76,6 +77,7 @@ export default function ClientModal(props) {
             name: "",
             mother: "",
             cpf: "",
+            cns: "",
             phone: "",
             email: "",
             obs: "",
@@ -117,13 +119,13 @@ export default function ClientModal(props) {
     };
 
     const handleSetDn = (value) => {
-        setForm({...form, born_date: value})
+        setForm({ ...form, born_date: value })
     }
 
     useEffect(() => {
         if (client && client.id)
-            setForm({...client, ...client?.addresses});
-    
+            setForm({ ...client, ...client?.addresses });
+
         console.log(JSON.stringify(client));
     }, [client]);
 
@@ -221,7 +223,7 @@ export default function ClientModal(props) {
                                         />
 
 
-                                    
+
                                         <FormControl sx={{ width: '22%' }}>
                                             <InputLabel id="sexo">Sexo</InputLabel>
                                             <Select
@@ -240,20 +242,46 @@ export default function ClientModal(props) {
 
                                     </Box>
 
-                                    <CpfCnpj
-                                        value={cpf}
-                                        label={'CPF'}
-                                        name={'cpf'}
-                                        required={'required'}
-                                        changeItem={changeItem}
-                                    />
+                                    <Box sx={{
+                                        '& > :not(style)': { mb: 0 },
+                                        'display': 'flex',
+                                        'justify-content': 'space-between'
+                                    }}
+                                    >
 
-                                    <Phone value={phone}
-                                        label={'Telefone'}
-                                        name={'phone'}
-                                        changeItem={changeItem}
-                                    />
+                                        <CpfCnpj
+                                            value={cpf}
+                                            label={'CPF'}
+                                            name={'cpf'}
+                                            required={'required'}
+                                            sx={{ width: '30%', mr: 2 }}
+                                            changeItem={changeItem}
+                                        />
 
+                                        <TextField
+                                            id="cns"
+                                            label={cns && cns.length > 0 ? `CARTÃO DO SUS: ${15 - cns.length} caracteres restantes` : 'CARTÃO DO SUS'}
+                                            variant="outlined"
+                                            name="cns"
+                                            value={cns ? cns : ''}
+                                            onChange={changeItem}
+                                            sx={{ width: '36%', mr: 2 }}
+                                            inputProps={{
+                                                style: {
+                                                    textTransform: "uppercase"
+                                                },
+                                                maxLength: 15
+                                            }}
+                                        />
+
+                                        <Phone value={phone}
+                                            label={'Telefone'}
+                                            name={'phone'}
+                                            sx={{ width: '30%', mr: 2 }}
+                                            changeItem={changeItem}
+                                        />
+
+                                    </Box>
 
                                     <Box sx={{
                                         '& > :not(style)': { mb: 0 },
