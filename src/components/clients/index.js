@@ -88,7 +88,7 @@ export default () => {
         dispatch(getAllClients());
     }, []);
 
-    useEffect(() => {        
+    useEffect(() => {
         setAllClients(searchValue ? [...clients.filter(cli => cli.name.toString().includes(searchValue.toString()))] : clients);
     }, [clients]);
 
@@ -171,7 +171,7 @@ export default () => {
                                 <Typography color="textSecondary" variant="h6">
                                     Telefone / Endereço / Obs
                                 </Typography>
-                            </TableCell>                         
+                            </TableCell>
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
@@ -181,101 +181,110 @@ export default () => {
 
                         </TableRow>
                     </TableHead>
-                    <TableBody>
-                        {allClients
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((client, index) => (
-                                <StyledTableRow key={client.id} hover>
-                                    <>
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        { client?.name.substring(0, 35).toUpperCase()}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "13px",
-                                                        }}
-                                                    >
-                                                        {client?.born_date ? format(parseISO(client?.born_date), 'dd/MM/yyyy') : null}
-                                                    </Typography>
+
+                    {allClients.length >= 1 ?
+                        <TableBody>
+                            {allClients
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((client, index) => (
+                                    <StyledTableRow key={client.id} hover>
+                                        <>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                            }}
+                                                        >
+                                                            {client?.name.substring(0, 35).toUpperCase()}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                            }}
+                                                        >
+                                                            {client?.born_date ? format(parseISO(client?.born_date), 'dd/MM/yyyy') : null}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        </TableCell>
+                                            </TableCell>
 
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        { client?.mother?.substring(0, 30).toUpperCase()}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {client?.cpf}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textPrimary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {client?.cns}
-                                                    </Typography>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "left",
+                                                    }}
+                                                >
+                                                    <Box>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                            }}
+                                                        >
+                                                            {client?.mother?.substring(0, 30).toUpperCase()}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "12px",
+                                                            }}
+                                                        >
+                                                            {client?.cpf}
+                                                        </Typography>
+                                                        <Typography
+                                                            color="textPrimary"
+                                                            sx={{
+                                                                fontSize: "12px",
+                                                            }}
+                                                        >
+                                                            {client?.cns}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
-                                            </Box>
-                                        </TableCell>
+                                            </TableCell>
 
-                                        <TableCell>
-                                            <Typography variant="h6">{client?.phone}</Typography>
-                                            <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
-                                            <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
-                                        </TableCell>
+                                            <TableCell>
+                                                <Typography variant="h6">{client?.phone}</Typography>
+                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
+                                                <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
+                                            </TableCell>
 
-                                        <TableCell align="center">
-                                            <Box sx={{ "& button": { mx: 1 } }}>
-                                               
-                                                <Button title="Editar cliente" onClick={() => { HandleEditClient(client) }} color="success" size="medium" variant="contained">
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
+                                            <TableCell align="center">
+                                                <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Excluir cliente" onClick={() => { HandleInactiveClient(client) }} color="error" size="medium" variant="contained">
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
+                                                    <Button title="Editar cliente" onClick={() => { HandleEditClient(client) }} color="success" size="medium" variant="contained">
+                                                        <FeatherIcon icon="edit" width="20" height="20" />
+                                                    </Button>
+
+                                                    <Button title="Excluir cliente" onClick={() => { HandleInactiveClient(client) }} color="error" size="medium" variant="contained">
+                                                        <FeatherIcon icon="trash" width="20" height="20" />
+                                                    </Button>
 
 
-                                            </Box>
-                                        </TableCell>
-                                    </>
+                                                </Box>
+                                            </TableCell>
+                                        </>
 
-                                </StyledTableRow>
-                            ))}
-                    </TableBody>
+                                    </StyledTableRow>
+                                ))}
+                        </TableBody>
+
+                        :
+
+                        <TableCell>
+                            Nenhum registro encontrado!
+                        </TableCell>
+                    }
                 </Table>
                 <TablePagination
                     component="div"

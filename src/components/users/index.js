@@ -89,11 +89,11 @@ export default () => {
     };
 
     useEffect(() => {
-    
+
         if (profile == "user") {
-          Router.push('/');
+            Router.push('/');
         }
-      }, []);
+    }, []);
 
 
     return (
@@ -114,9 +114,9 @@ export default () => {
                 />
 
                 {/* <UserModal> */}
-                    <Fab onClick={() => { dispatch(turnUserModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
-                    </Fab>
+                <Fab onClick={() => { dispatch(turnUserModal()) }} color="primary" aria-label="add">
+                    <FeatherIcon icon="user-plus" />
+                </Fab>
                 {/* </UserModal> */}
             </Box>
 
@@ -150,87 +150,96 @@ export default () => {
 
                         </TableRow>
                     </TableHead>
-                    <TableBody>
-                        {allUsers
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((user, index) => (
-                                <StyledTableRow key={user && user.id} hover>
-                                    <>
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
+                    {
+                        allUsers.length >= 1 ?
+
+                            <TableBody>
+                                {allUsers
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map((user, index) => (
+                                        <StyledTableRow key={user && user.id} hover>
+                                            <>
+                                                <TableCell>
+                                                    <Box
                                                         sx={{
-                                                            fontWeight: "600",
+                                                            display: "flex",
+                                                            alignItems: "center",
                                                         }}
                                                     >
-                                                        {user && user.name ? user.name.toUpperCase() : ''}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
+                                                        <Box>
+                                                            <Typography
+                                                                variant="h6"
+                                                                sx={{
+                                                                    fontWeight: "600",
+                                                                }}
+                                                            >
+                                                                {user && user.name ? user.name.toUpperCase() : ''}
+                                                            </Typography>
+                                                            <Typography
+                                                                color="textSecondary"
+                                                                sx={{
+                                                                    fontSize: "13px",
+                                                                }}
+                                                            >
+                                                                {user.profile ? user.profile.toUpperCase() : ''}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    <Box
                                                         sx={{
-                                                            fontSize: "13px",
+                                                            display: "flex",
+                                                            alignItems: "left"
                                                         }}
                                                     >
-                                                        {user.profile ? user.profile.toUpperCase() : ''}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
+                                                        <Box>
+                                                            <Typography
+                                                                variant="h6"
+                                                                sx={{
+                                                                    fontWeight: "600",
+                                                                }}
+                                                            >
+                                                                {user && user.cpf}
+                                                            </Typography>
+                                                            <Typography
+                                                                color="textSecondary"
+                                                                sx={{
+                                                                    fontSize: "12px",
+                                                                }}
+                                                            >
+                                                                {user && user.email}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </TableCell>
 
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {user && user.cpf}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {user && user.email}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
+                                                <TableCell align="center">
+                                                    <Box sx={{ "& button": { mx: 1 } }}>
 
-                                        <TableCell align="center">
-                                            <Box sx={{ "& button": { mx: 1 } }}>
+                                                        <Button title="Editar usuário" onClick={() => { HandleEditUser(user) }} color="primary" size="medium" variant="contained">
+                                                            <FeatherIcon icon="edit" width="20" height="20" />
+                                                        </Button>
 
-                                                <Button title="Editar usuário" onClick={() => { HandleEditUser(user) }} color="primary" size="medium" variant="contained">
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Inativar usuário" onClick={() => { HandleInactiveUser(user) }} color="error" size="medium" variant="contained">
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
+                                                        <Button title="Inativar usuário" onClick={() => { HandleInactiveUser(user) }} color="error" size="medium" variant="contained">
+                                                            <FeatherIcon icon="trash" width="20" height="20" />
+                                                        </Button>
 
 
-                                            </Box>
-                                        </TableCell>
-                                    </>
+                                                    </Box>
+                                                </TableCell>
+                                            </>
 
-                                </StyledTableRow>
-                            ))}
-                    </TableBody>
+                                        </StyledTableRow>
+                                    ))}
+                            </TableBody>
+                            :
+                            <TableCell align="center">
+                                Nenhum registro encontrado!
+
+                            </TableCell>
+                    }
                 </Table>
                 <TablePagination
                     component="div"

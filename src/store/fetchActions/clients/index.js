@@ -97,17 +97,8 @@ export const editClientFetch = (client, cleanForm) => {
 
         client = {
             ...client,
-            name: client.name,
-            mother: client.mother,
-            father: client.father,
-            cpf: cleanCpfCnpj(client.cpf_cnpj),
-            cns: client.cns,
+            cpf: cleanCpfCnpj(client.cpf),
             phone: cleanPhone(client.phone),
-            email: client.email,
-            obs: client.obs,
-            born_date: client.born_date,
-            sexo: client.sexo,
-            active: client.active,
             addresses: {
                 zip_code: client.zip_code,
                 city: client.city,
@@ -129,7 +120,7 @@ export const editClientFetch = (client, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error ? error.response.data.message : 'erro desconhecido';
             })
