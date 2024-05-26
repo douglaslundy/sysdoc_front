@@ -5,7 +5,7 @@ const { 'sysvendas.token': token } = parseCookies();
 
 export const api = axios.create({
     baseURL: 'https://www.douglaslundy.com.br/api'
-    /// baseURL: 'http://localhost:8000/api'
+    // baseURL: 'http://localhost:8000/api'
 });
 
 if (token) {
