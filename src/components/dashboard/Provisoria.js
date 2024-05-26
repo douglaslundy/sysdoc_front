@@ -1,18 +1,21 @@
-import React from "react";
-import BaseCard from "../baseCard/BaseCard";
+import React from 'react';
 
-const Provisoria = () => {
+const Dashboard = () => {
+  // Insira o URL público gerado pelo Metabase
+  const iframeUrl = 'https://mb.dlsistemas.com.br/public/dashboard/6cca9f5d-fa00-4765-9ad5-501492d622b1';
+
   return (
-    <BaseCard title="SysDoc - Controle de Documentos">
-      <h1>Novidades...</h1>
-      <h2>#Criado comunicação com Inteligência Artificial da OPENAI para geração de textos formais!</h2>
-      <h4>... 27/03/2023</h4> 
-      <h4>#Criado cadastro e edição de oficios!</h4>
-      <h4>... 12/03/2023</h4>     
-      <h4>#Criado Cadastro e edição de usuarios</h4>
-      <h4>... 11/03/2023</h4> 
-    </BaseCard>
+    <div>
+      {/* <h1>Dashboard Embutido</h1> */}
+      <iframe
+        src={iframeUrl}
+        frameBorder="0"
+        width="1200"
+        height="800"
+        allowTransparency
+      ></iframe>
+    </div>
   );
 };
 
-export default Provisoria;
+export default Dashboard;
