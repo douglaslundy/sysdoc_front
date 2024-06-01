@@ -2,7 +2,7 @@ import React from 'react';
 
 const Dashboard = () => {
   // Insira o URL público gerado pelo Metabase
-  const iframeUrl = 'https://mb.dlsistemas.com.br/public/dashboard/6cca9f5d-fa00-4765-9ad5-501492d622b1';
+  const iframeUrl = 'http://mtb.dlsistemas.com.br/public/dashboard/07d1de25-46d5-4ee2-9394-167ff1643831';
 
   return (
     <div>
