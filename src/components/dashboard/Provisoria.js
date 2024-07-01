@@ -11,10 +11,10 @@ const Dashboard = () => {
         src={iframeUrl}
         frameBorder="0"
         width="1200"
-        height="800"
+        height="900"
         allowTransparency
-      ></iframe>
-      Version - <h5>2.1.6</h5>
+      >
+      </iframe>
     </div>
   );
 };
