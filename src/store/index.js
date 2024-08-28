@@ -9,18 +9,20 @@ import serviceReducer from './ducks/service_calls';
 import roomReducer from './ducks/rooms';
 import callReducer from './ducks/calls';
 import clientReducer from './ducks/clients';
+import specialityReducer from './ducks/specialities';
 
 
 export default configureStore({
     reducer: {
-        auth: authReducer, 
-        layout: layoutReducer, 
+        auth: authReducer,
+        layout: layoutReducer,
         users: userReducer,
         letters: letterReducer,
         models: modelReducer,
         services: serviceReducer,
         rooms: roomReducer,
         calls: callReducer,
-        clients: clientReducer
+        clients: clientReducer,
+        specialities: specialityReducer
     },
 });

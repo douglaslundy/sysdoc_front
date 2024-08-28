@@ -18,6 +18,12 @@ const Menuitems = [
     profile: "admin",
   },
   {
+    title: "Especialidades",
+    icon: "users",
+    href: "/specialities",
+    profile: "user",
+  },
+  {
     title: "Oficios",
     icon: "send",
     href: "/letters",
@@ -47,7 +53,7 @@ const Menuitems = [
     href: "/listing_calls",
     profile: "admin",
   },
-  
+
   {
     title: "Em Atendimento",
     icon: "list",
