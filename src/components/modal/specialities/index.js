@@ -120,7 +120,7 @@ export default function SpecialityModal(props) {
                                 <Stack spacing={3}>
 
                                     <TextField
-                                        label={name && name.length > 0 ? `Remetente: ${200 - name.length} caracteres restantes` : 'Nome da Especialidade'}
+                                        label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome da Especialidade'}
                                         variant="outlined"
                                         name="name"
                                         value={name ? name : ''}

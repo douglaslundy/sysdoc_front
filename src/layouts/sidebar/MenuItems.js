@@ -24,6 +24,12 @@ const Menuitems = [
     profile: "user",
   },
   {
+    title: "Fila",
+    icon: "users",
+    href: "/queue",
+    profile: "user",
+  },
+  {
     title: "Oficios",
     icon: "send",
     href: "/letters",

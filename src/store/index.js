@@ -10,6 +10,7 @@ import roomReducer from './ducks/rooms';
 import callReducer from './ducks/calls';
 import clientReducer from './ducks/clients';
 import specialityReducer from './ducks/specialities';
+import queueReducer from './ducks/queues';
 
 
 export default configureStore({
@@ -23,6 +24,7 @@ export default configureStore({
         rooms: roomReducer,
         calls: callReducer,
         clients: clientReducer,
-        specialities: specialityReducer
+        specialities: specialityReducer,
+        queues: queueReducer
     },
 });

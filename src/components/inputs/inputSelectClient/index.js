@@ -62,7 +62,7 @@ export default function index(props) {
       }}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       // getOptionLabel={(option) => `${option.full_name} - Código: ${option.id}`}
-      getOptionLabel={(option) => `${option.full_name}`}
+      getOptionLabel={(option) => `${option.name} - ${option.cns ? option.cns : 'SEM CNS'} - ${option.cpf ? option.cpf : 'SEM CPF'}  - ${option.phone ? option.phone : 'SEM TELEFONE'}`}
       noOptionsText={"Cliente inexistente!!!"}
       options={options}
       loading={loading}
@@ -75,7 +75,7 @@ export default function index(props) {
         <TextField
           {...params}
           label={label}
-          onChange={(_, value) => { setOptions([...clients.filter((cli) => cli.full_name == value)]) }}
+          onChange={(_, value) => { setOptions([...clients.filter((cli) => cli.name == value)]) }}
           InputProps={{
             ...params.InputProps,
             endAdornment: (
