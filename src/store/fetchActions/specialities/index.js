@@ -41,7 +41,7 @@ export const addSpecialityFetch = (speciality, cleanForm) => {
                     }
                 },
                 dispatch(addSpeciality(res)),
-                dispatch(addMessage(`A especialidade ${res.name} foi adicionadacom sucesso!`)),
+                dispatch(addMessage(`A especialidade ${res.name} foi adicionada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()

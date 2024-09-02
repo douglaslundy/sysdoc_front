@@ -53,34 +53,6 @@ export const addQueueFetch = (queue, cleanForm) => {
     };
 };
 
-
-export const getTextAI = (queue) => {
-    const { 'sysvendas.id': user } = parseCookies();
-
-    return (dispatch) => {
-        dispatch(turnLoading());
-        queue = {
-            ...queue,
-            "id_user": user,
-            "treatment_pronoun": "Excelentissimo senhor",
-            'wishes': "estima e consideração"
-        }
-
-        api.post('/queues/newQueue', queue)
-            .then((res) =>
-            (
-                dispatch(getTextOpenAi(res.data)),
-                dispatch(addMessage(`Modelo Gerado com Sucesso`)),
-                dispatch(turnLoading()),
-            ))
-            .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
-                dispatch(turnLoading());
-                return error.response ? error.response.data : 'erro desconhecido';
-            })
-    };
-};
-
 export const editQueueFetch = (queue, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());

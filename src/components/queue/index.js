@@ -54,17 +54,17 @@ export default () => {
     const [allQueues, setAllQueues] = useState(queues);
     const { user, profile } = useContext(AuthContext);
 
-    const [year, setYear] = useState(new Date().getFullYear());
-    const uniqueYears = Array.from(new Set(queues.map(item => new Date(item.created_at).getFullYear())));
+    const [speci, setSpeci] = useState('');
+    const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality.name)));
 
-    // Transforma a variável years em um array JSON
-    const transformedYears = Object.values({ ...uniqueYears }).map(year => ({
-        id: year,
-        name: year,
+    // Transforma a variável specialities em um array JSON
+    const speciExits = Object.values({ ...uniqueSpeci }).map(item => ({
+        id: item,
+        name: item,
     }));
 
-    const changeYear = ({ target }) => {
-        setYear(target.value)
+    const changeSpeci = ({ target }) => {
+        setSpeci(target.value)
     }
 
 
@@ -73,23 +73,16 @@ export default () => {
     }, []);
 
     useEffect(() => {
-        setAllQueues([...queues.filter(lett => new Date(lett.created_at).getFullYear() == year)]);
-    }, [year]);
+        setAllQueues([...queues.filter(lett => lett.speciality.name == speci)]);
+    }, [speci]);
 
     useEffect(() => {
         // executado apenas quando é carregado a pagina a primeira vez, ou quando é adicionado um registro 
         setAllQueues(searchValue ?
-            [...queues.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
-                .filter(lett => new Date(lett.created_at).getFullYear() == year)]
-            : [...queues.filter(lett => new Date(lett.created_at).getFullYear() == year)]);
+            [...queues.filter(lett => lett.client.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))]
+            : !speci ? [...queues] : [...queues.filter(lett => lett.speciality.name == speci)]);
     }, [queues]);
 
-
-
-    const HandleViewQueue = async queue => {
-        dispatch(showQueue(queue));
-        dispatch(turnModalViewQueue());
-    }
 
     const HandleEditQueue = async queue => {
         dispatch(showQueue(queue));
@@ -97,7 +90,7 @@ export default () => {
     }
 
     const HandleInactiveQueue = async queue => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${queue.number}`, confirm: inactiveQueueFetch(queue) })
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a especialidade ${queue.id}`, confirm: inactiveQueueFetch(queue) })
         dispatch(changeTitleAlert(`O queuee ${queue.number} foi excluido com sucesso!`))
     }
 
@@ -105,13 +98,22 @@ export default () => {
     const searchQueues = ({ target }) => {
         setSearchValue(target.value);
 
-        setAllQueues([...queues.filter(lett => new Date(lett.created_at).getFullYear() == year)
-            .filter(
-                lett => lett.number && lett.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.sender && lett.sender.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.recipient && lett.recipient.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.subject_matter && lett.subject_matter.toString().toLowerCase().includes(target.value.toString().toLowerCase())
-            )]);
+        const filterPerSearch = (
+            lett => lett.client.name && lett.client.name.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                lett.client.cpf && lett.client.cpf.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                lett.client.cns && lett.client.cns.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                lett.client.phone && lett.client.phone.toString().toLowerCase().includes(target.value.toString().toLowerCase()
+                )
+        );
+
+        const filterPerService = (lett => lett.speciality.name == speci);
+
+        setAllQueues(
+            speci
+                ? [...queues.filter(filterPerService).filter(filterPerSearch)]
+                : [...queues.filter(filterPerSearch)]
+        );
+
     }
 
     const [page, setPage] = useState(0);
@@ -139,7 +141,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "65%" }}
-                    label="Pesquisar por nome"
+                    label="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
                     onChange={searchQueues}
@@ -147,13 +149,22 @@ export default () => {
                 />
 
                 <Select
+                    label="Especialidade"
+                    name="speci"
+                    value={speci}
+                    store={speciExits}
+                    changeItem={changeSpeci}
+                    wd={"20%"}
+                />
+
+                {/* <Select
                     label="Ano"
                     name="year"
                     value={year}
                     store={transformedYears}
                     changeItem={changeYear}
                     wd={"20%"}
-                />
+                /> */}
 
                 <QueueModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
@@ -177,25 +188,45 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Posição / Data
+                                    Código
+                                </Typography>
+
+                                <Typography color="textSecondary" variant="h6">
+                                    Cadastrador
+                                </Typography>
+
+                                <Typography color="textSecondary" variant="h6">
+                                    Data / URGENTE
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Cidadão /  CPF / CNS / Telefone
+                                    Cidadão
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    MÃE
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    CPF / CNS / Telefone
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Especialidade / Observação
+                                    Especialidade
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Observação
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Feito? / Data
+                                    Realizado?
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Data
                                 </Typography>
                             </TableCell>
 
@@ -240,6 +271,17 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
+                                                        {queue.user && queue.user.name}
+                                                        {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
+
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "13px",
+                                                        }}
+                                                    >
                                                         {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 'yes' ? 'URGENTE' : 'ROTINA'}
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
@@ -266,6 +308,16 @@ export default () => {
                                                     >
                                                         {queue.client && queue.client.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {queue.client && queue.client.mother.substring(0, 30).toUpperCase()}
+                                                    </Typography>
+
 
                                                     <Typography
                                                         color="textSecondary"
@@ -348,17 +400,15 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewQueue(queue) }} color="success" size="medium" variant="contained">
-                                                    <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>
-
-                                                <Button title="Editar Ofício" onClick={() => { HandleEditQueue(queue) }} color="primary" size="medium" variant="contained"
+                                                {/* <Button title="Editar Especialidade" onClick={() => { HandleEditQueue(queue) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && queue.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
+                                                </Button> */}
 
-                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained"
-                                                    disabled={queue.id_user == user || profile == "admin" ? allQueues.length - index !== allQueues.length : true}>
+                                                <Button title="Excluir da fila" onClick={() => {
+                                                    HandleInactiveQueue(queue)
+                                                }} color="error" size="medium" variant="contained"
+                                                    disabled={true}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 

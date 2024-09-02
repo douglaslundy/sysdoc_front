@@ -81,8 +81,7 @@ export default () => {
         setSearchValue(target.value);
 
         setAllSpecialities([...specialities.filter(
-            speciality => speciality.name && speciality.name.toString().includes(target.value.toString()) ||
-                speciality.description && speciality.description.toString().includes(target.value.toString())
+            speci => speci.name && speci.name.toString().toLowerCase().includes(target.value.toString().toLowerCase())
         )]);
     }
 
@@ -113,6 +112,7 @@ export default () => {
                     name="search"
                     value={searchValue}
                     onChange={searchSpecialities}
+
                     inputProps={{
                         style: {
                             textTransform: "uppercase",
