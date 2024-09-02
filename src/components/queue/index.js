@@ -282,7 +282,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 'yes' ? 'URGENTE' : 'ROTINA'}
+                                                        {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 0 ? 'URGENTE' : 'ROTINA'}
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
@@ -315,7 +315,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {queue.client && queue.client.mother.substring(0, 30).toUpperCase()}
+                                                        {queue.client.mother && queue.client.mother.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
 

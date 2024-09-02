@@ -31,7 +31,7 @@ export const addQueueFetch = (queue, cleanForm) => {
             'id_client': queue.client,
             'id_specialities': queue.speciality,
             'date_of_received': queue.date_of_received ? (new Date(queue.date_of_received).toISOString().slice(0, 19).replace('T', ' ')) : null,
-            'urgency': queue.urgency ? 'yes' : 'no',
+            'urgency': queue.urgency,
             'obs': queue.obs,
         }
 
