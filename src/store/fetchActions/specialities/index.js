@@ -10,7 +10,6 @@ export const getAllSpecialities = () => {
         api
             .get('/specialities')
             .then((res) => {
-                console.log(res.data)
                 dispatch(addSpecialities(res.data));
                 dispatch(turnLoading());
             })
