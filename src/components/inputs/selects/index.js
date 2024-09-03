@@ -15,7 +15,7 @@ export default function BasicSelect(props) {
   }, [dispatch, getAllSelects]);
 
   // Ordenando o array store em ordem crescente pelo nome
-  const sortedStore = [...store].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedStore = [...store].sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
 
   return (
     <Box sx={{ minWidth: 120, width: wd }}>
