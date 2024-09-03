@@ -33,12 +33,13 @@ export const addQueueFetch = (queue, cleanForm) => {
             'date_of_received': queue.date_of_received ? (new Date(queue.date_of_received).toISOString().slice(0, 19).replace('T', ' ')) : null,
             'urgency': queue.urgency,
             'obs': queue.obs,
+            // done sera sempre false quando no momento do cadastro
+            'done': 0,
         }
 
         api.post('/queues', queue)
             .then((res) =>
             (
-                console.log(res.data),
                 dispatch(addQueue(res.data)),
                 dispatch(addMessage(`A especialidade foi adicionada com sucesso!`)),
                 dispatch(turnAlert()),
