@@ -18,6 +18,7 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import QueueModal from "../modal/queue";
+import QueueOutcomeModal from "../modal/outcomequeue";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -50,12 +51,13 @@ export default () => {
 
     const dispatch = useDispatch();
     const { queues } = useSelector(state => state.queues);
-    const [searchValue, setSearchValue] = useState();
+    const [searchValue, setSearchValue] = useState('');
     const [allQueues, setAllQueues] = useState(queues);
     const { user, profile } = useContext(AuthContext);
-
+    const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
-    const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality.name)));
+
+    const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
 
     // Transforma a variável specialities em um array JSON
     const speciExits = Object.values({ ...uniqueSpeci }).map(item => ({
@@ -70,11 +72,13 @@ export default () => {
 
     useEffect(() => {
         dispatch(getAllQueues());
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
-        setAllQueues([...queues.filter(lett => lett.speciality.name == speci)]);
-    }, [speci]);
+        if (queues.length > 0) {
+            setAllQueues(speci ? queues.filter(lett => lett.speciality?.name === speci) : [...queues]);
+        }
+    }, [speci, queues]);
 
     useEffect(() => {
         // executado apenas quando é carregado a pagina a primeira vez, ou quando é adicionado um registro 
@@ -95,26 +99,26 @@ export default () => {
     }
 
 
-    const searchQueues = ({ target }) => {
-        setSearchValue(target.value);
 
-        const filterPerSearch = (
-            lett => lett.client.name && lett.client.name.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.client.cpf && lett.client.cpf.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.client.cns && lett.client.cns.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                lett.client.phone && lett.client.phone.toString().toLowerCase().includes(target.value.toString().toLowerCase()
-                )
-        );
+    useEffect(() => {
+        if (searchValue || speci) {
+            const filterPerSearch = (lett) =>
+                (lett.client?.name && lett.client.name.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.cpf && lett.client.cpf.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.cns && lett.client.cns.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.phone && lett.client.phone.toLowerCase().includes(searchValue.toLowerCase()));
 
-        const filterPerService = (lett => lett.speciality.name == speci);
+            const filteredQueues = speci
+                ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
+                : queues.filter(filterPerSearch);
 
-        setAllQueues(
-            speci
-                ? [...queues.filter(filterPerService).filter(filterPerSearch)]
-                : [...queues.filter(filterPerSearch)]
-        );
+            setAllQueues(filteredQueues);
+        } else {
+            setAllQueues([...queues]);
+        }
+    }, [searchValue, speci, queues]);
 
-    }
+
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -128,9 +132,38 @@ export default () => {
         setPage(0);
     };
 
+    const HandleOutcomeQueue = (queue) => {
+        dispatch(showQueue(queue));
+        setOption('outcome');
+        dispatch(turnModal());
+    };
+
+    const HandleAddQueue = () => {
+        setOption('add');
+        dispatch(turnModal());
+    };
+
+    const searchQueues = ({ target }) => {
+        setSearchValue(target.value);
+    };
+
+
+    const SwitchModal = ({ option }) => {
+        switch (option) {
+            case 'outcome':
+                return <QueueOutcomeModal />;
+            case 'add':
+                return <QueueModal />;
+            default:
+                return <></>;
+        }
+    };
+
     return (
         <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
             <AlertModal />
+
+            <SwitchModal option={option} />
 
             <Box sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
@@ -145,7 +178,6 @@ export default () => {
                     name="search"
                     value={searchValue}
                     onChange={searchQueues}
-
                 />
 
                 <Select
@@ -166,11 +198,9 @@ export default () => {
                     wd={"20%"}
                 /> */}
 
-                <QueueModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="plus" />
-                    </Fab>
-                </QueueModal>
+                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add">
+                    <FeatherIcon icon="plus" />
+                </Fab>
             </Box>
 
             <TableContainer>
@@ -282,7 +312,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 0 ? 'URGENTE' : 'ROTINA'}
+                                                        {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
@@ -400,15 +430,11 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                {/* <Button title="Editar Especialidade" onClick={() => { HandleEditQueue(queue) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && queue.id_user != user}>
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button> */}
+                                                <Button title="Informar Desfecho" onClick={() => { HandleOutcomeQueue(queue) }} color="primary" size="medium" variant="contained">
+                                                    <FeatherIcon icon="book-open" width="20" height="20" />
+                                                </Button>
 
-                                                <Button title="Excluir da fila" onClick={() => {
-                                                    HandleInactiveQueue(queue)
-                                                }} color="error" size="medium" variant="contained"
-                                                    disabled={true}>
+                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
