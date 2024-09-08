@@ -19,8 +19,9 @@ import BaseCard from "../../baseCard/BaseCard";
 
 import { showQueue } from '../../../store/ducks/queues';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
-import { editQueueFetch, addQueueFetch } from '../../../store/fetchActions/queues';
+import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues';
 import AlertModal from '../../messagesModal';
+import ConfirmDialog from "../../confirmDialog";
 import InputSelectClient from '../../inputs/inputSelectClient';
 import { getAllClients } from '../../../store/fetchActions/clients';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
@@ -57,6 +58,12 @@ export default function QueueModal(props) {
 
     // const [cli, setClient] = useState([]);
 
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: 'Deseja Realmente finalizar a especialidade',
+        subTitle: 'Esta ação não poderá ser desfeita',
+    });
+
     const [texto, setTexto] = useState('');
 
 
@@ -88,7 +95,8 @@ export default function QueueModal(props) {
 
     const handlePutData = async () => {
         dispatch(changeTitleAlert(`A especialidade foi atualizada com sucesso!`));
-        dispatch(editQueueFetch(form, cleanForm));
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente finalizar a especialidade ${queue.id}`, confirm: editDoneQueue(form, cleanForm) })
+        // dispatch();
     };
 
     const handleClose = () => {
@@ -148,8 +156,8 @@ export default function QueueModal(props) {
                                     </Alert>
                                 }
 
-                                {/* <h3>CLIENTE: {queue?.client?.name}</h3>
-                                <h4>ESPECIALIDADE: {queue?.speciality?.name}</h4> */}
+                                {/* <h3>CLIENTE: {queue?.client?.name}</h3> */}
+                                <h4>DESFECHO: Agendar ou Finalizar Este Cliente na Fila de Especialidade:</h4>
                                 <br />
 
                                 {/* <FormGroup > */}
@@ -228,6 +236,9 @@ export default function QueueModal(props) {
 
                 </Box>
             </Modal>
+            <ConfirmDialog
+                confirmDialog={confirmDialog}
+                setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }

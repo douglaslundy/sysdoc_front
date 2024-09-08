@@ -15,7 +15,7 @@ export default function BasicSelect(props) {
   }, [dispatch, getAllSelects]);
 
   // Ordenando o array store em ordem crescente pelo nome
-  const sortedStore = [...store].sort((a, b) => a.name.toString().localeCompare(b.name.toString()));
+  const sortedStore = [...store].sort((a, b) => a.name?.toString().localeCompare(b.name?.toString()));
 
   return (
     <Box sx={{ minWidth: 120, width: wd }}>
@@ -32,7 +32,7 @@ export default function BasicSelect(props) {
           {valueDefault && <MenuItem key={0} value={0}>{valueDefault}</MenuItem>}
 
           {sortedStore.map((d) => (
-            <MenuItem key={d.id} value={d.id}>{d.name.toString().toUpperCase()}</MenuItem>
+            <MenuItem key={d.id} value={d.id}>{d.name?.toString().toUpperCase()}</MenuItem>
           ))}
         </Select>
       </FormControl>

@@ -56,6 +56,7 @@ export default () => {
     const { user, profile } = useContext(AuthContext);
     const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
+    const [done, setDone] = useState(2);
 
     const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
 
@@ -69,6 +70,30 @@ export default () => {
         setSpeci(target.value)
     }
 
+    const dataDone = [
+        {
+            'id': 0,
+            'name': 'NÃO'
+        },
+        {
+            'id': 1,
+            'name': 'SIM'
+        },
+        {
+            'id': 2,
+            'name': 'TODOS'
+        }
+    ]
+
+    const storeDone = Object.values({ ...dataDone }).map(item => ({
+        id: item.id,
+        name: item.name,
+    }));
+
+    const changeDone = ({ target }) => {
+        setDone(target.value)
+    }
+
 
     useEffect(() => {
         dispatch(getAllQueues());
@@ -76,49 +101,57 @@ export default () => {
 
     useEffect(() => {
         if (queues.length > 0) {
-            setAllQueues(speci ? queues.filter(lett => lett.speciality?.name === speci) : [...queues]);
+            const filteredQueues = speci
+                ? queues.filter(lett => lett.speciality?.name === speci)
+                : [...queues];
+
+            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
         }
-    }, [speci, queues]);
+    }, [speci, queues, done]);
 
     useEffect(() => {
-        // executado apenas quando é carregado a pagina a primeira vez, ou quando é adicionado um registro 
-        setAllQueues(searchValue ?
-            [...queues.filter(lett => lett.client.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))]
-            : !speci ? [...queues] : [...queues.filter(lett => lett.speciality.name == speci)]);
-    }, [queues]);
+        // Executado apenas quando a página é carregada pela primeira vez, ou quando é adicionado um registro
+        let filteredQueues = searchValue
+            ? queues.filter(lett => lett.client.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
+            : queues;
 
+        if (speci) {
+            filteredQueues = filteredQueues.filter(lett => lett.speciality.name === speci);
+        }
 
-    const HandleEditQueue = async queue => {
-        dispatch(showQueue(queue));
-        dispatch(turnModal());
-    }
-
-    const HandleInactiveQueue = async queue => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a especialidade ${queue.id}`, confirm: inactiveQueueFetch(queue) })
-        dispatch(changeTitleAlert(`O queuee ${queue.number} foi excluido com sucesso!`))
-    }
-
-
+        setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
+    }, [queues, searchValue, speci, done]);
 
     useEffect(() => {
-        if (searchValue || speci) {
+        if (searchValue || speci || done !== undefined) {
             const filterPerSearch = (lett) =>
                 (lett.client?.name && lett.client.name.toLowerCase().includes(searchValue.toLowerCase())) ||
                 (lett.client?.cpf && lett.client.cpf.toLowerCase().includes(searchValue.toLowerCase())) ||
                 (lett.client?.cns && lett.client.cns.toLowerCase().includes(searchValue.toLowerCase())) ||
                 (lett.client?.phone && lett.client.phone.toLowerCase().includes(searchValue.toLowerCase()));
 
-            const filteredQueues = speci
+            let filteredQueues = speci
                 ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
                 : queues.filter(filterPerSearch);
 
-            setAllQueues(filteredQueues);
+            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
         } else {
-            setAllQueues([...queues]);
+            setAllQueues(done > 1 ? [...queues] : queues.filter(lett => lett.done === done));
         }
-    }, [searchValue, speci, queues]);
+    }, [searchValue, speci, queues, done]);
 
 
+
+
+    // const HandleEditQueue = async queue => {
+    //     dispatch(showQueue(queue));
+    //     dispatch(turnModal());
+    // }
+
+    // const HandleInactiveQueue = async queue => {
+    //     setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a especialidade ${queue.id}`, confirm: inactiveQueueFetch(queue) })
+    //     dispatch(changeTitleAlert(`O queuee ${queue.number} foi excluido com sucesso!`))
+    // }
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -132,7 +165,7 @@ export default () => {
         setPage(0);
     };
 
-    const HandleOutcomeQueue = (queue) => {
+    const HandleDoneQueue = (queue) => {
         dispatch(showQueue(queue));
         setOption('outcome');
         dispatch(turnModal());
@@ -173,7 +206,7 @@ export default () => {
             >
 
                 <TextField
-                    sx={{ width: "65%" }}
+                    sx={{ width: "60%" }}
                     label="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
@@ -187,6 +220,15 @@ export default () => {
                     store={speciExits}
                     changeItem={changeSpeci}
                     wd={"20%"}
+                />
+
+                <Select
+                    label="Realizado"
+                    name="done"
+                    value={done}
+                    store={storeDone}
+                    changeItem={changeDone}
+                    wd={"10%"}
                 />
 
                 {/* <Select
@@ -430,7 +472,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Informar Desfecho" onClick={() => { HandleOutcomeQueue(queue) }} color="primary" size="medium" variant="contained">
+                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done}>
                                                     <FeatherIcon icon="book-open" width="20" height="20" />
                                                 </Button>
 

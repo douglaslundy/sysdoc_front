@@ -54,15 +54,21 @@ export const addQueueFetch = (queue, cleanForm) => {
     };
 };
 
-export const editQueueFetch = (queue, cleanForm) => {
+export const editDoneQueue = (queue, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
+
+        queue = {
+            ...queue,
+            'date_of_realized': queue.date_of_realized ? (new Date(queue.date_of_realized).toISOString().slice(0, 19).replace('T', ' ')) : null,
+            'done': true
+        }
 
         api.put(`/queues/${queue.id}`, queue)
             .then((res) =>
             (
                 dispatch(editQueue(queue)),
-                dispatch(addMessage(`O Ofício ${queue.number} foi atualizado com sucesso!`)),
+                dispatch(addMessage(`A Especialidade ${queue.id} foi atualizada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
