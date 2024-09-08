@@ -105,7 +105,7 @@ export default () => {
                 ? queues.filter(lett => lett.speciality?.name === speci)
                 : [...queues];
 
-            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
+            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
         }
     }, [speci, queues, done]);
 
@@ -119,7 +119,7 @@ export default () => {
             filteredQueues = filteredQueues.filter(lett => lett.speciality.name === speci);
         }
 
-        setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
+        setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
     }, [queues, searchValue, speci, done]);
 
     useEffect(() => {
@@ -134,9 +134,9 @@ export default () => {
                 ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
                 : queues.filter(filterPerSearch);
 
-            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done === done));
+            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
         } else {
-            setAllQueues(done > 1 ? [...queues] : queues.filter(lett => lett.done === done));
+            setAllQueues(done > 1 ? [...queues] : queues.filter(lett => lett.done == done));
         }
     }, [searchValue, speci, queues, done]);
 
