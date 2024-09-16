@@ -15,7 +15,7 @@ const Menuitems = [
     title: "Clientes",
     icon: "users",
     href: "/clients",
-    profile: "user",
+    profile: "partner",
   },
   {
     title: "Especialidades",

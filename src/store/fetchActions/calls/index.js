@@ -54,11 +54,9 @@ export const getCalledCalls = () => {
             .get('/calls/called')
             .then((res) => {
                 dispatch(showCall(res.data));
-                // console.log(JSON.stringify(res.data))
-                // dispatch(turnLoading());
             })
-            .catch(() => { 
-                dispatch(turnLoading()); 
+            .catch(() => {
+                dispatch(turnLoading());
             })
     }
 }
@@ -71,11 +69,9 @@ export const getLastsCalls = () => {
             .get('/calls/lasts')
             .then((res) => {
                 dispatch(addCalls(res.data));
-                // console.log(JSON.stringify(res.data))
-                // dispatch(turnLoading());
             })
-            .catch(() => { 
-                dispatch(turnLoading()); 
+            .catch(() => {
+                dispatch(turnLoading());
             })
     }
 }

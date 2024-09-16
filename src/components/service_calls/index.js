@@ -76,7 +76,6 @@ export default () => {
     }
 
     const HandleGoCalls = services => {
-        // console.log(JSON.stringify(services));
         dispatch(setFilteredCalls(services));
         router.push('/listing_calls');
     }

@@ -45,6 +45,10 @@ const profiles = [
         "name": "Administrador"
     },
     {
+        "id": "partner",
+        "name": "Parceiro"
+    },
+    {
         "id": "user",
         "name": "Usuário"
     }
@@ -64,7 +68,7 @@ export default function UserModal(props) {
     const { user } = useSelector(state => state.users);
     const { isOpenUserModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
-    const { user: userId,  profile: userProfile } = useContext(AuthContext);
+    const { user: userId, profile: userProfile } = useContext(AuthContext);
 
     const { profile, name, email, cpf, password, password2 } = form;
     const [texto, setTexto] = useState();
@@ -145,7 +149,7 @@ export default function UserModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    {userProfile && userProfile == "admin" && 
+                                    {userProfile && userProfile == "admin" &&
                                         <FormControl fullWidth required>
                                             <InputLabel>Perfil do Usuário</InputLabel>
                                             <Select
@@ -193,7 +197,7 @@ export default function UserModal(props) {
                                         label={'CPF'}
                                         name={'cpf'}
                                         changeItem={changeItem}
-                                        disabled={user && user.id ? true : false }
+                                        disabled={user && user.id ? true : false}
                                     />
 
                                     <TextField

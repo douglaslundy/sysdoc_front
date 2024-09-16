@@ -68,7 +68,7 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
             </ListItemText>
           </ListItem>
         </NextLink>
-        
+
       </List>
     )
   }
@@ -81,11 +81,14 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen }) => {
 
           {Menuitems.map((item, index) => (
 
-            profile == "admin" && 
-              Lista(item, index) 
+            profile == "admin" &&
+            Lista(item, index)
             ||
-            profile == "user" && item.profile == "user" &&
-              Lista(item, index)  
+            profile == "user" && item.profile != "admin" &&
+            Lista(item, index)
+            ||
+            profile == "partner" && item.profile == "partner" &&
+            Lista(item, index)
 
           ))}
 

@@ -125,8 +125,6 @@ export default function ClientModal(props) {
     useEffect(() => {
         if (client && client.id)
             setForm({ ...client, ...client?.addresses });
-
-        console.log(JSON.stringify(client));
     }, [client]);
 
     return (
