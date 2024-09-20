@@ -49,14 +49,11 @@ export default function QueueModal(props) {
         date_of_realized: "",
     });
 
-    const { date_of_realized, speciality, obs } = form;
+    const { date_of_realized, obsConclusion } = form;
     const { queue } = useSelector(state => state.queues);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
-    const { clients } = useSelector(state => state.clients);
-    const { specialities } = useSelector(state => state.specialities);
 
-    // const [cli, setClient] = useState([]);
 
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
@@ -66,10 +63,6 @@ export default function QueueModal(props) {
 
     const [texto, setTexto] = useState('');
 
-
-    // const handleIsUrgency = () => {
-    //     setForm({ ...form, urgency: !form.urgency })
-    // }
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
@@ -96,7 +89,6 @@ export default function QueueModal(props) {
     const handlePutData = async () => {
         dispatch(changeTitleAlert(`A especialidade foi atualizada com sucesso!`));
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente finalizar a especialidade ${queue.id}`, confirm: editDoneQueue(form, cleanForm) })
-        // dispatch();
     };
 
     const handleClose = () => {
@@ -109,29 +101,6 @@ export default function QueueModal(props) {
 
     }, [queue]);
 
-
-    // useEffect(() => {
-    //     setForm({
-    //         ...form,
-    //         client: cli.id
-    //     })
-    // }, [cli]);
-
-
-
-    // useEffect(() => {
-    //     if (isOpenModal === true) {
-    //         dispatch(getAllClients());
-    //         dispatch(getAllSpecialities());
-    //         // setFormSale({ ...formSale, id_client: null, id_user: null });
-    //     }
-
-    //     if (isOpenModal === false) {
-    //         setClient({});
-    //         // cleanForm();
-    //     }
-
-    // }, [isOpenModal]);
 
     return (
         <div>
@@ -156,7 +125,6 @@ export default function QueueModal(props) {
                                     </Alert>
                                 }
 
-                                {/* <h3>CLIENTE: {queue?.client?.name}</h3> */}
                                 <h4>DESFECHO: Agendar ou Finalizar Este Cliente na Fila de Especialidade:</h4>
                                 <br />
 
@@ -175,39 +143,24 @@ export default function QueueModal(props) {
                                             sx={{ width: '22%', mr: 2 }}
                                         />
                                     }
-                                    {/* {
-                                        isOpenModal &&
 
-                                        <InputSelectClient
-                                            id="client"
-                                            label="Selecione o cliente"
-                                            name="client"
-                                            clients={clients}
-                                            setClient={setClient}
-                                            wd={"100%"}
-                                        />
+                                </Stack>
 
+                                <h4>OBS:</h4>
+                                <Stack sx={{ m: 2 }}>
+                                    {
+                                        queue?.obs ? queue.obs : ''
                                     }
-                                    <Select
-                                        value={speciality}
-                                        label={'Especialidade'}
-                                        name={'speciality'}
-                                        store={specialities}
-                                        changeItem={changeItem}
-                                    /> */}
+                                </Stack>
 
-                                    {/* <FormGroup>
-                                        <FormControlLabel control={<Switch checked={form.urgency}
-                                            onClick={handleIsUrgency} />} label={form.urgency ? "Está como Urgente" : "Não está como urgente"} />
-                                    </FormGroup> */}
-
-                                    {/* <TextField
+                                <Stack spacing={3}>
+                                    <TextField
                                         id="Obs"
-                                        label={obs && obs.length > 0 ? `Observações: ${200 - obs.length} caracteres restantes` : 'Observações'}
+                                        label={obsConclusion && obsConclusion.length > 0 ? `Observações: ${200 - obsConclusion.length} caracteres restantes` : 'Observações'}
                                         multiline
                                         rows={2}
-                                        value={obs ? obs : ''}
-                                        name="obs"
+                                        value={obsConclusion ? obsConclusion : ''}
+                                        name="obsConclusion"
                                         // disabled={queue?.id ? true : false}
                                         onChange={changeItem}
                                         inputProps={{
@@ -216,7 +169,7 @@ export default function QueueModal(props) {
                                             },
                                             maxLength: 200
                                         }}
-                                    /> */}
+                                    />
 
                                 </Stack>
                                 {/* </FormGroup> */}

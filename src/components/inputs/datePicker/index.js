@@ -20,7 +20,7 @@ export default function BasicDatePicker(props) {
                 disabled={disabled}
                 views={['year', 'month', 'day']}
                 value={value}
-                onChange={(value) => {setValue(value)}}
+                onChange={(value) => { setValue(value) }}
                 renderInput={(params) => <TextField {...params} sx={sx} />}
             />
         </LocalizationProvider>
