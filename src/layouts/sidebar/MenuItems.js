@@ -77,6 +77,12 @@ const Menuitems = [
     icon: "list",
     href: "/panel",
     profile: "admin",
+  },
+  {
+    title: "Logs",
+    icon: "list",
+    href: "/logs",
+    profile: "admin",
   }
 ];
 
