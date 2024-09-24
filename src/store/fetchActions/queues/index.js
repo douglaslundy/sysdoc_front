@@ -62,7 +62,7 @@ export const editDoneQueue = (queue, cleanForm) => {
             ...queue,
             'date_of_realized': queue.date_of_realized ? (new Date(queue.date_of_realized).toISOString().slice(0, 19).replace('T', ' ')) : new Date().toISOString().slice(0, 19).replace('T', ' '),
             'done': true,
-            'obs': queue.obs + "\n" + queue.obsConclusion.toUpperCase(),
+            'obs': queue.obs + "\n" + queue.obsConclusion?.toUpperCase(),
         }
 
         api.put(`/queues/${queue.id}`, queue)

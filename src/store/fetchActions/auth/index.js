@@ -31,6 +31,7 @@ export const loginFetch = (dataUser) => {
             ))
             .catch((error) => {
 
+                // dispatch(addAlertMessage(error ? ` ${error} ` : 'Erro desconhecido'));
                 dispatch(addAlertMessage(error.response ? ` ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
