@@ -83,6 +83,12 @@ const Menuitems = [
     icon: "list",
     href: "/logs",
     profile: "admin",
+  },
+  {
+    title: "Logs de Erro",
+    icon: "list",
+    href: "/errorlogs",
+    profile: "admin",
   }
 ];
 

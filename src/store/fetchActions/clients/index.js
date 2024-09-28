@@ -27,18 +27,19 @@ const converterData = (dataString) => {
 
 
 export const getAllClients = () => {
-    
+
     return (dispatch) => {
         dispatch(turnLoading());
-        
+
         api
-        .get('/clients')
-        .then((res) => {
+            .get('/clients')
+            .then((res) => {
                 dispatch(addClients(res.data));
                 dispatch(turnLoading());
             })
-            .catch((error) => { 
-                dispatch(turnLoading()) })
+            .catch((error) => {
+                dispatch(turnLoading())
+            })
     }
 }
 
@@ -55,7 +56,7 @@ export const addClientFetch = (client, cleanForm) => {
             phone: cleanPhone(client.phone),
             email: client.email,
             obs: client.obs,
-            born_date: client?.born_date ? format(client?.born_date, 'yyyy/MM/dd'): null,
+            born_date: client?.born_date ? format(client?.born_date, 'yyyy/MM/dd') : null,
             sexo: client.sexo,
             // active: client.active,
 
@@ -74,9 +75,9 @@ export const addClientFetch = (client, cleanForm) => {
             (
                 client = {
                     ...res.data.client,
-                    born_date: res?.data?.client?.born_date ?  converterData(res.data.client.born_date) : null,
+                    born_date: res?.data?.client?.born_date ? converterData(res.data.client.born_date) : null,
                 },
-                
+
                 dispatch(addClient(client)),
                 dispatch(addMessage(`O cliente ${client.name} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
@@ -109,7 +110,7 @@ export const editClientFetch = (client, cleanForm) => {
             }
         };
 
-        api.put(`/clients/${client.id}`, client)
+        api.patch(`/clients/${client.id}`, client)
             .then((res) =>
             (
 
@@ -120,7 +121,7 @@ export const editClientFetch = (client, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.error} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error ? error.response.data.message : 'erro desconhecido';
             })
