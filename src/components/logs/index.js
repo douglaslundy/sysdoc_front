@@ -7,22 +7,16 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Fab,
-    Button,
     styled,
     TableContainer,
     TablePagination,
-    TextField
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllLogs } from "../../store/fetchActions/logs";
-import { showLetter } from "../../store/ducks/logs";
-import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
 
@@ -49,7 +43,6 @@ export default () => {
 
     const dispatch = useDispatch();
     const { logs } = useSelector(state => state.logs);
-    const [searchValue, setSearchValue] = useState();
     const [allLogs, setAllLogs] = useState(logs);
     const { user, profile } = useContext(AuthContext);
 
@@ -106,16 +99,6 @@ export default () => {
                 'justify-content': 'space-between'
             }}
             >
-                {/* 
-                <TextField
-                    sx={{ width: "65%" }}
-                    label="Pesquisar ofício"
-                    name="search"
-                    value={searchValue}
-                    onChange={searchLogs}
-
-                /> */}
-
                 <Select
                     label="Usuario"
                     name="user"

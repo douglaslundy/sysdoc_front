@@ -7,19 +7,16 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Fab,
-    Button,
     styled,
     TableContainer,
     TablePagination,
-    TextField
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
-
+import Select from '../inputs/selects';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllErrorLogs } from "../../store/fetchActions/errorlogs";
-
+import { AuthContext } from "../../contexts/AuthContext";
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
@@ -40,6 +37,28 @@ export default () => {
     const { errorlogs } = useSelector(state => state.errorlogs);
     const [allErrorLogs, setAllErrorLogs] = useState(errorlogs);
 
+    const { user, profile } = useContext(AuthContext);
+
+    const [use, setUse] = useState(null);
+    const users = Array.from(new Set(errorlogs.map(u => u.user)));
+
+    // Transforma a variável years em um array JSON
+    const usersExists = Object.values({ ...users }).reduce((acc, u) => {
+        // Verifica se o usuário já está no acumulador com base no id
+        if (!acc.some(user => user.id === u?.id)) {
+            acc.push({
+                id: u?.id,
+                name: u?.name,
+            });
+        }
+        return acc;
+    }, []);
+
+
+    const changeUser = ({ target }) => {
+        setUse(target.value)
+    }
+
 
 
     useEffect(() => {
@@ -49,6 +68,10 @@ export default () => {
     useEffect(() => {
         setAllErrorLogs(errorlogs);
     }, [errorlogs]);
+
+    useEffect(() => {
+        setAllErrorLogs(use ? errorlogs.filter(log => log.user?.id === use) : errorlogs);
+    }, [use, errorlogs]);
 
 
 
@@ -68,6 +91,23 @@ export default () => {
         <BaseCard title={`Você possui ${allErrorLogs.length} Logs de erro Cadastrados`}>
             <AlertModal />
 
+            <Box sx={{
+                '& > :not(style)': { mb: 0, mt: 2 },
+                'display': 'flex',
+                'justify-content': 'space-between'
+            }}
+            >
+                <Select
+                    label="Usuario"
+                    name="user"
+                    value={use}
+                    store={usersExists}
+                    changeItem={changeUser}
+                    wd={"60%"}
+                />
+
+            </Box>
+
             <TableContainer>
 
                 <Table
@@ -81,7 +121,7 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    ID / Data
+                                    ID / Usuário / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
@@ -116,10 +156,18 @@ export default () => {
                                                             variant="h6"
                                                             sx={{
                                                                 fontWeight: "600",
-                                                                fontSize: "16px",
+                                                                fontSize: "12px",
                                                             }}
                                                         >
                                                             {errorlog && errorlog.id}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                fontSize: "12px",
+                                                            }}
+                                                        >
+                                                            {errorlog && errorlog.user?.name}
                                                         </Typography>
                                                         <Typography
                                                             color="textSecondary"
@@ -143,9 +191,6 @@ export default () => {
                                                     <Box>
                                                         <Typography
                                                             variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
                                                         >
                                                             {errorlog && errorlog.type.split('\\').pop()}
                                                         </Typography>
@@ -171,9 +216,6 @@ export default () => {
                                                     <Box>
                                                         <Typography
                                                             variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
                                                         >
                                                             {errorlog && errorlog.message}
                                                         </Typography>
