@@ -17,8 +17,6 @@ import { showSpeciality } from '../../../store/ducks/specialities';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
 import AlertModal from '../../messagesModal';
-import Select from '../../inputs/selects';
-import { getAllServices } from '../../../store/fetchActions/service_calls';
 
 const style = {
     position: 'absolute',
@@ -87,9 +85,6 @@ export default function SpecialityModal(props) {
 
     }, [speciality]);
 
-    useEffect(() => {
-        dispatch(getAllServices());
-    }, []);
 
     return (
         <div>

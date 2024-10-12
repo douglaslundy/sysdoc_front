@@ -1,7 +1,6 @@
 import { api } from "../../../services/api";
-import { addLog, addLogs } from "../../ducks/logs";
-import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
-import { parseCookies } from "nookies";
+import { addLogs } from "../../ducks/logs";
+import { turnLoading } from "../../ducks/Layout";
 
 export const getAllLogs = () => {
 

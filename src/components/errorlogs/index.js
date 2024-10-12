@@ -200,7 +200,7 @@ export default () => {
                                                                 fontSize: "12px",
                                                             }}
                                                         >
-                                                            {errorlog && errorlog.file.split('\\').pop()} linha / {errorlog && errorlog.line}
+                                                            {errorlog && errorlog.file.split('\/').pop()} linha / {errorlog && errorlog.line}
                                                         </Typography>
                                                     </Box>
                                                 </Box>

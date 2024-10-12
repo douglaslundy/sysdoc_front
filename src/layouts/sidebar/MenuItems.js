@@ -30,6 +30,24 @@ const Menuitems = [
     profile: "user",
   },
   {
+    title: "Veículos",
+    icon: "users",
+    href: "/vehicles",
+    profile: "user",
+  },
+  {
+    title: "Rotas",
+    icon: "users",
+    href: "/routes",
+    profile: "user",
+  },
+  {
+    title: "Viagem",
+    icon: "users",
+    href: "/trips",
+    profile: "user",
+  },
+  {
     title: "Oficios",
     icon: "send",
     href: "/letters",

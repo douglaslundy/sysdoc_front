@@ -13,6 +13,7 @@ import specialityReducer from './ducks/specialities';
 import queueReducer from './ducks/queues';
 import logReducer from './ducks/logs';
 import errorlogReducer from './ducks/errorlogs';
+import vehiclesReducer from './ducks/vehicles';
 
 
 export default configureStore({
@@ -29,6 +30,7 @@ export default configureStore({
         specialities: specialityReducer,
         queues: queueReducer,
         logs: logReducer,
-        errorlogs: errorlogReducer
+        errorlogs: errorlogReducer,
+        vehicles: vehiclesReducer,
     },
 });
