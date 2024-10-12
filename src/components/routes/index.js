@@ -17,12 +17,12 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import VehicleModal from "../modal/vehicles";
+import RouteModal from "../modal/routes";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllVehicles, inactiveVehicleFetch } from "../../store/fetchActions/vehicles";
-import { showVehicle } from "../../store/ducks/vehicles";
+import { getAllRoutes, inactiveRouteFetch } from "../../store/fetchActions/routes";
+import { showRoute } from "../../store/ducks/routes";
 import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
@@ -48,36 +48,36 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { vehicles } = useSelector(state => state.vehicles);
+    const { routes } = useSelector(state => state.routes);
     const [searchValue, setSearchValue] = useState();
-    const [allVehicles, setAllVehicles] = useState(vehicles);
+    const [allRoutes, setAllRoutes] = useState(routes);
     const { user, profile } = useContext(AuthContext);
 
     useEffect(() => {
-        dispatch(getAllVehicles());
+        dispatch(getAllRoutes());
     }, []);
 
     useEffect(() => {
-        setAllVehicles(searchValue ? [...vehicles.filter(vehicle => vehicle.license_plate.toString().includes(searchValue.toString()))] : vehicles);
-    }, [vehicles]);
+        setAllRoutes(searchValue ? [...routes.filter(route => route.destination.toString().includes(searchValue.toString()))] : routes);
+    }, [routes]);
 
-    const HandleEditVehicle = async vehicle => {
-        dispatch(showVehicle(vehicle));
+    const HandleEditRoute = async route => {
+        dispatch(showRoute(route));
         dispatch(turnModal());
     }
 
-    const HandleInactiveVehicle = async vehicle => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${vehicle.license_plate}`, confirm: inactiveVehicleFetch(vehicle) })
-        dispatch(changeTitleAlert(` O Veiculo ${vehicle.brand.toUpperCase()} ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi excluida com sucesso!`))
+    const HandleInactiveRoute = async route => {
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${route.license_plate}`, confirm: inactiveRouteFetch(route) })
+        dispatch(changeTitleAlert(` A  rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi excluida com sucesso!`))
     }
 
 
-    const searchVehicles = ({ target }) => {
+    const searchRoutes = ({ target }) => {
 
         setSearchValue(target.value);
 
-        setAllVehicles([...vehicles.filter(
-            speci => speci.license_plate && speci.license_plate.toString().toLowerCase().includes(target.value.toString().toLowerCase())
+        setAllRoutes([...routes.filter(
+            rout => rout.destination && rout.destination.toString().toLowerCase().includes(target.value.toString().toLowerCase())
         )]);
     }
 
@@ -94,7 +94,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allVehicles.length} Veículos Cadastrados`}>
+        <BaseCard title={`Você possui ${allRoutes.length} Rotas Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -104,10 +104,10 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar veículo por placa"
+                    label="Pesquisar rota por placa"
                     name="search"
                     value={searchValue}
-                    onChange={searchVehicles}
+                    onChange={searchRoutes}
 
                     inputProps={{
                         style: {
@@ -119,11 +119,11 @@ export default () => {
 
                 />
 
-                <VehicleModal>
+                <RouteModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
                         <FeatherIcon icon="user-plus" />
                     </Fab>
-                </VehicleModal>
+                </RouteModal>
             </Box>
 
             <TableContainer>
@@ -140,19 +140,19 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    PLACA
+                                    ID
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    MARCA MODELO COR CAPACIDADE / USUÁRIO
+                                    ORIGEM X DESTINO / USUÁRIO
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    RENAVAN / CHASSI
+                                    DISTÂNCIA
                                 </Typography>
                             </TableCell>
 
@@ -166,10 +166,10 @@ export default () => {
                     </TableHead>
 
                     <TableBody>
-                        {allVehicles
+                        {allRoutes
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((vehicle, index) => (
-                                <StyledTableRow key={vehicle.id} hover>
+                            .map((route, index) => (
+                                <StyledTableRow key={route.id} hover>
                                     <>
                                         <TableCell>
                                             <Box
@@ -186,7 +186,7 @@ export default () => {
                                                             fontSize: "20px",
                                                         }}
                                                     >
-                                                        {vehicle.license_plate && vehicle.license_plate.substring(0, 10).toUpperCase()}
+                                                        {route.id && route.id}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -208,12 +208,11 @@ export default () => {
                                                             fontSize: "18px",
                                                         }}
                                                     >
-                                                        {vehicle.brand && vehicle.brand.substring(0, 10).toUpperCase()} {vehicle.model && vehicle.model.substring(0, 10).toUpperCase()} - {vehicle.color && vehicle.color.substring(0, 10).toUpperCase()} - {vehicle.year && vehicle.year} / {vehicle.capacity && vehicle.capacity} Lugares
+                                                        {route.origin && route.origin.substring(0, 30).toUpperCase()} X {route.destination && route.destination.substring(0, 30).toUpperCase()}
                                                     </Typography>
-                                                    <Typography
-                                                        variant="h6"
-                                                    >
-                                                        {vehicle.user && vehicle.user.name.toUpperCase()}
+
+                                                    <Typography>
+                                                        {route.user && route.user.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
                                                 </Box>
@@ -235,11 +234,11 @@ export default () => {
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {vehicle.renavan && vehicle.renavan.substring(0, 15).toUpperCase()}
+                                                        {route.distance && route.distance} KM
                                                     </Typography>
 
                                                     <Typography>
-                                                        {vehicle.chassis && vehicle.chassis.substring(0, 15).toUpperCase()}
+                                                        {route.chassis && route.chassis.substring(0, 15).toUpperCase()}
                                                     </Typography>
 
                                                 </Box>
@@ -249,14 +248,14 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar Veículo" onClick={() => { HandleEditVehicle(vehicle) }} color="primary" size="medium" variant="contained"
-                                                    disabled={profile != "admin" && vehicle.id_user != user}>
+                                                <Button title="Editar Rota" onClick={() => { HandleEditRoute(route) }} color="primary" size="medium" variant="contained"
+                                                    disabled={profile != "admin" && route.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir Veículo" onClick={() => { HandleInactiveVehicle(vehicle) }} color="error" size="medium" variant="contained"
-                                                    // disabled={vehicle.id_user == user || profile == "admin" ? allVehicles.length - index !== allVehicles.length : true}>
-                                                    disabled={profile != "admin" && vehicle.id_user != user}>
+                                                <Button title="Excluir Rota" onClick={() => { HandleInactiveRoute(route) }} color="error" size="medium" variant="contained"
+                                                    // disabled={route.id_user == user || profile == "admin" ? allRoutes.length - index !== allRoutes.length : true}>
+                                                    disabled={profile != "admin" && route.id_user != user}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
@@ -270,7 +269,7 @@ export default () => {
                 </Table>
                 <TablePagination
                     component="div"
-                    count={allVehicles.length}
+                    count={allRoutes.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

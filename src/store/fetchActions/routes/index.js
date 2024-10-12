@@ -1,23 +1,23 @@
 import { api } from "../../../services/api";
-import { inactiveVehicle, addVehicle, addVehicles, editVehicle } from "../../ducks/vehicles";
+import { inactiveRoute, addRoute, addRoutes, editRoute } from "../../ducks/routes";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 
-export const getAllVehicles = () => {
+export const getAllRoutes = () => {
 
     return (dispatch) => {
         dispatch(turnLoading());
         api
-            .get('/vehicles')
+            .get('/routes')
             .then((res) => {
-                dispatch(addVehicles(res.data));
+                dispatch(addRoutes(res.data));
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
     }
 }
 
-export const addVehicleFetch = (vehicle, cleanForm) => {
+export const addRouteFetch = (route, cleanForm) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -25,12 +25,12 @@ export const addVehicleFetch = (vehicle, cleanForm) => {
 
         dispatch(turnLoading());
 
-        vehicle = {
-            ...vehicle,
+        route = {
+            ...route,
             'id_user': user
         }
 
-        api.post('/vehicles', vehicle)
+        api.post('/routes', route)
             .then((res) =>
             (
                 res = {
@@ -39,8 +39,8 @@ export const addVehicleFetch = (vehicle, cleanForm) => {
                         name: username
                     }
                 },
-                dispatch(addVehicle(res.vehicle)),
-                dispatch(addMessage(`O Veículo ${vehicle.brand.toUpperCase()}  ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi cadastrado com sucesso!`)),
+                dispatch(addRoute(res.route)),
+                dispatch(addMessage(`A  rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi cadastrado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -53,15 +53,15 @@ export const addVehicleFetch = (vehicle, cleanForm) => {
     };
 };
 
-export const editVehicleFetch = (vehicle, cleanForm) => {
+export const editRouteFetch = (route, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
-        api.put(`/vehicles/${vehicle.id}`, vehicle)
+        api.put(`/routes/${route.id}`, route)
             .then((res) =>
             (
-                dispatch(editVehicle(vehicle)),
-                dispatch(addMessage(`O Veículo ${vehicle.brand.toUpperCase()}  ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi atualizado com sucesso!`)),
+                dispatch(editRoute(route)),
+                dispatch(addMessage(`A  rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi atualizado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -74,15 +74,15 @@ export const editVehicleFetch = (vehicle, cleanForm) => {
     };
 }
 
-export const inactiveVehicleFetch = (vehicle) => {
+export const inactiveRouteFetch = (route) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/vehicles/${vehicle.id}`)
+        api.delete(`/routes/${route.id}`)
             .then((res) =>
             (
-                dispatch(inactiveVehicle(vehicle)),
-                dispatch(addMessage(`O Veículo ${vehicle.brand.toUpperCase()}  ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi excluida com sucesso!`)),
+                dispatch(inactiveRoute(route)),
+                dispatch(addMessage(`A  rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi excluida com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
             ))
