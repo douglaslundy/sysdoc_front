@@ -42,7 +42,7 @@ const Menuitems = [
     profile: "user",
   },
   {
-    title: "Viagem",
+    title: "Viagens",
     icon: "users",
     href: "/trips",
     profile: "user",

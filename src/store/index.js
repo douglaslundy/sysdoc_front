@@ -15,6 +15,7 @@ import logReducer from './ducks/logs';
 import errorlogReducer from './ducks/errorlogs';
 import vehiclesReducer from './ducks/vehicles';
 import routesReducer from './ducks/routes';
+import tripsReducer from './ducks/trips';
 
 
 export default configureStore({
@@ -34,5 +35,6 @@ export default configureStore({
         errorlogs: errorlogReducer,
         vehicles: vehiclesReducer,
         routes: routesReducer,
+        trips: tripsReducer,
     },
 });
