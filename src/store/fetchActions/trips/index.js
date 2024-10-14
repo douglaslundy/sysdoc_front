@@ -27,7 +27,8 @@ export const addTripFetch = (trip, cleanForm) => {
 
         trip = {
             ...trip,
-            'id_user': user
+            'departure_date': trip.departure_date ? (new Date(trip.departure_date).toISOString().slice(0, 19).replace('T', ' ')) : null,
+            'user_id': user
         }
 
         api.post('/trips', trip)
@@ -40,7 +41,7 @@ export const addTripFetch = (trip, cleanForm) => {
                     }
                 },
                 dispatch(addTrip(res.trip)),
-                dispatch(addMessage(`O Veículo ${trip.brand.toUpperCase()}  ${trip.model.toUpperCase()} PLACA ${trip.license_plate.toUpperCase()} foi cadastrado com sucesso!`)),
+                dispatch(addMessage(`Viagem cadastrado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -57,20 +58,25 @@ export const editTripFetch = (trip, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
-        api.put(`/trips/${trip.id}`, trip)
-            .then((res) =>
-            (
-                dispatch(editTrip(trip)),
-                dispatch(addMessage(`O Veículo ${trip.brand.toUpperCase()}  ${trip.model.toUpperCase()} PLACA ${trip.license_plate.toUpperCase()} foi atualizado com sucesso!`)),
-                dispatch(turnAlert()),
-                dispatch(turnLoading()),
-                cleanForm()
-            ))
-            .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
-                dispatch(turnLoading());
-                return error.response ? error.response.data : 'erro desconhecido';
-            })
+        trip = {
+            ...trip,
+            'departure_date': trip.departure_date ? (new Date(trip.departure_date).toISOString().slice(0, 19).replace('T', ' ')) : null
+        },
+
+            api.patch(`/trips/${trip.id}`, trip)
+                .then((res) =>
+                (
+                    dispatch(editTrip(res.data.trip)),
+                    dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
+                    dispatch(turnAlert()),
+                    dispatch(turnLoading()),
+                    cleanForm()
+                ))
+                .catch((error) => {
+                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(turnLoading());
+                    return error.response ? error.response.data : 'erro desconhecido';
+                })
     };
 }
 
@@ -82,12 +88,12 @@ export const inactiveTripFetch = (trip) => {
             .then((res) =>
             (
                 dispatch(inactiveTrip(trip)),
-                dispatch(addMessage(`O Veículo ${trip.brand.toUpperCase()}  ${trip.model.toUpperCase()} PLACA ${trip.license_plate.toUpperCase()} foi excluida com sucesso!`)),
+                dispatch(addMessage(`A viagem ${trip.id}  foi excluida com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
+                dispatch(addAlertMessage(`ERROR - ${error.response?.data.message} `));
                 dispatch(turnLoading());
             })
     }

@@ -41,12 +41,7 @@ const Menuitems = [
     href: "/routes",
     profile: "user",
   },
-  {
-    title: "Viagens",
-    icon: "users",
-    href: "/trips",
-    profile: "user",
-  },
+
   {
     title: "Oficios",
     icon: "send",

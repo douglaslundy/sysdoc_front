@@ -68,8 +68,8 @@ export default () => {
     }
 
     const HandleInactiveTrip = async trip => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${trip.license_plate}`, confirm: inactiveTripFetch(trip) })
-        dispatch(changeTitleAlert(` O Veiculo ${trip.brand.toUpperCase()} ${trip.model.toUpperCase()} PLACA ${trip.license_plate.toUpperCase()} foi excluida com sucesso!`))
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a viagem ${trip.id}`, confirm: inactiveTripFetch(trip) })
+        dispatch(changeTitleAlert(`A viagem ${trip.id}  foi excluida com sucesso!`))
     }
 
 
@@ -188,7 +188,7 @@ export default () => {
                                                                 fontSize: "18px",
                                                             }}
                                                         >
-                                                            {trip.driver.name.toUpperCase()}
+                                                            {trip.driver.name?.toUpperCase()}
                                                         </Typography>
 
                                                         :
