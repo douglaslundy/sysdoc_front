@@ -68,8 +68,8 @@ export const editDoneQueue = (queue, cleanForm) => {
         api.put(`/queues/${queue.id}`, queue)
             .then((res) =>
             (
-                dispatch(editQueue(queue)),
-                dispatch(addMessage(`A Especialidade ${queue.id} foi atualizada com sucesso!`)),
+                dispatch(editQueue(res.data)),
+                dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()

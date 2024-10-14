@@ -148,19 +148,7 @@ export default function TripModal(props) {
             dispatch(getAllVehicles());
         }
 
-        // if (isOpenModal === false) {
-        //     setDriver({});
-        //     // cleanForm();
-        // }
-
     }, [isOpenModal]);
-
-    // useEffect(() => {
-    //     setForm({
-    //         ...form,
-    //         client: cli.id
-    //     })
-    // }, [cli]);
 
     return (
         <div>

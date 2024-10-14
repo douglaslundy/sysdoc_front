@@ -9,7 +9,8 @@ const Menuitems = [
     title: "Usuarios",
     icon: "users",
     href: "/users",
-    profile: "admin",
+    // profile: "admin",
+    profile: "user",
   },
   {
     title: "Clientes",
@@ -41,7 +42,6 @@ const Menuitems = [
     href: "/routes",
     profile: "user",
   },
-
   {
     title: "Oficios",
     icon: "send",

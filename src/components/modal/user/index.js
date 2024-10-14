@@ -40,10 +40,10 @@ const style = {
 };
 
 const profiles = [
-    {
-        "id": "admin",
-        "name": "Administrador"
-    },
+    // {
+    //     "id": "admin",
+    //     "name": "Administrador"
+    // },
     {
         "id": "partner",
         "name": "Parceiro"
@@ -51,6 +51,10 @@ const profiles = [
     {
         "id": "user",
         "name": "Usuário"
+    },
+    {
+        "id": "driver",
+        "name": "Motorista"
     }
 ]
 

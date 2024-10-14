@@ -80,15 +80,17 @@ export const editTripFetch = (trip, cleanForm) => {
     };
 }
 
-export const inactiveTripFetch = (trip) => {
+
+
+export const excludeClientTripFetch = (cli) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/trips/${trip.id}`)
+        api.delete(`/trip-clients/${cli}`)
             .then((res) =>
             (
-                dispatch(inactiveTrip(trip)),
-                dispatch(addMessage(`A viagem ${trip.id}  foi excluida com sucesso!`)),
+                dispatch(inactiveTrip(cli)),
+                dispatch(addMessage(`Cliente foi excluido com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
             ))
@@ -97,4 +99,31 @@ export const inactiveTripFetch = (trip) => {
                 dispatch(turnLoading());
             })
     }
+}
+
+export const insertClientTrip = (client, cleanForm) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        client = {
+            'trip_id': 16,
+            'client_id': client.client_id,
+            'person_type': client.person_type,
+            'destination_location': client.destination_location
+        }
+        api.post(`/trip-clients`, client)
+            .then((res) =>
+            (
+                dispatch(editTrip(res.data.trip_client)),
+                dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm()
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
 }

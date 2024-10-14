@@ -18,6 +18,7 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import TripModal from "../modal/trips";
+import TripClientsModal from "../modal/trips/clients";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -52,7 +53,7 @@ export default () => {
     const { trips } = useSelector(state => state.trips);
     const [searchValue, setSearchValue] = useState();
     const [allTrips, setAllTrips] = useState(trips);
-    const { user, profile } = useContext(AuthContext);
+    const [option, setOption] = useState('add');
 
     useEffect(() => {
         dispatch(getAllTrips());
@@ -85,6 +86,18 @@ export default () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    const HandleGoAddClients = trip => {
+        setOption('addCli');
+        dispatch(showTrip(trip));
+        dispatch(turnModal());
+    };
+
+    const HandleGoTrip = trip => {
+        setOption('addTrip');
+        dispatch(showTrip(trip));
+        dispatch(turnModal());
+    };
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -93,6 +106,18 @@ export default () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    const SwitchModal = ({ option }) => {
+        switch (option) {
+            case 'addCli':
+                return <TripClientsModal />;
+            case 'addTrip':
+                return <TripModal />;
+            default:
+                return <></>;
+        }
+    };
+
 
     return (
         <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastrados`}>
@@ -103,9 +128,11 @@ export default () => {
                 'justify-content': 'stretch'
             }}>
 
+                <SwitchModal option={option} />
+
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar veículo por placa"
+                    label="Pesquisar viagem por destino"
                     name="search"
                     value={searchValue}
                     onChange={searchTrips}
@@ -120,11 +147,9 @@ export default () => {
 
                 />
 
-                <TripModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
-                    </Fab>
-                </TripModal>
+                <Fab onClick={() => { HandleGoTrip() }} color="primary" aria-label="add">
+                    <FeatherIcon icon="user-plus" />
+                </Fab>
             </Box>
 
             <TableContainer>
@@ -139,6 +164,11 @@ export default () => {
                     <TableHead>
                         <TableRow>
 
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    ID
+                                </Typography>
+                            </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
                                     MOTORISTA / VEÍCULO
@@ -172,6 +202,24 @@ export default () => {
                             .map((trip, index) => (
                                 <StyledTableRow key={trip.id} hover>
                                     <>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Typography variant="h6"
+                                                    sx={{
+                                                        fontWeight: "600",
+                                                        fontSize: "20px",
+                                                    }}
+                                                >
+                                                    {trip.id && trip.id}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+
                                         <TableCell>
                                             <Box
                                                 sx={{
@@ -236,11 +284,9 @@ export default () => {
                                         </TableCell>
 
                                         <TableCell>
-                                            <Button title="Passageiros incluindo acompanhantes" onClick={() => { HandleGoCalls({ ...trips, 'status_filter': 'CLOSED' }) }} color="success" size="medium" variant="contained">
+                                            <Button title="Passageiros incluindo acompanhantes" onClick={() => { HandleGoAddClients(trip) }} color="success" size="medium" variant="contained">
                                                 <FeatherIcon icon="users" width="20" height="20" />
-
                                                 <div style={{ marginLeft: '5px' }}>
-                                                    {/* {trips.calls_per_service?.filter(a => a.status == 'CLOSED').length} */}
                                                     {trip.clients && trip.clients.length}
                                                 </div>
                                             </Button>
@@ -249,7 +295,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar Viagem" onClick={() => { HandleEditTrip(trip) }} color="primary" size="medium" variant="contained">
+                                                <Button title="Editar Viagem" onClick={() => { HandleGoTrip(trip) }} color="primary" size="medium" variant="contained">
                                                     {/* disabled={profile != "admin" && trip.id_user != user}> */}
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>

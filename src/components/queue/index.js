@@ -140,19 +140,6 @@ export default () => {
         }
     }, [searchValue, speci, queues, done]);
 
-
-
-
-    // const HandleEditQueue = async queue => {
-    //     dispatch(showQueue(queue));
-    //     dispatch(turnModal());
-    // }
-
-    // const HandleInactiveQueue = async queue => {
-    //     setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a especialidade ${queue.id}`, confirm: inactiveQueueFetch(queue) })
-    //     dispatch(changeTitleAlert(`O queuee ${queue.number} foi excluido com sucesso!`))
-    // }
-
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
