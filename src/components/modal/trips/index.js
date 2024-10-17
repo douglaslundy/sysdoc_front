@@ -18,7 +18,6 @@ import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
 import { editTripFetch, addTripFetch } from '../../../store/fetchActions/trips';
 import AlertModal from '../../messagesModal';
-import InputSelectClient from '../../inputs/inputSelectClient';
 import { getAllUsers } from '../../../store/fetchActions/user';
 import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
@@ -131,15 +130,6 @@ export default function TripModal(props) {
             setForm(trip);
 
     }, [trip]);
-
-    // useEffect(() => {
-    //     setForm({
-    //         ...form,
-    //         driver: driv.id,
-    //     });
-
-    // }, [driv]);
-
 
     useEffect(() => {
         if (isOpenModal === true) {

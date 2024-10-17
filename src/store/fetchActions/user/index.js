@@ -46,25 +46,25 @@ export const addUserFetch = (user, cleanForm) => {
 export const editUserFetch = (user, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading()),
-        user = {
-            ...user,
-            cpf: cleanCpfCnpj(user.cpf),
-        };
+            user = {
+                ...user,
+                cpf: cleanCpfCnpj(user.cpf),
+            };
 
-            api.put(`/users/${user.id}`, user)
-                .then((res) =>
-                (
-                    dispatch(editUser(res.data.user)),
-                    dispatch(addMessage(`Usuário ${res.data.user.name} foi atualizado com sucesso!`)),
-                    dispatch(turnAlert()),
-                    dispatch(turnLoading()),
-                    cleanForm()
-                ))
-                .catch((error) => {
-                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
-                    dispatch(turnLoading());
-                    return error.response ? error.response.data : 'erro desconhecido';
-                })
+        api.put(`/users/${user.id}`, user)
+            .then((res) =>
+            (
+                dispatch(editUser(res.data.user)),
+                dispatch(addMessage(`Usuário ${res.data.user.name} foi atualizado com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm()
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
     };
 }
 

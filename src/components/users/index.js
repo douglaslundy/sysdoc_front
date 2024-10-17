@@ -90,7 +90,7 @@ export default () => {
 
     useEffect(() => {
 
-        if (profile == "user") {
+        if (profile !== "admin" && profile !== "user") {
             Router.push('/');
         }
     }, []);

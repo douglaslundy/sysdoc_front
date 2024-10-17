@@ -1,5 +1,5 @@
 import { api } from "../../../services/api";
-import { inactiveTrip, addTrip, addTrips, editTrip } from "../../ducks/trips";
+import { inactiveTrip, addTrip, addTrips, editTrip, showTrip } from "../../ducks/trips";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 
@@ -82,6 +82,26 @@ export const editTripFetch = (trip, cleanForm) => {
 
 
 
+export const excludeTripFetch = (trip) => {
+    return (dispatch) => {
+        dispatch(turnLoading())
+
+        api.delete(`/trips/${trip}`)
+            .then((res) =>
+            (
+                dispatch(inactiveTrip(trip)),
+                dispatch(addMessage(`A Viagem foi excluido com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading())
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(`ERROR - ${error.response?.data.message} `));
+                dispatch(turnLoading());
+            })
+    }
+}
+
+
 export const excludeClientTripFetch = (cli) => {
     return (dispatch) => {
         dispatch(turnLoading())
@@ -89,7 +109,8 @@ export const excludeClientTripFetch = (cli) => {
         api.delete(`/trip-clients/${cli}`)
             .then((res) =>
             (
-                dispatch(inactiveTrip(cli)),
+                dispatch(editTrip(res.data.trip)),
+                dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`Cliente foi excluido com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
@@ -101,27 +122,30 @@ export const excludeClientTripFetch = (cli) => {
     }
 }
 
-export const insertClientTrip = (client, cleanForm) => {
+export const insertClientTrip = (client) => {
     return (dispatch) => {
         dispatch(turnLoading());
-
         client = {
-            'trip_id': 16,
+            'trip_id': client.id,
             'client_id': client.client_id,
             'person_type': client.person_type,
             'destination_location': client.destination_location
         }
+        // console.log(client)
+
         api.post(`/trip-clients`, client)
             .then((res) =>
             (
-                dispatch(editTrip(res.data.trip_client)),
+
+                dispatch(editTrip(res.data.trip)),
+                dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
                 dispatch(turnAlert()),
-                dispatch(turnLoading()),
-                cleanForm()
+                dispatch(turnLoading())
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })

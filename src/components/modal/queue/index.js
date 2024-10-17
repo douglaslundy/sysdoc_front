@@ -127,9 +127,10 @@ export default function QueueModal(props) {
 
     useEffect(() => {
         if (isOpenModal === true) {
-            dispatch(getAllClients());
-            dispatch(getAllSpecialities());
-            // setFormSale({ ...formSale, id_client: null, id_user: null });
+            if (clients.length <= 0) {
+                dispatch(getAllClients());
+                dispatch(getAllSpecialities());
+            }
         }
 
         if (isOpenModal === false) {

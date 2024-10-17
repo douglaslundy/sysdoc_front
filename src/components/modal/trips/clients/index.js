@@ -130,7 +130,7 @@ export default function TripClientsModal(props) {
 
     const handlePutData = async () => {
         dispatch(changeTitleAlert(`O Cliente foi inserido na viagem com sucesso!`));
-        dispatch(insertClientTrip(form), cleanForm);
+        dispatch(insertClientTrip(form));
     };
 
     const handleClose = () => {
@@ -152,7 +152,7 @@ export default function TripClientsModal(props) {
     useEffect(() => {
         setForm(prevForm => ({
             ...prevForm,
-            client_id: cli.id
+            client_id: cli?.id
         }));
     }, [cli]);
 
@@ -169,11 +169,14 @@ export default function TripClientsModal(props) {
     // Carrega os clientes quando o modal é aberto
     useEffect(() => {
         if (isOpenModal) {
-            dispatch(getAllClients());
+            if (clients.length <= 0) {
+                dispatch(getAllClients());
+            }
         } else {
             setClient({});
         }
     }, [isOpenModal]);
+
 
     return (
         <div>
@@ -191,7 +194,7 @@ export default function TripClientsModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={`VIAGEM ${form.id} ROTA ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} VEÍCULO ${trip?.vehicle?.brand.toUpperCase()} ${trip?.vehicle?.model.toUpperCase()} PLACA ${trip?.vehicle?.license_plate.toUpperCase()}`}>
+                            <BaseCard title={`VIAGEM ${form.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} - VEÍCULO ${trip?.vehicle?.brand.toUpperCase()} ${trip?.vehicle?.model.toUpperCase()} PLACA ${trip?.vehicle?.license_plate.toUpperCase()} - ${trip?.vehicle?.capacity} LUGARES`}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}

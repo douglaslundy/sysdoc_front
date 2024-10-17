@@ -22,7 +22,7 @@ import TripClientsModal from "../modal/trips/clients";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllTrips, inactiveTripFetch } from "../../store/fetchActions/trips";
+import { excludeTripFetch, getAllTrips, inactiveTripFetch } from "../../store/fetchActions/trips";
 import { showTrip } from "../../store/ducks/trips";
 import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
@@ -69,7 +69,7 @@ export default () => {
     }
 
     const HandleInactiveTrip = async trip => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a viagem ${trip.id}`, confirm: inactiveTripFetch(trip) })
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a viagem ${trip.id}`, confirm: excludeTripFetch(trip.id) })
         dispatch(changeTitleAlert(`A viagem ${trip.id}  foi excluida com sucesso!`))
     }
 
@@ -250,7 +250,8 @@ export default () => {
                                                     <Typography
                                                         variant="h6"
                                                     >
-                                                        {trip.vehicle ? trip.vehicle.brand.toUpperCase() : 'VEÍCULO NÃO ATRIBUIDO'}  {trip.vehicle && trip.vehicle.model.toUpperCase()}  {trip.vehicle && trip.vehicle.license_plate.toUpperCase()}
+                                                        {/* {trip.vehicle ? trip.vehicle.brand.toUpperCase() : 'VEÍCULO NÃO ATRIBUIDO'}  {trip.vehicle && trip.vehicle.model.toUpperCase()}  {trip.vehicle && trip.vehicle.license_plate.toUpperCase()} */}
+                                                        {trip.vehicle ? `${trip.vehicle?.brand.toUpperCase()} ${trip.vehicle?.model.toUpperCase()} ${trip.vehicle?.license_plate.toUpperCase()} - ${trip.vehicle?.capacity} LUGARES ` : 'VEÍCULO NÃO ATRIBUIDO'}
                                                     </Typography>
                                                 </Box>
                                             </Box>
