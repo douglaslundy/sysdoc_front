@@ -20,6 +20,7 @@ import FeatherIcon from "feather-icons-react";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
 import { AuthContext } from "../../contexts/AuthContext";
+import tripPDF from "../../reports/trip"
 
 import { useSelector, useDispatch } from 'react-redux';
 import { excludeTripFetch, getAllTrips, inactiveTripFetch } from "../../store/fetchActions/trips";
@@ -93,7 +94,10 @@ export default () => {
     };
 
     const HandleGoTrip = trip => {
-        setOption('addTrip');
+        tripPDF(trip);
+    };
+
+    const HandlePrintTrip = trip => {
         dispatch(showTrip(trip));
         dispatch(turnModal());
     };
@@ -295,6 +299,11 @@ export default () => {
 
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
+
+                                                <Button title="Imprimir Viagem" onClick={() => { tripPDF(trip) }} color="success" size="medium" variant="contained">
+                                                    {/* disabled={profile != "admin" && trip.id_user != user}> */}
+                                                    <FeatherIcon icon="printer" width="20" height="20" />
+                                                </Button>
 
                                                 <Button title="Editar Viagem" onClick={() => { HandleGoTrip(trip) }} color="primary" size="medium" variant="contained">
                                                     {/* disabled={profile != "admin" && trip.id_user != user}> */}

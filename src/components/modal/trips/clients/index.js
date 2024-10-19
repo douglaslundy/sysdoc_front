@@ -33,6 +33,7 @@ import { getAllClients } from '../../../../store/fetchActions/clients';
 import Select from '../../../inputs/selects';
 import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
+import DateTime from '../../../inputs/dateTime';
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -76,10 +77,11 @@ export default function TripClientsModal(props) {
         id: "",
         client_id: "",
         person_type: "",
-        destination_location: ""
+        destination_location: "",
+        time: ""
     });
 
-    const { person_type, destination_location } = form;
+    const { person_type, destination_location, time } = form;
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -102,7 +104,8 @@ export default function TripClientsModal(props) {
             id: "",
             client_id: "",
             person_type: "",
-            destination_location: ""
+            destination_location: "",
+            time: ""
         });
         setTexto('');
         dispatch(turnModal());
@@ -206,6 +209,15 @@ export default function TripClientsModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
+                                    <DateTime
+                                        id="time"
+                                        label="Horário do compromisso"
+                                        name="time"
+                                        value={time}
+                                        onChange={changeItem}
+                                        wd={"20%"}
+                                    />
+
 
                                     {
                                         isOpenModal &&
@@ -228,6 +240,7 @@ export default function TripClientsModal(props) {
                                         store={typesOfPerson}
                                         changeItem={changeItem}
                                     />
+
 
                                     <TextField
                                         id="destination_location"
@@ -287,6 +300,12 @@ export default function TripClientsModal(props) {
                                                     </Typography>
                                                 </TableCell>
 
+                                                <TableCell>
+                                                    <Typography color="textSecondary" variant="h6">
+                                                        HORÁRIO
+                                                    </Typography>
+                                                </TableCell>
+
                                                 <TableCell align="center">
                                                     <Typography color="textSecondary" variant="h6">
                                                         Ações
@@ -341,6 +360,14 @@ export default function TripClientsModal(props) {
                                                                         variant="h6"
                                                                     >
                                                                         {cli.pivot.destination_location && cli.pivot.destination_location.substring(0, 30).toUpperCase()}
+                                                                    </Typography>
+                                                                </TableCell>
+
+                                                                <TableCell>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                    >
+                                                                        {cli.pivot.time && cli.pivot.time}
                                                                     </Typography>
                                                                 </TableCell>
 

@@ -129,7 +129,8 @@ export const insertClientTrip = (client) => {
             'trip_id': client.id,
             'client_id': client.client_id,
             'person_type': client.person_type,
-            'destination_location': client.destination_location
+            'destination_location': client.destination_location,
+            'time': client.time,
         }
         // console.log(client)
 
