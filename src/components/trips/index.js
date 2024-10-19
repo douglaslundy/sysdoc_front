@@ -94,7 +94,9 @@ export default () => {
     };
 
     const HandleGoTrip = trip => {
-        tripPDF(trip);
+        setOption('addTrip');
+        dispatch(showTrip(trip));
+        dispatch(turnModal());
     };
 
     const HandlePrintTrip = trip => {
