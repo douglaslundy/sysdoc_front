@@ -32,9 +32,9 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
     const logo = [
         {
             // image: "data:image/png;base64, codigo convertido da imagem em base 64 aqui",
-            image: await loadImage('https://sysdoc.vercel.app//_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrasao.f5a21054.png&w=256&q=75'),
+            image: await loadImage('https://sysdoc.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrasao.f5a21054.png&w=256&q=75'),
 
-            width: 120,
+            width: 80,
             height: 60,
             alignment: 'center',
             margin: [20, 20, 0, 45] // left, top, right, bottom
@@ -46,7 +46,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
         {
             stack: [
                 { text: 'SECRETARIA MUNICIPAL DE SAÚDE DE ILICÍNEA' },
-                { text: 'Rua 02 de Novembro, 96 -Centro TEL: 3854-1296 -1216' },
+                { text: 'Rua 02 de Novembro, 96 - Centro TEL: 3599961-7854' },
                 { text: 'saude@ilicinea.mg.gov.br' },
             ],
             fontSize: 12,
@@ -127,7 +127,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
 
 
 
-    const dados = clients.map((cli) => {
+    const dados = clients?.map((cli) => {
         return [
             { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 2, 0, 2] },
             { text: cli.addresses?.street.substring(0, 30).toUpperCase() + ' Nº ' + cli.addresses?.number, fontSize: 9, margin: [0, 2, 0, 2] },
