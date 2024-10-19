@@ -45,11 +45,10 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
         // logo,
         {
             stack: [
-                { text: 'SECRETARIA MUNICIPAL DE SAÚDE DE ILICÍNEA' },
-                { text: 'Rua 02 de Novembro, 96 - Centro TEL: 3599961-7854' },
-                { text: 'saude@ilicinea.mg.gov.br' },
+                { text: 'SECRETARIA MUNICIPAL DE SAÚDE DE ILICÍNEA', fontSize: 12 },
+                { text: 'Rua 02 de Novembro, 96 - Centro TEL: 3599961-7854', fontSize: 10 },
+                { text: 'saude@ilicinea.mg.gov.br', fontSize: 10 },
             ],
-            fontSize: 12,
             alignment: 'center',
             margin: [0, 40, 0, 5] // left, top, right, bottom
         },
@@ -65,9 +64,9 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
 
         {
             stack: [
-                { text: `P L A N I L H A   D E   V I A G E M `, fontSize: 18 },
-                { text: `Boa Viagem`, fontSize: 14 },
-                { text: `Vá com DEUS!`, fontSize: 14, bold: true }
+                { text: `P L A N I L H A   D E   V I A G E M `, fontSize: 16 },
+                { text: `Boa Viagem - Vá com DEUS!`, fontSize: 12 },
+                // { text: `Vá com DEUS!`, fontSize: 12, bold: true }
             ],
             alignment: 'center',
             margin: [0, 0, 0, 0] // left, top, right, bottom
@@ -91,7 +90,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
             ],
             fontSize: 11,
             bold: true,
-            margin: [2, 0, 2, 0] // left, top, right, bottom
+            margin: [0, 1, 0, 1] // left, top, right, bottom
         },
 
         {
@@ -101,7 +100,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
             ],
             fontSize: 11,
             bold: false,
-            margin: [2, 0, 2, 0] // left, top, right, bottom
+            margin: [0, 1, 0, 1] // left, top, right, bottom
         },
 
         {
@@ -111,7 +110,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
             ],
             fontSize: 11,
             bold: false,
-            margin: [2, 0, 2, 0] // left, top, right, bottom
+            margin: [0, 1, 0, 1] // left, top, right, bottom
         },
 
         {
@@ -129,11 +128,11 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
 
     const dados = clients?.map((cli) => {
         return [
-            { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 2, 0, 2] },
-            { text: cli.addresses?.street.substring(0, 30).toUpperCase() + ' Nº ' + cli.addresses?.number, fontSize: 9, margin: [0, 2, 0, 2] },
-            { text: cli?.phone, fontSize: 9, margin: [0, 2, 0, 2] },
-            { text: cli?.pivot?.time.substring(0, 5), fontSize: 9, margin: [0, 2, 0, 2] },
-            { text: cli?.pivot?.destination_location.toUpperCase(), fontSize: 9, margin: [0, 2, 0, 2] },
+            { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli.addresses?.street.substring(0, 30).toUpperCase() + ' Nº ' + cli.addresses?.number, fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.phone, fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.time.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.destination_location.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
         ]
     });
 
@@ -156,8 +155,24 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
             },
             // layout: 'lightHorizontalLines' // headerLineOnly
             layout: 'headerLineOnly'
+        }, {
+            stack: [
+                { text: `--------------------------------------------------------------------------------------------------------------------------------------------------------------------------` },
+            ],
         }
     ];
+
+    const lbObs = [
+
+        {
+            stack: [
+                { text: obs?.toUpperCase(), margin: [0, 1, 0, 1] },
+            ],
+            fontSize: 8,
+            alignment: 'justify',
+            margin: [0, 0, 0, 0] // left, top, right, bottom
+        },
+    ]
 
     const lbSingn = [
 
@@ -167,7 +182,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
             ],
             fontSize: 10,
             alignment: 'center',
-            margin: [0, 30, 0, 0] // left, top, right, bottom
+            margin: [0, 20, 0, 0] // left, top, right, bottom
         },
 
         {
@@ -186,7 +201,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, created_at, up
         pageOrientation: 'portrait',
         pageMargins: [15, 50, 15, 40],
         header: [logo],
-        content: [company, dataOfTrip, dataOfClients, lbSingn],
+        content: [company, dataOfTrip, dataOfClients, lbObs, lbSingn],
         // footer: footer
     };
 

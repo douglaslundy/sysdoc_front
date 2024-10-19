@@ -19,8 +19,8 @@ import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
-import { AuthContext } from "../../contexts/AuthContext";
 import tripPDF from "../../reports/trip"
+import tripsPDF from "../../reports/trips"
 
 import { useSelector, useDispatch } from 'react-redux';
 import { excludeTripFetch, getAllTrips, inactiveTripFetch } from "../../store/fetchActions/trips";
@@ -152,6 +152,10 @@ export default () => {
                     }}
 
                 />
+
+                <Fab onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add">
+                    <FeatherIcon icon="printer" />
+                </Fab>
 
                 <Fab onClick={() => { HandleGoTrip() }} color="primary" aria-label="add">
                     <FeatherIcon icon="user-plus" />
