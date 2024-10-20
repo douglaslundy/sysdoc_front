@@ -23,13 +23,14 @@ import tripPDF from "../../reports/trip"
 import tripsPDF from "../../reports/trips"
 
 import { useSelector, useDispatch } from 'react-redux';
-import { excludeTripFetch, getAllTrips, inactiveTripFetch } from "../../store/fetchActions/trips";
+import { excludeTripFetch, getAllTrips, getAllTripsPerDate } from "../../store/fetchActions/trips";
 import { showTrip } from "../../store/ducks/trips";
 import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
 import { parseISO, format } from 'date-fns';
+import BasicDatePicker from "../inputs/datePicker";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -55,33 +56,26 @@ export default () => {
     const [searchValue, setSearchValue] = useState();
     const [allTrips, setAllTrips] = useState(trips);
     const [option, setOption] = useState('add');
+    const [dateBegin, setDateBegin] = useState(new Date());
+    const [dateEnd, setDateEnd] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
 
     useEffect(() => {
-        dispatch(getAllTrips());
+        // dispatch(getAllTrips());
+        dispatch(getAllTripsPerDate(dateBegin, dateEnd));
     }, []);
 
     useEffect(() => {
         setAllTrips(searchValue ? [...trips.filter(trip => trip.license_plate.toString().includes(searchValue.toString()))] : trips);
     }, [trips]);
 
-    const HandleEditTrip = async trip => {
-        dispatch(showTrip(trip));
-        dispatch(turnModal());
-    }
 
     const HandleInactiveTrip = async trip => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a viagem ${trip.id}`, confirm: excludeTripFetch(trip.id) })
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a viagem ${trip.id}`, confirm: excludeTripFetch(trip) })
         dispatch(changeTitleAlert(`A viagem ${trip.id}  foi excluida com sucesso!`))
     }
 
-
-    const searchTrips = ({ target }) => {
-
-        setSearchValue(target.value);
-
-        setAllTrips([...trips.filter(
-            speci => speci.license_plate && speci.license_plate.toString().toLowerCase().includes(target.value.toString().toLowerCase())
-        )]);
+    const getTripsPerDate = () => {
+        dispatch(getAllTripsPerDate(dateBegin, dateEnd));
     }
 
     const [page, setPage] = useState(0);
@@ -95,11 +89,6 @@ export default () => {
 
     const HandleGoTrip = trip => {
         setOption('addTrip');
-        dispatch(showTrip(trip));
-        dispatch(turnModal());
-    };
-
-    const HandlePrintTrip = trip => {
         dispatch(showTrip(trip));
         dispatch(turnModal());
     };
@@ -136,24 +125,29 @@ export default () => {
 
                 <SwitchModal option={option} />
 
-                <TextField
-                    sx={{ width: "85%" }}
-                    label="Pesquisar viagem por destino"
-                    name="search"
-                    value={searchValue}
-                    onChange={searchTrips}
-
-                    inputProps={{
-                        style: {
-                            textTransform: "uppercase",
-                        },
-                        maxLength: 50,
-                        autoComplete: "off", // Desativa o preenchimento automático
-                    }}
-
+                <BasicDatePicker
+                    sx={{ mr: 2 }}
+                    label="Data de Início"
+                    name="date_begin"
+                    value={dateBegin}
+                    setValue={setDateBegin}
                 />
 
-                <Fab onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add">
+                <BasicDatePicker
+                    sx={{ mr: 2 }}
+                    label="Data de Fim"
+                    name="date_end"
+                    value={dateEnd}
+                    disabled={!dateBegin}
+                    setValue={setDateEnd}
+                />
+
+                <Button title="Buscar" onClick={getTripsPerDate} disabled={!dateBegin} color="success" size="medium" variant="contained">
+                    <FeatherIcon icon="search" width="45" height="45" />
+                </Button>
+
+
+                <Fab onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
                     <FeatherIcon icon="printer" />
                 </Fab>
 

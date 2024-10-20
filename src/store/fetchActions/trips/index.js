@@ -2,6 +2,7 @@ import { api } from "../../../services/api";
 import { inactiveTrip, addTrip, addTrips, editTrip, showTrip } from "../../ducks/trips";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
+import { format } from 'date-fns';
 
 export const getAllTrips = () => {
 
@@ -86,7 +87,7 @@ export const excludeTripFetch = (trip) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/trips/${trip}`)
+        api.delete(`/trips/${trip.id}`)
             .then((res) =>
             (
                 dispatch(inactiveTrip(trip)),
@@ -151,4 +152,31 @@ export const insertClientTrip = (client) => {
                 return error.response ? error.response.data : 'erro desconhecido';
             })
     };
+}
+
+
+
+export const getAllTripsPerDate = (dateBegin, dateEnd) => {
+
+    const form = {};
+
+    if (dateBegin) {
+        form.date_begin = format(dateBegin, 'yyyy/MM/dd');
+    }
+
+    if (dateEnd) {
+        form.date_end = format(dateEnd, 'yyyy/MM/dd');
+    }
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        api
+            .get(`/trips`, { params: form }) // Pass the 'form' object as a request parameter
+            .then((res) => {
+                dispatch(addTrips(res.data));
+                dispatch(turnLoading());
+            })
+            .catch(() => { dispatch(turnLoading()) })
+    }
 }
