@@ -153,23 +153,24 @@ export default function UserModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    <FormControl fullWidth required>
-                                        <InputLabel>Perfil do Usuário</InputLabel>
-                                        <Select
-                                            id="profile"
-                                            value={profile}
-                                            name="profile"
-                                            label="Perfil do Usuário"
-                                            onChange={changeItem}
-                                            variant="outlined"
-                                            disabled={user && user.id == userId ? true : false}
-                                        >
-                                            {profiles.map((d) => (
-                                                <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-
+                                    {userProfile && userProfile == "admin" || userProfile !== "user" &&
+                                        <FormControl fullWidth required>
+                                            <InputLabel>Perfil do Usuário</InputLabel>
+                                            <Select
+                                                id="profile"
+                                                value={profile}
+                                                name="profile"
+                                                label="Perfil do Usuário"
+                                                onChange={changeItem}
+                                                variant="outlined"
+                                                disabled={user && user.id == userId ? true : false}
+                                            >
+                                                {profiles.map((d) => (
+                                                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    }
 
                                     <TextField
                                         id="name"
