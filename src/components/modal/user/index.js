@@ -153,7 +153,7 @@ export default function UserModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    {userProfile && userProfile == "admin" || userProfile !== "user" &&
+                                    {(userProfile && (userProfile === "admin" || userProfile === "user")) && (
                                         <FormControl fullWidth required>
                                             <InputLabel>Perfil do Usuário</InputLabel>
                                             <Select
@@ -170,7 +170,7 @@ export default function UserModal(props) {
                                                 ))}
                                             </Select>
                                         </FormControl>
-                                    }
+                                    )}
 
                                     <TextField
                                         id="name"

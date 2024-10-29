@@ -2,7 +2,7 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { parseISO, format } from 'date-fns';
 
-async function tripPDF({ id, departure_date, departure_time, obs, created_at, updated_at, user, clients, driver, vehicle, route }) {
+async function tripPDF({ id, departure_date, departure_time, obs, clients, driver, vehicle, route }) {
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
     const loadImage = async (url) => {
