@@ -6,18 +6,27 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
     const loadImage = async (url) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const base64ImageData = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                resolve(reader.result);
-            };
-            reader.onerror = reject;
-        });
-        return base64ImageData;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Falha ao carregar a imagem: ${response.statusText}`);
+            }
+            const blob = await response.blob();
+            const base64ImageData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => {
+                    resolve(reader.result);
+                };
+                reader.onerror = reject;
+            });
+            return base64ImageData;
+        } catch (error) {
+            console.error("Erro ao carregar a imagem:", error);
+            return null; // Retorna null caso a imagem não seja carregada
+        }
     };
+
 
     const title = [
         {
@@ -29,17 +38,19 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
         }
     ];
 
-    const logo = [
-        {
-            // image: "data:image/png;base64, codigo convertido da imagem em base 64 aqui",
-            image: await loadImage('https://sysdoc.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrasao.f5a21054.png&w=256&q=75'),
+    const logoImage = await loadImage('/file/brasao.png');
 
+    // Inclua o logo apenas se a imagem for carregada com sucesso
+    const logo = logoImage ? [
+        {
+            image: logoImage,
             width: 80,
             height: 60,
             alignment: 'center',
             margin: [20, 20, 0, 45] // left, top, right, bottom
-        },
-    ]
+        }
+    ] : []; // Caso a imagem não seja carregada, `logo` será um array vazio
+
 
     const company = [
         // logo,
@@ -200,10 +211,10 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
         pageSize: 'A4',
         pageOrientation: 'portrait',
         pageMargins: [15, 50, 15, 40],
-        header: [logo],
+        header: logo.length > 0 ? logo : undefined, // Usa `logo` apenas se ele tiver conteúdo
         content: [company, dataOfTrip, dataOfClients, lbObs, lbSingn],
-        // footer: footer
     };
+
 
     pdfMake.createPdf(definitions).print();
 

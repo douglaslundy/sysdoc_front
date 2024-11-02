@@ -46,13 +46,12 @@ export default function QueueModal(props) {
 
     const [form, setForm] = useState({
         client: "",
-        date_of_received: "",
         speciality: "",
         urgency: false,
         obs: "",
     });
 
-    const { date_of_received, speciality, obs } = form;
+    const { speciality, obs } = form;
     const { queue } = useSelector(state => state.queues);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -72,14 +71,10 @@ export default function QueueModal(props) {
         setForm({ ...form, [target.name]: target.value });
     };
 
-    const handleSetDn = (value) => {
-        setForm({ ...form, date_of_received: value })
-    }
 
     const cleanForm = () => {
         setForm({
             client: "",
-            date_of_received: "",
             speciality: "",
             urgency: false,
             obs: "",
@@ -168,18 +163,6 @@ export default function QueueModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-
-                                    {
-                                        isOpenModal &&
-                                        <BasicDatePicker
-                                            label="Data em que recebeu pedido"
-                                            name="date_of_received, "
-                                            value={date_of_received}
-                                            setValue={handleSetDn}
-                                            required
-                                            sx={{ width: '22%', mr: 2 }}
-                                        />
-                                    }
                                     {
                                         isOpenModal &&
 

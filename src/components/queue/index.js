@@ -112,7 +112,7 @@ export default () => {
     useEffect(() => {
         // Executado apenas quando a página é carregada pela primeira vez, ou quando é adicionado um registro
         let filteredQueues = searchValue
-            ? queues.filter(lett => lett.client.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
+            ? queues.filter(lett => lett?.client?.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
             : queues;
 
         if (speci) {
@@ -341,7 +341,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {queue.created_at && format(parseISO(queue.date_of_received), 'dd/MM/yyyy')} / {queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}
+                                                        {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / {queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
@@ -365,7 +365,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {queue.client && queue.client.name.substring(0, 30).toUpperCase()}
+                                                        {queue?.client && queue?.client?.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
                                                     <Typography
@@ -374,7 +374,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {queue.client.mother && queue.client.mother.substring(0, 30).toUpperCase()}
+                                                        {queue?.client?.mother && queue?.client?.mother.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
 
@@ -384,7 +384,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {queue.client && queue.client.cpf} / {queue.client && queue.client.cns} / {queue.client && queue.client.phone}
+                                                        {queue?.client && queue?.client.cpf} / {queue?.client && queue?.client?.cns} / {queue?.client && queue?.client?.phone}
                                                     </Typography>
                                                 </Box>
 
@@ -406,7 +406,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {queue.speciality && queue.speciality.name.substring(0, 30).toUpperCase()}
+                                                        {queue?.speciality && queue?.speciality?.name.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
                                                     <Typography

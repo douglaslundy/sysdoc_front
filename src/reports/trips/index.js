@@ -2,24 +2,25 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { parseISO, format } from 'date-fns';
 
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+const loadImage = async (url) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const base64ImageData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = reject;
+    });
+    return base64ImageData;
+};
+
 async function tripsPDF(trips) {
-    pdfMake.vfs = pdfFonts.pdfMake.vfs;
-
-    const loadImage = async (url) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const base64ImageData = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                resolve(reader.result);
-            };
-            reader.onerror = reject;
-        });
-        return base64ImageData;
-    };
-
-    const logo = await loadImage('https://sysdoc.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrasao.f5a21054.png&w=256&q=75');
+    // Carrega a logo a partir da pasta pública
+    const logo = await loadImage('/file/brasao.png');
 
     const createCompanyHeader = () => {
         return [
@@ -30,14 +31,14 @@ async function tripsPDF(trips) {
                         width: 80,
                         height: 60,
                         alignment: 'center',
-                        margin: [0, 5, 0, 10] // Ajuste os valores para posicionar a logo conforme necessário
+                        margin: [0, 5, 0, 10]
                     },
                     { text: 'SECRETARIA MUNICIPAL DE SAÚDE DE ILICÍNEA', fontSize: 12 },
                     { text: 'Rua 02 de Novembro, 96 - Centro TEL: 3599961-7854', fontSize: 10 },
                     { text: 'saude@ilicinea.mg.gov.br', fontSize: 10 },
                 ],
                 alignment: 'center',
-                margin: [0, 5, 0, 5] // left, top, right, bottom
+                margin: [0, 5, 0, 5]
             },
             {
                 stack: [
@@ -45,7 +46,7 @@ async function tripsPDF(trips) {
                 ],
                 fontSize: 12,
                 alignment: 'center',
-                margin: [0, 0, 0, 0] // left, top, right, bottom
+                margin: [0, 0, 0, 0]
             },
             {
                 stack: [
@@ -53,7 +54,7 @@ async function tripsPDF(trips) {
                     { text: `Boa Viagem - Vá com DEUS!`, fontSize: 12 },
                 ],
                 alignment: 'center',
-                margin: [0, 0, 0, 0] // left, top, right, bottom
+                margin: [0, 0, 0, 0]
             },
             {
                 stack: [
@@ -61,12 +62,11 @@ async function tripsPDF(trips) {
                 ],
                 fontSize: 12,
                 alignment: 'center',
-                margin: [0, 0, 0, 0] // left, top, right, bottom
+                margin: [0, 0, 0, 0]
             }
         ];
     };
 
-    // Agrupa as viagens por data
     const groupedTrips = trips.reduce((acc, trip) => {
         const date = format(parseISO(trip?.departure_date), 'dd/MM/yyyy');
         if (!acc[date]) {
@@ -76,7 +76,6 @@ async function tripsPDF(trips) {
         return acc;
     }, {});
 
-    // Cria uma tabela de viagens para cada data
     const createTableForDate = (date, tripsForDate) => {
         const dados = tripsForDate.map((trip) => {
             return [
@@ -88,7 +87,6 @@ async function tripsPDF(trips) {
             ];
         });
 
-
         const lbSign = [
             {
                 stack: [
@@ -96,7 +94,7 @@ async function tripsPDF(trips) {
                 ],
                 fontSize: 10,
                 alignment: 'center',
-                margin: [0, 20, 0, 0] // left, top, right, bottom
+                margin: [0, 20, 0, 0]
             },
             {
                 text: [
@@ -104,11 +102,11 @@ async function tripsPDF(trips) {
                 ],
                 fontSize: 10,
                 alignment: 'center',
-                margin: [0, 5, 0, 10]  // left, top, right, bottom
+                margin: [0, 5, 0, 10]
             }
         ];
         return [
-            ...createCompanyHeader(),  // Inclui o cabeçalho da empresa com a logo para cada nova data
+            ...createCompanyHeader(),
             {
                 text: `Data: ${date}`,
                 fontSize: 12,
@@ -137,17 +135,14 @@ async function tripsPDF(trips) {
                     { text: `--------------------------------------------------------------------------------------------------------------------------------------------------------------------------` },
                 ],
             },
-
-            ...lbSign // Inclui a assinatura após cada grupo de viagens por data
+            ...lbSign
         ];
     };
 
-    // Monta o conteúdo agrupado por data
     const content = [];
     for (const [date, tripsForDate] of Object.entries(groupedTrips)) {
         content.push(...createTableForDate(date, tripsForDate));
     }
-
 
     const definitions = {
         pageSize: 'A4',

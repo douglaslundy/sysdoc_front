@@ -30,7 +30,6 @@ export const addQueueFetch = (queue, cleanForm) => {
             'id_user': user,
             'id_client': queue.client,
             'id_specialities': queue.speciality,
-            'date_of_received': queue.date_of_received ? (new Date(queue.date_of_received).toISOString().slice(0, 19).replace('T', ' ')) : null,
             'urgency': queue.urgency,
             'obs': queue.obs,
             // done sera sempre false quando no momento do cadastro
@@ -90,7 +89,7 @@ export const inactiveQueueFetch = (queue) => {
             .then((res) =>
             (
                 dispatch(inactiveQueue(queue)),
-                dispatch(addMessage(`O Ofício ${queue.number} foi excluido com sucesso!`)),
+                dispatch(addMessage(`A Especialidade foi excluida com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading())
             ))
