@@ -3,6 +3,7 @@ import { inactiveTrip, addTrip, addTrips, editTrip, showTrip } from "../../ducks
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 import { format } from 'date-fns';
+import { cleanPhone } from "../../../components/helpers/formatt/phone";
 
 export const getAllTrips = () => {
 
@@ -130,6 +131,8 @@ export const insertClientTrip = (client) => {
             'trip_id': client.id,
             'client_id': client.client_id,
             'person_type': client.person_type,
+            'phone': cleanPhone(client.phone),
+            'departure_location': client.departure_location,
             'destination_location': client.destination_location,
             'time': client.time,
         }

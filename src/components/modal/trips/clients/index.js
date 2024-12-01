@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
+import Phone from '../../../inputs/textFields/phone';
 
 import {
     Grid,
@@ -77,11 +78,13 @@ export default function TripClientsModal(props) {
         id: "",
         client_id: "",
         person_type: "",
+        phone: "",
+        departure_location: "",
         destination_location: "",
         time: ""
     });
 
-    const { person_type, destination_location, time } = form;
+    const { person_type, phone, departure_location, destination_location, time } = form;
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -104,6 +107,8 @@ export default function TripClientsModal(props) {
             id: "",
             client_id: "",
             person_type: "",
+            phone: "",
+            departure_location: "",
             destination_location: "",
             time: ""
         });
@@ -197,7 +202,14 @@ export default function TripClientsModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={`VIAGEM ${form.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} - VEÍCULO ${trip?.vehicle?.brand.toUpperCase()} ${trip?.vehicle?.model.toUpperCase()} PLACA ${trip?.vehicle?.license_plate.toUpperCase()} - ${trip?.vehicle?.capacity} LUGARES`}>
+                            <BaseCard title={`VIAGEM ${form.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} 
+                            
+                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
+                                ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
+
+
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
@@ -233,18 +245,52 @@ export default function TripClientsModal(props) {
 
                                     }
 
-                                    <Select
-                                        value={person_type}
-                                        label={'QUALIFIQUE O CLIENTE'}
-                                        name={'person_type'}
-                                        store={typesOfPerson}
-                                        changeItem={changeItem}
+                                    <Box sx={{
+                                        '& > :not(style)': { mb: 0 },
+                                        'display': 'flex',
+                                        'justify-content': 'space-between'
+                                    }}
+                                    >
+
+                                        <Select
+                                            value={person_type}
+                                            label={'QUALIFIQUE O CLIENTE'}
+                                            name={'person_type'}
+                                            wd={{ width: '49%', mr: 2 }}
+                                            store={typesOfPerson}
+                                            changeItem={changeItem}
+                                        />
+
+
+                                        <Phone value={phone}
+                                            label={'Telefone'}
+                                            name={'phone'}
+                                            sx={{ width: '49%', mr: 0 }}
+                                            changeItem={changeItem}
+                                        />
+                                    </Box>
+
+                                    <TextField
+                                        id="departure_location"
+                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
+                                        multiline
+                                        rows={2}
+                                        value={departure_location ? departure_location : ''}
+                                        name="departure_location"
+                                        // disabled={queue?.id ? true : false}
+                                        onChange={changeItem}
+                                        inputProps={{
+                                            style: {
+                                                textTransform: "uppercase"
+                                            },
+                                            maxLength: 50
+                                        }}
                                     />
 
 
                                     <TextField
                                         id="destination_location"
-                                        label={destination_location && destination_location > 0 ? `LOCAL DE DESTINO: ${300 - destination_location} caracteres restantes` : 'LOCAL DE DESTINO'}
+                                        label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
                                         multiline
                                         rows={2}
                                         value={destination_location ? destination_location : ''}
@@ -258,6 +304,7 @@ export default function TripClientsModal(props) {
                                             maxLength: 50
                                         }}
                                     />
+
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
@@ -291,6 +338,18 @@ export default function TripClientsModal(props) {
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
                                                         TIPO
+                                                    </Typography>
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    <Typography color="textSecondary" variant="h6">
+                                                        TELEFONE
+                                                    </Typography>
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    <Typography color="textSecondary" variant="h6">
+                                                        SAÍDA
                                                     </Typography>
                                                 </TableCell>
 
@@ -359,6 +418,22 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
+                                                                        {cli.pivot.phone && cli.pivot.phone.substring(0, 30).toUpperCase()}
+                                                                    </Typography>
+                                                                </TableCell>
+
+                                                                <TableCell>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                    >
+                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 30).toUpperCase()}
+                                                                    </Typography>
+                                                                </TableCell>
+
+                                                                <TableCell>
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                    >
                                                                         {cli.pivot.destination_location && cli.pivot.destination_location.substring(0, 30).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
@@ -405,7 +480,7 @@ export default function TripClientsModal(props) {
                     </Grid>
 
                 </Box>
-            </Modal>
-        </div>
+            </Modal >
+        </div >
     );
 }

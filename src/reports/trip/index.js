@@ -140,10 +140,10 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
     const dados = clients?.map((cli) => {
         return [
             { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
-            { text: cli.addresses?.street.substring(0, 30).toUpperCase() + ' Nº ' + cli.addresses?.number, fontSize: 9, margin: [0, 1, 0, 1] },
-            { text: cli?.phone, fontSize: 9, margin: [0, 1, 0, 1] },
-            { text: cli?.pivot?.time.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.departure_location?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.phone, fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.destination_location.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.time.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
         ]
     });
 
@@ -151,15 +151,15 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
         {
             table: {
                 headerRows: 1,
-                widths: ['27%', '27%', '12%', '7%', '27%'],
+                widths: ['27%', '27%', '12%', '27%', '7%'],
                 body: [
                     [
                         // { text: 'DESTINO', style: 'tableHeader', fontSize: 10 },
                         { text: 'PACIENTE', style: 'tableHeader', fontSize: 10 },
                         { text: 'ENDEREÇO', style: 'tableHeader', fontSize: 10 },
                         { text: 'TELEFONE', style: 'tableHeader', fontSize: 10 },
+                        { text: 'DESTINO', style: 'tableHeader', fontSize: 10 },
                         { text: 'HORAS', style: 'tableHeader', fontSize: 10 },
-                        { text: 'DESTINO', style: 'tableHeader', fontSize: 10 }
                     ],
                     ...dados
                 ]

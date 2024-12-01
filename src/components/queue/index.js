@@ -24,7 +24,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllQueues, inactiveQueueFetch } from "../../store/fetchActions/queues";
 import { showQueue } from "../../store/ducks/queues";
-import { changeTitleAlert, turnModal, turnModalViewQueue } from "../../store/ducks/Layout";
+import { turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
 
@@ -53,10 +53,10 @@ export default () => {
     const { queues } = useSelector(state => state.queues);
     const [searchValue, setSearchValue] = useState('');
     const [allQueues, setAllQueues] = useState(queues);
-    const { user, profile } = useContext(AuthContext);
     const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
     const [done, setDone] = useState(2);
+    const [urgency, setUrgency] = useState(2);
 
     const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
 
@@ -85,6 +85,21 @@ export default () => {
         }
     ]
 
+    const dataUrgency = [
+        {
+            'id': 0,
+            'name': 'NÃO'
+        },
+        {
+            'id': 1,
+            'name': 'SIM'
+        },
+        {
+            'id': 2,
+            'name': 'TODOS'
+        }
+    ]
+
     const storeDone = Object.values({ ...dataDone }).map(item => ({
         id: item.id,
         name: item.name,
@@ -94,6 +109,15 @@ export default () => {
         setDone(target.value)
     }
 
+    const storeUrgency = Object.values({ ...dataUrgency }).map(item => ({
+        id: item.id,
+        name: item.name,
+    }));
+
+    const changeUrgency = ({ target }) => {
+        setUrgency(target.value)
+    }
+
 
     useEffect(() => {
         dispatch(getAllQueues());
@@ -101,13 +125,16 @@ export default () => {
 
     useEffect(() => {
         if (queues.length > 0) {
-            const filteredQueues = speci
+            let filteredQueues = speci
                 ? queues.filter(lett => lett.speciality?.name === speci)
                 : [...queues];
 
-            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
         }
-    }, [speci, queues, done]);
+    }, [speci, queues, done, urgency]);
 
     useEffect(() => {
         // Executado apenas quando a página é carregada pela primeira vez, ou quando é adicionado um registro
@@ -119,8 +146,11 @@ export default () => {
             filteredQueues = filteredQueues.filter(lett => lett.speciality.name === speci);
         }
 
-        setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
-    }, [queues, searchValue, speci, done]);
+        filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+        filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+        setAllQueues(filteredQueues);
+    }, [queues, searchValue, speci, done, urgency]);
 
     useEffect(() => {
         if (searchValue || speci || done !== undefined) {
@@ -134,9 +164,15 @@ export default () => {
                 ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
                 : queues.filter(filterPerSearch);
 
-            setAllQueues(done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done));
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
         } else {
-            setAllQueues(done > 1 ? [...queues] : queues.filter(lett => lett.done == done));
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
         }
     }, [searchValue, speci, queues, done]);
 
@@ -193,7 +229,7 @@ export default () => {
             >
 
                 <TextField
-                    sx={{ width: "60%" }}
+                    sx={{ width: "50%" }}
                     label="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
@@ -210,7 +246,15 @@ export default () => {
                 />
 
                 <Select
-                    label="Realizado"
+                    label="Urgente?"
+                    name="urgency"
+                    value={urgency}
+                    store={storeUrgency}
+                    changeItem={changeUrgency}
+                    wd={"10%"}
+                />
+                <Select
+                    label="Realizado?"
                     name="done"
                     value={done}
                     store={storeDone}
@@ -341,7 +385,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / {queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}
+                                                        <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'black' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
