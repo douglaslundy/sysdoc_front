@@ -31,6 +31,7 @@ import Select from '../inputs/selects';
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
+import queuePDF from "../../reports/queue"
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -57,6 +58,7 @@ export default () => {
     const [speci, setSpeci] = useState('');
     const [done, setDone] = useState(2);
     const [urgency, setUrgency] = useState(2);
+    const { user, profile } = useContext(AuthContext);
 
     const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
 
@@ -502,6 +504,10 @@ export default () => {
 
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
+
+                                                <Button title="Imprimir Comprovante" onClick={() => { queuePDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" disabled={profile != "admin"} >
+                                                    <FeatherIcon icon="printer" width="20" height="20" />
+                                                </Button>
 
                                                 <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'}>
                                                     <FeatherIcon icon="book-open" width="20" height="20" />
