@@ -143,7 +143,7 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
     // Bloco com o QR Code e a mensagem abaixo dele com quebra de linha após "consultar"
     const qrCodeBlock = [
         {
-            qr: `https://sysdoc.vercel.app/showqueue/${uuid}`,
+            qr: `http://sysdoc.dlsistemas.com.br/showqueue/${uuid}`,
             // qr: `http://localhost:3000/showqueue/${uuid}`,
             fit: 100,
             alignment: 'right',
