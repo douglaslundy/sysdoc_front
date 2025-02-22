@@ -461,7 +461,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {queue.obs && queue.obs.substring(0, 50).toUpperCase()}
+                                                        {queue.obs && queue.obs.substring(0, 30).toUpperCase()}
                                                     </Typography>
 
                                                 </Box>
