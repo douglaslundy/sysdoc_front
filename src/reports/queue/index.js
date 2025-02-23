@@ -103,6 +103,14 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
         },
         {
             stack: [
+                urgency != null ? {text:'FILA: ' + (urgency == 1 ? 'URGÊNCIA' : 'COMUM')} : { text: `` }
+            ],
+            fontSize: 11,
+            bold: true,
+            margin: [0, 1, 0, 1]
+        },
+        {
+            stack: [
                 client != null ? ({ text: `CLIENTE: ${client.id} - ${client.name}` }) : { text: `NÃO FOI ATRIBUIDO CLIENTE PARA ESTA ESPECIALIDADE` }
             ],
             fontSize: 11,

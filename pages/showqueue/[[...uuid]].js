@@ -33,7 +33,10 @@ export default function QueueDetails({ queue }) {
               <strong>STATUS:</strong> {queue.done == '0' ? 'EM ESPERA' : 'REALIZADO'}
             </p>
             <p>
-              <strong>POSIÇÃO:</strong> {queue.id}
+              <strong>POSIÇÃO:</strong> {queue.position}
+            </p>
+            <p>
+              <strong>FILA:</strong> {queue.urgency == 1 ? 'URGÊNCIA' : 'COMUM'}
             </p>
             <p>
               {/* <strong>Nome do Cliente:</strong> {queue.client?.name || 'Não informado'} */}
@@ -45,9 +48,9 @@ export default function QueueDetails({ queue }) {
             <p>
               <strong>Entrou na fila em:</strong> {new Date(queue.created_at).toLocaleString('pt-BR')}
             </p>
-            <p>
+            {/* <p>
               <strong>Última movimentação:</strong> {new Date(queue.updated_at).toLocaleString('pt-BR')}
-            </p>
+            </p> */}
           </div>
         </main>
       </div>

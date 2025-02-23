@@ -293,7 +293,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Código
+                                    POSIÇÃO
                                 </Typography>
 
                                 <Typography color="textSecondary" variant="h6">
@@ -367,7 +367,7 @@ export default () => {
                                                             fontWeight: "600"
                                                         }}
                                                     >
-                                                        {queue && queue.id}
+                                                        {queue && queue.position}
                                                     </Typography>
 
                                                     <Typography
