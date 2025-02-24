@@ -103,7 +103,7 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
         },
         {
             stack: [
-                urgency != null ? {text:'FILA: ' + (urgency == 1 ? 'URGÊNCIA' : 'COMUM')} : { text: `` }
+                urgency != null ? { text: 'FILA: ' + (urgency == 1 ? 'URGÊNCIA' : 'COMUM') } : { text: `` }
             ],
             fontSize: 11,
             bold: true,
@@ -182,6 +182,17 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
         ]
     };
 
+    const lbTrack = [
+        {
+            stack: [
+                { text: `http://sysdoc.dlsistemas.com.br/showqueue/${uuid}` },
+            ],
+            fontSize: 8,
+            alignment: 'center',
+            margin: [0, 0, 0, 0]
+        }
+    ];
+
     const lbSingn = [
         {
             stack: [
@@ -198,7 +209,7 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
         pageOrientation: 'portrait',
         pageMargins: [15, 50, 15, 40],
         header: logo.length > 0 ? logo : undefined,
-        content: [company, columnsContent, lbSingn],
+        content: [company, columnsContent, lbTrack, lbSingn],
     };
 
     pdfMake.createPdf(definitions).print();
