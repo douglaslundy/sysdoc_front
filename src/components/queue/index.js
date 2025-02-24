@@ -56,7 +56,7 @@ export default () => {
     const [allQueues, setAllQueues] = useState(queues);
     const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
-    const [done, setDone] = useState(2);
+    const [done, setDone] = useState(0);
     const [urgency, setUrgency] = useState(2);
     const { user, profile } = useContext(AuthContext);
 

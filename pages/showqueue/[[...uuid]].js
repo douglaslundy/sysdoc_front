@@ -25,7 +25,8 @@ export default function QueueDetails({ queue }) {
           <p>saude@ilicinea.mg.gov.br</p>
         </div>
         <header>
-          <h1>Detalhes da sua consulta</h1>
+          {/* <h1>Detalhes da sua consulta</h1> */}
+          <h1>PROTOCOLO Nº {queue.id}</h1>
         </header>
         <main>
           <div className="card">
@@ -48,9 +49,9 @@ export default function QueueDetails({ queue }) {
             <p>
               <strong>Entrou na fila em:</strong> {new Date(queue.created_at).toLocaleString('pt-BR')}
             </p>
-            {/* <p>
+            <p>
               <strong>Última movimentação:</strong> {new Date(queue.updated_at).toLocaleString('pt-BR')}
-            </p> */}
+            </p>
           </div>
         </main>
       </div>

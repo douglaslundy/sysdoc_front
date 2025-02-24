@@ -87,7 +87,7 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
     const clientText = [
         {
             stack: [
-                id != null ? ({ text: `RECIBO Nº ${id}` }) : { text: `` }
+                id != null ? ({ text: `PROTOCOLO Nº ${id}` }) : { text: `` }
             ],
             fontSize: 11,
             bold: true,
