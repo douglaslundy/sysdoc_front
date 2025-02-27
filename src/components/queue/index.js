@@ -505,7 +505,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Imprimir Comprovante" onClick={() => { queuePDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" disabled={profile != "admin"} >
+                                                <Button title="Imprimir Comprovante" onClick={() => { queuePDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
 
