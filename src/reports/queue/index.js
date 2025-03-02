@@ -205,8 +205,8 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
     ];
 
     const definitions = {
-        pageSize: 'A5',
-        pageOrientation: 'landscape',
+        pageSize: 'A4',
+        pageOrientation: 'portrait',
         pageMargins: [15, 50, 15, 40],
         header: logo.length > 0 ? logo : undefined,
         content: [company, columnsContent, lbTrack, lbSingn],
