@@ -66,12 +66,12 @@ class PDFGenerator {
                 { text: 'SECRETARIA MUNICIPAL DE SAÚDE DE ILICÍNEA', fontSize: 12, alignment: 'center' },
                 { text: 'Rua 02 de Novembro, 96 - Centro TEL: 0800 035 1319', fontSize: 10, alignment: 'center' },
                 { text: 'saude@ilicinea.mg.gov.br', fontSize: 10, alignment: 'center' },
-                { text: 'LISTA DE ESPECIALIDADES / FILA - SUS', fontSize: 16, alignment: 'center', margin: [0, 10, 0, 10] }, 
+                { text: 'LISTA DE ESPECIALIDADES / FILA - SUS', fontSize: 16, alignment: 'center', margin: [0, 10, 0, 0] }, 
                 { 
                     text: `Documento gerado em ${new Date().toLocaleString('pt-BR')}`, 
                     fontSize: 10, 
                     alignment: 'center', 
-                    margin: [0, 10, 0, 0] 
+                    margin: [0, 0, 0, 10] 
                 }
             ].filter(Boolean)
         };
