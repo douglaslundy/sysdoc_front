@@ -95,8 +95,8 @@ class PDFGenerator {
     getQueueTableBody(commonQueue, urgentQueue) {
         const maxLength = Math.max(commonQueue.length, urgentQueue.length);
         const tableBody = [
-            [{ text: `Fila Comum (${commonQueue.length})`, bold: true, alignment: 'center' },
-             { text: `Fila de Urgência (${urgentQueue.length})`, bold: true, alignment: 'center' }]
+            [{ text: `Fila Comum (${commonQueue.length} registros )`, bold: true, alignment: 'center' },
+             { text: `Fila de Urgência (${urgentQueue.length} registros )`, bold: true, alignment: 'center' }]
         ];
         
         for (let i = 0; i < maxLength; i++) {
