@@ -31,7 +31,8 @@ import Select from '../inputs/selects';
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
-import queuePDF from "../../reports/queue"
+import protocolPDF from "../../reports/protocol"
+import generateQueuePDF from "../../reports/queues"
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -231,7 +232,7 @@ export default () => {
             >
 
                 <TextField
-                    sx={{ width: "50%" }}
+                    sx={{ width: "46%" }}
                     label="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
@@ -244,7 +245,7 @@ export default () => {
                     value={speci}
                     store={speciExits}
                     changeItem={changeSpeci}
-                    wd={"20%"}
+                    wd={"18%"}
                 />
 
                 <Select
@@ -273,7 +274,13 @@ export default () => {
                     wd={"20%"}
                 /> */}
 
-                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add">
+                {profile == "admin" &&
+                    <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista">
+                        <FeatherIcon icon="printer" />
+                    </Fab>
+                }
+
+                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila">
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -505,7 +512,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Imprimir Comprovante" onClick={() => { queuePDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
+                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
 

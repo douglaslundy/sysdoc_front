@@ -2,7 +2,7 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { parseISO, format } from 'date-fns';
 
-async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, client, user, speciality }) {
+async function protocolPDF({ id, uuid, obs, urgency, done, created_at, updated_at, client, user, speciality }) {
     pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
     const loadImage = async (url) => {
@@ -215,4 +215,4 @@ async function queuePDF({ id, uuid, obs, urgency, done, created_at, updated_at, 
     pdfMake.createPdf(definitions).print();
 }
 
-export default queuePDF;
+export default protocolPDF;
