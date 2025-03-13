@@ -96,7 +96,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
     const dataOfTrip = [
         {
             stack: [
-                departure_date != null ? ({ text: `${departure_date != null ? "DIA: " + format(parseISO(departure_date), 'dd/MM/yyyy') : ''} - ${departure_time != null ? "Saída às " + departure_time.substring(0, 5) : ''}` })
+                departure_date != null ? ({ text: `${departure_date != null ? "DIA: " + format(parseISO(departure_date), 'dd/MM/yyyy') : ''} - ${departure_time != null ? "Saída às " + departure_time?.substring(0, 5) : ''}` })
                     : { text: `` }
             ],
             fontSize: 11,
@@ -106,7 +106,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
 
         {
             stack: [
-                driver != null ? ({ text: `MOTORISTA: ${driver.id} - ${driver.name}` })
+                driver != null ? ({ text: `MOTORISTA: ${driver?.id} - ${driver?.name}` })
                     : { text: `NÃO FOI ATRIBUIDO MOTORISTA PARA ESTA VIAGEM` }
             ],
             fontSize: 11,
@@ -116,7 +116,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
 
         {
             stack: [
-                route != null ? ({ text: `DESTINO: ${route.destination.toUpperCase()} - VEÍCULO ${vehicle != null ? vehicle.license_plate.toUpperCase() : 'NÃO FOI ATRIBUIDO VEÍCULO A ESTA VIAGEM'} ` })
+                route != null ? ({ text: `DESTINO: ${route?.destination?.toUpperCase()} - VEÍCULO ${vehicle != null ? vehicle?.license_plate?.toUpperCase() : 'NÃO FOI ATRIBUIDO VEÍCULO A ESTA VIAGEM'} ` })
                     : { text: `NÃO FOI ATRIBUIDO UMA TORA PARA ESTA VIAGEM` }
             ],
             fontSize: 11,
@@ -142,8 +142,8 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
             { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.departure_location?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.phone, fontSize: 9, margin: [0, 1, 0, 1] },
-            { text: cli?.pivot?.destination_location.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
-            { text: cli?.pivot?.time.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.destination_location?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
+            { text: cli?.pivot?.time?.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
         ]
     });
 
