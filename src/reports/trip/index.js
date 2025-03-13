@@ -96,7 +96,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
     const dataOfTrip = [
         {
             stack: [
-                departure_date != null ? ({ text: `${departure_date != null ? "DIA: " + format(parseISO(departure_date), 'dd/MM/yyyy') : ''} - ${departure_time != null ? "Saída às " + departure_time?.substring(0, 5) : ''}` })
+                departure_date != null ? ({ text: `${departure_date != null ? "DIA: " + format(parseISO(departure_date), 'dd/MM/yyyy') : ''} - ${departure_time != null ? "Saída às " + departure_time?.substring(0, 5) : ''}    /    Chegada às ___:___` })
                     : { text: `` }
             ],
             fontSize: 11,
