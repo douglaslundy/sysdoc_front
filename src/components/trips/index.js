@@ -204,7 +204,7 @@ export default () => {
                         {allTrips
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((trip, index) => (
-                                <StyledTableRow key={trip.id} hover>
+                                <StyledTableRow key={trip?.id} hover>
                                     <>
                                         <TableCell>
                                             <Box
@@ -218,8 +218,7 @@ export default () => {
                                                     sx={{
                                                         fontWeight: "600",
                                                         fontSize: "20px",
-                                                        // color: (trip?.is_ok && trip?.is_ok  == 1) ? "blue" : "black"
-                                                        color: "black"
+                                                        color: trip?.is_ok && trip?.is_ok == true ? "blue" : "black"
                                                     }}
                                                 >
                                                     {trip?.id && trip?.id}
@@ -232,10 +231,11 @@ export default () => {
                                                 sx={{
                                                     display: "flex",
                                                     alignItems: "center",
+                                                    color: trip?.is_ok && trip?.is_ok == true ? "blue" : "black"
                                                 }}
                                             >
                                                 <Box>
-                                                    {trip.driver ?
+                                                    {trip?.driver ?
                                                         <Typography
                                                             variant="h6"
                                                             sx={{
@@ -243,7 +243,7 @@ export default () => {
                                                                 fontSize: "18px",
                                                             }}
                                                         >
-                                                            {trip.driver.name?.toUpperCase()}
+                                                            {trip?.driver?.name?.toUpperCase()}
                                                         </Typography>
 
                                                         :
@@ -258,7 +258,7 @@ export default () => {
                                                         variant="h6"
                                                     >
                                                         {/* {trip.vehicle ? trip.vehicle.brand.toUpperCase() : 'VEÍCULO NÃO ATRIBUIDO'}  {trip.vehicle && trip.vehicle.model.toUpperCase()}  {trip.vehicle && trip.vehicle.license_plate.toUpperCase()} */}
-                                                        {trip.vehicle ? `${trip.vehicle?.brand.toUpperCase()} ${trip.vehicle?.model.toUpperCase()} ${trip.vehicle?.license_plate.toUpperCase()} - ${trip.vehicle?.capacity} LUGARES ` : 'VEÍCULO NÃO ATRIBUIDO'}
+                                                        {trip?.vehicle ? `${trip?.vehicle?.brand.toUpperCase()} ${trip?.vehicle?.model.toUpperCase()} ${trip?.vehicle?.license_plate.toUpperCase()} - ${trip?.vehicle?.capacity} LUGARES ` : 'VEÍCULO NÃO ATRIBUIDO'}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -277,16 +277,20 @@ export default () => {
                                                     sx={{
                                                         fontWeight: "600",
                                                         fontSize: "18px",
+                                                        color: trip?.is_ok && trip?.is_ok == true ? "blue" : "black"
                                                     }}
                                                 >
-                                                    {trip.route && trip.route.origin.toUpperCase()} X {trip.route && trip.route.destination.toUpperCase()}
+                                                    {trip?.route && trip?.route?.origin.toUpperCase()} X {trip?.route && trip?.route?.destination.toUpperCase()}
                                                 </Typography>
                                             </Box>
 
                                             <Typography
                                                 variant="h6"
+                                                sx={{
+                                                    color: trip?.is_ok && trip?.is_ok == true ? "blue" : "black"
+                                                }}
                                             >
-                                                {trip.departure_date && format(parseISO(trip.departure_date), 'dd/MM/yyyy')} {trip.departure_time && trip.departure_time}
+                                                {trip?.departure_date && format(parseISO(trip?.departure_date), 'dd/MM/yyyy')} {trip?.departure_time && trip?.departure_time}
                                             </Typography>
 
                                         </TableCell>
@@ -295,7 +299,7 @@ export default () => {
                                             <Button title="Passageiros incluindo acompanhantes" onClick={() => { HandleGoAddClients(trip) }} color="success" size="medium" variant="contained">
                                                 <FeatherIcon icon="users" width="20" height="20" />
                                                 <div style={{ marginLeft: '5px' }}>
-                                                    {trip.clients && trip.clients.length}
+                                                    {trip?.clients && trip?.clients?.length}
                                                 </div>
                                             </Button>
                                         </TableCell>

@@ -164,7 +164,6 @@ export const confirmedClientTrip = (client) => {
         api.patch(`/confirm-trip-client/${client.pivot.id}`)
             .then((res) =>
             (
-                console.log(res.data.trip),
                 dispatch(editTrip(res.data.trip)),
                 dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`Viagem para ${client.name} confirmado com sucesso!`)),
