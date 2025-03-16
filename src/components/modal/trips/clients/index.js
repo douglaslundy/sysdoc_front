@@ -19,7 +19,9 @@ import {
     TableRow,
     TableCell,
     Typography,
-    TablePagination
+    TablePagination,
+    FormGroup,
+    Switch
 } from "@mui/material";
 
 
@@ -27,7 +29,7 @@ import BaseCard from "../../../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 
 import { turnModal, changeTitleAlert } from '../../../../store/ducks/Layout';
-import { insertClientTrip, excludeClientTripFetch } from '../../../../store/fetchActions/trips';
+import { insertClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
 import { getAllClients } from '../../../../store/fetchActions/clients';
@@ -84,7 +86,7 @@ export default function TripClientsModal(props) {
         time: ""
     });
 
-    const { person_type, phone, departure_location, destination_location, time } = form;
+    const { id, person_type, phone, departure_location, destination_location, time } = form;
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -139,6 +141,16 @@ export default function TripClientsModal(props) {
     const handlePutData = async () => {
         dispatch(changeTitleAlert(`O Cliente foi inserido na viagem com sucesso!`));
         dispatch(insertClientTrip(form));
+    };
+
+    const handleIsConfirm = async (cli) => {
+        if (!cli.pivot.is_confirmed) {
+            dispatch(changeTitleAlert(`Viagem de ${cli.name} foi confirmada com sucesso!`));
+            dispatch(confirmedClientTrip(cli));
+        } else {
+            dispatch(changeTitleAlert(`A confirmação da viagem de ${cli.name} foi revogada com sucesso!`));
+            dispatch(unConfirmedClientTrip(cli));
+        }
     };
 
     const handleClose = () => {
@@ -202,7 +214,7 @@ export default function TripClientsModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={`VIAGEM ${form.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} 
+                            <BaseCard title={`VIAGEM ${id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} 
                             
                                 ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
@@ -365,6 +377,12 @@ export default function TripClientsModal(props) {
                                                     </Typography>
                                                 </TableCell>
 
+                                                <TableCell>
+                                                    <Typography color="textSecondary" variant="h6">
+                                                        CONFIRMADO?
+                                                    </Typography>
+                                                </TableCell>
+
                                                 <TableCell align="center">
                                                     <Typography color="textSecondary" variant="h6">
                                                         Ações
@@ -444,6 +462,13 @@ export default function TripClientsModal(props) {
                                                                     >
                                                                         {cli.pivot.time && cli.pivot.time}
                                                                     </Typography>
+                                                                </TableCell>
+
+                                                                <TableCell>
+                                                                    <FormGroup>
+                                                                        <FormControlLabel control={<Switch checked={cli.pivot?.is_confirmed}
+                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed ? "SIM" : "NÃO"} />
+                                                                    </FormGroup>
                                                                 </TableCell>
 
                                                                 <TableCell align="center">

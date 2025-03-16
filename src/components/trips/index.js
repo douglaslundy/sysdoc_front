@@ -213,13 +213,16 @@ export default () => {
                                                     alignItems: "center",
                                                 }}
                                             >
-                                                <Typography variant="h6"
+                                                <Typography
+                                                    variant="h6"
                                                     sx={{
                                                         fontWeight: "600",
                                                         fontSize: "20px",
+                                                        // color: (trip?.is_ok && trip?.is_ok  == 1) ? "blue" : "black"
+                                                        color: "black"
                                                     }}
                                                 >
-                                                    {trip.id && trip.id}
+                                                    {trip?.id && trip?.id}
                                                 </Typography>
                                             </Box>
                                         </TableCell>

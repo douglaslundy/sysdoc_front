@@ -157,6 +157,51 @@ export const insertClientTrip = (client) => {
     };
 }
 
+export const confirmedClientTrip = (client) => {
+    return (dispatch) => {
+        dispatch(turnLoading());        
+
+        api.patch(`/confirm-trip-client/${client.pivot.id}`)
+            .then((res) =>
+            (
+                console.log(res.data.trip),
+                dispatch(editTrip(res.data.trip)),
+                dispatch(showTrip(res.data.trip)),
+                dispatch(addMessage(`Viagem para ${client.name} confirmado com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading())
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}
+
+export const unConfirmedClientTrip = (client) => {
+    return (dispatch) => {
+        dispatch(turnLoading());        
+
+        api.patch(`/unconfirm-trip-client/${client.pivot.id}`)
+            .then((res) =>
+            (
+                console.log(res.data.trip),
+                dispatch(editTrip(res.data.trip)),
+                dispatch(showTrip(res.data.trip)),
+                dispatch(addMessage(`A confirmação de viagem para ${client.name} foi revogada com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading())
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}
 
 
 export const getAllTripsPerDate = (dateBegin, dateEnd) => {
