@@ -186,7 +186,6 @@ export const unConfirmedClientTrip = (client) => {
         api.patch(`/unconfirm-trip-client/${client.pivot.id}`)
             .then((res) =>
             (
-                console.log(res.data.trip),
                 dispatch(editTrip(res.data.trip)),
                 dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`A confirmação de viagem para ${client.name} foi revogada com sucesso!`)),

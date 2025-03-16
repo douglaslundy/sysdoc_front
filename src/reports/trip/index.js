@@ -137,15 +137,17 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
 
 
 
-    const dados = clients?.map((cli) => {
+    const dados = clients?.filter(cli => cli?.pivot?.is_confirmed == true)
+    .map(cli => {
         return [
             { text: cli.name?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.departure_location?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.phone, fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.destination_location?.toUpperCase(), fontSize: 9, margin: [0, 1, 0, 1] },
             { text: cli?.pivot?.time?.substring(0, 5), fontSize: 9, margin: [0, 1, 0, 1] },
-        ]
+        ];
     });
+
 
     const dataOfClients = [
         {
