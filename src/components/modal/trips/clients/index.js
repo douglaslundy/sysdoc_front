@@ -104,7 +104,7 @@ export default function TripClientsModal(props) {
     };
 
 
-    const cleanForm = () => {
+    const cleanFormCancel = () => {
         setForm({
             id: "",
             client_id: "",
@@ -114,9 +114,23 @@ export default function TripClientsModal(props) {
             destination_location: "",
             time: ""
         });
+        setClient([]);
         setTexto('');
         dispatch(turnModal());
         dispatch(showTrip({}));
+    }
+
+    const cleanForm = () => {
+        setForm({
+            ...form,
+            client_id: "",
+            person_type: "",
+            phone: "",
+            departure_location: "",
+            destination_location: "",
+            time: ""
+        });
+        setClient('');
     }
 
     const handleChangePage = (event, newPage) => {
@@ -136,6 +150,21 @@ export default function TripClientsModal(props) {
     const HandleExcludeTrip = async cli => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a o passageiro? `, confirm: excludeClientTripFetch(cli) })
         dispatch(changeTitleAlert(`Passageiro foi excluido com sucesso!`))
+    }
+
+    const HandleEditClient = async cli => {
+        setForm(
+            {
+                ...form,
+                client_id: cli.id,
+                person_type: cli.pivot.person_type,
+                phone: cli.pivot.phone,
+                departure_location: cli.pivot.departure_location,
+                destination_location: cli.pivot.destination_location,
+                time: cli.pivot.time
+            },
+        )
+        setClient({ ...cli })
     }
 
     const handlePutData = async () => {
@@ -237,24 +266,33 @@ export default function TripClientsModal(props) {
                                         id="time"
                                         label="Horário do compromisso"
                                         name="time"
-                                        value={time}
+                                        value={time ? time : ''}
                                         onChange={changeItem}
                                         wd={"20%"}
                                     />
 
-
                                     {
                                         isOpenModal &&
-
-                                        <InputSelectClient
-                                            id="client_id"
-                                            label="Selecione o cliente"
-                                            name="client_id"
-                                            clients={clients}
-                                            setClient={setClient}
-                                            wd={"100%"}
-                                        />
-
+                                        (
+                                            cli?.name ? (
+                                                <TextField
+                                                    id={cli?.id_client}
+                                                    value={cli?.name || ''}
+                                                    name=""
+                                                    disabled
+                                                />
+                                            ) : (
+                                                <InputSelectClient
+                                                    id="client_id"
+                                                    label="SELECIONE O CLIENTE"
+                                                    value=""
+                                                    name="client_id"
+                                                    clients={clients}
+                                                    setClient={setClient}
+                                                    wd={"100%"}
+                                                />
+                                            )
+                                        )
                                     }
 
                                     <Box sx={{
@@ -265,7 +303,7 @@ export default function TripClientsModal(props) {
                                     >
 
                                         <Select
-                                            value={person_type}
+                                            value={person_type ? person_type : ''}
                                             label={'QUALIFIQUE O CLIENTE'}
                                             name={'person_type'}
                                             wd={{ width: '49%', mr: 2 }}
@@ -274,7 +312,7 @@ export default function TripClientsModal(props) {
                                         />
 
 
-                                        <Phone value={phone}
+                                        <Phone value={phone ? phone : ''}
                                             label={'Telefone'}
                                             name={'phone'}
                                             sx={{ width: '49%', mr: 0 }}
@@ -326,7 +364,7 @@ export default function TripClientsModal(props) {
                                     </Button>
 
                                     <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
-                                        Cancelar
+                                        Limpar dados
                                     </Button>
                                 </Box>
 
@@ -444,7 +482,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 30).toUpperCase()}
+                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 20).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -452,7 +490,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.destination_location && cli.pivot.destination_location.substring(0, 30).toUpperCase()}
+                                                                        {cli.pivot.destination_location && cli.pivot.destination_location.substring(0, 10).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -474,6 +512,10 @@ export default function TripClientsModal(props) {
                                                                 <TableCell align="center">
                                                                     <Box sx={{ "& button": { mx: 1 } }}>
 
+                                                                        {/* <Button title="Editar cliente" onClick={() => { HandleEditClient(cli) }} color="success" size="medium" variant="contained">
+                                                                            <FeatherIcon icon="edit" width="20" height="20" />
+                                                                        </Button> */}
+
                                                                         <Button title="Excluir Viagem" onClick={() => { HandleExcludeTrip(cli.id) }} color="error" size="medium" variant="contained">
                                                                             <FeatherIcon icon="trash" width="20" height="20" />
                                                                         </Button>
@@ -486,6 +528,12 @@ export default function TripClientsModal(props) {
                                                     ))}
                                         </TableBody>
                                     </Table>
+                                    <br />
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
+                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" mt={2}>
+                                            Cancelar
+                                        </Button>
+                                    </Box>
                                     <TablePagination
                                         component="div"
                                         count={trip?.clients?.length}
