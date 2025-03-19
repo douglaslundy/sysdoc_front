@@ -172,7 +172,7 @@ export const editClientTrip = (client) => {
             'time': client.time,
         }
         // console.log('cliente editado ' + JSON.stringify(client))
-        api.patch(`/trip-clients/${client.id}`, client)
+        api.put(`/trip-clients/${client.id}`, client)
             .then((res) =>
             (
 
