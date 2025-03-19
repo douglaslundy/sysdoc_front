@@ -108,7 +108,7 @@ export const excludeClientTripFetch = (cli) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/trip-clients/${cli}`)
+        api.delete(`/trip-clients/${cli.pivot.id}`)
             .then((res) =>
             (
                 dispatch(editTrip(res.data.trip)),
@@ -136,9 +136,43 @@ export const insertClientTrip = (client) => {
             'destination_location': client.destination_location,
             'time': client.time,
         }
-        // console.log(client)
+        console.log('cliente inserido ' + JSON.stringify(client))
 
         api.post(`/trip-clients`, client)
+            .then((res) =>
+            (
+
+                dispatch(editTrip(res.data.trip)),
+                dispatch(showTrip(res.data.trip)),
+                dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading())
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            })
+    };
+}
+
+export const editClientTrip = (client) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+       
+        client = {
+            'id': client.id,
+            'trip_id': client.trip_id,
+            'client_id': client.client_id,
+            'person_type': client.person_type,
+            'phone': cleanPhone(client.phone),
+            'departure_location': client.departure_location,
+            'destination_location': client.destination_location,
+            'time': client.time,
+        }
+        // console.log('cliente editado ' + JSON.stringify(client))
+        api.patch(`/trip-clients/${client.id}`, client)
             .then((res) =>
             (
 

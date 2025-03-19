@@ -29,7 +29,7 @@ import BaseCard from "../../../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 
 import { turnModal, changeTitleAlert } from '../../../../store/ducks/Layout';
-import { insertClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
+import { insertClientTrip, editClientTrip,  excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
 import { getAllClients } from '../../../../store/fetchActions/clients';
@@ -130,7 +130,7 @@ export default function TripClientsModal(props) {
             destination_location: "",
             time: ""
         });
-        setClient('');
+        setClient([]);
     }
 
     const handleChangePage = (event, newPage) => {
@@ -143,7 +143,7 @@ export default function TripClientsModal(props) {
     };
 
     const handleSaveData = async () => {
-        trip && trip.id ? handlePutData() : null
+        trip && trip?.id ? (cli && cli?.pivot?.id ? handleUpdateClient() : handleSaveClient()) : null
     }
 
 
@@ -155,29 +155,37 @@ export default function TripClientsModal(props) {
     const HandleEditClient = async cli => {
         setForm(
             {
-                ...form,
+                // ...form,
+                id: cli.pivot.id,
+                trip_id: trip.id,
                 client_id: cli.id,
                 person_type: cli.pivot.person_type,
                 phone: cli.pivot.phone,
                 departure_location: cli.pivot.departure_location,
                 destination_location: cli.pivot.destination_location,
-                time: cli.pivot.time
+                // time: cli.pivot.time
+                time: new Date(0, 0, 0, ...(cli.pivot.time.split(":"))).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", hour12: false })
             },
         )
         setClient({ ...cli })
     }
 
-    const handlePutData = async () => {
+    const handleSaveClient = async () => {
         dispatch(changeTitleAlert(`O Cliente foi inserido na viagem com sucesso!`));
         dispatch(insertClientTrip(form));
     };
 
+    const handleUpdateClient = async () => {
+        dispatch(changeTitleAlert(`O Cliente atualizado na viagem com sucesso!`));
+        dispatch(editClientTrip(form));
+    };
+
     const handleIsConfirm = async (cli) => {
         if (!cli.pivot.is_confirmed) {
-            dispatch(changeTitleAlert(`Viagem de ${cli.name} foi confirmada com sucesso!`));
+            dispatch(changeTitleAlert(`Viagem de ${cli?.name} foi confirmada com sucesso!`));
             dispatch(confirmedClientTrip(cli));
         } else {
-            dispatch(changeTitleAlert(`A confirmação da viagem de ${cli.name} foi revogada com sucesso!`));
+            dispatch(changeTitleAlert(`A confirmação da viagem de ${cli?.name} foi revogada com sucesso!`));
             dispatch(unConfirmedClientTrip(cli));
         }
     };
@@ -243,7 +251,7 @@ export default function TripClientsModal(props) {
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={`VIAGEM ${id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination.toUpperCase()} 
+                            <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
                             
                                 ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
@@ -254,6 +262,12 @@ export default function TripClientsModal(props) {
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}
+                                    </Alert>
+                                }
+
+                                {trip?.obs &&
+                                    <Alert variant="filled" severity="warning">
+                                        {trip.obs}
                                     </Alert>
                                 }
 
@@ -274,7 +288,7 @@ export default function TripClientsModal(props) {
                                     {
                                         isOpenModal &&
                                         (
-                                            cli?.name ? (
+                                            cli?.id ? (
                                                 <TextField
                                                     id={cli?.id_client}
                                                     value={cli?.name || ''}
@@ -449,7 +463,7 @@ export default function TripClientsModal(props) {
                                                                                 fontSize: "18px",
                                                                             }}
                                                                         >
-                                                                            {cli.name && cli.name.toUpperCase()}
+                                                                            {cli?.name && cli?.name.substring(0, 22).toUpperCase()}
                                                                         </Typography>
                                                                     </Box>
                                                                 </TableCell>
@@ -474,7 +488,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.phone && cli.pivot.phone.substring(0, 30).toUpperCase()}
+                                                                        {cli.pivot.phone && cli.pivot.phone.substring(0, 15).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -482,7 +496,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 20).toUpperCase()}
+                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 15).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -512,11 +526,11 @@ export default function TripClientsModal(props) {
                                                                 <TableCell align="center">
                                                                     <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                                        {/* <Button title="Editar cliente" onClick={() => { HandleEditClient(cli) }} color="success" size="medium" variant="contained">
+                                                                        <Button title="Editar cliente" onClick={() => { HandleEditClient(cli) }} color="success" size="medium" variant="contained">
                                                                             <FeatherIcon icon="edit" width="20" height="20" />
-                                                                        </Button> */}
+                                                                        </Button>
 
-                                                                        <Button title="Excluir Viagem" onClick={() => { HandleExcludeTrip(cli.id) }} color="error" size="medium" variant="contained">
+                                                                        <Button title="Excluir cliente" onClick={() => { HandleExcludeTrip(cli) }} color="error" size="medium" variant="contained">
                                                                             <FeatherIcon icon="trash" width="20" height="20" />
                                                                         </Button>
 
