@@ -18,7 +18,7 @@ const Footer = () => {
           ml: 1,
         }}
       >
-        Licença: {Math.round((new Date('2025-02-01') - new Date((`${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`).toString())) / (1000 * 60 * 60 * 24))} dias restantes
+        Licença: {Math.round((new Date('2026-01-01') - new Date((`${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`).toString())) / (1000 * 60 * 60 * 24))} dias restantes
       </Typography>
 
 
