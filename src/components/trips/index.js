@@ -118,7 +118,7 @@ export default () => {
     const handleCheckedAllTrips = (event) => {
         const checked = event.target.checked;
         setSelectAllTrips(checked);
-    
+
         if (checked) {
             // Adiciona todas as trips visíveis
             setPrintTrips(allTrips);
@@ -178,13 +178,9 @@ export default () => {
                     <FeatherIcon icon="search" width="45" height="45" />
                 </Button>
 
-
-                <Fab title="Imprimir Mapa" onClick={() => { printTripsSelectedPDF(printTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
+                <Fab title="Imprimir Mapa de viagens" onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
                     <FeatherIcon icon="printer" />
                 </Fab>
-                {/* <Fab title="Imprimir Mapa" onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
-                    <FeatherIcon icon="printer" />
-                </Fab> */}
 
                 <Fab title="Cadastrar Viagem" onClick={() => { HandleGoTrip() }} color="primary" aria-label="add">
                     <FeatherIcon icon="user-plus" />
@@ -192,11 +188,20 @@ export default () => {
             </Box>
 
             {trips?.length > 0 &&
-                <FormControlLabel
-                    control={<Switch checked={selectAllTrips} onChange={handleCheckedAllTrips} />}
-                    // label="Selecionar todas as viagens!"
-                    label={selectAllTrips ? "Desmarcar todas as viagens!" : "Marcar todas as viagens para impressão!"}
-                />
+
+                <>
+                    <FormControlLabel
+                        control={<Switch checked={selectAllTrips} onChange={handleCheckedAllTrips} />}
+                        // label="Selecionar todas as viagens!"
+                        label={selectAllTrips ? "Desmarcar todas as viagens!" : "Marcar todas as viagens para impressão!"}
+                    />
+
+                    {printTrips?.length > 0 &&
+                        <Fab title="Imprimir Mapa de viagens" onClick={() => { printTripsSelectedPDF(printTrips) }} color="primary" aria-label="add" disabled={allTrips.length <= 0}>
+                            <FeatherIcon icon="printer" />
+                        </Fab>
+                    }
+                </>
             }
 
             <TableContainer>
