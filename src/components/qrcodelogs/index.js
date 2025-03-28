@@ -77,7 +77,7 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    PROTOCOLO / DATA / UUID
+                                    PROTOCOLO / ESCANEADO EM / UUID
                                 </Typography>
                             </TableCell>
 
@@ -89,7 +89,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    FILA / URGÊNCIA
+                                    FILA / URGÊNCIA / CADASTRADO EM
                                 </Typography>
                             </TableCell>
 
@@ -198,6 +198,7 @@ export default () => {
                                                         >
                                                             {log && log?.queue?.speciality?.name.substring(0, 15).toUpperCase()}
                                                         </Typography>
+
                                                         <Typography
                                                             color="textSecondary"
                                                             sx={{
@@ -205,6 +206,15 @@ export default () => {
                                                             }}
                                                         >
                                                             {log && log?.queue?.urgency == 0 ? 'NORMAL' : 'URGENTE'}
+                                                        </Typography>
+
+                                                        <Typography
+                                                            color="textSecondary"
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                            }}
+                                                        >
+                                                            {log?.queue && format(parseISO(log?.queue?.created_at), 'dd/MM/yyyy HH:mm:ss')}
                                                         </Typography>
                                                     </Box>
                                                 </Box>
