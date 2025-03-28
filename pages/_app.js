@@ -26,15 +26,13 @@ export default function MyApp(props) {
   const { "sysvendas.token": cookieToken } = parseCookies();
   const { tokens } = useContext(AuthContext);
 
-  // Considera pública a rota que inicia com "/showqueue"
-  const isPublicPage = router.pathname.startsWith("/showqueue");
+  // // Considera pública a rota que inicia com "/showqueue"
+  // const isPublicPage = router.pathname.startsWith("/showqueue");
 
   useEffect(() => {
-    if (!isPublicPage) {
-      getToken();
-      setToken(cookieToken);
-    }
-  }, [cookieToken, tokens, isPublicPage]);
+    getToken();
+    setToken(cookieToken);
+  }, [cookieToken, tokens]);
 
   function getToken() {
     const { "sysvendas.token": token } = parseCookies();
@@ -69,10 +67,7 @@ export default function MyApp(props) {
       <Provider store={store}>
         <AuthProvider>
           <ThemeProvider theme={theme}>
-            {isPublicPage ? (
-              // Se for página pública, renderiza sem verificação de token
-              <Component {...pageProps} />
-            ) : token ? (
+            {token ? (
               <>
                 <CssBaseline />
                 <FullLayout>
@@ -106,9 +101,9 @@ export async function getServerSideProps(context) {
   const { "sysvendas.token": token } = parseCookies(context);
 
   // Se a URL começa com '/showqueue', não exige autenticação.
-  if (req.url && req.url.startsWith("/showqueue")) {
-    return { props: {} };
-  }
+  // if (req.url && req.url.startsWith("/showqueue")) {
+  //   return { props: {} };
+  // }
 
   if (!token) {
     return {
