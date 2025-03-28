@@ -99,8 +99,8 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
                 driver != null ? ({ text: `MOTORISTA: ${driver?.id} - ${driver?.name?.toUpperCase()}` })
                     : { text: `NÃO FOI ATRIBUIDO MOTORISTA PARA ESTA VIAGEM` }
             ],
-            fontSize: 11,
-            bold: false,
+            fontSize: 13,
+            bold: true,
             margin: [0, 1, 0, 1] // left, top, right, bottom
         },
 

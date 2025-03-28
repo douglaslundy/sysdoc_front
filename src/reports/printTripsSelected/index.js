@@ -70,7 +70,8 @@ async function tripsPDF(trips = []) {
             },
             {
                 text: driver ? `MOTORISTA: ${driver.id} - ${driver.name?.toUpperCase()}` : 'NÃO FOI ATRIBUIDO MOTORISTA PARA ESTA VIAGEM',
-                fontSize: 11,
+                fontSize: 13,
+                bold: true,
                 margin: [0, 1, 0, 1]
             },
             {
