@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
 import { api } from "../../src/services/api";
 
 export default function QueueDetails({ queue }) {
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        fetch('/api/log-location', {
+          method: 'POST',
+          body: JSON.stringify({
+            uuid: queue.uuid,
+            lat: position.coords.latitude,
+            lon: position.coords.longitude
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      });
+    }
+  }, []);
+
+
   if (!queue) {
     return (
       <>
