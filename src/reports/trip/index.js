@@ -28,16 +28,6 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
     };
 
 
-    const title = [
-        {
-            text: `Planilha de Viagem Nº ${id}`,
-            fontSize: 18,
-            bold: true,
-            alignment: 'center',
-            margin: [20, 20, 0, 45] // left, top, right, bottom
-        }
-    ];
-
     const logoImage = await loadImage('/file/brasao.png');
 
     // Inclua o logo apenas se a imagem for carregada com sucesso
@@ -75,7 +65,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
 
         {
             stack: [
-                { text: `P L A N I L H A   D E   V I A G E M `, fontSize: 16 },
+                { text: `P L A N I L H A   D E   V I A G E M  Nº ${id}` , fontSize: 16 },
                 { text: `Boa Viagem - Vá com DEUS!`, fontSize: 12 },
                 // { text: `Vá com DEUS!`, fontSize: 12, bold: true }
             ],

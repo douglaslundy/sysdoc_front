@@ -12,7 +12,9 @@ import {
     styled,
     TableContainer,
     TablePagination,
-    TextField
+    TextField,
+    FormControlLabel,
+    Switch
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
@@ -21,6 +23,7 @@ import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
 import tripPDF from "../../reports/trip"
 import tripsPDF from "../../reports/trips"
+import printTripsSelectedPDF from "../../reports/printTripsSelected"
 
 import { useSelector, useDispatch } from 'react-redux';
 import { excludeTripFetch, getAllTrips, getAllTripsPerDate } from "../../store/fetchActions/trips";
@@ -58,6 +61,9 @@ export default () => {
     const [option, setOption] = useState('add');
     const [dateBegin, setDateBegin] = useState(new Date());
     const [dateEnd, setDateEnd] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
+    const [printTrips, setPrintTrips] = useState([]);
+    const [selectAllTrips, setSelectAllTrips] = useState(false);
+
 
     useEffect(() => {
         // dispatch(getAllTrips());
@@ -97,6 +103,31 @@ export default () => {
         setPage(newPage);
     };
 
+    const handlePrintConfirm = (trip) => {
+        const alreadySelected = printTrips.find(t => t.id === trip.id);
+
+        if (alreadySelected) {
+            // Remove do array
+            setPrintTrips(prev => prev.filter(t => t.id !== trip.id));
+        } else {
+            // Adiciona ao array
+            setPrintTrips(prev => [...prev, trip]);
+        }
+    };
+
+    const handleCheckedAllTrips = (event) => {
+        const checked = event.target.checked;
+        setSelectAllTrips(checked);
+    
+        if (checked) {
+            // Adiciona todas as trips visíveis
+            setPrintTrips(allTrips);
+        } else {
+            // Limpa tudo
+            setPrintTrips([]);
+        }
+    };
+
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
@@ -116,6 +147,7 @@ export default () => {
 
     return (
         <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastrados`}>
+            {/* <BaseCard title={`Você possui ${JSON.stringify({...printTrips})} Viagens Cadastrados`}> */}
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -147,14 +179,25 @@ export default () => {
                 </Button>
 
 
-                <Fab onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
+                <Fab title="Imprimir Mapa" onClick={() => { printTripsSelectedPDF(printTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
                     <FeatherIcon icon="printer" />
                 </Fab>
+                {/* <Fab title="Imprimir Mapa" onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
+                    <FeatherIcon icon="printer" />
+                </Fab> */}
 
-                <Fab onClick={() => { HandleGoTrip() }} color="primary" aria-label="add">
+                <Fab title="Cadastrar Viagem" onClick={() => { HandleGoTrip() }} color="primary" aria-label="add">
                     <FeatherIcon icon="user-plus" />
                 </Fab>
             </Box>
+
+            {trips?.length > 0 &&
+                <FormControlLabel
+                    control={<Switch checked={selectAllTrips} onChange={handleCheckedAllTrips} />}
+                    // label="Selecionar todas as viagens!"
+                    label={selectAllTrips ? "Desmarcar todas as viagens!" : "Marcar todas as viagens para impressão!"}
+                />
+            }
 
             <TableContainer>
 
@@ -168,6 +211,11 @@ export default () => {
                     <TableHead>
                         <TableRow>
 
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    IMPRIMIR
+                                </Typography>
+                            </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
                                     ID
@@ -204,8 +252,23 @@ export default () => {
                         {allTrips
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((trip, index) => (
-                                <StyledTableRow key={trip?.id} hover>
+                                <StyledTableRow key={`${trip?.id}-${selectAllTrips}`} hover>
                                     <>
+
+                                        <TableCell>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={printTrips.find(t => t.id == trip.id)}
+                                                        onChange={() => handlePrintConfirm(trip)}
+                                                    />
+                                                }
+                                                label={!printTrips.find(t => t.id === trip.id) ? "NÃO" : "SIM"}
+                                            />
+
+                                        </TableCell>
+
+
                                         <TableCell>
                                             <Box
                                                 sx={{
