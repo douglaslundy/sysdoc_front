@@ -108,6 +108,12 @@ const Menuitems = [
     icon: "list",
     href: "/errorlogs",
     profile: "admin",
+  },
+  {
+    title: "Logs de QRCODE",
+    icon: "list",
+    href: "/qrcodelogs",
+    profile: "admin",
   }
 ];
 
