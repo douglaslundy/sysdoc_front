@@ -204,7 +204,7 @@ export default () => {
                                                                 fontSize: "12px",
                                                             }}
                                                         >
-                                                            {log && log?.queue?.speciality?.name == 0 ? 'NORMAL' : 'URGENTE'}
+                                                            {log && log?.queue?.urgency == 0 ? 'NORMAL' : 'URGENTE'}
                                                         </Typography>
                                                     </Box>
                                                 </Box>
