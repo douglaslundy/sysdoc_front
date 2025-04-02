@@ -151,7 +151,7 @@ async function protocolPDF({ id, uuid, obs, urgency, done, created_at, updated_a
     // Bloco com o QR Code e a mensagem abaixo dele com quebra de linha após "consultar"
     const qrCodeBlock = [
         {
-            qr: `http://sysdoc.dlsistemas.com.br/showqueue/${uuid}`,
+            qr: `https://sysdoc.dlsistemas.com.br/showqueue/${uuid}`,
             // qr: `http://localhost:3000/showqueue/${uuid}`,
             fit: 100,
             alignment: 'right',
@@ -185,7 +185,7 @@ async function protocolPDF({ id, uuid, obs, urgency, done, created_at, updated_a
     const lbTrack = [
         {
             stack: [
-                { text: `http://sysdoc.dlsistemas.com.br/showqueue/${uuid}` },
+                { text: `https://sysdoc.dlsistemas.com.br/showqueue/${uuid}` },
             ],
             fontSize: 8,
             alignment: 'center',
