@@ -44,7 +44,7 @@ function generateTripsPDF(trips) {
         content.push({
             stack: [
                 { text: `VIAGEM Nº ${id}`, fontSize: 14, bold: true, alignment: 'center', margin: [0, 10, 0, 5] },
-                { text: `Data: ${format(parseISO(departure_date), 'dd/MM/yyyy')} | Destino: ${route.destination}`, fontSize: 11, alignment: 'center', margin: [0, 0, 0, 10] },
+                { text: `Data: ${format(parseISO(departure_date), 'dd/MM/yyyy')} | Destino: ${route.destination?.toUpperCase()}`, fontSize: 11, alignment: 'center', margin: [0, 0, 0, 10] },
                 { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1 }] }
             ]
         });
