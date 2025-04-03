@@ -23,6 +23,7 @@ import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
 import tripPDF from "../../reports/trip"
 import tripsPDF from "../../reports/trips"
+import bpaTripsPdf from "../../reports/bpaTrips"
 import printTripsSelectedPDF from "../../reports/printTripsSelected"
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -34,6 +35,7 @@ import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from 'date-fns';
 import BasicDatePicker from "../inputs/datePicker";
+import { AuthContext } from "../../contexts/AuthContext";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -47,6 +49,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
+    const { user, profile } = useContext(AuthContext);
 
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
@@ -177,6 +180,12 @@ export default () => {
                 <Button title="Buscar" onClick={getTripsPerDate} disabled={!dateBegin} color="success" size="medium" variant="contained">
                     <FeatherIcon icon="search" width="45" height="45" />
                 </Button>
+
+                {profile == 'admin' &&
+                    <Fab title="Imprimir Mapa de viagens" onClick={() => { bpaTripsPdf(allTrips) }} color="warning" aria-label="add" disabled={allTrips.length <= 0}>
+                        <FeatherIcon icon="printer" />
+                    </Fab>
+                }
 
                 <Fab title="Imprimir Mapa de viagens" onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
                     <FeatherIcon icon="printer" />
