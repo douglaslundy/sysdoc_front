@@ -45,7 +45,7 @@ function generateTripsPDF(trips) {
             stack: [
                 { text: `VIAGEM Nº ${id}`, fontSize: 14, bold: true, alignment: 'center', margin: [0, 10, 0, 5] },
                 { text: `Data: ${format(parseISO(departure_date), 'dd/MM/yyyy')} | Destino: ${route.destination?.toUpperCase()}`, fontSize: 11, alignment: 'center', margin: [0, 0, 0, 10] },
-                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1 }] }
+                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 800, y2: 0, lineWidth: 1 }] }
             ]
         });
 
@@ -55,6 +55,7 @@ function generateTripsPDF(trips) {
                 { text: 'Nome', bold: true, fontSize: 10 },
                 { text: 'CNS', bold: true, fontSize: 10 },
                 { text: 'CPF', bold: true, fontSize: 10 },
+                { text: 'Endereço', bold: true, fontSize: 10 },
                 { text: 'Procedimento', bold: true, fontSize: 10 },
                 { text: 'QTD', bold: true, fontSize: 10 },
             ]
@@ -68,6 +69,12 @@ function generateTripsPDF(trips) {
                 { text: client.name?.toUpperCase() || '', fontSize: 9 },
                 { text: client.cns || '-', fontSize: 9 },
                 { text: client.cpf || '-', fontSize: 9 },
+                {
+                    text: client.addresses?.street && client.addresses?.number
+                        ? `${client.addresses.street?.toUpperCase()}, ${client.addresses.number}`
+                        : '-',
+                    fontSize: 9
+                },                  
                 { text: procedimento, fontSize: 9 },
                 { text: qtd, fontSize: 9 }
             ]);
@@ -77,7 +84,7 @@ function generateTripsPDF(trips) {
             style: 'tableStyle',
             table: {
                 headerRows: 1,
-                widths: ['30%', '20%', '20%', '15%', '15%'],
+                widths: ['25%', '15%', '15%', '25%', '15%', '5%'],
                 body: tableBody
             },
             layout: 'lightHorizontalLines',
@@ -87,6 +94,7 @@ function generateTripsPDF(trips) {
 
     const docDefinition = {
         pageSize: 'A4',
+        pageOrientation: 'landscape',
         pageMargins: [20, 40, 20, 40],
         content,
         styles: {
