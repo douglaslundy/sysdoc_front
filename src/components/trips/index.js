@@ -25,6 +25,7 @@ import tripPDF from "../../reports/trip"
 import tripsPDF from "../../reports/trips"
 import bpaTripsPdf from "../../reports/bpaTrips"
 import printTripsSelectedPDF from "../../reports/printTripsSelected"
+import loteTxt from "../../reports/loteTxt"
 
 import { useSelector, useDispatch } from 'react-redux';
 import { excludeTripFetch, getAllTrips, getAllTripsPerDate } from "../../store/fetchActions/trips";
@@ -182,9 +183,14 @@ export default () => {
                 </Button>
 
                 {profile == 'admin' &&
-                    <Fab title="Imprimir Mapa de viagens" onClick={() => { bpaTripsPdf(allTrips) }} color="warning" aria-label="add" disabled={allTrips.length <= 0}>
-                        <FeatherIcon icon="printer" />
-                    </Fab>
+                    <>
+                        <Fab title="Imprimir PDF COM BPA-I" onClick={() => { bpaTripsPdf(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
+                            <FeatherIcon icon="file" />
+                        </Fab>
+                        <Fab title="Gerar BPA-I" onClick={() => { loteTxt(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
+                            <FeatherIcon icon="file-text" />
+                        </Fab>
+                    </>
                 }
 
                 <Fab title="Imprimir Mapa de viagens" onClick={() => { tripsPDF(allTrips) }} color="success" aria-label="add" disabled={allTrips.length <= 0}>
