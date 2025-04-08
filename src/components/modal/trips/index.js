@@ -118,7 +118,7 @@ export default function TripModal(props) {
 
     const getDrivers = (users) =>
         users
-            .filter(user => user.profile === 'driver') // Filtra somente os usuários com profile "driver"
+            .filter(user => user.is_driver == 1) // Filtra somente os usuários com profile "driver"
             .map(({ id, name }) => ({
                 id,
                 name

@@ -14,7 +14,9 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    FormControl
+    FormControl,
+    FormControlLabel,
+    Switch
 } from "@mui/material";
 
 import BaseCard from "../../baseCard/BaseCard";
@@ -65,6 +67,7 @@ export default function UserModal(props) {
         name: "",
         email: "",
         cpf: "",
+        is_driver: "",
         password: "",
         password2: "",
     });
@@ -74,7 +77,7 @@ export default function UserModal(props) {
     const dispatch = useDispatch();
     const { user: userId, profile: userProfile } = useContext(AuthContext);
 
-    const { profile, name, email, cpf, password, password2 } = form;
+    const { profile, name, email, cpf, is_driver, password, password2 } = form;
     const [texto, setTexto] = useState();
 
     const changeItem = ({ target }) => {
@@ -87,6 +90,7 @@ export default function UserModal(props) {
             name: "",
             email: "",
             cpf: "",
+            is_driver: "",
             password: "",
             password2: "",
         });
@@ -112,6 +116,13 @@ export default function UserModal(props) {
 
         dispatch(changeTitleAlert(`O usuário ${form.name} foi atualizado com sucesso!`));
         dispatch(editUserFetch(form, cleanForm));
+    };
+
+    const handleIsDriver = is_driver => {
+        setForm({
+            ...form,
+            is_driver: !is_driver
+        });
     };
 
     const handleClose = () => {
@@ -203,6 +214,9 @@ export default function UserModal(props) {
                                         changeItem={changeItem}
                                         disabled={user && user.id ? true : false}
                                     />
+
+                                    <FormControlLabel control={<Switch checked={is_driver}
+                                        onClick={() => handleIsDriver(is_driver)} />} label={is_driver ? "DIRIGE VEÍCULO OFICIAL" : "NÃO DIRIGE VEÍCULO OFICIAL"} />
 
                                     <TextField
                                         margin="normal"
