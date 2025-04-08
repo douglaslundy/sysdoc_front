@@ -10,10 +10,6 @@ export const getAllQrCodeLogs = () => {
         api
             .get('/qrcode-logs')
             .then((res) => {
-
-                console.log(JSON.stringify(res.data));
-
-
                 dispatch(addQrCodeLogs(res.data));
                 dispatch(turnLoading());
             })

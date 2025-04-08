@@ -1,25 +1,30 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
-    qrlogs: [],
-    qrlog: {},
-
-}
-
+  qrlogs: [],
+  qrlog: {},
+};
 
 export const addQrCodeLog = createAction('ADD_QRCODELOG');
 export const addQrCodeLogs = createAction('ADD_QRCODELOGS');
 export const showQrCodeLog = createAction('SHOW_QRCODELOG');
 
+const qrlogReducer = createReducer(INITIAL_STATE, (builder) => {
+  builder
+    // addQrCodeLog persiste no banco e insere um elemento na lista qrlogs
+    .addCase(addQrCodeLog, (state, action) => {
+      state.qrlogs = [action.payload, ...state.qrlogs];
+    })
 
-export default createReducer(INITIAL_STATE, {
+    // addQrCodeLogs cria a lista de qrlogs através de consulta no banco
+    .addCase(addQrCodeLogs, (state, action) => {
+      state.qrlogs = [...action.payload];
+    })
 
-    // addQrCodeLog  persiste no banco insere um elemento na lista logs
-    [addQrCodeLog.type]: (state, action) => ({ qrlogs: [action.payload, ...state.qrlogs] }),
-
-    // addQrCodeLogs cria a lista de loges atraves de consulta no banco
-    [addQrCodeLogs.type]: (state, action) => ({ qrlogs: [...action.payload] }),
-
-    [showQrCodeLog.type]: (state, action) => ({ ...state, qrlog: action.payload }),
+    // showQrCodeLog define o qrlog selecionado
+    .addCase(showQrCodeLog, (state, action) => {
+      state.qrlog = action.payload;
+    });
 });
 
+export default qrlogReducer;

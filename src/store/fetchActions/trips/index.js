@@ -136,7 +136,6 @@ export const insertClientTrip = (client) => {
             'destination_location': client.destination_location,
             'time': client.time,
         }
-        console.log('cliente inserido ' + JSON.stringify(client))
 
         api.post(`/trip-clients`, client)
             .then((res) =>
@@ -254,7 +253,6 @@ export const getAllTripsPerDate = (dateBegin, dateEnd) => {
         api
             .get(`/trips`, { params: form }) // Pass the 'form' object as a request parameter
             .then((res) => {
-                console.log(JSON.stringify(res.data)),
                 dispatch(addTrips(res.data));
                 dispatch(turnLoading());
             })

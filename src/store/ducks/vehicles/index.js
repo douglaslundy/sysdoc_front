@@ -1,11 +1,9 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
-    vehicles: [],
-    vehicle: {}
-
-}
-
+  vehicles: [],
+  vehicle: {}
+};
 
 export const addVehicle = createAction('ADD_VEHICLE');
 export const editVehicle = createAction('EDIT_VEHICLE');
@@ -13,17 +11,32 @@ export const addVehicles = createAction('ADD_VEHICLES');
 export const showVehicle = createAction('SHOW_VEHICLE');
 export const inactiveVehicle = createAction('INACTIVE_VEHICLE');
 
+const vehicleReducer = createReducer(INITIAL_STATE, (builder) => {
+  builder
+    // addVehicle persiste no banco e insere um novo veículo na lista
+    .addCase(addVehicle, (state, action) => {
+      state.vehicles = [action.payload, ...state.vehicles];
+    })
 
-export default createReducer(INITIAL_STATE, {
+    // editVehicle atualiza um veículo existente na lista
+    .addCase(editVehicle, (state, action) => {
+      state.vehicles = [action.payload, ...state.vehicles.filter(spec => spec.id !== action.payload.id)];
+    })
 
-    [addVehicle.type]: (state, action) => ({ vehicles: [action.payload, ...state.vehicles] }),
+    // inactiveVehicle remove um veículo da lista
+    .addCase(inactiveVehicle, (state, action) => {
+      state.vehicles = state.vehicles.filter(spec => spec.id !== action.payload.id);
+    })
 
-    [editVehicle.type]: (state, action) => ({ vehicles: [action.payload, ...state.vehicles.filter((spec) => spec.id !== action.payload.id)] }),
+    // addVehicles substitui a lista inteira de veículos por uma nova
+    .addCase(addVehicles, (state, action) => {
+      state.vehicles = [...action.payload];
+    })
 
-    [inactiveVehicle.type]: (state, action) => ({ vehicles: [...state.vehicles.filter((spec) => spec.id !== action.payload.id)] }),
-
-    [addVehicles.type]: (state, action) => ({ vehicles: [...action.payload] }),
-
-    [showVehicle.type]: (state, action) => ({ ...state, vehicle: action.payload }),
+    // showVehicle define o veículo selecionado
+    .addCase(showVehicle, (state, action) => {
+      state.vehicle = action.payload;
+    });
 });
 
+export default vehicleReducer;
