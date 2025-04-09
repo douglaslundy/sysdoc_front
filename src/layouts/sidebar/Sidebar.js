@@ -177,7 +177,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           sx={{
             mb: 1,
             ...(pathname === item.href && {
-              color: "white",
+              color: theme.palette.primary.contrastText,
               backgroundColor: (theme) =>
                 `${theme.palette.primary.main}!important`,
             }),
@@ -189,7 +189,9 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
               width="20"
               height="20"
               style={{
-                color: pathname === item.href ? "white" : "",
+                color: pathname === item.href
+                  ? theme.palette.primary.contrastText
+                  : theme.palette.text.primary,
               }}
             />
           </ListItemIcon>

@@ -1,15 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import { CacheProvider } from "@emotion/react";
-import theme from "../src/theme/theme";
+import CssBaseline from "@mui/material/CssBaseline";
 import createEmotionCache from "../src/createEmotionCache";
 import FullLayout from "../src/layouts/FullLayout";
 import "../styles/style.css";
 import { Provider } from "react-redux";
-const clientSideEmotionCache = createEmotionCache();
 import store from "../src/store";
 import Messages from "../src/components/messages";
 import AlertDialog from "../src/components/alertDialog";
@@ -18,6 +15,9 @@ import { parseCookies, destroyCookie } from "nookies";
 import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
 import { api } from "../src/services/api";
 import Router, { useRouter } from "next/router";
+import { CustomThemeProvider } from "../src/contexts/ThemeContext"; // ← novo
+
+const clientSideEmotionCache = createEmotionCache();
 
 export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
@@ -25,9 +25,6 @@ export default function MyApp(props) {
   const [token, setToken] = useState();
   const { "sysvendas.token": cookieToken } = parseCookies();
   const { tokens } = useContext(AuthContext);
-
-  // // Considera pública a rota que inicia com "/showqueue"
-  // const isPublicPage = router.pathname.startsWith("/showqueue");
 
   useEffect(() => {
     getToken();
@@ -41,11 +38,9 @@ export default function MyApp(props) {
     } else {
       Router.push("/login");
     }
+
     api
       .post("/validate", token)
-      .then((res) => {
-        // Pode implementar lógica de validação se necessário
-      })
       .catch((error) => {
         const erro = "Request failed with status code 401";
         if (erro === error.message) {
@@ -66,7 +61,7 @@ export default function MyApp(props) {
       </Head>
       <Provider store={store}>
         <AuthProvider>
-          <ThemeProvider theme={theme}>
+          <CustomThemeProvider> {/* ← agora o tema vem daqui */}
             {token ? (
               <>
                 <CssBaseline />
@@ -80,7 +75,7 @@ export default function MyApp(props) {
             ) : (
               <Component {...pageProps} />
             )}
-          </ThemeProvider>
+          </CustomThemeProvider>
         </AuthProvider>
       </Provider>
     </CacheProvider>
@@ -92,28 +87,3 @@ MyApp.propTypes = {
   emotionCache: PropTypes.object,
   pageProps: PropTypes.object.isRequired,
 };
-
-// getServerSideProps no _app.js não é suportado por padrão, mas se você
-// estiver usando-o via alguma estratégia customizada, verifique o token e permita
-// acesso sem autenticação para páginas públicas.
-export async function getServerSideProps(context) {
-  const { req } = context;
-  const { "sysvendas.token": token } = parseCookies(context);
-
-  // Se a URL começa com '/showqueue', não exige autenticação.
-  // if (req.url && req.url.startsWith("/showqueue")) {
-  //   return { props: {} };
-  // }
-
-  if (!token) {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
-  }
-  return {
-    props: {},
-  };
-}

@@ -20,6 +20,12 @@ import UserModal from "../../components/modal/user";
 import { turnUserModal } from "../../store/ducks/Layout";
 import { getUserFetch } from "../../store/fetchActions/user";
 
+import { ColorModeContext } from "../../contexts/ThemeContext";
+import { Tooltip, IconButton } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+// import { Moon, Sun } from "lucide-react"; // ou FeatherIcon se preferir
+
+
 function logout(dispatch) {
   dispatch(logoutFetch());
 }
@@ -39,15 +45,19 @@ const ProfileDD = () => {
 
   const { username } = useContext(AuthContext);
   const { user } = useContext(AuthContext);
-  
+
   const HandleEditUser = async user => {
     dispatch(getUserFetch(user));
     dispatch(turnUserModal());
-}
+  }
+
+  const { toggleColorMode, mode } = useContext(ColorModeContext);
+
+  const theme = useTheme();
 
   return (
     <>
-    <UserModal />
+      <UserModal />
       <Button
         aria-label="menu"
         color="inherit"
@@ -92,6 +102,22 @@ const ProfileDD = () => {
             <FeatherIcon icon="chevron-down" width="20" height="20" />
           </Box>
         </Box>
+      </Button>
+      <Button>
+        <Tooltip title={mode === "dark" ? "Modo claro" : "Modo escuro"}>
+          <IconButton
+            onClick={toggleColorMode}
+            sx={{ ml: 1 }}
+            color="inherit"
+            size="small"
+          >
+            <FeatherIcon
+              icon={mode === "dark" ? "sun" : "moon"}
+              width="18"
+              height="18"
+            />
+          </IconButton>
+        </Tooltip>
       </Button>
       <Menu
         id="profile-menu"
