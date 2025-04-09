@@ -202,7 +202,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   );
 
   const SidebarContent = (
-    <Box p={2} height="100%" sx={{ mt: "64px" }}>
+    <Box p={2} height="100%" sx={{ mt: "74px" }}>
 
       <LogoIcon />
       <Box mt={2}>
