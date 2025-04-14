@@ -189,7 +189,7 @@ export default () => {
                                                                 fontWeight: "600",
                                                             }}
                                                         >
-                                                            {log && log.user?.name}
+                                                            {log && log.user?.name?.toUpperCase()}
                                                             {/* .substring(0, 30).toUpperCase() */}
                                                         </Typography>
                                                         <Typography

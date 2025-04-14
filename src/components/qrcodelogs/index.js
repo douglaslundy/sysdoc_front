@@ -168,7 +168,7 @@ export default () => {
                                                                 fontWeight: "600",
                                                             }}
                                                         >
-                                                            {log && log?.queue?.client?.name}
+                                                            {log && log?.queue?.client?.name?.toUpperCase()}
                                                         </Typography>
                                                         <Typography
                                                             color="textSecondary"

@@ -167,7 +167,7 @@ export default () => {
                                                                 fontSize: "12px",
                                                             }}
                                                         >
-                                                            {errorlog && errorlog.user?.name}
+                                                            {errorlog && errorlog.user?.name?.toUpperCase()}
                                                         </Typography>
                                                         <Typography
                                                             color="textSecondary"
