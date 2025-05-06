@@ -29,7 +29,7 @@ import BaseCard from "../../../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 
 import { turnModal, changeTitleAlert } from '../../../../store/ducks/Layout';
-import { insertClientTrip, editClientTrip,  excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
+import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
 import { getAllClients } from '../../../../store/fetchActions/clients';
@@ -37,6 +37,7 @@ import Select from '../../../inputs/selects';
 import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
+import { parseISO, format } from "date-fns";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -478,7 +479,7 @@ export default function TripClientsModal(props) {
                                                                         <Typography
                                                                             variant="h6"
                                                                         >
-                                                                            {cli.pivot.person_type && cli.pivot.person_type == "passenger" ? "PASSAGEIRO" : "ACOMPANHANTE"}
+                                                                            {cli?.pivot?.person_type && cli?.pivot?.person_type == "passenger" ? "PASSAGEIRO" : "ACOMPANHANTE"}
                                                                         </Typography>
                                                                     </Box>
                                                                 </TableCell>
@@ -488,7 +489,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.phone && cli.pivot.phone.substring(0, 15).toUpperCase()}
+                                                                        {cli?.pivot?.phone && cli?.pivot?.phone.substring(0, 15).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -496,7 +497,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.departure_location && cli.pivot.departure_location.substring(0, 15).toUpperCase()}
+                                                                        {cli?.pivot?.departure_location && cli?.pivot?.departure_location.substring(0, 15).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -504,7 +505,7 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.destination_location && cli.pivot.destination_location.substring(0, 10).toUpperCase()}
+                                                                        {cli?.pivot?.destination_location && cli?.pivot?.destination_location.substring(0, 10).toUpperCase()}
                                                                     </Typography>
                                                                 </TableCell>
 
@@ -512,15 +513,22 @@ export default function TripClientsModal(props) {
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli.pivot.time && cli.pivot.time}
+                                                                        {cli?.pivot?.time && cli?.pivot?.time}
                                                                     </Typography>
                                                                 </TableCell>
 
                                                                 <TableCell>
                                                                     <FormGroup>
-                                                                        <FormControlLabel control={<Switch checked={cli.pivot?.is_confirmed}
+                                                                        <FormControlLabel control={<Switch checked={cli?.pivot?.is_confirmed}
                                                                             onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed ? "SIM" : "NÃO"} />
                                                                     </FormGroup>
+
+                                                                    <Typography
+                                                                        variant="h6"
+                                                                    >
+                                                                        {cli?.pivot?.updated_at && cli?.pivot?.is_confirmed ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
+                                                                    </Typography>
+
                                                                 </TableCell>
 
                                                                 <TableCell align="center">
