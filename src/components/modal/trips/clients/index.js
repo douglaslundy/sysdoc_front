@@ -182,7 +182,7 @@ export default function TripClientsModal(props) {
     };
 
     const handleIsConfirm = async (cli) => {
-        if (!cli.pivot.is_confirmed) {
+        if (cli.pivot.is_confirmed == 0) {
             dispatch(changeTitleAlert(`Viagem de ${cli?.name} foi confirmada com sucesso!`));
             dispatch(confirmedClientTrip(cli));
         } else {
@@ -519,14 +519,14 @@ export default function TripClientsModal(props) {
 
                                                                 <TableCell>
                                                                     <FormGroup>
-                                                                        <FormControlLabel control={<Switch checked={cli?.pivot?.is_confirmed}
-                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed ? "SIM" : "NÃO"} />
+                                                                        <FormControlLabel control={<Switch checked={cli?.pivot?.is_confirmed == 1}
+                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed == 1 ? "SIM" : "NÃO"} />
                                                                     </FormGroup>
 
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli?.pivot?.updated_at && cli?.pivot?.is_confirmed ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
+                                                                        {cli?.pivot?.updated_at && cli?.pivot?.is_confirmed == 1 ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
                                                                     </Typography>
 
                                                                 </TableCell>
