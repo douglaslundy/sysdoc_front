@@ -9,8 +9,8 @@ const Menuitems = [
     title: "Usuarios",
     icon: "users",
     href: "/users",
-    profile: "admin",
-    // profile: "user",
+    // profile: "admin",
+    profile: "user",
   },
   {
     title: "Clientes",
