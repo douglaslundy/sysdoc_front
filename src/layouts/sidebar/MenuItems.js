@@ -22,7 +22,7 @@ const Menuitems = [
     title: "Especialidades",
     icon: "users",
     href: "/specialities",
-    profile: "user",
+    profile: "admin",
   },
   {
     title: "Fila",
