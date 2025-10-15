@@ -100,6 +100,7 @@ export const editClientFetch = (client, cleanForm) => {
             ...client,
             cpf: cleanCpfCnpj(client.cpf),
             phone: cleanPhone(client.phone),
+            born_date: client?.born_date ? format(client?.born_date, 'yyyy-MM-dd') : null,
             addresses: {
                 zip_code: client.zip_code,
                 city: client.city,
