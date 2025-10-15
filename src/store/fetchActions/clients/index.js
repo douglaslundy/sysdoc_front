@@ -25,7 +25,6 @@ const converterData = (dataString) => {
     return dataFormatada;
 };
 
-
 export const getAllClients = () => {
 
     return (dispatch) => {
