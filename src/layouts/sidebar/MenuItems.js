@@ -49,6 +49,12 @@ const Menuitems = [
     profile: "user",
   },
   {
+    title: "Viagens",
+    icon: "users",
+    href: "/trips",
+    profile: "driver",
+  },
+  {
     title: "Oficios",
     icon: "send",
     href: "/letters",
