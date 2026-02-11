@@ -82,10 +82,10 @@ export default () => {
     setAllTrips(
       searchValue
         ? [
-            ...trips.filter((trip) =>
-              trip.license_plate.toString().includes(searchValue.toString())
-            ),
-          ]
+          ...trips.filter((trip) =>
+            trip.license_plate.toString().includes(searchValue.toString())
+          ),
+        ]
         : trips
     );
   }, [trips]);
@@ -249,6 +249,7 @@ export default () => {
           }}
           color="primary"
           aria-label="add"
+          disabled={profile !== "admin" && profile !== "user"}
         >
           <FeatherIcon icon="user-plus" />
         </Fab>
@@ -430,6 +431,7 @@ export default () => {
                         color="success"
                         size="medium"
                         variant="contained"
+                        disabled={profile !== "admin" && profile !== "user"}
                       >
                         <FeatherIcon icon="users" width="20" height="20" />
                         <div style={{ marginLeft: "5px" }}>
@@ -460,6 +462,7 @@ export default () => {
                           color="primary"
                           size="medium"
                           variant="contained"
+                          disabled={profile !== "admin" && profile !== "user"}
                         >
                           <FeatherIcon icon="edit" width="20" height="20" />
                         </Button>
@@ -472,6 +475,7 @@ export default () => {
                           color="error"
                           size="medium"
                           variant="contained"
+                          disabled={profile !== "admin" && profile !== "user"}
                         >
                           <FeatherIcon icon="trash" width="20" height="20" />
                         </Button>
