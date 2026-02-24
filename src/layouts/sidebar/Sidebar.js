@@ -65,9 +65,10 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         <List>
           {Menuitems.map((item, index) => {
             if (
-              (profile === "admin" && item.profile !== "driver") ||
-              (profile === "user" && item.profile !== "admin" && item.profile !== "driver") ||
+              (profile === "admin") ||
+              (profile === "user" && item.profile === "user") ||
               (profile === "partner" && item.profile === "partner") ||
+              (profile === "tfd" && item.profile === "tfd") ||
               (profile === "driver" && item.profile === "driver")
             ) {
               return renderMenuItem(item, index);

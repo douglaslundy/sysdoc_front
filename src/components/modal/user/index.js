@@ -47,17 +47,22 @@ const profiles = [
     //     "name": "Administrador"
     // },
     {
+        "id": "driver",
+        "name": "Motorista"
+    },
+    {
         "id": "partner",
         "name": "Parceiro"
     },
     {
-        "id": "user",
-        "name": "Usuário"
+        "id": "tfd",
+        "name": "TFD"
     },
     {
-        "id": "driver",
-        "name": "Motorista"
+        "id": "user",
+        "name": "Usuário"
     }
+
 ]
 
 export default function UserModal(props) {
@@ -164,7 +169,7 @@ export default function UserModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    {(userProfile && (userProfile === "admin" || userProfile === "user")) && (
+                                    {(userProfile && (userProfile === "admin")) && (
                                         <FormControl fullWidth required>
                                             <InputLabel>Perfil do Usuário</InputLabel>
                                             <Select
