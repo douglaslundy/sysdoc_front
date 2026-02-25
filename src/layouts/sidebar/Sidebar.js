@@ -62,21 +62,6 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
       <LogoIcon />
       <Box mt={2}>
-        {/* <List>
-          {Menuitems.map((item, index) => {
-            if (
-              (profile === "admin") ||
-              (profile === "user" && item.profile === "user") ||
-              (profile === "partner" && item.profile === "partner") ||
-              (profile === "tfd" && item.profile === "tfd") ||
-              (profile === "driver" && item.profile === "driver")
-            ) {
-              return renderMenuItem(item, index);
-            }
-            return null;
-          })}
-        </List> */}
-
         <List>
           {Menuitems.map((item, index) => {
             if (item.profile.includes(profile)) {

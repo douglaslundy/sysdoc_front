@@ -42,17 +42,13 @@ const style = {
 };
 
 const profiles = [
-    // {
-    //     "id": "admin",
-    //     "name": "Administrador"
-    // },
     {
         "id": "driver",
-        "name": "Motorista"
+        "name": "MOTORISTA"
     },
     {
         "id": "partner",
-        "name": "Parceiro"
+        "name": "PARCEIRO"
     },
     {
         "id": "tfd",
@@ -60,7 +56,7 @@ const profiles = [
     },
     {
         "id": "user",
-        "name": "Usuário"
+        "name": "USUÁRIO"
     },
     {
         "id": "manager",
