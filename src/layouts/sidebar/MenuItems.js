@@ -28,7 +28,7 @@ const Menuitems = [
     title: "Fila",
     icon: "users",
     href: "/queue",
-    profile: ["admin","user", "tfd"],
+    profile: ["admin","user", "tfd", "manager"],
   },
   {
     title: "Veículos",
