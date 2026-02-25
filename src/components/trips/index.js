@@ -249,7 +249,7 @@ export default () => {
           }}
           color="primary"
           aria-label="add"
-          disabled={profile !== "admin" && profile !== "user"}
+          disabled={profile !== "admin" && profile !== "tfd"}
         >
           <FeatherIcon icon="user-plus" />
         </Fab>
