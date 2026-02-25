@@ -62,7 +62,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
       <LogoIcon />
       <Box mt={2}>
-        <List>
+        {/* <List>
           {Menuitems.map((item, index) => {
             if (
               (profile === "admin") ||
@@ -71,6 +71,15 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
               (profile === "tfd" && item.profile === "tfd") ||
               (profile === "driver" && item.profile === "driver")
             ) {
+              return renderMenuItem(item, index);
+            }
+            return null;
+          })}
+        </List> */}
+
+        <List>
+          {Menuitems.map((item, index) => {
+            if (item.profile.includes(profile)) {
               return renderMenuItem(item, index);
             }
             return null;

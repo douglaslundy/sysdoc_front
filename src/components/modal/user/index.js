@@ -61,6 +61,10 @@ const profiles = [
     {
         "id": "user",
         "name": "Usuário"
+    },
+    {
+        "id": "manager",
+        "name": "GERENTE"
     }
 
 ]
@@ -72,7 +76,7 @@ export default function UserModal(props) {
         name: "",
         email: "",
         cpf: "",
-        is_driver: "",
+        is_driver: false,
         password: "",
         password2: "",
     });
@@ -95,7 +99,7 @@ export default function UserModal(props) {
             name: "",
             email: "",
             cpf: "",
-            is_driver: "",
+            is_driver: false,
             password: "",
             password2: "",
         });
