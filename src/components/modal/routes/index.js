@@ -16,7 +16,9 @@ import BaseCard from "../../baseCard/BaseCard";
 import { showRoute } from '../../../store/ducks/routes';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editRouteFetch, addRouteFetch } from '../../../store/fetchActions/routes';
+import { getAllStates } from '../../../store/fetchActions/states';
 import AlertModal from '../../messagesModal';
+import BasicSelect from '../../inputs/selects';
 
 const style = {
     position: 'absolute',
@@ -37,11 +39,16 @@ export default function RouteModal(props) {
 
     const [form, setForm] = useState({
         origin: "",
+        origin_state: "",
         destination: "",
+        destination_state: "",
         distance: ""
     });
 
-    const { origin, destination, distance } = form;
+   
+    const { states } = useSelector(state => state.states);
+
+    const { origin, origin_state, destination, destination_state, distance } = form;
     const { route } = useSelector(state => state.routes);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -55,7 +62,9 @@ export default function RouteModal(props) {
     const cleanForm = () => {
         setForm({
             origin: "",
+            origin_state: "",
             destination: "",
+            destination_state: "",
             distance: ""
         });
         setTexto('');
@@ -88,6 +97,24 @@ export default function RouteModal(props) {
 
     }, [route]);
 
+    useEffect(() => {
+
+
+    }, [route]);
+
+    useEffect(() => {
+        // if (isOpenModal === true) {
+            dispatch(getAllStates());
+        // }
+
+        // if (isOpenModal === false) {
+        //     setState({});
+        //     // cleanForm();
+        // }
+
+    // }, [isOpenModal]);
+    }, []);
+
     return (
         <div>
             {props.children}
@@ -116,46 +143,93 @@ export default function RouteModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            gap: 2,
+                                            alignItems: 'center',
+                                            '& > :not(style)': { mb: 3 },
+                                        }}
+                                    >
+
+                                        <TextField
+                                            label={origin && origin.length > 0 ? `ORIGEM: ${50 - origin.length} caracteres restantes` : 'ORIGEM'}
+                                            variant="outlined"
+                                            name="origin"
+                                            value={origin ? origin : ''}
+                                            onChange={changeItem}
+                                            required
+                                            sx={{ width: '60%', mr: 2 }}
+                                            inputProps={{
+                                                style: {
+                                                    textTransform: "uppercase",
+                                                },
+                                                maxLength: 50,
+                                                autoComplete: "off", // Desativa o preenchimento automático
+                                            }}
+                                        />
+
+                                        <BasicSelect
+                                            value={origin_state}
+                                            label={'Estado de Origem'}
+                                            name={'origin_state'}
+                                            store={states}
+                                            changeItem={changeItem}
+                                            wd={'20%'}
+                                        />
+
+                                    </Box>
+
+                                </Stack>
+
+                                <Stack spacing={3}>
+
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            gap: 2,
+                                            alignItems: 'center',
+                                            '& > :not(style)': { mb: 3 },
+                                        }}
+                                    >
+
+                                        <TextField
+                                            label={destination && destination.length > 0 ? `DESTINO: ${50 - destination.length} caracteres restantes` : 'DESTINO'}
+                                            variant="outlined"
+                                            name="destination"
+                                            value={destination ? destination : ''}
+                                            onChange={changeItem}
+                                            sx={{ width: '60%', mr: 2 }}
+                                            required
+                                            inputProps={{
+                                                style: {
+                                                    textTransform: "uppercase",
+                                                },
+                                                maxLength: 50,
+                                                autoComplete: "off", // Desativa o preenchimento automático
+                                            }}
+                                        />
+
+                                        <BasicSelect
+                                            value={destination_state}
+                                            label={'Estado do Destino'}
+                                            name={'destination_state'}
+                                            store={states}
+                                            changeItem={changeItem}
+                                            wd={'20%'}
+                                        />
+                                    </Box>
+
+                                </Stack>
+
+                                <Stack spacing={3}>
+
                                     <Box sx={{
                                         '& > :not(style)': { mb: 0 },
                                         'display': 'flex',
                                         'justify-content': 'space-between'
                                     }}
                                     >
-
-                                        <TextField
-                                            label={origin && origin.length > 0 ? `ORIGEM: ${30 - origin.length} caracteres restantes` : 'ORIGEM'}
-                                            variant="outlined"
-                                            name="origin"
-                                            value={origin ? origin : ''}
-                                            onChange={changeItem}
-                                            required
-                                            sx={{ width: '40%', mr: 2 }}
-                                            inputProps={{
-                                                style: {
-                                                    textTransform: "uppercase",
-                                                },
-                                                maxLength: 30,
-                                                autoComplete: "off", // Desativa o preenchimento automático
-                                            }}
-                                        />
-
-                                        <TextField
-                                            label={destination && destination.length > 0 ? `DESTINO: ${30 - destination.length} caracteres restantes` : 'DESTINO'}
-                                            variant="outlined"
-                                            name="destination"
-                                            value={destination ? destination : ''}
-                                            onChange={changeItem}
-                                            sx={{ width: '40%', mr: 2 }}
-                                            required
-                                            inputProps={{
-                                                style: {
-                                                    textTransform: "uppercase",
-                                                },
-                                                maxLength: 30,
-                                                autoComplete: "off", // Desativa o preenchimento automático
-                                            }}
-                                        />
 
                                         <TextField
                                             label={'DISTÂNCIA'}
@@ -190,6 +264,6 @@ export default function RouteModal(props) {
 
                 </Box>
             </Modal>
-        </div>
+        </div >
     );
 }

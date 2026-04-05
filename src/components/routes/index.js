@@ -208,7 +208,7 @@ export default () => {
                                                             fontSize: "18px",
                                                         }}
                                                     >
-                                                        {route.origin && route.origin.substring(0, 30).toUpperCase()} X {route.destination && route.destination.substring(0, 30).toUpperCase()}
+                                                        {route.origin && route.origin.substring(0, 30).toUpperCase()} - {route.origin_state && route.origin_state} X {route.destination && route.destination.substring(0, 30).toUpperCase()} - {route.destination && route.destination_state}
                                                     </Typography>
 
                                                     <Typography>
