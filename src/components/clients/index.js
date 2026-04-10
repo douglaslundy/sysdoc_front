@@ -45,7 +45,7 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { clients, client } = useSelector(state => state.clients);
+    const { clients } = useSelector(state => state.clients);
     const [searchValue, setSearchValue] = useState("");
     const [allClients, setAllClients] = useState(clients);
 

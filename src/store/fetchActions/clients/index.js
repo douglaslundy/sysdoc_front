@@ -1,14 +1,10 @@
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
-import { inactiveClient, addClient, editClient, addClients } from "../../ducks/clients";
+import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport  } from "../../ducks/clients";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { format, parse, parseISO } from 'date-fns';
 
-// function getToken() {
-//     const { 'sysvendas.token': token } = parseCookies();    
-//     token ? api.defaults.headers['Authorization'] = `Bearer ${token}` : Router.push('/login');
-// }
 
 const converterData = (dataString) => {
     // Converter a string para um objeto de data usando a função parse
@@ -41,6 +37,27 @@ export const getAllClients = () => {
             })
     }
 }
+
+
+
+export const detailed_client_report = (value) => {
+
+    return (dispatch) => {
+        dispatch(turnLoading());
+        dispatch(clearClientReport());
+        
+        api.get('/detailed-client-report', { params: { value } })
+            .then((res) => {
+                dispatch(addClientReport(res.data.client || null));
+                dispatch(turnLoading());
+            })
+            .catch((error) => {
+                dispatch(clearClientReport());
+                dispatch(turnLoading());
+            });
+    };
+}
+
 
 export const addClientFetch = (client, cleanForm) => {
     return (dispatch) => {
