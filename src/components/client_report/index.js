@@ -105,10 +105,10 @@ export default () => {
     const reportData = Array.isArray(clientReport)
         ? clientReport[0]
         : clientReport?.data
-        ? clientReport.data
-        : clientReport?.client
-        ? clientReport.client
-        : clientReport;
+            ? clientReport.data
+            : clientReport?.client
+                ? clientReport.client
+                : clientReport;
 
     const hasClientData = !!(
         reportData &&
@@ -131,12 +131,12 @@ export default () => {
                 Array.isArray(response)
                     ? response[0]
                     : response?.data
-                    ? response.data
-                    : response?.client
-                    ? response.client
-                    : response?.payload
-                    ? response.payload
-                    : response;
+                        ? response.data
+                        : response?.client
+                            ? response.client
+                            : response?.payload
+                                ? response.payload
+                                : response;
 
             const found = !!(
                 payload &&
@@ -224,18 +224,18 @@ export default () => {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 4, px: 2, pb: 2 }}>
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                            Bloco Cliente
+                            Cliente
                         </Typography>
 
                         <Grid container spacing={2}>
                             <Grid item xs={12} md={6} lg={4}>
-                                <InfoItem label="Nome" value={reportData?.name} />
+                                <InfoItem label="Nome" value={reportData?.name?.toUpperCase()} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
                                 <InfoItem label="Data de nascimento" value={formatDate(reportData?.born_date)} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
-                                <InfoItem label="Sexo" value={formatSex(reportData?.sexo)} />
+                                <InfoItem label="Sexo" value={formatSex(reportData?.sexo?.toUpperCase())} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
                                 <InfoItem label="CPF" value={reportData?.cpf} />
@@ -250,10 +250,10 @@ export default () => {
                                 <InfoItem label="E-mail" value={reportData?.email} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
-                                <InfoItem label="Mãe" value={reportData?.mother} />
+                                <InfoItem label="Mãe" value={reportData?.mother?.toUpperCase()} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
-                                <InfoItem label="Pai" value={reportData?.father} />
+                                <InfoItem label="Pai" value={reportData?.father?.toUpperCase()} />
                             </Grid>
 
                             <Grid item xs={12} md={6} lg={4}>
@@ -279,7 +279,7 @@ export default () => {
                                         Status
                                     </Typography>
                                     <Chip
-                                        label={reportData?.active ? "Ativo" : "Inativo"}
+                                        label={reportData?.active ? "ATIVO" : "INATIVO"}
                                         color={reportData?.active ? "success" : "default"}
                                         size="small"
                                     />
@@ -293,7 +293,7 @@ export default () => {
                             <Grid item xs={12} md={12} lg={4}>
                                 <InfoItem
                                     label="Observações"
-                                    value={reportData?.obs || "Nenhuma observação cadastrada"}
+                                    value={reportData?.obs?.toUpperCase() || "Nenhuma observação cadastrada"}
                                 />
                             </Grid>
                         </Grid>
@@ -303,7 +303,7 @@ export default () => {
 
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                            Bloco Viagens
+                            Viagens
                         </Typography>
 
                         <TableContainer>
@@ -340,57 +340,59 @@ export default () => {
 
                                 <TableBody>
                                     {reportData?.trips?.length ? (
-                                        reportData.trips.map((trip) => (
-                                            <StyledTableRow key={trip.id} hover>
-                                                <TableCell>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                                        {formatDate(trip?.departure_date)}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        {trip?.departure_time?.slice(0, 5) || "Não informado"}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        ID viagem: {trip?.id}
-                                                    </Typography>
-                                                </TableCell>
+                                        [...reportData.trips]
+                                            .sort((a, b) => new Date(b.departure_date) - new Date(a.departure_date))
+                                            .map((trip) => (
+                                                <StyledTableRow key={trip.id} hover>
+                                                    <TableCell>
+                                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                                            {formatDate(trip?.departure_date)}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            {trip?.departure_time?.slice(0, 5) || "Não informado"}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            ID viagem: {trip?.id}
+                                                        </Typography>
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                                        {(trip?.route?.origin || "Origem não informada").toUpperCase()}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        {(trip?.route?.destination || "Destino não informado").toUpperCase()}
-                                                    </Typography>
-                                                </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                                            {(trip?.route?.origin?.toUpperCase() || "Origem não informada").toUpperCase()}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            {(trip?.route?.destination?.toUpperCase() || "Destino não informado").toUpperCase()}
+                                                        </Typography>
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {trip?.driver?.name || "Não informado"}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        CPF: {trip?.driver?.cpf || "Não informado"}
-                                                    </Typography>
-                                                </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {trip?.driver?.name?.toUpperCase() || "Não informado"}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            CPF: {trip?.driver?.cpf || "Não informado"}
+                                                        </Typography>
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {trip?.vehicle?.brand || ""} {trip?.vehicle?.model || "Não informado"}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        Placa: {trip?.vehicle?.license_plate || "Não informado"}
-                                                    </Typography>
-                                                    <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                        Ano: {trip?.vehicle?.year || "Não informado"}
-                                                    </Typography>
-                                                </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {trip?.vehicle?.brand?.toUpperCase() || ""} {trip?.vehicle?.model?.toUpperCase() || "Não informado"}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            Placa: {trip?.vehicle?.license_plate?.toUpperCase() || "Não informado"}
+                                                        </Typography>
+                                                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
+                                                            Ano: {trip?.vehicle?.year || "Não informado"}
+                                                        </Typography>
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {trip?.obs || "Sem observação"}
-                                                    </Typography>
-                                                </TableCell>
-                                            </StyledTableRow>
-                                        ))
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {trip?.obs?.toUpperCase() || "Sem observação"}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </StyledTableRow>
+                                            ))
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={5}>
@@ -409,7 +411,7 @@ export default () => {
 
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                            Bloco Filas
+                            Filas
                         </Typography>
 
                         <TableContainer>
@@ -423,7 +425,17 @@ export default () => {
                                         </TableCell>
                                         <TableCell>
                                             <Typography color="textSecondary" variant="h6">
+                                                Cadastrado em
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography color="textSecondary" variant="h6">
                                                 Status
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography color="textSecondary" variant="h6">
+                                                Realizado em
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
@@ -436,25 +448,37 @@ export default () => {
 
                                 <TableBody>
                                     {reportData?.queue?.length ? (
-                                        reportData.queue.map((item, index) => (
-                                            <StyledTableRow key={item?.id || index} hover>
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {item?.speciality?.name || item?.name || "Não informado"}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {item?.status || "Não informado"}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="h6">
-                                                        {item?.obs || "Sem observações"}
-                                                    </Typography>
-                                                </TableCell>
-                                            </StyledTableRow>
-                                        ))
+                                        [...reportData.queue]
+                                            .sort((a, b) => b.id - a.id)
+                                            .map((item, index) => (
+                                                <StyledTableRow key={item?.id || index} hover>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "Não informado"}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {item?.created_at && format(parseISO(item?.created_at), 'dd/MM/yyyy')}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {item?.date_of_realized && format(parseISO(item?.date_of_realized), 'dd/MM/yyyy')}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {item?.obs?.toUpperCase() || "Sem observações"}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </StyledTableRow>
+                                            ))
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={3}>

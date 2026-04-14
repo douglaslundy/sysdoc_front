@@ -48,6 +48,7 @@ export const detailed_client_report = (value) => {
         
         api.get('/detailed-client-report', { params: { value } })
             .then((res) => {
+                console.log(res.data.client)
                 dispatch(addClientReport(res.data.client || null));
                 dispatch(turnLoading());
             })
