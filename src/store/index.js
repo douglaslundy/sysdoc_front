@@ -18,6 +18,7 @@ import routesReducer from './ducks/routes';
 import tripsReducer from './ducks/trips';
 import qrcodelogsReducer from './ducks/qrcodelogs';
 import stateReducer from './ducks/states';
+import ordinancesReducer from './ducks/ordinances';
 
 
 export default configureStore({
@@ -39,6 +40,7 @@ export default configureStore({
         routes: routesReducer,
         trips: tripsReducer,
         qrlogs: qrcodelogsReducer,
-        states: stateReducer
+        states: stateReducer,
+        ordinances:ordinancesReducer
     },
 });
