@@ -26,6 +26,7 @@ import { getAllOrdinances, inactiveOrdinanceFetch } from "../../store/fetchActio
 import { showOrdinance } from "../../store/ducks/ordinances";
 import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
+import Select from '../inputs/selects';
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
@@ -49,16 +50,59 @@ export default () => {
     const dispatch = useDispatch();
     const { ordinances } = useSelector(state => state.ordinances);
     const [searchValue, setSearchValue] = useState("");
-    const [allOrdinances, setAllOrdinances] = useState(ordinances);
+    const [allOrdinances, setAllOrdinances] = useState([]);
     const { user, profile } = useContext(AuthContext);
+
+    const [year, setYear] = useState(new Date().getFullYear());
+
+    const uniqueYears = Array.from(
+        new Set(
+            ordinances
+                .filter(item => item.created_at)
+                .map(item => new Date(item.created_at).getFullYear())
+        )
+    );
+
+    const transformedYears = Object.values({ ...uniqueYears }).map(year => ({
+        id: year,
+        name: year,
+    }));
+
+    const changeYear = ({ target }) => {
+        setYear(target.value);
+    };
 
     useEffect(() => {
         dispatch(getAllOrdinances());
     }, []);
 
     useEffect(() => {
-        setAllOrdinances([...ordinances]);
-    }, [ordinances]);
+        setAllOrdinances([
+            ...ordinances.filter(item => new Date(item.created_at).getFullYear() == year)
+        ]);
+    }, [year, ordinances]);
+
+    useEffect(() => {
+        setAllOrdinances(
+            searchValue
+                ? [
+                    ...ordinances
+                        .filter(item => new Date(item.created_at).getFullYear() == year)
+                        .filter(item =>
+                            item.number && item.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.title && item.title.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.subject && item.subject.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.summary && item.summary.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.content && item.content.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.legal_basis && item.legal_basis.toString().toLowerCase().includes(searchValue.toString().toLowerCase()) ||
+                            item.signatory_name && item.signatory_name.toString().toLowerCase().includes(searchValue.toString().toLowerCase())
+                        )
+                ]
+                : [
+                    ...ordinances.filter(item => new Date(item.created_at).getFullYear() == year)
+                ]
+        );
+    }, [searchValue, ordinances, year]);
 
     const HandleViewOrdinance = async ordinance => {
         dispatch(showOrdinance(ordinance));
@@ -77,6 +121,7 @@ export default () => {
             title: `Deseja Realmente Excluir a Portaria ${ordinance.number}`,
             confirm: inactiveOrdinanceFetch(ordinance)
         });
+
         dispatch(changeTitleAlert(`A Portaria ${ordinance.number} foi excluída com sucesso!`));
     };
 
@@ -84,30 +129,59 @@ export default () => {
         setSearchValue(target.value);
 
         setAllOrdinances([
-            ...ordinances.filter(item =>
-                item.number && item.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                item.title && item.title.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                item.subject && item.subject.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                item.signatory_name && item.signatory_name.toString().toLowerCase().includes(target.value.toString().toLowerCase())
-            )
+            ...ordinances
+                .filter(item => new Date(item.created_at).getFullYear() == year)
+                .filter(item =>
+                    item.number && item.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.title && item.title.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.subject && item.subject.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.summary && item.summary.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.content && item.content.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.legal_basis && item.legal_basis.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
+                    item.signatory_name && item.signatory_name.toString().toLowerCase().includes(target.value.toString().toLowerCase())
+                )
         ]);
     };
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <BaseCard title={`Você possui ${allOrdinances.length} portarias cadastradas`}>
             <AlertModal />
             <ViewOrdinanceModal />
 
-            <Box sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+                sx={{
+                    '& > :not(style)': { mb: 0, mt: 2 },
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                }}
+            >
                 <TextField
-                    sx={{ width: "80%" }}
+                    sx={{ width: "65%" }}
                     label="Pesquisar portaria"
                     name="search"
                     value={searchValue}
                     onChange={searchOrdinances}
+                />
+
+                <Select
+                    label="Ano"
+                    name="year"
+                    value={year}
+                    store={transformedYears}
+                    changeItem={changeYear}
+                    wd={"20%"}
                 />
 
                 <OrdinanceModal>
@@ -118,20 +192,34 @@ export default () => {
             </Box>
 
             <TableContainer>
-                <Table aria-label="simple table" sx={{ mt: 3, whiteSpace: "nowrap" }}>
+                <Table
+                    aria-label="simple table"
+                    sx={{
+                        mt: 3,
+                        whiteSpace: "nowrap",
+                    }}
+                >
                     <TableHead>
                         <TableRow>
                             <TableCell>
-                                <Typography color="textSecondary" variant="h6">Número / Data</Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Número / Data
+                                </Typography>
                             </TableCell>
                             <TableCell>
-                                <Typography color="textSecondary" variant="h6">Título / Assunto</Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Título / Assunto
+                                </Typography>
                             </TableCell>
                             <TableCell>
-                                <Typography color="textSecondary" variant="h6">Usuário / Tipo</Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Usuário / Tipo
+                                </Typography>
                             </TableCell>
                             <TableCell align="center">
-                                <Typography color="textSecondary" variant="h6">Ações</Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Ações
+                                </Typography>
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -143,41 +231,107 @@ export default () => {
                                 .map((ordinance, index) => (
                                     <StyledTableRow key={ordinance.id} hover>
                                         <TableCell>
-                                            <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "38px" }}>
-                                                {ordinance.number}
-                                            </Typography>
-                                            <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
-                                                {ordinance.created_at && format(parseISO(ordinance.created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                            </Typography>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "38px",
+                                                        }}
+                                                    >
+                                                        {ordinance && ordinance.number}
+                                                    </Typography>
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "13px",
+                                                        }}
+                                                    >
+                                                        {ordinance.created_at && format(parseISO(ordinance.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
                                         </TableCell>
 
                                         <TableCell>
-                                            <Typography variant="h6" sx={{ fontWeight: "600" }}>
-                                                {ordinance.title?.substring(0, 40).toUpperCase()}
-                                            </Typography>
-                                            <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                {ordinance.subject?.substring(0, 50).toUpperCase()}
-                                            </Typography>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                        }}
+                                                    >
+                                                        {ordinance && ordinance.title ? ordinance.title.substring(0, 40).toUpperCase() : ''}
+                                                    </Typography>
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {ordinance && ordinance.subject ? ordinance.subject.substring(0, 50).toUpperCase() : ''}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
                                         </TableCell>
 
                                         <TableCell>
-                                            <Typography variant="h6" sx={{ fontWeight: "600" }}>
-                                                {ordinance.user?.name?.substring(0, 30).toUpperCase()}
-                                            </Typography>
-                                            <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                {ordinance.type?.toUpperCase()}
-                                            </Typography>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                        }}
+                                                    >
+                                                        {ordinance && ordinance.user && ordinance.user.name
+                                                            ? ordinance.user.name.substring(0, 30).toUpperCase()
+                                                            : ''}
+                                                    </Typography>
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {ordinance && ordinance.type ? ordinance.type.toUpperCase() : ''}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
                                         </TableCell>
 
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
-                                                <Button title="Visualizar Portaria" onClick={() => HandleViewOrdinance(ordinance)} color="success" size="medium" variant="contained">
+                                                <Button
+                                                    title="Visualizar Portaria"
+                                                    onClick={() => { HandleViewOrdinance(ordinance) }}
+                                                    color="success"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
                                                 <Button
                                                     title="Editar Portaria"
-                                                    onClick={() => HandleEditOrdinance(ordinance)}
+                                                    onClick={() => { HandleEditOrdinance(ordinance) }}
                                                     color="primary"
                                                     size="medium"
                                                     variant="contained"
@@ -188,7 +342,7 @@ export default () => {
 
                                                 <Button
                                                     title="Excluir Portaria"
-                                                    onClick={() => HandleInactiveOrdinance(ordinance)}
+                                                    onClick={() => { HandleInactiveOrdinance(ordinance) }}
                                                     color="error"
                                                     size="medium"
                                                     variant="contained"
@@ -202,7 +356,13 @@ export default () => {
                                 ))}
                         </TableBody>
                     ) : (
-                        <TableCell align="center">Nenhum registro encontrado!</TableCell>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell colSpan={4} align="center">
+                                    Nenhum registro encontrado!
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
                     )}
                 </Table>
 
@@ -210,16 +370,16 @@ export default () => {
                     component="div"
                     count={allOrdinances.length}
                     page={page}
-                    onPageChange={(event, newPage) => setPage(newPage)}
+                    onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={(event) => {
-                        setRowsPerPage(parseInt(event.target.value, 10));
-                        setPage(0);
-                    }}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </TableContainer>
 
-            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+            <ConfirmDialog
+                confirmDialog={confirmDialog}
+                setConfirmDialog={setConfirmDialog}
+            />
         </BaseCard>
     );
 };
