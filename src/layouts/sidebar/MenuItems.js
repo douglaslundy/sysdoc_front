@@ -49,7 +49,7 @@ const Menuitems = [
   },
   {
     title: "Viagens",
-    icon: "clock",
+    icon: "map-pin",
     href: "/trips",
     profile: ["admin", "tfd", "driver", "manager"],
   },
