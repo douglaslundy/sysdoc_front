@@ -82,7 +82,7 @@ async function tripsPDF(trips = []) {
             { text: '--------------------------------------------------------------------------------------------------------------------------------------------------------------------------', alignment: 'center' }
         ];
 
-        const dados = clients?.filter(cli => cli?.pivot?.is_confirmed)
+        const dados = clients?.filter(cli => cli?.pivot?.is_confirmed == true)
             .map(cli => [
                 { text: cli.name?.toUpperCase(), fontSize: 9 },
                 { text: cli?.pivot?.departure_location?.toUpperCase(), fontSize: 9 },

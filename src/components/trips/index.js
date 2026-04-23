@@ -225,7 +225,7 @@ export default () => {
               aria-label="add"
               disabled={allTrips.length <= 0}
             >
-              <FeatherIcon icon="file-text" />
+              <FeatherIcon icon="download" />
             </Fab>
           </>
         )}
