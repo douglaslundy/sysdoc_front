@@ -320,11 +320,11 @@ function gerarLinhaBPAI(item, numeroFolha, sequencia) {
 const CONFIG = {
   // Identificação do estabelecimento
   cnes:             '2794454',   // CNES completo com 7 dígitos
-  competencia:      '202503',    // AAAAMM — atualizar a cada competência
+  competencia:      '202603',    // AAAAMM — atualizar a cada competência
 
   // Dados do profissional executante padrão
-  cnsProfissional:  '704008832247760',
-  cbo:              '225125',
+  cnsProfissional:  '706807245644825',
+  cbo:              '225142',
 
   // Dados do cabeçalho
   orgaoResponsavel: 'SMS ILICINEA',                         // max 30 chars
@@ -427,7 +427,7 @@ export default function generateBPAIFile(trips) {
         procedimento,
 
         // Identificação básica do paciente
-        cnsPaciente: client.cns,
+        cnsPaciente: client?.cns ? client?.cns : client?.cpf,
         sexo,
         ibge:        addr.ibge_code || '313050', // fallback: Ilicínea/MG
         cid:         '',                          // CID não disponível neste fluxo
