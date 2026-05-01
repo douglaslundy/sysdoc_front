@@ -138,7 +138,8 @@ function gerarCabecalho(config, totalLinhas, totalFolhas, campoControle) {
   linha += padNum(config.cnpjCpf,           14);    // pos 066-079
   linha += padAlfa(config.orgaoDestino,     40);    // pos 080-119
   linha += padAlfa(config.indicadorDestino, 1);     // pos 120
-  linha += padAlfa(config.versaoSistema,    10);    // pos 121-130
+  // versão: permite letras, números e ponto — padAlfa removeria o '.'
+  linha += String(config.versaoSistema ?? '').padEnd(10, ' ').slice(0, 10); // pos 121-130
   linha += CRLF;                                    // pos 131-132
   return linha;
 }
@@ -295,20 +296,27 @@ function gerarLinhaBPAI(item, numeroFolha, sequencia) {
   // — Dados nominais e demográficos (exclusivos BPA-I) —
   linha += padAlfa(item.nomePaciente ?? '',     30);    // pos 113-142
   linha += padNum(item.dataNascimento ?? '',     8);    // pos 143-150
-  linha += padNum(item.racaCor ?? '99',          2);    // pos 151-152
-  linha += padNum(item.etnia ?? '',              4);    // pos 153-156 (só se raça=05)
+  linha += padNum(item.racaCor ?? '01',          2);    // pos 151-152: 01=Branca (padrão)
+  // etnia: só preencher se raça='05' (Indígena); caso contrário 4 espaços
+  const etnia = (item.racaCor === '05' && item.etnia)
+    ? padNum(item.etnia, 4)
+    : '    ';
+  linha += etnia;                                        // pos 153-156
   linha += padNum(item.nacionalidade ?? '010',   3);    // pos 157-159
 
   // — Serviço / Classificação —
-  linha += padNum(item.codigoServico ?? '',      3);    // pos 160-162
-  linha += padNum(item.codigoClassificacao ?? '',3);    // pos 163-165
+  // Campos opcionais de código: espaços quando não informados (zeros = inválido)
+  linha += item.codigoServico       ? padNum(item.codigoServico, 3)       : '   '; // pos 160-162
+  linha += item.codigoClassificacao ? padNum(item.codigoClassificacao, 3) : '   '; // pos 163-165
 
   // — Equipe —
-  linha += padNum(item.equipeSeq ?? '',          8);    // pos 166-173
-  linha += padNum(item.equipeArea ?? '',         4);    // pos 174-177
+  // Espaços quando não utiliza equipe (zeros causam erro de código inválido)
+  linha += item.equipeSeq  ? padNum(item.equipeSeq,  8) : '        '; // pos 166-173
+  linha += item.equipeArea ? padNum(item.equipeArea, 4) : '    ';     // pos 174-177
 
   // — CNPJ manutenção OPM —
-  linha += padNum(item.cnpjManutencao ?? '',     14);   // pos 178-191
+  // Espaços quando não há OPM vinculada (zeros não representam CNPJ vazio)
+  linha += item.cnpjManutencao ? padNum(item.cnpjManutencao, 14) : '              '; // pos 178-191
 
   // — Endereço —
   // CEP: fixo '37175000' (8 dígitos, sem traço)
@@ -327,9 +335,17 @@ function gerarLinhaBPAI(item, numeroFolha, sequencia) {
   linha += padNum(item.telefone ?? '',           11);   // pos 278-288
   linha += padAlfa(item.email ?? '',             40);   // pos 289-328
 
-  // — INE (obrigatório a partir de 08/2015) —
-  // Zeros se o estabelecimento não possui equipe vinculada
-  linha += padNum(item.ine ?? '',                10);   // pos 329-338
+  // — INE da equipe de saúde (obrigatório a partir de 08/2015) —
+  //
+  // REGRA:
+  //   Se o procedimento exige equipe no SIGTAP: informar o INE cadastrado no CNES.
+  //   Se não há equipe vinculada: 10 ESPAÇOS (campo vazio).
+  //
+  // ATENCAO: '0000000000' (10 zeros) é interpretado pelo BPA como "código de
+  // equipe inválido" e gera erro "EQUIPE INVALIDA OU OBRIGATORIA".
+  // Campo sem equipe DEVE ser 10 espaços, nunca zeros.
+  const ineValor = String(item.ine ?? '').trim();
+  linha += ineValor ? padNum(ineValor, 10) : '          '; // pos 329-338
 
   // — CPF do paciente (campo NOVO no BPA 04.00) —
   // Preenchido apenas quando o paciente não tem CNS (ver seção 5)
@@ -354,6 +370,13 @@ const CONFIG = {
 
   cnsProfissional:  '706807245644825',
   cbo:              '225142',
+
+  // INE da equipe de saúde vinculada ao estabelecimento no CNES.
+  // Verificar em: CNES > Equipes > INE da equipe responsável pelos procedimentos.
+  // Se o procedimento 0803010125/0803010109 exige equipe no SIGTAP,
+  // este campo é OBRIGATÓRIO. Deixar vazio ('') apenas se o procedimento
+  // não exige equipe — o campo será gravado como 10 espaços no arquivo.
+  ine:              '',                  // ex: '0000573280' — INE da equipe no CNES
 
   orgaoResponsavel: 'SMS ILICINEA',      // max 30 chars
   cnpjCpf:          '31305018239608',    // 14 dígitos numéricos
@@ -505,7 +528,7 @@ export default function generateBPAIFile(trips) {
         // Dados nominais
         nomePaciente:        client.name,
         dataNascimento,
-        racaCor:             '99',   // 99=sem informação
+        racaCor:             '01',   // 01=Branca (padrão; ajuste se disponível no dado)
         etnia:               '',
         nacionalidade:       '010',  // 010=brasileiro
         codigoServico:       '',
@@ -526,8 +549,8 @@ export default function generateBPAIFile(trips) {
         telefone: client.phone || '',
         email:    client.email || '',
 
-        // INE — zeros se não há equipe vinculada
-        ine: '',
+        // INE — usar CONFIG.ine se houver equipe vinculada; '' = 10 espaços no arquivo
+        ine: config.ine || '',
       };
 
       linhasGeradas.push(gerarLinhaBPAI(atendimento, numeroFolha, sequencia));
