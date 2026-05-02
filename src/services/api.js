@@ -1,13 +1,12 @@
 import axios from "axios";
-import { parseCookies } from 'nookies';
+import { parseCookies } from "nookies";
 
-const { 'sysvendas.token': token } = parseCookies();
+const { "sysvendas.token": token } = parseCookies();
 
 export const api = axios.create({
-    baseURL: 'https://www.dlsistemas.com.br/api'
-    // baseURL: 'http://localhost:8000/api'
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 if (token) {
-    api.defaults.headers['Authorization'] = `Bearer ${token}`;
+  api.defaults.headers["Authorization"] = `Bearer ${token}`;
 }
