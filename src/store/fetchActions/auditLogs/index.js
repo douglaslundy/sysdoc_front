@@ -1,16 +1,13 @@
 import { api } from '../../../services/api';
 import { setAuditLogs } from '../../ducks/auditLogs';
-import { turnLoading, addAlertMessage } from '../../ducks/Layout';
+import { addAlertMessage } from '../../ducks/Layout';
+import { apiAction } from '../helpers';
 
-export const getAuditLogs = (filters = {}, page = 1) => (dispatch) => {
-    dispatch(turnLoading());
-    api.get('/audit-logs', { params: { ...filters, page, per_page: 50 } })
-        .then(res => {
-            dispatch(setAuditLogs(res.data));
-            dispatch(turnLoading());
-        })
-        .catch(() => {
-            dispatch(addAlertMessage('Erro ao carregar logs de auditoria'));
-            dispatch(turnLoading());
-        });
-};
+export const getAuditLogs = (filters = {}, page = 1) =>
+    apiAction(
+        () => api.get('/audit-logs', { params: { ...filters, page, per_page: 50 } }),
+        {
+            onSuccess: (res, dispatch) => dispatch(setAuditLogs(res.data)),
+            onError: (_err, dispatch) => dispatch(addAlertMessage('Erro ao carregar logs de auditoria')),
+        }
+    );
