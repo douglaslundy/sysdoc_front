@@ -5,15 +5,17 @@ import Modal from '@mui/material/Modal';
 import {
     Grid, Stack, TextField, Button, FormControl, InputLabel, Select,
     MenuItem, Divider, Typography, Checkbox, FormControlLabel, Chip,
+    Alert, CircularProgress, InputAdornment, IconButton,
 } from '@mui/material';
+import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import BasicDatePicker from '../../inputs/datePicker';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
-import { getAllClients } from '../../../store/fetchActions/clients';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
+import api from '../../../services/api';
 
 const style = {
     position: 'absolute',
@@ -41,20 +43,43 @@ const FORM_INICIAL = {
 export default function PedidoModal(props) {
     const dispatch = useDispatch();
     const { isOpenModal } = useSelector(state => state.layout);
-    const { clients } = useSelector(state => state.clients);
     const { exames } = useSelector(state => state.exames);
     const { medicos } = useSelector(state => state.medicosSolicitantes);
 
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
+    const [cpfCns, setCpfCns] = useState('');
+    const [paciente, setPaciente] = useState(null);
+    const [buscandoPaciente, setBuscandoPaciente] = useState(false);
+    const [erroPaciente, setErroPaciente] = useState('');
 
     useEffect(() => {
         if (isOpenModal) {
-            dispatch(getAllClients());
             dispatch(getAllExames({ ativo: true, per_page: 200 }));
             dispatch(getAllMedicos({ all: true, ativo: true }));
         }
     }, [isOpenModal]);
+
+    const buscarPaciente = async () => {
+        const termo = cpfCns.replace(/\D/g, '');
+        if (termo.length < 6) {
+            setErroPaciente('Informe ao menos 6 dígitos do CPF ou CNS.');
+            return;
+        }
+        setBuscandoPaciente(true);
+        setErroPaciente('');
+        setPaciente(null);
+        try {
+            const res = await api.get('/clients/buscar-cpf-cns', { params: { q: termo } });
+            setPaciente(res.data);
+            setForm(f => ({ ...f, client_id: res.data.id }));
+        } catch (err) {
+            setErroPaciente(err.response?.data?.message || 'Paciente não encontrado.');
+            setForm(f => ({ ...f, client_id: '' }));
+        } finally {
+            setBuscandoPaciente(false);
+        }
+    };
 
     const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
 
@@ -77,6 +102,9 @@ export default function PedidoModal(props) {
     const cleanForm = () => {
         setForm({ ...FORM_INICIAL, data_pedido: new Date().toISOString().split('T')[0] });
         setBusca('');
+        setCpfCns('');
+        setPaciente(null);
+        setErroPaciente('');
         dispatch(turnModal());
     };
 
@@ -95,14 +123,52 @@ export default function PedidoModal(props) {
                         <Grid item xs={12}>
                             <BaseCard title="Novo Pedido de Exame">
                                 <Stack spacing={3}>
-                                    <FormControl required fullWidth>
-                                        <InputLabel>Paciente</InputLabel>
-                                        <Select name="client_id" value={form.client_id} label="Paciente" onChange={change}>
-                                            {clients.map(c => (
-                                                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                    {/* Busca de paciente por CPF/CNS */}
+                                    <Box>
+                                        <Typography variant="subtitle2" gutterBottom>Buscar Paciente</Typography>
+                                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                                            <TextField
+                                                label="CPF ou CNS do paciente"
+                                                value={cpfCns}
+                                                onChange={e => setCpfCns(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && buscarPaciente()}
+                                                size="small"
+                                                sx={{ flex: 1 }}
+                                                inputProps={{ maxLength: 20, autoComplete: 'off' }}
+                                                InputProps={{
+                                                    endAdornment: buscandoPaciente ? (
+                                                        <InputAdornment position="end">
+                                                            <CircularProgress size={18} />
+                                                        </InputAdornment>
+                                                    ) : null,
+                                                }}
+                                            />
+                                            <Button
+                                                variant="outlined"
+                                                onClick={buscarPaciente}
+                                                disabled={buscandoPaciente}
+                                                startIcon={<FeatherIcon icon="search" size={16} />}
+                                            >
+                                                Buscar
+                                            </Button>
+                                        </Stack>
+                                        {erroPaciente && (
+                                            <Alert severity="warning" sx={{ mt: 1 }}>{erroPaciente}</Alert>
+                                        )}
+                                        {paciente && (
+                                            <Alert severity="success" sx={{ mt: 1 }}
+                                                action={
+                                                    <IconButton size="small" onClick={() => { setPaciente(null); setCpfCns(''); setForm(f => ({ ...f, client_id: '' })); }}>
+                                                        <FeatherIcon icon="x" size={14} />
+                                                    </IconButton>
+                                                }
+                                            >
+                                                <strong>{paciente.name}</strong>
+                                                {paciente.cpf && ` — CPF: ${paciente.cpf}`}
+                                                {paciente.cns && ` — CNS: ${paciente.cns}`}
+                                            </Alert>
+                                        )}
+                                    </Box>
 
                                     <FormControl fullWidth>
                                         <InputLabel>Médico Solicitante</InputLabel>
