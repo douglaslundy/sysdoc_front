@@ -31,11 +31,13 @@ export default function MyApp(props) {
     setToken(cookieToken);
   }, [cookieToken, tokens]);
 
+  const PUBLIC_ROUTES = ["/login", "/consulta-exame"];
+
   function getToken() {
     const { "sysvendas.token": token } = parseCookies();
     if (token) {
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
-    } else {
+    } else if (!PUBLIC_ROUTES.includes(router.pathname)) {
       Router.push("/login");
     }
 

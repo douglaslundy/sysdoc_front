@@ -19,6 +19,11 @@ import tripsReducer from './ducks/trips';
 import qrcodelogsReducer from './ducks/qrcodelogs';
 import stateReducer from './ducks/states';
 import ordinancesReducer from './ducks/ordinances';
+import examesReducer from './ducks/exames';
+import exameCamposReducer from './ducks/exameCampos';
+import pedidosExameReducer from './ducks/pedidosExame';
+import resultadoExamesReducer from './ducks/resultadoExames';
+import categoriasExameReducer from './ducks/categoriasExame';
 
 
 export default configureStore({
@@ -41,6 +46,11 @@ export default configureStore({
         trips: tripsReducer,
         qrlogs: qrcodelogsReducer,
         states: stateReducer,
-        ordinances:ordinancesReducer
+        ordinances: ordinancesReducer,
+        exames: examesReducer,
+        exameCampos: exameCamposReducer,
+        pedidosExame: pedidosExameReducer,
+        resultadoExames: resultadoExamesReducer,
+        categoriasExame: categoriasExameReducer,
     },
 });

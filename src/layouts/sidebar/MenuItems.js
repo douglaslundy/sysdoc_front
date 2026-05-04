@@ -24,6 +24,24 @@ const Menuitems = [
     profile: ["admin", "user", "tfd"],
   },
   {
+    title: "Lab — Exames",
+    icon: "thermometer",
+    href: "/laboratorio/exames",
+    profile: ["admin", "manager"],
+  },
+  {
+    title: "Lab — Pedidos",
+    icon: "clipboard",
+    href: "/laboratorio/pedidos",
+    profile: ["admin", "manager", "user"],
+  },
+  {
+    title: "Lab — Categorias",
+    icon: "tag",
+    href: "/laboratorio/categorias",
+    profile: ["admin", "manager"],
+  },
+  {
     title: "Especialidades",
     icon: "award",
     href: "/specialities",
@@ -124,7 +142,7 @@ const Menuitems = [
     icon: "maximize",
     href: "/qrcodelogs",
     profile: ["admin"],
-  }
+  },
 ];
 
 export default Menuitems;
