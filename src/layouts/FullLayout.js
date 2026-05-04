@@ -73,7 +73,8 @@ const FullLayout = ({ children }) => {
           <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
             <AuthGuard
               requiredProfiles={
-                Menuitems.find(item => item.href === router.pathname)?.profile || []
+                Menuitems.flatMap(g => g.children)
+                  .find(item => item.href === router.pathname)?.profile || []
               }
             >
               {children}
