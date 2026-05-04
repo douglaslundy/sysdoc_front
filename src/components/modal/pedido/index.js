@@ -15,7 +15,7 @@ import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
-import api from '../../../services/api';
+import { api } from '../../../services/api';
 
 const style = {
     position: 'absolute',

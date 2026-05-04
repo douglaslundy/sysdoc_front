@@ -24,6 +24,12 @@ const Menuitems = [
     profile: ["admin"],
   },
   {
+    title: "Páginas do Sistema",
+    icon: "layout",
+    href: "/paginas-sistema",
+    profile: ["admin"],
+  },
+  {
     title: "Clientes",
     icon: "users",
     href: "/clients",

@@ -10,6 +10,7 @@ const INITIAL_STATE = {
   isOpenLetterModal: false,
   isOpenModalGetSales: false,
   isOpenModalGetSale: false,
+  isOpenResultadoModal: false,
   typeAlertIsSuccess: true,
   isOpenAlert: false,
   titleAlert: "Cadastro realizado com sucesso!",
@@ -30,6 +31,7 @@ export const turnModalViewLetter = createAction('IS_OPEN_LETTER_MODAL');
 export const turnModalGetSales = createAction('IS_OPEN_MODAL_GET_SALES');
 export const turnModalGetSale = createAction('IS_OPEN_MODAL_GET_SALE');
 
+export const turnResultadoModal = createAction('IS_OPEN_RESULTADO_MODAL');
 export const turnAlert = createAction('IS_OPEN_ALERT');
 export const alterTypeOfAlert = createAction('ALTER_TYPE_OF_ALERT');
 export const changeTitleAlert = createAction('CHANGE_TITLE_ALERT');
@@ -69,6 +71,9 @@ const uiReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(turnModalGetSales, (state) => {
       state.isOpenModalGetSales = !state.isOpenModalGetSales;
+    })
+    .addCase(turnResultadoModal, (state) => {
+      state.isOpenResultadoModal = !state.isOpenResultadoModal;
     })
     .addCase(turnAlert, (state) => {
       state.isOpenAlert = !state.isOpenAlert;

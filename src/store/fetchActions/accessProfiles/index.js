@@ -1,5 +1,5 @@
 import { api } from '../../../services/api';
-import { addProfiles, addProfile, editProfile, removeProfile, showProfile, addPages, setMyPermissions } from '../../ducks/accessProfiles';
+import { addProfiles, addProfile, editProfile, removeProfile, showProfile, addPages, addPage, editPage, removePage, setMyPermissions } from '../../ducks/accessProfiles';
 import { turnLoading, addMessage, addAlertMessage, turnAlert } from '../../ducks/Layout';
 
 export const getAllProfiles = () => (dispatch) => {
@@ -59,6 +59,53 @@ export const removeProfileFetch = (id) => (dispatch) => {
         })
         .catch(err => {
             dispatch(addAlertMessage(err?.response?.data?.message || 'Erro ao remover perfil'));
+            dispatch(turnLoading());
+        });
+};
+
+export const addPageFetch = (data, onSuccess) => (dispatch) => {
+    dispatch(turnLoading());
+    api.post('/system-pages', data)
+        .then(res => {
+            dispatch(addPage(res.data));
+            dispatch(addMessage(`Página "${res.data.titulo}" criada!`));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            onSuccess && onSuccess();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || 'Erro ao criar página'));
+            dispatch(turnLoading());
+        });
+};
+
+export const editPageFetch = (id, data, onSuccess) => (dispatch) => {
+    dispatch(turnLoading());
+    api.put(`/system-pages/${id}`, data)
+        .then(res => {
+            dispatch(editPage(res.data));
+            dispatch(addMessage(`Página "${res.data.titulo}" atualizada!`));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            onSuccess && onSuccess();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || 'Erro ao atualizar página'));
+            dispatch(turnLoading());
+        });
+};
+
+export const removePageFetch = (id) => (dispatch) => {
+    dispatch(turnLoading());
+    api.delete(`/system-pages/${id}`)
+        .then(() => {
+            dispatch(removePage({ id }));
+            dispatch(addMessage('Página removida!'));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || 'Erro ao remover página'));
             dispatch(turnLoading());
         });
 };

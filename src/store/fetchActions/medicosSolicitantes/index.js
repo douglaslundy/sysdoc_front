@@ -1,6 +1,6 @@
-import api from '../../../services/api';
+import { api } from '../../../services/api';
 import { addMedicos, addMedico, editMedico, removeMedico } from '../../ducks/medicosSolicitantes';
-import { showAlert } from '../../ducks/Alerts';
+import { addAlertMessage, changeTitleAlert, turnAlert, turnLoading } from '../../ducks/Layout';
 
 export const getAllMedicos = (params = {}) => async dispatch => {
     try {
@@ -8,42 +8,53 @@ export const getAllMedicos = (params = {}) => async dispatch => {
         const data = res.data;
         dispatch(addMedicos(Array.isArray(data) ? data : (data.data ?? [])));
     } catch {
-        dispatch(showAlert({ open: true, severity: 'error', message: 'Erro ao carregar médicos.' }));
+        dispatch(addAlertMessage('Erro ao carregar médicos.'));
     }
 };
 
-export const addMedicoFetch = (form, callback) => async dispatch => {
-    try {
-        const res = await api.post('/laboratorio/medicos', form);
-        dispatch(addMedico(res.data));
-        dispatch(showAlert({ open: true, severity: 'success', message: 'Médico cadastrado com sucesso!' }));
-        if (callback) callback();
-    } catch (err) {
-        const msg = err.response?.data?.message || 'Erro ao cadastrar médico.';
-        dispatch(showAlert({ open: true, severity: 'error', message: msg }));
-    }
+export const addMedicoFetch = (form, callback) => dispatch => {
+    dispatch(turnLoading());
+    api.post('/laboratorio/medicos', form)
+        .then(res => {
+            dispatch(addMedico(res.data));
+            dispatch(changeTitleAlert('Médico cadastrado com sucesso!'));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            if (callback) callback();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err.response?.data?.message || 'Erro ao cadastrar médico.'));
+            dispatch(turnLoading());
+        });
 };
 
-export const editMedicoFetch = (id, form, callback) => async dispatch => {
-    try {
-        const res = await api.put(`/laboratorio/medicos/${id}`, form);
-        dispatch(editMedico(res.data));
-        dispatch(showAlert({ open: true, severity: 'success', message: 'Médico atualizado com sucesso!' }));
-        if (callback) callback();
-    } catch (err) {
-        const msg = err.response?.data?.message || 'Erro ao atualizar médico.';
-        dispatch(showAlert({ open: true, severity: 'error', message: msg }));
-    }
+export const editMedicoFetch = (id, form, callback) => dispatch => {
+    dispatch(turnLoading());
+    api.put(`/laboratorio/medicos/${id}`, form)
+        .then(res => {
+            dispatch(editMedico(res.data));
+            dispatch(changeTitleAlert('Médico atualizado com sucesso!'));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            if (callback) callback();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err.response?.data?.message || 'Erro ao atualizar médico.'));
+            dispatch(turnLoading());
+        });
 };
 
-export const removeMedicoFetch = (id, callback) => async dispatch => {
-    try {
-        await api.delete(`/laboratorio/medicos/${id}`);
-        dispatch(removeMedico(id));
-        dispatch(showAlert({ open: true, severity: 'success', message: 'Médico removido com sucesso!' }));
-        if (callback) callback();
-    } catch (err) {
-        const msg = err.response?.data?.message || 'Erro ao remover médico.';
-        dispatch(showAlert({ open: true, severity: 'error', message: msg }));
-    }
+export const removeMedicoFetch = (id) => dispatch => {
+    dispatch(turnLoading());
+    api.delete(`/laboratorio/medicos/${id}`)
+        .then(() => {
+            dispatch(removeMedico(id));
+            dispatch(changeTitleAlert('Médico removido com sucesso!'));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err.response?.data?.message || 'Erro ao remover médico.'));
+            dispatch(turnLoading());
+        });
 };

@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BasicDatePicker from '../../inputs/datePicker';
-import api from '../../../services/api';
+import { api } from '../../../services/api';
 
 const STATUS_COLORS = {
     solicitado: 'warning',
