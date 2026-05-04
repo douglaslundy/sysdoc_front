@@ -48,6 +48,12 @@ const Menuitems = [
     profile: ["admin", "manager"],
   },
   {
+    title: "Lab — Agenda",
+    icon: "calendar",
+    href: "/laboratorio/agenda",
+    profile: ["admin", "manager", "user"],
+  },
+  {
     title: "Especialidades",
     icon: "award",
     href: "/specialities",
