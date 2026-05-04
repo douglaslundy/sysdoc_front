@@ -32,27 +32,27 @@
 
 ## 🐛 BUG FIXES
 
-- [ ] **FIX-01** — Meus Dados: `getUserFetch` despacha `res.data.users` mas API retorna `res.data` diretamente → trocar para `res.data`
+- [x] **FIX-01** — Meus Dados: `getUserFetch` despacha `res.data.users` mas API retorna `res.data` diretamente → trocar para `res.data`
   - Arquivo: `sysdoc_front/src/store/fetchActions/user/index.js` linha 77
   - Impacto: modal de edição do próprio perfil abre vazio e não salva
 
-- [ ] **FIX-02** — Exames: listagem retorna apenas 20 (paginação padrão da API) mas sistema tem 120+
+- [x] **FIX-02** — Exames: listagem retorna apenas 20 (paginação padrão da API) mas sistema tem 120+
   - API: `ExameController.php` usa `paginate(20)` por padrão
   - Frontend: `getAllExames()` chamado sem params → recebe só 1ª página
   - Fix: passar `per_page: 1000` no fetchAction do catálogo
 
-- [ ] **FIX-03** — Modais campo/referência fora do padrão do sistema
+- [x] **FIX-03** — Modais campo/referência fora do padrão do sistema
   - Arquivos: `GerenciarCampos.js` usa MUI `Dialog` (compact popup)
   - Padrão: `Modal + BaseCard` com style `{ width: '90%', height: '98%' }`
   - Fix: converter Dialog→Modal+BaseCard em ambos os modais
 
-- [ ] **FIX-04** — Ícones nas páginas de laboratório com tamanho diferente do padrão
+- [x] **FIX-04** — Ícones nas páginas de laboratório com tamanho diferente do padrão
   - Clientes usa: `<Button variant="contained">` + FeatherIcon `width="20" height="20"` + FAB sem `size`
   - Lab usa: `<IconButton size="small">` + FeatherIcon `size={16}` + `<Fab size="small">`
   - Fix: padronizar ícones para `width="20" height="20"` e FAB sem size="small"
   - Arquivos: exames/index.js, categorias/index.js, medicos/index.js
 
-- [ ] **FIX-05** — Títulos sem contagem de registros
+- [x] **FIX-05** — Títulos sem contagem de registros
   - Exames, Pedidos, Categorias, Médicos precisam mostrar qtd cadastrada no título
   - Modelo: `BaseCard title="Você possui X Registros Cadastrados"` (padrão clientes)
 
@@ -60,13 +60,13 @@
 
 ## 🔧 MELHORIAS
 
-- [ ] **MFG-01** — Autenticação: revisar e corrigir problemas
+- [x] **MFG-01** — Autenticação: revisar e corrigir problemas
   - Bug: `useContext(AuthContext)` em `_app.js` chamado fora do `AuthProvider`
   - Bug: rota `/showqueue/*` não está em `PUBLIC_ROUTES` → redireciona para login
   - Bug: qualquer erro de rede (500, timeout) destrói o cookie igual ao 401
   - Fix: corrigir PUBLIC_ROUTES, só destruir token em 401 real
   
-- [ ] **MFG-02** — Dashboard analítico: criar página `/dashboards` com gráficos
+- [x] **MFG-02** — Dashboard analítico: criar página `/dashboards` com gráficos
   - Gráficos sugeridos:
     - Pedidos por status (pizza/donut)
     - Pedidos por mês (linha/barra)
@@ -82,31 +82,31 @@
 
 ## 🆕 NOVAS FUNCIONALIDADES
 
-- [ ] **FEAT-01** — Seed de perfis de acesso com permissões baseadas no menu atual
+- [x] **FEAT-01** — Seed de perfis de acesso com permissões baseadas no menu atual
   - Criar tabela `profiles` com os 6 perfis (admin, manager, user, tfd, driver, partner)
   - Criar tabela `system_pages` com todas as páginas do sistema
   - Criar tabela `profile_page_permissions` (pivô)
   - Criar seeder populando com permissões atuais do MenuItems.js
   - Backend: 3 migrations + 1 seeder
 
-- [ ] **FEAT-02** — CRUD de perfis de acesso (admin gerencia perfis e páginas)
+- [x] **FEAT-02** — CRUD de perfis de acesso (admin gerencia perfis e páginas)
   - Backend: ProfileController, PageController, rotas
   - Frontend: página `/perfis` (admin only)
   - Modal de perfil: nome, descrição, lista de páginas com checkboxes
   - Menu: adicionar link "Perfis de Acesso" para admin
 
-- [ ] **FEAT-03** — CRUD de páginas do sistema
+- [x] **FEAT-03** — CRUD de páginas do sistema
   - Tabela `system_pages`: id, titulo, path, icone, categoria, ativo
   - Usar para controlar quais páginas são visíveis por perfil
   - Seeder populando com todas as páginas do MenuItems.js
 
-- [ ] **FEAT-04** — Regras de autorização nas páginas
+- [x] **FEAT-04** — Regras de autorização nas páginas
   - Componente `<AuthGuard>` que verifica se o perfil tem acesso à página atual
   - Se sem permissão: exibir componente `<UnauthorizedPage />`
   - Backend: endpoint `/api/auth/my-permissions` retornando array de paths permitidos
   - Frontend: usar no HOC de cada página protegida
 
-- [ ] **FEAT-05** — Redefinição de senha via link no email
+- [x] **FEAT-05** — Redefinição de senha via link no email
   - Backend:
     - Migration: `password_reset_tokens` (email, token, created_at)
     - Controller: `PasswordResetController` com métodos `sendLink` e `reset`
