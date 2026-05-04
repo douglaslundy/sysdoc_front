@@ -12,6 +12,8 @@ import BasicDatePicker from '../../inputs/datePicker';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
+import { getAllClients } from '../../../store/fetchActions/clients';
+import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
 
 const style = {
     position: 'absolute',
@@ -29,7 +31,7 @@ const style = {
 
 const FORM_INICIAL = {
     client_id: '',
-    medico_solicitante: '',
+    medico_solicitante_id: '',
     data_pedido: new Date().toISOString().split('T')[0],
     data_coleta: '',
     observacoes: '',
@@ -41,6 +43,7 @@ export default function PedidoModal(props) {
     const { isOpenModal } = useSelector(state => state.layout);
     const { clients } = useSelector(state => state.clients);
     const { exames } = useSelector(state => state.exames);
+    const { medicos } = useSelector(state => state.medicosSolicitantes);
 
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
@@ -48,7 +51,8 @@ export default function PedidoModal(props) {
     useEffect(() => {
         if (isOpenModal) {
             dispatch(getAllClients());
-            dispatch(getAllExames({ ativo: true, per_page: 100 }));
+            dispatch(getAllExames({ ativo: true, per_page: 200 }));
+            dispatch(getAllMedicos({ all: true, ativo: true }));
         }
     }, [isOpenModal]);
 
@@ -67,6 +71,8 @@ export default function PedidoModal(props) {
         e.nome?.toLowerCase().includes(busca.toLowerCase()) ||
         e.codigo?.toLowerCase().includes(busca.toLowerCase())
     );
+
+    const medicosAtivos = medicos.filter(m => m.ativo);
 
     const cleanForm = () => {
         setForm({ ...FORM_INICIAL, data_pedido: new Date().toISOString().split('T')[0] });
@@ -98,13 +104,22 @@ export default function PedidoModal(props) {
                                         </Select>
                                     </FormControl>
 
-                                    <TextField
-                                        label="Médico Solicitante"
-                                        name="medico_solicitante"
-                                        value={form.medico_solicitante}
-                                        onChange={change}
-                                        inputProps={{ maxLength: 100 }}
-                                    />
+                                    <FormControl fullWidth>
+                                        <InputLabel>Médico Solicitante</InputLabel>
+                                        <Select
+                                            name="medico_solicitante_id"
+                                            value={form.medico_solicitante_id}
+                                            label="Médico Solicitante"
+                                            onChange={change}
+                                        >
+                                            <MenuItem value=""><em>Nenhum</em></MenuItem>
+                                            {medicosAtivos.map(m => (
+                                                <MenuItem key={m.id} value={m.id}>
+                                                    {m.nome}{m.crm ? ` — CRM ${m.crm}${m.uf_crm ? '/' + m.uf_crm : ''}` : ''}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
 
                                     <Box display="flex" gap={2}>
                                         <BasicDatePicker

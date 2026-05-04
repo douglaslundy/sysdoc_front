@@ -42,6 +42,12 @@ const Menuitems = [
     profile: ["admin", "manager"],
   },
   {
+    title: "Lab — Médicos",
+    icon: "user-check",
+    href: "/laboratorio/medicos",
+    profile: ["admin", "manager"],
+  },
+  {
     title: "Especialidades",
     icon: "award",
     href: "/specialities",
