@@ -108,14 +108,13 @@ export default function SignIn() {
                     >
                         Entrar
                     </Button>
-                    {/* <Grid container>
-                        <Grid item xs>
-                            <Link href="#" variant="body2">
-                                Esqueci a senha?
+                    <Grid container justifyContent="center">
+                        <Grid item>
+                            <Link href="/esqueci-senha" variant="body2">
+                                Esqueceu a senha?
                             </Link>
                         </Grid>
-                        
-                    </Grid> */}
+                    </Grid>
                 </Box>
             </Box>
             <Copyright sx={{ mt: 8, mb: 4 }} />

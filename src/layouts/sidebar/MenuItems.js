@@ -6,9 +6,21 @@ const Menuitems = [
     profile: ["admin", "tfd", "manager", "user", "partner", "driver"],
   },
   {
+    title: "Dashboards",
+    icon: "pie-chart",
+    href: "/dashboards",
+    profile: ["admin", "manager"],
+  },
+  {
     title: "Usuarios",
     icon: "user",
     href: "/users",
+    profile: ["admin"],
+  },
+  {
+    title: "Perfis de Acesso",
+    icon: "shield",
+    href: "/perfis",
     profile: ["admin"],
   },
   {

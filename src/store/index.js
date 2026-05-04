@@ -25,6 +25,7 @@ import pedidosExameReducer from './ducks/pedidosExame';
 import resultadoExamesReducer from './ducks/resultadoExames';
 import categoriasExameReducer from './ducks/categoriasExame';
 import medicosSolicitantesReducer from './ducks/medicosSolicitantes';
+import accessProfilesReducer from './ducks/accessProfiles';
 
 
 export default configureStore({
@@ -54,5 +55,6 @@ export default configureStore({
         resultadoExames: resultadoExamesReducer,
         categoriasExame: categoriasExameReducer,
         medicosSolicitantes: medicosSolicitantesReducer,
+        accessProfiles: accessProfilesReducer,
     },
 });

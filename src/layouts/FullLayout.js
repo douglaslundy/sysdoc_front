@@ -10,11 +10,13 @@ import Header from "./header/Header";
 import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
 import { useRouter } from "next/router";
+import Menuitems from "./sidebar/MenuItems";
+import AuthGuard from "../components/authGuard";
 
 const MainWrapper = experimentalStyled("div")(() => ({
   display: "flex",
   minHeight: "100vh",
-  overflow: "hidden",
+  overflowX: "hidden",
   width: "100%",
   flexDirection: "column",
 }));
@@ -68,7 +70,15 @@ const FullLayout = ({ children }) => {
             pb: 3,
           }}
         >
-          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
+          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
+            <AuthGuard
+              requiredProfiles={
+                Menuitems.find(item => item.href === router.pathname)?.profile || []
+              }
+            >
+              {children}
+            </AuthGuard>
+          </Box>
 
           {isSidebarOpen && <Footer />}
         </Container>
