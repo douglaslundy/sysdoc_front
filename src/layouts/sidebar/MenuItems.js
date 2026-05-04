@@ -78,6 +78,7 @@ const Menuitems = [
     icon: "settings",
     group: true,
     children: [
+      { title: "Auditoria",       icon: "eye",           href: "/auditoria",     profile: ["admin"] },
       { title: "Serviços",        icon: "tool",          href: "/service_calls", profile: ["admin"] },
       { title: "Logs",            icon: "clipboard",     href: "/logs",          profile: ["admin"] },
       { title: "Logs de Erro",    icon: "alert-triangle", href: "/errorlogs",    profile: ["admin"] },
