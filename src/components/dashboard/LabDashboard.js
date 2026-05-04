@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
 import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
@@ -81,29 +81,28 @@ export default function LabDashboard() {
         );
     }
 
-    const { totais, pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos } = dados;
+    const { totais } = dados;
 
-    // Pedidos por mês
-    const { meses: mesesPedidos, valores: valoresPedidos } = gerarMeses(pedidos_por_mes || {});
-    // Clientes por mês
-    const { meses: mesesClientes, valores: valoresClientes } = gerarMeses(clientes_por_mes || {});
+    const chart = useMemo(() => {
+        const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos } = dados;
 
-    // Pedidos por status (donut)
-    const statusLabels = Object.keys(pedidos_por_status || {});
-    const statusValues = Object.values(pedidos_por_status || {});
-    const statusCores  = statusLabels.map(s => CORES_STATUS[s] || '#607d8b');
+        const statusLabels = Object.keys(pedidos_por_status || {});
 
-    // Top exames (barra horizontal)
-    const topExameNomes  = (top_exames || []).map(e => e.codigo || e.nome).reverse();
-    const topExameVals   = (top_exames || []).map(e => e.total).reverse();
-
-    // Categorias (barra)
-    const catNomes = (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20));
-    const catVals  = (pedidos_por_categoria || []).map(c => c.total);
-
-    // Médicos (barra horizontal)
-    const medicoNomes = (top_medicos || []).map(m => m.nome.split(' ').slice(0, 2).join(' ')).reverse();
-    const medicoVals  = (top_medicos || []).map(m => m.total).reverse();
+        return {
+            pedidos:      gerarMeses(pedidos_por_mes || {}),
+            clientes:     gerarMeses(clientes_por_mes || {}),
+            statusLabels,
+            statusValues: Object.values(pedidos_por_status || {}),
+            statusCores:  statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
+            topExameNomes: (top_exames || []).map(e => e.codigo || e.nome).reverse(),
+            topExameVals:  (top_exames || []).map(e => e.total).reverse(),
+            catNomes:      (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
+            catVals:       (pedidos_por_categoria || []).map(c => c.total),
+            medicoNomes:   (top_medicos || []).map(m => m.nome.split(' ').slice(0, 2).join(' ')).reverse(),
+            medicoVals:    (top_medicos || []).map(m => m.total).reverse(),
+            resultados:    resultados_status,
+        };
+    }, [dados]);
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
@@ -136,19 +135,19 @@ export default function LabDashboard() {
                 {/* Pedidos por status - Donut */}
                 <Grid item xs={12} md={4}>
                     <BaseCard title="Pedidos por Status">
-                        {statusLabels.length > 0 ? (
+                        {chart.statusLabels.length > 0 ? (
                             <Chart
                                 type="donut"
                                 height={280}
                                 options={{
-                                    labels: statusLabels,
-                                    colors: statusCores,
+                                    labels: chart.statusLabels,
+                                    colors: chart.statusCores,
                                     chart: { ...chartFont, ...toolbarOff },
                                     legend: { position: 'bottom' },
                                     dataLabels: { enabled: true },
                                     tooltip: { theme: 'dark' },
                                 }}
-                                series={statusValues}
+                                series={chart.statusValues}
                             />
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
@@ -176,8 +175,8 @@ export default function LabDashboard() {
                                 tooltip: { theme: 'dark' },
                             }}
                             series={[
-                                resultados_status.liberados,
-                                resultados_status.pendentes,
+                                chart.resultados.liberados,
+                                chart.resultados.pendentes,
                             ]}
                         />
                     </BaseCard>
@@ -186,7 +185,7 @@ export default function LabDashboard() {
                 {/* Top médicos */}
                 <Grid item xs={12} md={4}>
                     <BaseCard title="Top 5 Médicos Solicitantes">
-                        {medicoNomes.length > 0 ? (
+                        {chart.medicoNomes.length > 0 ? (
                             <Chart
                                 type="bar"
                                 height={280}
@@ -194,11 +193,11 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#9c27b0'],
-                                    xaxis: { categories: medicoNomes },
+                                    xaxis: { categories: chart.medicoNomes },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
-                                series={[{ name: 'Pedidos', data: medicoVals }]}
+                                series={[{ name: 'Pedidos', data: chart.medicoVals }]}
                             />
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
@@ -213,14 +212,14 @@ export default function LabDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#2196f3'],
-                                xaxis: { categories: mesesPedidos },
+                                xaxis: { categories: chart.pedidos.meses },
                                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
                                 stroke: { curve: 'smooth', width: 3 },
                                 dataLabels: { enabled: false },
                                 tooltip: { theme: 'dark' },
                                 grid: { borderColor: 'transparent' },
                             }}
-                            series={[{ name: 'Pedidos', data: valoresPedidos }]}
+                            series={[{ name: 'Pedidos', data: chart.pedidos.valores }]}
                         />
                     </BaseCard>
                 </Grid>
@@ -234,14 +233,14 @@ export default function LabDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#4caf50'],
-                                xaxis: { categories: mesesClientes },
+                                xaxis: { categories: chart.clientes.meses },
                                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
                                 stroke: { curve: 'smooth', width: 3 },
                                 dataLabels: { enabled: false },
                                 tooltip: { theme: 'dark' },
                                 grid: { borderColor: 'transparent' },
                             }}
-                            series={[{ name: 'Clientes', data: valoresClientes }]}
+                            series={[{ name: 'Clientes', data: chart.clientes.valores }]}
                         />
                     </BaseCard>
                 </Grid>
@@ -249,7 +248,7 @@ export default function LabDashboard() {
                 {/* Top 10 exames */}
                 <Grid item xs={12} md={7}>
                     <BaseCard title="Top 10 Exames Mais Solicitados">
-                        {topExameNomes.length > 0 ? (
+                        {chart.topExameNomes.length > 0 ? (
                             <Chart
                                 type="bar"
                                 height={320}
@@ -257,11 +256,11 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#ff9800'],
-                                    xaxis: { categories: topExameNomes },
+                                    xaxis: { categories: chart.topExameNomes },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
-                                series={[{ name: 'Solicitações', data: topExameVals }]}
+                                series={[{ name: 'Solicitações', data: chart.topExameVals }]}
                             />
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
@@ -270,7 +269,7 @@ export default function LabDashboard() {
                 {/* Pedidos por categoria */}
                 <Grid item xs={12} md={5}>
                     <BaseCard title="Pedidos por Categoria de Exame">
-                        {catNomes.length > 0 ? (
+                        {chart.catNomes.length > 0 ? (
                             <Chart
                                 type="bar"
                                 height={320}
@@ -279,13 +278,13 @@ export default function LabDashboard() {
                                     plotOptions: { bar: { horizontal: false, borderRadius: 4 } },
                                     colors: ['#2196f3'],
                                     xaxis: {
-                                        categories: catNomes,
+                                        categories: chart.catNomes,
                                         labels: { rotate: -30, style: { fontSize: '11px' } },
                                     },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
-                                series={[{ name: 'Pedidos', data: catVals }]}
+                                series={[{ name: 'Pedidos', data: chart.catVals }]}
                             />
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
