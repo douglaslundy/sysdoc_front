@@ -74,7 +74,7 @@ export const getUserFetch = (user) => {
             api.get(`/users/${user}`)
                 .then((res) =>
                 (
-                    dispatch(showUser(res.data.users)),
+                    dispatch(showUser(res.data)),
                     dispatch(turnLoading()),
                 ))
                 .catch((error) => {

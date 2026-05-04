@@ -6,7 +6,7 @@ import { addAlertMessage, addMessage, turnAlert } from '../../ducks/Layout';
 export const getAllExames = (params = {}) => {
     return (dispatch) => {
         dispatch(turnLoading());
-        api.get('/laboratorio/exames', { params })
+        api.get('/laboratorio/exames', { params: { per_page: 1000, ...params } })
             .then((res) => {
                 dispatch(addExames(res.data.data));
                 dispatch(setExamePagination({

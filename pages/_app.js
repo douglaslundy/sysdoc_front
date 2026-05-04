@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
 import { CacheProvider } from "@emotion/react";
@@ -12,48 +12,49 @@ import Messages from "../src/components/messages";
 import AlertDialog from "../src/components/alertDialog";
 import Loading from "../src/components/loading";
 import { parseCookies, destroyCookie } from "nookies";
-import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
+import { AuthProvider } from "../src/contexts/AuthContext";
 import { api } from "../src/services/api";
 import Router, { useRouter } from "next/router";
-import { CustomThemeProvider } from "../src/contexts/ThemeContext"; // ← novo
+import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 
 const clientSideEmotionCache = createEmotionCache();
+
+// Rotas que não requerem autenticação
+const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/esqueci-senha", "/redefinir-senha"];
+
+function isPublicRoute(pathname) {
+  return PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/showqueue");
+}
 
 export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
   const [token, setToken] = useState();
-  const { "sysvendas.token": cookieToken } = parseCookies();
-  const { tokens } = useContext(AuthContext);
 
   useEffect(() => {
-    getToken();
+    const { "sysvendas.token": cookieToken } = parseCookies();
     setToken(cookieToken);
-  }, [cookieToken, tokens]);
 
-  const PUBLIC_ROUTES = ["/login", "/consulta-exame"];
-
-  function getToken() {
-    const { "sysvendas.token": token } = parseCookies();
-    if (token) {
-      api.defaults.headers["Authorization"] = `Bearer ${token}`;
-    } else if (!PUBLIC_ROUTES.includes(router.pathname)) {
+    if (cookieToken) {
+      api.defaults.headers["Authorization"] = `Bearer ${cookieToken}`;
+      // Validar token apenas em rotas protegidas
+      if (!isPublicRoute(router.pathname)) {
+        api.post("/validate").catch((error) => {
+          if (error.response && error.response.status === 401) {
+            destroyCookie(null, "sysvendas.id");
+            destroyCookie(null, "sysvendas.token");
+            destroyCookie(null, "sysvendas.username");
+            destroyCookie(null, "sysvendas.profile");
+            setToken(undefined);
+            Router.push("/login");
+          }
+          // Erros de rede (500, timeout) não destroem a sessão
+        });
+      }
+    } else if (!isPublicRoute(router.pathname)) {
       Router.push("/login");
     }
-
-    api
-      .post("/validate", token)
-      .catch((error) => {
-        const erro = "Request failed with status code 401";
-        if (erro === error.message) {
-          destroyCookie(null, "sysvendas.id");
-          destroyCookie(null, "sysvendas.token");
-          destroyCookie(null, "sysvendas.username");
-          destroyCookie(null, "sysvendas.profile");
-          Router.push("/login");
-        }
-      });
-  }
+  }, [router.pathname]);
 
   return (
     <CacheProvider value={emotionCache}>
@@ -63,7 +64,7 @@ export default function MyApp(props) {
       </Head>
       <Provider store={store}>
         <AuthProvider>
-          <CustomThemeProvider> {/* ← agora o tema vem daqui */}
+          <CustomThemeProvider>
             {token ? (
               <>
                 <CssBaseline />

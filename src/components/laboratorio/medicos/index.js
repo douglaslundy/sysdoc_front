@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Card, CardContent, Chip, Fab, IconButton, Table, TableBody,
-    TableCell, TableContainer, TableHead, TablePagination, TableRow,
-    TextField, Typography,
+    Box, Button, Chip, Fab, Table, TableBody, TableCell, TableContainer,
+    TableHead, TablePagination, TableRow, TextField, Typography,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -11,6 +10,7 @@ import { showMedico } from '../../../store/ducks/medicosSolicitantes';
 import { turnModal } from '../../../store/ducks/Layout';
 import MedicoSolicitanteModal from '../../modal/medicoSolicitante';
 import AlertModal from '../../messagesModal';
+import BaseCard from '../../baseCard/BaseCard';
 
 export default function MedicosSolicitantes() {
     const dispatch = useDispatch();
@@ -42,95 +42,106 @@ export default function MedicosSolicitantes() {
 
     return (
         <MedicoSolicitanteModal>
-            <Card>
+            <BaseCard title={`Você possui ${medicos.length} Médicos Cadastrados`}>
                 <AlertModal />
-                <Box p={2} display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                    <Typography variant="h4">Médicos Solicitantes</Typography>
-                    <Box display="flex" gap={1} alignItems="center">
-                        <TextField
-                            size="small"
-                            placeholder="Buscar médico..."
-                            value={busca}
-                            onChange={e => setBusca(e.target.value)}
-                            inputProps={{ maxLength: 80 }}
-                        />
-                        <Fab color="primary" size="small" title="Novo Médico" onClick={handleNovo}>
-                            <FeatherIcon icon="plus" size={18} />
-                        </Fab>
-                    </Box>
+                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
+                    <TextField
+                        size="small"
+                        placeholder="Buscar médico..."
+                        value={busca}
+                        onChange={e => setBusca(e.target.value)}
+                        inputProps={{ maxLength: 80 }}
+                        sx={{ minWidth: 280 }}
+                    />
+                    <Fab color="primary" title="Novo Médico" onClick={handleNovo}>
+                        <FeatherIcon icon="plus" />
+                    </Fab>
                 </Box>
-                <CardContent sx={{ pt: 0 }}>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell><Typography variant="h6">Nome</Typography></TableCell>
-                                    <TableCell><Typography variant="h6">CRM / UF</Typography></TableCell>
-                                    <TableCell><Typography variant="h6">Especialidade</Typography></TableCell>
-                                    <TableCell align="center"><Typography variant="h6">Status</Typography></TableCell>
-                                    <TableCell align="center"><Typography variant="h6">Ações</Typography></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filtrados
-                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    .map(medico => (
-                                        <TableRow key={medico.id} hover>
-                                            <TableCell>
-                                                <Typography fontWeight="bold">{medico.nome}</Typography>
-                                                {medico.telefone && (
-                                                    <Typography variant="caption" color="text.secondary">{medico.telefone}</Typography>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
+                <TableContainer>
+                    <Table aria-label="medicos" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><Typography color="textSecondary" variant="h6">Nome</Typography></TableCell>
+                                <TableCell><Typography color="textSecondary" variant="h6">CRM / UF</Typography></TableCell>
+                                <TableCell><Typography color="textSecondary" variant="h6">Especialidade</Typography></TableCell>
+                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
+                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {filtrados
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map(medico => (
+                                    <TableRow key={medico.id} hover>
+                                        <TableCell>
+                                            <Typography variant="h6" sx={{ fontWeight: 600 }}>{medico.nome}</Typography>
+                                            {medico.telefone && (
+                                                <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{medico.telefone}</Typography>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="h6">
                                                 {medico.crm
                                                     ? `${medico.crm}${medico.uf_crm ? '/' + medico.uf_crm : ''}`
-                                                    : <Typography color="text.secondary" variant="caption">—</Typography>
+                                                    : '—'
                                                 }
-                                            </TableCell>
-                                            <TableCell>
-                                                {medico.especialidade || <Typography color="text.secondary" variant="caption">—</Typography>}
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                <Chip
-                                                    label={medico.ativo ? 'Ativo' : 'Inativo'}
-                                                    color={medico.ativo ? 'success' : 'error'}
-                                                    size="small"
-                                                />
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                <IconButton size="small" title="Editar" onClick={() => handleEditar(medico)}>
-                                                    <FeatherIcon icon="edit-2" size={16} />
-                                                </IconButton>
-                                                <IconButton size="small" title="Remover" color="error"
-                                                    onClick={() => dispatch(removeMedicoFetch(medico.id))}>
-                                                    <FeatherIcon icon="trash-2" size={16} />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                {filtrados.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} align="center">
-                                            <Typography color="text.secondary">Nenhum médico encontrado</Typography>
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="h6">{medico.especialidade || '—'}</Typography>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Chip
+                                                label={medico.ativo ? 'Ativo' : 'Inativo'}
+                                                color={medico.ativo ? 'success' : 'error'}
+                                                size="small"
+                                            />
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Box sx={{ '& button': { mx: 1 } }}>
+                                                <Button
+                                                    title="Editar médico"
+                                                    onClick={() => handleEditar(medico)}
+                                                    color="success"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    <FeatherIcon icon="edit" width="20" height="20" />
+                                                </Button>
+                                                <Button
+                                                    title="Remover médico"
+                                                    onClick={() => dispatch(removeMedicoFetch(medico.id))}
+                                                    color="error"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    <FeatherIcon icon="trash" width="20" height="20" />
+                                                </Button>
+                                            </Box>
                                         </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                        <TablePagination
-                            component="div"
-                            count={filtrados.length}
-                            page={page}
-                            onPageChange={(_, p) => setPage(p)}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-                            rowsPerPageOptions={[10, 15, 25]}
-                            labelRowsPerPage="Por página:"
-                        />
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                                ))}
+                            {filtrados.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} align="center">
+                                        <Typography color="text.secondary">Nenhum médico encontrado</Typography>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    <TablePagination
+                        component="div"
+                        count={filtrados.length}
+                        page={page}
+                        onPageChange={(_, p) => setPage(p)}
+                        rowsPerPage={rowsPerPage}
+                        onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+                        rowsPerPageOptions={[10, 15, 25]}
+                        labelRowsPerPage="Por página:"
+                    />
+                </TableContainer>
+            </BaseCard>
         </MedicoSolicitanteModal>
     );
 }

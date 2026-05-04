@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Chip, Fab, IconButton, Table, TableBody, TableCell,
-    TableContainer, TableHead, TablePagination, TableRow, TextField,
-    Typography, Card, CardContent,
+    Box, Button, Chip, Fab, Table, TableBody, TableCell,
+    TableContainer, TableHead, TablePagination, TableRow, TextField, Typography,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -11,6 +10,7 @@ import { showExame } from '../../../store/ducks/exames';
 import { turnModal } from '../../../store/ducks/Layout';
 import ExameModal from '../../modal/exame';
 import AlertModal from '../../messagesModal';
+import BaseCard from '../../baseCard/BaseCard';
 
 const STATUS_CORES = { true: 'success', false: 'error' };
 
@@ -47,87 +47,103 @@ export default function ExameCatalogo() {
 
     return (
         <ExameModal>
-            <Card>
+            <BaseCard title={`Você possui ${exames.length} Exames Cadastrados`}>
                 <AlertModal />
-                <Box p={2} display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                    <Typography variant="h4">Catálogo de Exames</Typography>
-                    <Box display="flex" gap={1} alignItems="center">
-                        <TextField
-                            size="small"
-                            placeholder="Buscar por nome ou código"
-                            value={busca}
-                            onChange={e => setBusca(e.target.value)}
-                            inputProps={{ maxLength: 60 }}
-                        />
-                        <Fab color="primary" size="small" title="Novo Exame" onClick={handleNovoExame}>
-                            <FeatherIcon icon="plus" size={18} />
-                        </Fab>
-                    </Box>
+                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
+                    <TextField
+                        size="small"
+                        placeholder="Buscar por nome ou código"
+                        value={busca}
+                        onChange={e => setBusca(e.target.value)}
+                        inputProps={{ maxLength: 60 }}
+                        sx={{ minWidth: 280 }}
+                    />
+                    <Fab color="primary" title="Novo Exame" onClick={handleNovoExame}>
+                        <FeatherIcon icon="plus" />
+                    </Fab>
                 </Box>
-                <CardContent sx={{ pt: 0 }}>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell><Typography variant="h6">Nome / Código</Typography></TableCell>
-                                    <TableCell><Typography variant="h6">Categoria</Typography></TableCell>
-                                    <TableCell align="center"><Typography variant="h6">Status</Typography></TableCell>
-                                    <TableCell align="center"><Typography variant="h6">Ações</Typography></TableCell>
+                <TableContainer>
+                    <Table aria-label="exames" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><Typography color="textSecondary" variant="h6">Nome / Código</Typography></TableCell>
+                                <TableCell><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
+                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
+                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {filtrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(exame => (
+                                <TableRow key={exame.id} hover>
+                                    <TableCell>
+                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>{exame.nome}</Typography>
+                                        <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{exame.codigo}</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="h6">{exame.categoriaExame?.nome || '—'}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Chip
+                                            label={exame.ativo ? 'Ativo' : 'Inativo'}
+                                            color={STATUS_CORES[exame.ativo]}
+                                            size="small"
+                                            onClick={() => handleToggleAtivo(exame)}
+                                        />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Box sx={{ '& button': { mx: 1 } }}>
+                                            <Button
+                                                title="Editar exame"
+                                                onClick={() => handleEditarExame(exame)}
+                                                color="success"
+                                                size="medium"
+                                                variant="contained"
+                                            >
+                                                <FeatherIcon icon="edit" width="20" height="20" />
+                                            </Button>
+                                            <Button
+                                                title="Gerenciar campos"
+                                                onClick={() => { window.location.href = `/laboratorio/exames/${exame.id}/campos`; }}
+                                                color="info"
+                                                size="medium"
+                                                variant="contained"
+                                            >
+                                                <FeatherIcon icon="list" width="20" height="20" />
+                                            </Button>
+                                            <Button
+                                                title="Remover exame"
+                                                onClick={() => dispatch(removeExameFetch(exame.id))}
+                                                color="error"
+                                                size="medium"
+                                                variant="contained"
+                                            >
+                                                <FeatherIcon icon="trash" width="20" height="20" />
+                                            </Button>
+                                        </Box>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filtrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(exame => (
-                                    <TableRow key={exame.id} hover>
-                                        <TableCell>
-                                            <Typography fontWeight="bold">{exame.nome}</Typography>
-                                            <Typography variant="caption" color="text.secondary">{exame.codigo}</Typography>
-                                        </TableCell>
-                                        <TableCell>{exame.categoria || '—'}</TableCell>
-                                        <TableCell align="center">
-                                            <Chip
-                                                label={exame.ativo ? 'Ativo' : 'Inativo'}
-                                                color={STATUS_CORES[exame.ativo]}
-                                                size="small"
-                                                onClick={() => handleToggleAtivo(exame)}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <IconButton size="small" title="Editar" onClick={() => handleEditarExame(exame)}>
-                                                <FeatherIcon icon="edit-2" size={16} />
-                                            </IconButton>
-                                            <IconButton size="small" title="Gerenciar campos" onClick={() => {
-                                                window.location.href = `/laboratorio/exames/${exame.id}/campos`;
-                                            }}>
-                                                <FeatherIcon icon="list" size={16} />
-                                            </IconButton>
-                                            <IconButton size="small" title="Remover" color="error" onClick={() => dispatch(removeExameFetch(exame.id))}>
-                                                <FeatherIcon icon="trash-2" size={16} />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {filtrados.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={4} align="center">
-                                            <Typography color="text.secondary">Nenhum exame encontrado</Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                        <TablePagination
-                            component="div"
-                            count={filtrados.length}
-                            page={page}
-                            onPageChange={(_, p) => setPage(p)}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-                            rowsPerPageOptions={[10, 15, 25]}
-                            labelRowsPerPage="Por página:"
-                        />
-                    </TableContainer>
-                </CardContent>
-            </Card>
+                            ))}
+                            {filtrados.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center">
+                                        <Typography color="text.secondary">Nenhum exame encontrado</Typography>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    <TablePagination
+                        component="div"
+                        count={filtrados.length}
+                        page={page}
+                        onPageChange={(_, p) => setPage(p)}
+                        rowsPerPage={rowsPerPage}
+                        onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+                        rowsPerPageOptions={[10, 15, 25, 50]}
+                        labelRowsPerPage="Por página:"
+                    />
+                </TableContainer>
+            </BaseCard>
         </ExameModal>
     );
 }
