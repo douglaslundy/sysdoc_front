@@ -13,7 +13,7 @@ import AlertDialog from "../src/components/alertDialog";
 import Loading from "../src/components/loading";
 import { parseCookies, destroyCookie } from "nookies";
 import { AuthProvider } from "../src/contexts/AuthContext";
-import { api } from "../src/services/api";
+import { setAuthToken } from "../src/services/api";
 import Router, { useRouter } from "next/router";
 import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 
@@ -29,31 +29,39 @@ function isPublicRoute(pathname) {
 export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
-  const [token, setToken] = useState();
+  // sysvendas.id is a non-httpOnly cookie — safe to read client-side, used only to
+  // detect "probably authenticated" so the layout renders immediately without a flash.
+  const { "sysvendas.id": userId } = parseCookies();
+  const [token, setToken] = useState(
+    isPublicRoute(router.pathname) ? 'public' : (userId ? 'hydrating' : undefined)
+  );
 
   useEffect(() => {
-    const { "sysvendas.token": cookieToken } = parseCookies();
-    setToken(cookieToken);
-
-    if (cookieToken) {
-      api.defaults.headers["Authorization"] = `Bearer ${cookieToken}`;
-      // Validar token apenas em rotas protegidas
-      if (!isPublicRoute(router.pathname)) {
-        api.post("/validate").catch((error) => {
-          if (error.response && error.response.status === 401) {
-            destroyCookie(null, "sysvendas.id");
-            destroyCookie(null, "sysvendas.token");
-            destroyCookie(null, "sysvendas.username");
-            destroyCookie(null, "sysvendas.profile");
-            setToken(undefined);
-            Router.push("/login");
-          }
-          // Erros de rede (500, timeout) não destroem a sessão
-        });
-      }
-    } else if (!isPublicRoute(router.pathname)) {
-      Router.push("/login");
+    if (isPublicRoute(router.pathname)) {
+      setToken('public');
+      return;
     }
+
+    // Token is httpOnly — cannot be read via parseCookies() on client.
+    // BFF /api/auth/me reads the httpOnly cookie server-side and validates it.
+    fetch('/api/auth/me')
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          setAuthToken(data.token);
+          setToken(data.token);
+        } else {
+          destroyCookie(null, "sysvendas.id");
+          destroyCookie(null, "sysvendas.username");
+          destroyCookie(null, "sysvendas.profile");
+          setToken(undefined);
+          Router.push("/login");
+        }
+      })
+      .catch(() => {
+        // Network error — keep current session to avoid unnecessary logouts
+        setToken('unknown');
+      });
   }, [router.pathname]);
 
   return (

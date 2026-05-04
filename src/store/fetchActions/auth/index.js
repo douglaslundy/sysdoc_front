@@ -1,70 +1,58 @@
-import { api } from "../../../services/api";
 import { turnLoading, addAlertMessage } from "../../ducks/Layout";
+import { setAuthToken } from "../../../services/api";
 import Router from "next/router";
-import { setCookie, destroyCookie } from 'nookies'
+import { destroyCookie } from 'nookies';
 
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
-        dispatch(turnLoading())
-        api.post('/login', dataUser)
-            .then((res) =>
-            (
+        dispatch(turnLoading());
 
-                setCookie(undefined, 'sysvendas.token', res.data.token, {
-                    maxAge: 60 * 60 * 72,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                }),
-
-                setCookie(undefined, 'sysvendas.id', res.data.user.id, {
-                    maxAge: 60 * 60 * 72,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                }),
-                setCookie(undefined, 'sysvendas.username', res.data.user.name, {
-                    maxAge: 60 * 60 * 72,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                }),
-
-                setCookie(undefined, 'sysvendas.profile', res.data.user.profile, {
-                    maxAge: 60 * 60 * 72,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                }),
-
-
-                dispatch(turnLoading()),
-                Router.push('/')
-            ))
-            .catch((error) => {
-
-                // dispatch(addAlertMessage(error ? ` ${error} ` : 'Erro desconhecido'));
-                dispatch(addAlertMessage(error.response ? ` ${error.response.data.message} ` : 'Erro desconhecido'));
+        fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataUser),
+        })
+            .then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) {
+                    dispatch(addAlertMessage(data.message || 'Erro desconhecido'));
+                    dispatch(turnLoading());
+                    return;
+                }
+                // Token is in httpOnly cookie; hydrate axios in-memory via /me
+                const meRes = await fetch('/api/auth/me');
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    setAuthToken(meData.token);
+                }
                 dispatch(turnLoading());
-                return error.response ? error.response.data : 'erro desconhecido';
+                Router.push('/');
             })
+            .catch(() => {
+                dispatch(addAlertMessage('Erro ao conectar ao servidor'));
+                dispatch(turnLoading());
+            });
     };
 };
 
 export const logoutFetch = () => {
     return (dispatch) => {
-        dispatch(turnLoading())
-        api
-            .post('/logout')
-            .then((res) =>
-            (
-                dispatch(turnLoading()),
-                destroyCookie(null, 'sysvendas.id'),
-                destroyCookie(null, 'sysvendas.token'),
-                destroyCookie(null, 'sysvendas.username'),
-                destroyCookie(null, 'sysvendas.profile'),
-                Router.push('/login'),
-            ))
-            .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+        dispatch(turnLoading());
+
+        fetch('/api/auth/logout', { method: 'POST' })
+            .then(() => {
+                setAuthToken(null);
                 dispatch(turnLoading());
-                return error.response ? error.response.data : 'erro desconhecido';
+                Router.push('/login');
             })
+            .catch(() => {
+                // Force logout even if request fails
+                setAuthToken(null);
+                destroyCookie(null, 'sysvendas.id');
+                destroyCookie(null, 'sysvendas.username');
+                destroyCookie(null, 'sysvendas.profile');
+                dispatch(turnLoading());
+                Router.push('/login');
+            });
     };
 };
