@@ -11,18 +11,26 @@ export const loginFetch = (dataUser) => {
             (
 
                 setCookie(undefined, 'sysvendas.token', res.data.token, {
-                    maxAge: 60 * 60 * 72, // 72 hour
+                    maxAge: 60 * 60 * 72,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
                 }),
 
                 setCookie(undefined, 'sysvendas.id', res.data.user.id, {
-                    maxAge: 60 * 60 * 72, // 72 hour
+                    maxAge: 60 * 60 * 72,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
                 }),
                 setCookie(undefined, 'sysvendas.username', res.data.user.name, {
-                    maxAge: 60 * 60 * 72, // 72 hour
+                    maxAge: 60 * 60 * 72,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
                 }),
 
                 setCookie(undefined, 'sysvendas.profile', res.data.user.profile, {
-                    maxAge: 60 * 60 * 72, // 72 hour
+                    maxAge: 60 * 60 * 72,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
                 }),
 
 
