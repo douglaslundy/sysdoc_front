@@ -48,15 +48,15 @@ const FullLayout = ({ children }) => {
   };
 
   return (
-    <MainWrapper>
-      <Header toggleSidebar={toggleSidebar} />
-
+    <>
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         onSidebarClose={() => setSidebarOpen(false)}
       />
+      <MainWrapper>
+        <Header toggleSidebar={toggleSidebar} />
 
-      <PageWrapper
+        <PageWrapper
         sx={{
           marginLeft: isDesktop && isSidebarOpen ? "265px" : 0,
           paddingTop: "64px",
@@ -83,7 +83,8 @@ const FullLayout = ({ children }) => {
           {isSidebarOpen && <Footer />}
         </Container>
       </PageWrapper>
-    </MainWrapper>
+      </MainWrapper>
+    </>
   );
 };
 
