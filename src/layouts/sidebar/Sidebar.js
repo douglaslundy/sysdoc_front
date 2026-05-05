@@ -83,13 +83,9 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
   const renderGroup = (group) => {
     const visibleChildren = group.children.filter((child) => {
-      // Admin vê tudo
-      if (profile === 'admin') return true;
-      // Perfis predefinidos (backward compat com arrays estáticos)
-      if (child.profile.includes(profile)) return true;
-      // Perfis dinâmicos criados via banco de dados
-      if (myPermissions.includes(child.href)) return true;
-      return false;
+      if (child.public) return true;           // sempre visível para autenticados
+      if (profile === 'admin') return true;    // admin bypass (centralizado aqui e no AuthGuard)
+      return myPermissions.includes(child.href); // banco como fonte única de verdade
     });
     if (visibleChildren.length === 0) return null;
 

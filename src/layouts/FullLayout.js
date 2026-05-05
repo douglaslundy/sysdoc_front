@@ -10,7 +10,6 @@ import Header from "./header/Header";
 import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
 import { useRouter } from "next/router";
-import Menuitems from "./sidebar/MenuItems";
 import AuthGuard from "../components/authGuard";
 
 const MainWrapper = experimentalStyled("div")(() => ({
@@ -70,12 +69,7 @@ const FullLayout = ({ children }) => {
           }}
         >
           <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            <AuthGuard
-              requiredProfiles={
-                Menuitems.flatMap(g => g.children)
-                  .find(item => item.href === router.pathname)?.profile || []
-              }
-            >
+            <AuthGuard>
               {children}
             </AuthGuard>
           </Box>

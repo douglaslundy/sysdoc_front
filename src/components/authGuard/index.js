@@ -1,32 +1,45 @@
 import React, { useContext } from 'react';
 import { useRouter } from 'next/router';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { AuthContext } from '../../contexts/AuthContext';
 
-// Rotas acessíveis a qualquer usuário autenticado
-const ALWAYS_ALLOWED = ['/', '/dashboards'];
+// Routes accessible to every authenticated user regardless of profile permissions
+const ALWAYS_ALLOWED = ['/'];
 
-export default function AuthGuard({ children, requiredProfiles }) {
-    const { profile, myPermissions } = useContext(AuthContext);
+// Admin profile slug — bypass is intentional and documented here as the single location
+const ADMIN_SLUG = 'admin';
+
+/**
+ * Single source of authorization for all protected pages.
+ *
+ * Access rules (in order):
+ *   1. permissionsLoaded = false  → show spinner (never flash content or deny prematurely)
+ *   2. ALWAYS_ALLOWED path        → allow (authenticated users, no permission required)
+ *   3. profile === ADMIN_SLUG     → allow (admin bypass, only here — not duplicated elsewhere)
+ *   4. myPermissions.includes(path) → allow (database-backed, from /auth/my-permissions)
+ *   5. default                    → deny (deny-by-default)
+ *
+ * Props: none — AuthGuard reads the current pathname from useRouter internally.
+ * The requiredProfiles prop was removed; all authorization comes from the database.
+ */
+export default function AuthGuard({ children }) {
+    const { profile, myPermissions, permissionsLoaded } = useContext(AuthContext);
     const router = useRouter();
 
-    // Rotas públicas internas — sempre liberadas
+    if (!permissionsLoaded) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     if (ALWAYS_ALLOWED.includes(router.pathname)) return children;
 
-    // Sem perfis requeridos definidos — libera (rota sem restrição)
-    if (!requiredProfiles || requiredProfiles.length === 0) return children;
+    if (profile === ADMIN_SLUG) return children;
 
-    // Admin tem acesso irrestrito a tudo
-    if (profile === 'admin') return children;
-
-    // Perfil predefinido com acesso estático (backward compat com MenuItems.js)
-    const hasStaticAccess = requiredProfiles.includes(profile);
-
-    // Perfil dinâmico com acesso concedido via banco de dados
-    const hasDynamicAccess = myPermissions.includes(router.pathname);
-
-    if (hasStaticAccess || hasDynamicAccess) return children;
+    if (myPermissions.includes(router.pathname)) return children;
 
     return (
         <Box

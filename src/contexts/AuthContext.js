@@ -1,38 +1,50 @@
 import { createContext, useState, useEffect } from "react";
 import { parseCookies } from 'nookies';
-import { setAuthToken, api } from '../services/api';
+import { setAuthToken } from '../services/api';
 
 export const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [myPermissions, setMyPermissions] = useState([]);
+    // Starts false; flips to true once the BFF responds (success or failure).
+    // AuthGuard waits for this before rendering any access decision.
+    const [permissionsLoaded, setPermissionsLoaded] = useState(false);
 
-    // Non-sensitive metadata still in readable cookies (safe — no secrets)
+    // Non-sensitive metadata stored in readable cookies (no secrets here)
     const { 'sysvendas.username': username } = parseCookies();
     const { 'sysvendas.profile': profile } = parseCookies();
     const { 'sysvendas.id': user } = parseCookies();
 
     useEffect(() => {
-        // Re-hydrate axios with token from httpOnly cookie via BFF
+        // Single BFF call that validates the httpOnly token and returns permissions together
         fetch('/api/auth/me')
-            .then(res => res.ok ? res.json() : null)
-            .then(async data => {
+            .then(res => (res.ok ? res.json() : null))
+            .then(data => {
                 if (data?.token) {
                     setAuthToken(data.token);
                     setIsAuthenticated(true);
-                    // Carrega páginas permitidas para o perfil do usuário logado
-                    try {
-                        const res = await api.get('/auth/my-permissions');
-                        setMyPermissions(res.data.paths || []);
-                    } catch (_) {}
+                    setMyPermissions(data.permissions || []);
                 }
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => {
+                setPermissionsLoaded(true);
+            });
     }, []);
 
     return (
-        <AuthContext.Provider value={{ username, profile, isAuthenticated, user, myPermissions, setMyPermissions }}>
+        <AuthContext.Provider
+            value={{
+                username,
+                profile,
+                isAuthenticated,
+                user,
+                myPermissions,
+                setMyPermissions,
+                permissionsLoaded,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

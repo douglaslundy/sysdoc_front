@@ -1,11 +1,19 @@
+/**
+ * Catálogo estático de navegação.
+ * Não contém regras de autorização — o filtro por perfil acontece em Sidebar.js
+ * usando myPermissions carregado do banco via AuthContext.
+ *
+ * public: true  →  visível para qualquer usuário autenticado (sem checar permissão)
+ * (ausente)     →  filtrado pelo array myPermissions do banco
+ */
 const Menuitems = [
   {
     title: "Geral",
     icon: "home",
     group: true,
     children: [
-      { title: "Dashboard",  icon: "home",      href: "/",          profile: ["admin", "tfd", "manager", "user", "partner", "driver"] },
-      { title: "Dashboards", icon: "pie-chart",  href: "/dashboards", profile: ["admin", "manager"] },
+      { title: "Dashboard",  icon: "home",       href: "/",           public: true },
+      { title: "Dashboards", icon: "pie-chart",   href: "/dashboards" },
     ],
   },
   {
@@ -13,9 +21,9 @@ const Menuitems = [
     icon: "shield",
     group: true,
     children: [
-      { title: "Usuários",           icon: "user",   href: "/users",          profile: ["admin"] },
-      { title: "Perfis de Acesso",   icon: "shield", href: "/perfis",         profile: ["admin"] },
-      { title: "Páginas do Sistema", icon: "layout", href: "/paginas-sistema", profile: ["admin"] },
+      { title: "Usuários",           icon: "user",   href: "/users" },
+      { title: "Perfis de Acesso",   icon: "shield", href: "/perfis" },
+      { title: "Páginas do Sistema", icon: "layout", href: "/paginas-sistema" },
     ],
   },
   {
@@ -23,9 +31,9 @@ const Menuitems = [
     icon: "users",
     group: true,
     children: [
-      { title: "Clientes",       icon: "users",     href: "/clients",        profile: ["admin", "user", "tfd", "manager", "partner"] },
-      { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report", profile: ["admin", "user", "tfd"] },
-      { title: "Especialidades", icon: "award",     href: "/specialities",   profile: ["admin"] },
+      { title: "Clientes",       icon: "users",       href: "/clients" },
+      { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report" },
+      { title: "Especialidades", icon: "award",       href: "/specialities" },
     ],
   },
   {
@@ -33,11 +41,11 @@ const Menuitems = [
     icon: "thermometer",
     group: true,
     children: [
-      { title: "Exames",     icon: "thermometer", href: "/laboratorio/exames",    profile: ["admin", "manager"] },
-      { title: "Pedidos",    icon: "clipboard",   href: "/laboratorio/pedidos",   profile: ["admin", "manager", "user"] },
-      { title: "Categorias", icon: "tag",         href: "/laboratorio/categorias", profile: ["admin", "manager"] },
-      { title: "Médicos",    icon: "user-check",  href: "/laboratorio/medicos",   profile: ["admin", "manager"] },
-      { title: "Agenda",     icon: "calendar",    href: "/laboratorio/agenda",    profile: ["admin", "manager", "user"] },
+      { title: "Exames",     icon: "thermometer", href: "/laboratorio/exames" },
+      { title: "Pedidos",    icon: "clipboard",   href: "/laboratorio/pedidos" },
+      { title: "Categorias", icon: "tag",         href: "/laboratorio/categorias" },
+      { title: "Médicos",    icon: "user-check",  href: "/laboratorio/medicos" },
+      { title: "Agenda",     icon: "calendar",    href: "/laboratorio/agenda" },
     ],
   },
   {
@@ -45,9 +53,9 @@ const Menuitems = [
     icon: "send",
     group: true,
     children: [
-      { title: "Veículos", icon: "truck",   href: "/vehicles", profile: ["admin", "tfd"] },
-      { title: "Rotas",    icon: "map",     href: "/routes",   profile: ["admin", "tfd"] },
-      { title: "Viagens",  icon: "map-pin", href: "/trips",    profile: ["admin", "tfd", "driver", "manager"] },
+      { title: "Veículos", icon: "truck",   href: "/vehicles" },
+      { title: "Rotas",    icon: "map",     href: "/routes" },
+      { title: "Viagens",  icon: "map-pin", href: "/trips" },
     ],
   },
   {
@@ -55,13 +63,13 @@ const Menuitems = [
     icon: "activity",
     group: true,
     children: [
-      { title: "Fila",             icon: "layers",      href: "/queue",         profile: ["admin", "user", "tfd", "manager"] },
-      { title: "Salas",            icon: "grid",        href: "/rooms",         profile: ["admin"] },
-      { title: "Minha Sala",       icon: "monitor",     href: "/listing_calls", profile: ["admin"] },
-      { title: "Em Atendimento",   icon: "activity",    href: "/attending",     profile: ["admin"] },
-      { title: "Novo Atendimento", icon: "plus-circle", href: "/call",          profile: ["admin"] },
-      { title: "Painel",           icon: "layout",      href: "/panel",         profile: ["admin"] },
-      { title: "Serviços",         icon: "tool",        href: "/service_calls", profile: ["admin"] },
+      { title: "Fila",             icon: "layers",      href: "/queue" },
+      { title: "Salas",            icon: "grid",        href: "/rooms" },
+      { title: "Minha Sala",       icon: "monitor",     href: "/listing_calls" },
+      { title: "Em Atendimento",   icon: "activity",    href: "/attending" },
+      { title: "Novo Atendimento", icon: "plus-circle", href: "/call" },
+      { title: "Painel",           icon: "layout",      href: "/panel" },
+      { title: "Serviços",         icon: "tool",        href: "/service_calls" },
     ],
   },
   {
@@ -69,9 +77,9 @@ const Menuitems = [
     icon: "file-text",
     group: true,
     children: [
-      { title: "Ofícios",    icon: "send",      href: "/letters",   profile: ["admin", "manager", "tfd"] },
-      { title: "Portarias",  icon: "file-text", href: "/ordinance", profile: ["admin", "manager", "tfd"] },
-      { title: "Modelos IA", icon: "cpu",       href: "/models",    profile: ["admin"] },
+      { title: "Ofícios",    icon: "send",      href: "/letters" },
+      { title: "Portarias",  icon: "file-text", href: "/ordinance" },
+      { title: "Modelos IA", icon: "cpu",       href: "/models" },
     ],
   },
   {
@@ -79,10 +87,10 @@ const Menuitems = [
     icon: "settings",
     group: true,
     children: [
-      { title: "Auditoria",       icon: "eye",           href: "/auditoria",     profile: ["admin"] },
-      { title: "Logs",            icon: "clipboard",     href: "/logs",          profile: ["admin"] },
-      { title: "Logs de Erro",    icon: "alert-triangle", href: "/errorlogs",    profile: ["admin"] },
-      { title: "Logs de QRCODE",  icon: "maximize",      href: "/qrcodelogs",   profile: ["admin"] },
+      { title: "Auditoria",      icon: "eye",            href: "/auditoria" },
+      { title: "Logs",           icon: "clipboard",      href: "/logs" },
+      { title: "Logs de Erro",   icon: "alert-triangle", href: "/errorlogs" },
+      { title: "Logs de QRCODE", icon: "maximize",       href: "/qrcodelogs" },
     ],
   },
 ];
