@@ -25,6 +25,7 @@ import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
 import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store/ducks/Layout';
 import { AuthContext } from '../../../contexts/AuthContext';
+import { getAllProfiles } from '../../../store/fetchActions/accessProfiles';
 
 
 const style = {
@@ -41,29 +42,6 @@ const style = {
     overflow: "scroll",
 };
 
-const profiles = [
-    {
-        "id": "driver",
-        "name": "MOTORISTA"
-    },
-    {
-        "id": "partner",
-        "name": "PARCEIRO"
-    },
-    {
-        "id": "tfd",
-        "name": "TFD"
-    },
-    {
-        "id": "user",
-        "name": "USUÁRIO"
-    },
-    {
-        "id": "manager",
-        "name": "GERENTE"
-    }
-
-]
 
 export default function UserModal(props) {
 
@@ -79,6 +57,7 @@ export default function UserModal(props) {
 
     const { user } = useSelector(state => state.users);
     const { isOpenUserModal } = useSelector(state => state.layout);
+    const { profiles: dbProfiles } = useSelector(state => state.accessProfiles);
     const dispatch = useDispatch();
     const { user: userId, profile: userProfile } = useContext(AuthContext);
 
@@ -135,11 +114,15 @@ export default function UserModal(props) {
     };
 
     useEffect(() => {
-
-        if (user && user.id)
-            setForm(user);
-
+        if (user && user.id) setForm(user);
     }, [user]);
+
+    // Carrega perfis do banco quando admin abre o modal (se ainda não carregados)
+    useEffect(() => {
+        if (isOpenUserModal && userProfile === 'admin' && dbProfiles.length === 0) {
+            dispatch(getAllProfiles());
+        }
+    }, [isOpenUserModal]);
 
     return (
         <div>
@@ -181,9 +164,11 @@ export default function UserModal(props) {
                                                 variant="outlined"
                                                 disabled={user && user.id == userId ? true : false}
                                             >
-                                                {profiles.map((d) => (
-                                                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-                                                ))}
+                                                {dbProfiles
+                                                    .filter(p => p.ativo && p.slug !== 'admin')
+                                                    .map((p) => (
+                                                        <MenuItem key={p.id} value={p.slug}>{p.nome}</MenuItem>
+                                                    ))}
                                             </Select>
                                         </FormControl>
                                     )}

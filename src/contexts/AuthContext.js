@@ -1,11 +1,12 @@
 import { createContext, useState, useEffect } from "react";
 import { parseCookies } from 'nookies';
-import { setAuthToken } from '../services/api';
+import { setAuthToken, api } from '../services/api';
 
 export const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [myPermissions, setMyPermissions] = useState([]);
 
     // Non-sensitive metadata still in readable cookies (safe — no secrets)
     const { 'sysvendas.username': username } = parseCookies();
@@ -14,20 +15,24 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         // Re-hydrate axios with token from httpOnly cookie via BFF
-        // This runs once on mount (page load / refresh)
         fetch('/api/auth/me')
             .then(res => res.ok ? res.json() : null)
-            .then(data => {
+            .then(async data => {
                 if (data?.token) {
                     setAuthToken(data.token);
                     setIsAuthenticated(true);
+                    // Carrega páginas permitidas para o perfil do usuário logado
+                    try {
+                        const res = await api.get('/auth/my-permissions');
+                        setMyPermissions(res.data.paths || []);
+                    } catch (_) {}
                 }
             })
             .catch(() => {});
     }, []);
 
     return (
-        <AuthContext.Provider value={{ username, profile, isAuthenticated, user }}>
+        <AuthContext.Provider value={{ username, profile, isAuthenticated, user, myPermissions, setMyPermissions }}>
             {children}
         </AuthContext.Provider>
     );

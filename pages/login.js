@@ -123,10 +123,14 @@ export default function SignIn() {
 }
 
 export async function getServerSideProps(context) {
+    const cookies = parseCookies(context);
+    // sysvendas.token é httpOnly e pode persistir brevemente após o logout
+    // devido a race conditions no Set-Cookie do browser.
+    // sysvendas.id + sysvendas.profile são não-httpOnly e deletados de forma
+    // confiável pelo handler server-side e pelo bloco catch do logoutFetch.
+    const hasSession = cookies['sysvendas.id'] && cookies['sysvendas.profile'];
 
-    const { 'sysvendas.token': token } = parseCookies(context);
-
-    if (token) {
+    if (hasSession) {
         return {
             redirect: {
                 destination: '/',
@@ -135,6 +139,6 @@ export async function getServerSideProps(context) {
         }
     }
     return {
-        props: {}, // will be passed to the page component as props
+        props: {},
     }
 }

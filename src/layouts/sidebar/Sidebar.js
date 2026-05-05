@@ -20,7 +20,7 @@ import { useRouter } from "next/router";
 import { AuthContext } from "../../contexts/AuthContext";
 
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
-  const { profile } = useContext(AuthContext);
+  const { profile, myPermissions } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
@@ -82,9 +82,15 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   );
 
   const renderGroup = (group) => {
-    const visibleChildren = group.children.filter((child) =>
-      child.profile.includes(profile)
-    );
+    const visibleChildren = group.children.filter((child) => {
+      // Admin vê tudo
+      if (profile === 'admin') return true;
+      // Perfis predefinidos (backward compat com arrays estáticos)
+      if (child.profile.includes(profile)) return true;
+      // Perfis dinâmicos criados via banco de dados
+      if (myPermissions.includes(child.href)) return true;
+      return false;
+    });
     if (visibleChildren.length === 0) return null;
 
     const isOpen = openGroups.includes(group.title);
