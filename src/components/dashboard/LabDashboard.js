@@ -65,35 +65,19 @@ export default function LabDashboard() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (!dados) {
-        return (
-            <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Não foi possível carregar o dashboard.</Typography>
-            </Box>
-        );
-    }
-
-    const { totais } = dados;
-
+    // useMemo must be called before any conditional return (Rules of Hooks)
     const chart = useMemo(() => {
-        const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos } = dados;
+        if (!dados) return null;
 
+        const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos } = dados;
         const statusLabels = Object.keys(pedidos_por_status || {});
 
         return {
-            pedidos:      gerarMeses(pedidos_por_mes || {}),
-            clientes:     gerarMeses(clientes_por_mes || {}),
+            pedidos:       gerarMeses(pedidos_por_mes || {}),
+            clientes:      gerarMeses(clientes_por_mes || {}),
             statusLabels,
-            statusValues: Object.values(pedidos_por_status || {}),
-            statusCores:  statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
+            statusValues:  Object.values(pedidos_por_status || {}),
+            statusCores:   statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
             topExameNomes: (top_exames || []).map(e => e.codigo || e.nome).reverse(),
             topExameVals:  (top_exames || []).map(e => e.total).reverse(),
             catNomes:      (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
@@ -103,6 +87,24 @@ export default function LabDashboard() {
             resultados:    resultados_status,
         };
     }, [dados]);
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!dados || !chart) {
+        return (
+            <Box p={4} textAlign="center">
+                <Typography color="textSecondary">Não foi possível carregar o dashboard.</Typography>
+            </Box>
+        );
+    }
+
+    const { totais } = dados;
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
