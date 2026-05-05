@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { parseCookies, destroyCookie } from 'nookies';
 import Router from 'next/router';
 import { setAuthToken } from '../services/api';
@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     const { 'sysvendas.profile': profile } = parseCookies();
     const { 'sysvendas.id': user } = parseCookies();
 
-    useEffect(() => {
+    const loadAuth = useCallback(() => {
         // Single BFF call that validates the httpOnly token and returns permissions together.
         // Also handles session expiry: 401 means the token is gone/expired — clear metadata
         // cookies so _app.js can redirect to login on next route event.
@@ -50,6 +50,10 @@ export function AuthProvider({ children }) {
             });
     }, []);
 
+    useEffect(() => {
+        loadAuth();
+    }, [loadAuth]);
+
     return (
         <AuthContext.Provider
             value={{
@@ -60,6 +64,7 @@ export function AuthProvider({ children }) {
                 myPermissions,
                 setMyPermissions,
                 permissionsLoaded,
+                loadAuth,
             }}
         >
             {children}

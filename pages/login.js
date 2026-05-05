@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Avatar from '@mui/material/Avatar';
 import FeatherIcon from "feather-icons-react";
 import Button from '@mui/material/Button';
@@ -16,10 +16,10 @@ import AlertModal from '../src/components/messagesModal';
 import LogoDark from "../assets/images/logos/logo.png";
 import Image from "next/image";
 
-import { useDispatch, useSelector } from 'react-redux';
-
-
+import { useDispatch } from 'react-redux';
+import { AuthContext } from '../src/contexts/AuthContext';
 import { loginFetch } from '../src/store/fetchActions/auth';
+
 function Copyright(props) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -37,6 +37,7 @@ function Copyright(props) {
 export default function SignIn() {
 
     const dispatch = useDispatch();
+    const { loadAuth } = useContext(AuthContext);
 
     const [form, setForm] = useState({
         "cpf": '',
@@ -51,7 +52,7 @@ export default function SignIn() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        dispatch(loginFetch(form));
+        dispatch(loginFetch(form, loadAuth));
     };
 
     return (
