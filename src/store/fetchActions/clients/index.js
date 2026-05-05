@@ -117,7 +117,11 @@ export const editClientFetch = (client, cleanForm) => {
             cpf: cleanCpfCnpj(client.cpf),
             phone: cleanPhone(client.phone),
             // born_date: client?.born_date ? format(client?.born_date, 'yyyy-MM-dd') : null,
-            born_date: client?.born_date && !isNaN(new Date(client.born_date)) ? format(new Date(client.born_date), 'yyyy-MM-dd') : null,
+            born_date: (() => {
+                if (!client.born_date) return null;
+                if (client.born_date instanceof Date) return format(client.born_date, 'yyyy-MM-dd');
+                return String(client.born_date).substring(0, 10); // string ISO da API — não reprocessar
+            })(),
 
             addresses: {
                 zip_code: client.zip_code,

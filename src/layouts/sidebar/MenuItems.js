@@ -61,6 +61,7 @@ const Menuitems = [
       { title: "Em Atendimento",   icon: "activity",    href: "/attending",     profile: ["admin"] },
       { title: "Novo Atendimento", icon: "plus-circle", href: "/call",          profile: ["admin"] },
       { title: "Painel",           icon: "layout",      href: "/panel",         profile: ["admin"] },
+      { title: "Serviços",         icon: "tool",        href: "/service_calls", profile: ["admin"] },
     ],
   },
   {
@@ -79,7 +80,6 @@ const Menuitems = [
     group: true,
     children: [
       { title: "Auditoria",       icon: "eye",           href: "/auditoria",     profile: ["admin"] },
-      { title: "Serviços",        icon: "tool",          href: "/service_calls", profile: ["admin"] },
       { title: "Logs",            icon: "clipboard",     href: "/logs",          profile: ["admin"] },
       { title: "Logs de Erro",    icon: "alert-triangle", href: "/errorlogs",    profile: ["admin"] },
       { title: "Logs de QRCODE",  icon: "maximize",      href: "/qrcodelogs",   profile: ["admin"] },
