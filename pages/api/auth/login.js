@@ -17,15 +17,19 @@ export default async function handler(req, res) {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
             body: JSON.stringify(req.body),
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            return res.status(response.status).json(data);
+            const data = await response.json().catch(() => ({}));
+            return res.status(response.status).json({ message: data.message || 'Credenciais inválidas.' });
         }
+
+        const data = await response.json();
 
         // Token stored as httpOnly — JS cannot read via document.cookie
         setCookie({ res }, 'sysvendas.token', data.token, {

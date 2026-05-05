@@ -26,7 +26,9 @@ export const loginFetch = (dataUser) => {
                     setAuthToken(meData.token);
                 }
                 dispatch(turnLoading());
-                Router.push('/');
+                // Full reload so AuthContext reinitializes with the new session token.
+                // Client-side Router.push keeps the old (unauthenticated) context state.
+                window.location.href = '/';
             })
             .catch(() => {
                 dispatch(addAlertMessage('Erro ao conectar ao servidor'));
