@@ -14,15 +14,22 @@ function isPublicPath(pathname) {
     );
 }
 
-/**
- * Authentication-only middleware.
- * Runs server-side on every full-page request — redirects unauthenticated users
- * to /login before any page component or getServerSideProps executes.
- *
- * Authorization (which pages each profile can access) is enforced by:
- *   - AuthGuard (client component, database-backed via AuthContext.myPermissions)
- *   - Laravel backend (every API call validates auth independently)
- */
+// request.cookies.get() in Next.js 12 Edge Runtime does not correctly parse
+// cookie names that contain dots (e.g. "sysvendas.id"). Parsing the raw
+// Cookie header avoids the issue entirely.
+function getRawCookieValue(cookieHeader, name) {
+    for (const part of cookieHeader.split(';')) {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx === -1) continue;
+        const key = part.slice(0, eqIdx).trim();
+        if (key === name) {
+            const val = part.slice(eqIdx + 1).trim();
+            return val || null;
+        }
+    }
+    return null;
+}
+
 export function middleware(request) {
     const { pathname } = request.nextUrl;
 
@@ -40,11 +47,10 @@ export function middleware(request) {
         return NextResponse.next();
     }
 
-    // httpOnly cookies are readable server-side; JS in browser cannot access them
-    const token = request.cookies.get('sysvendas.token')?.value;
-    const userId = request.cookies.get('sysvendas.id')?.value;
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const userId = getRawCookieValue(cookieHeader, 'sysvendas.id');
 
-    if (!token || !userId) {
+    if (!userId) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 

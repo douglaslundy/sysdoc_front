@@ -3,10 +3,7 @@ import { setAuthToken } from "../../../services/api";
 import Router from "next/router";
 import { destroyCookie } from 'nookies';
 
-// onSuccess: optional callback called after login — used by the login page to
-// refresh AuthContext (loadAuth) before navigating, so the new session is
-// immediately visible without a full page reload.
-export const loginFetch = (dataUser, onSuccess) => {
+export const loginFetch = (dataUser) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
@@ -22,15 +19,10 @@ export const loginFetch = (dataUser, onSuccess) => {
                     dispatch(turnLoading());
                     return;
                 }
-                // Token is in httpOnly cookie; hydrate axios in-memory via /me
-                const meRes = await fetch('/api/auth/me');
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    setAuthToken(meData.token);
-                }
-                if (onSuccess) onSuccess();
-                dispatch(turnLoading());
-                Router.push('/');
+                // Full page reload to ensure AuthContext reinitializes cleanly
+                // with the new session. Client-side navigation (Router.push) can
+                // race against async state updates and leave the context stale.
+                window.location.replace('/');
             })
             .catch(() => {
                 dispatch(addAlertMessage('Erro ao conectar ao servidor'));
