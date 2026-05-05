@@ -12,8 +12,7 @@ const Menuitems = [
     icon: "home",
     group: true,
     children: [
-      { title: "Dashboard",  icon: "home",       href: "/",           public: true },
-      { title: "Dashboards", icon: "pie-chart",   href: "/dashboards" },
+      { title: "Dashboard", icon: "pie-chart", href: "/dashboard" },
     ],
   },
   {

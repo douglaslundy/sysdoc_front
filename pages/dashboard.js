@@ -12,7 +12,7 @@ const ABAS = [
     { label: 'Logs/QR',     component: <LogsDashboard /> },
 ];
 
-export default function DashboardsPage() {
+export default function DashboardPage() {
     const [aba, setAba] = useState(0);
 
     return (
