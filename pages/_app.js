@@ -11,9 +11,8 @@ import store from "../src/store";
 import Messages from "../src/components/messages";
 import AlertDialog from "../src/components/alertDialog";
 import Loading from "../src/components/loading";
-import { parseCookies, destroyCookie } from "nookies";
+import { parseCookies } from "nookies";
 import { AuthProvider } from "../src/contexts/AuthContext";
-import { setAuthToken } from "../src/services/api";
 import Router, { useRouter } from "next/router";
 import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 
@@ -29,45 +28,20 @@ export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
 
-  // Read non-httpOnly cookies synchronously on the client.
-  // During SSR parseCookies() returns {} — layout won't show on server,
-  // but React re-renders on the client immediately with real values.
-  const { "sysvendas.id": userId, "sysvendas.profile": userProfile } = parseCookies();
-  const hasSession = Boolean(userId && userProfile);
-
-  // Layout is visible when the client has valid session cookies and is on a protected route.
-  // Compute showLayout based on route only (not cookies) so SSR and client agree.
-  // Auth redirect is handled by the useEffect below.
+  // showLayout based on route (not cookies) so SSR and client agree — prevents hydration mismatch.
+  // Auth redirect (missing cookies) handled by useEffect; token handling by AuthContext.
   const showLayout = !isPublicRoute(router.pathname);
 
   useEffect(() => {
     if (isPublicRoute(router.pathname)) return;
 
+    // Guard for client-side SPA navigation: if metadata cookies are gone
+    // (e.g. after logout via another tab), redirect before rendering the page.
+    // Direct URL access is caught earlier by middleware.server-side.
     const { "sysvendas.id": id, "sysvendas.profile": prof } = parseCookies();
-
     if (!id || !prof) {
       Router.push("/login");
-      return;
     }
-
-    // Hydrate axios Authorization header from the httpOnly token via BFF.
-    fetch('/api/auth/me')
-      .then(async (res) => {
-        if (res.ok) {
-          const data = await res.json();
-          setAuthToken(data.token);
-        } else if (res.status === 401) {
-          // Confirmed invalid — clear metadata cookies and redirect.
-          destroyCookie(null, "sysvendas.id");
-          destroyCookie(null, "sysvendas.username");
-          destroyCookie(null, "sysvendas.profile");
-          Router.push("/login");
-        }
-        // 5xx / network errors: keep session, axios will fail per-request.
-      })
-      .catch(() => {
-        // Network unreachable — do not destroy valid session cookies.
-      });
   }, [router.pathname]);
 
   return (
