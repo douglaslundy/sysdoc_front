@@ -36,7 +36,9 @@ export default function MyApp(props) {
   const hasSession = Boolean(userId && userProfile);
 
   // Layout is visible when the client has valid session cookies and is on a protected route.
-  const showLayout = hasSession && !isPublicRoute(router.pathname);
+  // Compute showLayout based on route only (not cookies) so SSR and client agree.
+  // Auth redirect is handled by the useEffect below.
+  const showLayout = !isPublicRoute(router.pathname);
 
   useEffect(() => {
     if (isPublicRoute(router.pathname)) return;

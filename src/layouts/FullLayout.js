@@ -59,8 +59,7 @@ const FullLayout = ({ children }) => {
       <PageWrapper
         sx={{
           marginLeft: isDesktop && isSidebarOpen ? "265px" : 0,
-          transition: "margin-left 0.3s ease",
-          paddingTop: "64px", // altura do AppBar fixo
+          paddingTop: "64px",
         }}
       >
         <Container
