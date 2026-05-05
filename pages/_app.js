@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
 import { CacheProvider } from "@emotion/react";
@@ -19,7 +19,6 @@ import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
-// Rotas que não requerem autenticação
 const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/esqueci-senha", "/redefinir-senha"];
 
 function isPublicRoute(pathname) {
@@ -29,38 +28,43 @@ function isPublicRoute(pathname) {
 export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
-  // sysvendas.id is a non-httpOnly cookie — safe to read client-side, used only to
-  // detect "probably authenticated" so the layout renders immediately without a flash.
-  const { "sysvendas.id": userId } = parseCookies();
-  const [token, setToken] = useState(
-    isPublicRoute(router.pathname) ? 'public' : (userId ? 'hydrating' : undefined)
-  );
+
+  // Read non-httpOnly cookies synchronously on the client.
+  // During SSR parseCookies() returns {} — layout won't show on server,
+  // but React re-renders on the client immediately with real values.
+  const { "sysvendas.id": userId, "sysvendas.profile": userProfile } = parseCookies();
+  const hasSession = Boolean(userId && userProfile);
+
+  // Layout is visible when the client has valid session cookies and is on a protected route.
+  const showLayout = hasSession && !isPublicRoute(router.pathname);
 
   useEffect(() => {
-    if (isPublicRoute(router.pathname)) {
-      setToken('public');
+    if (isPublicRoute(router.pathname)) return;
+
+    const { "sysvendas.id": id, "sysvendas.profile": prof } = parseCookies();
+
+    if (!id || !prof) {
+      Router.push("/login");
       return;
     }
 
-    // Token is httpOnly — cannot be read via parseCookies() on client.
-    // BFF /api/auth/me reads the httpOnly cookie server-side and validates it.
+    // Hydrate axios Authorization header from the httpOnly token via BFF.
     fetch('/api/auth/me')
       .then(async (res) => {
         if (res.ok) {
           const data = await res.json();
           setAuthToken(data.token);
-          setToken(data.token);
-        } else {
+        } else if (res.status === 401) {
+          // Confirmed invalid — clear metadata cookies and redirect.
           destroyCookie(null, "sysvendas.id");
           destroyCookie(null, "sysvendas.username");
           destroyCookie(null, "sysvendas.profile");
-          setToken(undefined);
           Router.push("/login");
         }
+        // 5xx / network errors: keep session, axios will fail per-request.
       })
       .catch(() => {
-        // Network error — keep current session to avoid unnecessary logouts
-        setToken('unknown');
+        // Network unreachable — do not destroy valid session cookies.
       });
   }, [router.pathname]);
 
@@ -73,7 +77,7 @@ export default function MyApp(props) {
       <Provider store={store}>
         <AuthProvider>
           <CustomThemeProvider>
-            {token ? (
+            {showLayout ? (
               <>
                 <CssBaseline />
                 <FullLayout>

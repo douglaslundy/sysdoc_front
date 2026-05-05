@@ -1,16 +1,12 @@
-import { destroyCookie } from 'nookies';
+import { parseCookies, destroyCookie } from 'nookies';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Método não permitido' });
     }
 
-    const rawCookie = req.headers.cookie || '';
-    const token = rawCookie
-        .split(';')
-        .map(c => c.trim())
-        .find(c => c.startsWith('sysvendas.token='))
-        ?.split('=')[1];
+    const cookies = parseCookies({ req });
+    const token = cookies['sysvendas.token'];
 
     if (token) {
         try {
