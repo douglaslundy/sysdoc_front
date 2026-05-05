@@ -163,6 +163,12 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           width: "265px",
           border: "0 !important",
           boxShadow: "0px 7px 30px 0px rgb(113 122 131 / 11%)",
+          // position:fixed evita que o DrawerDockedRoot adicione height no flex-column do MainWrapper (SSR→hydration shift).
+          ...(isDesktop && {
+            position: "fixed",
+            top: 0,
+            height: "100vh",
+          }),
         },
       }}
     >
