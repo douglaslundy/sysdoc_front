@@ -1,6 +1,6 @@
 # SYSDOC — TODO MASTER
 
-> Última atualização: 2026-05-04
+> Última atualização: 2026-05-05
 > Responsável: Douglas / Claude Code
 
 ---
@@ -31,6 +31,27 @@
 ---
 
 ## 🐛 BUG FIXES
+
+- [x] **FIX-10** — Ctrl+R em qualquer página deixa espaço vazio entre header e conteúdo
+  - Causa: SSR renderiza `variant="temporary"` (isDesktop=false) → hydration muda para `"persistent"` → `DrawerDockedRoot` entra no `flex-column` do MainWrapper adicionando ~500px de altura → PageWrapper empurrado para baixo
+  - Fix: `position: fixed; top: 0; height: 100vh` no `PaperProps` do Drawer quando `isDesktop` — retira o Paper do fluxo da coluna sem alterar comportamento visual; `marginLeft` no PageWrapper já compensava o offset horizontal
+  - Arquivo: `sysdoc_front/src/layouts/sidebar/Sidebar.js`
+
+- [x] **FIX-06** — Logout não redireciona para /login (fica no dashboard legado)
+  - Fix: `getServerSideProps` em `login.js` passou a checar `sysvendas.id` + `sysvendas.profile` (não-httpOnly) em vez de `sysvendas.token` (httpOnly)
+  - Commit: `c69f638`
+
+- [x] **FIX-07** — Menu lateral ignora perfis criados dinamicamente no banco
+  - Fix: `AuthContext` carrega `myPermissions[]` via `GET /auth/my-permissions`; `Sidebar` usa tripla verificação (admin / estático / dinâmico)
+  - Commit: `c69f638`
+
+- [x] **FIX-08** — AuthGuard não bloqueia acesso direto via URL para perfis dinâmicos
+  - Fix: `AuthGuard` verifica `myPermissions` do contexto além dos arrays estáticos; admin tem bypass total
+  - Commit: `c69f638`
+
+- [x] **FIX-09** — Modal de cadastro de usuário exibe perfis hardcoded, não reflete banco
+  - Fix: `UserModal` usa `state.accessProfiles.profiles` do Redux; despacha `getAllProfiles()` ao abrir para admin
+  - Commit: `c69f638`
 
 - [x] **FIX-01** — Meus Dados: `getUserFetch` despacha `res.data.users` mas API retorna `res.data` diretamente → trocar para `res.data`
   - Arquivo: `sysdoc_front/src/store/fetchActions/user/index.js` linha 77
@@ -120,17 +141,97 @@
 
 ---
 
-## 📋 ORDEM DE EXECUÇÃO RECOMENDADA
+## 🔐 SEGURANÇA (Fase 2)
 
-1. FIX-01 (meus dados) — 1 linha, impacto alto
-2. FIX-02 (exames 20) — 1 linha, impacto alto
-3. FIX-05 (títulos com count) — visual, impacto médio
-4. FIX-04 (tamanho ícones) — visual, impacto médio
-5. MFG-01 (auth) — segurança, impacto alto
-6. FIX-03 (modais campo/ref) — UX, impacto médio
-7. MFG-02 (dashboards) — funcionalidade nova, impacto médio
-8. FEAT-01 (seed perfis) — base para FEAT-02/03/04
-9. FEAT-03 (CRUD páginas) — base para FEAT-02/04
-10. FEAT-02 (CRUD perfis) — depende de FEAT-01/03
-11. FEAT-04 (auth nas páginas) — depende de FEAT-01/02/03
-12. FEAT-05 (reset senha) — independente, alto impacto UX
+- [x] **SEC-01** — Correções críticas: CORS, AdminOnly middleware, token expiration, cookie secure/sameSite
+- [ ] **SEC-02** — Cookie httpOnly para JWT via Next.js API Route (BFF)
+  - Criar `/pages/api/auth/login.js`, `logout.js`, `validate.js` como proxy
+  - Token setado server-side com flag `httpOnly; Secure; SameSite=Strict`
+  - Frontend passa a chamar `/api/auth/*` em vez do backend diretamente
+  - `services/api.js` — nos API routes, ler token do cookie e injetar no header Authorization
+  - **Nota**: refatoração significativa; SEssões com usuários internos e `sameSite: strict` já mitigam CSRF
+
+---
+
+## 🎨 UX / INTERFACE
+
+- [ ] **UX-01** — Menu lateral com grupos e dropdowns colapsáveis
+  - `MenuItems.js`: adicionar campo `group: true` e `children: []` nos itens agrupados
+  - `Sidebar.js`: renderizar grupos com `Collapse` + `ListItemButton` para expandir/colapsar
+  - Grupos: **Geral** (Dashboard, Dashboards) | **Administração** (Usuários, Perfis, Páginas) | **Cadastros** (Clientes, Especialidades) | **Laboratório** (Exames, Pedidos, Categorias, Médicos, Agenda) | **TFD** (Veículos, Rotas, Viagens) | **Atendimento** (Fila, Salas, Minha Sala, Em Atendimento, Novo Atendimento, Painel) | **Documentos** (Ofícios, Portarias, Modelos IA) | **Sistema** (Logs, Logs Erro, Logs QRCODE, Serviços)
+  - Auto-expandir o grupo do item ativo
+  - Salvar estado de abertura em localStorage
+
+---
+
+## 📋 AUDITORIA
+
+- [ ] **AUD-01** — Sistema de auditoria de ações (enterprise-grade)
+  - **Backend**:
+    - Migration `audit_logs`: `id, user_id, user_name, action (enum: CREATE/UPDATE/DELETE/LOGIN/LOGOUT), model_type, model_id, endpoint, method, ip, user_agent, old_values (JSON), new_values (JSON), created_at`
+    - Model `AuditLog` + Service `AuditService::record(action, model?, old?, new?)`
+    - Observers em: User, Client, PedidoExame, ResultadoExame, Trip, AccessProfile — registram CREATE/UPDATE/DELETE automaticamente com diff
+    - `LogUserAction` middleware: simplificar para apenas chamar AuditService para LOGIN (POST /login) e LOGOUT
+    - Rota `GET /audit-logs` (admin only, paginada, filtros: user_id, action, model_type, date_from, date_to)
+  - **Frontend**:
+    - Página `/auditoria` (admin only)
+    - Tabela: data, usuário, ação (chip colorido), recurso, ID, IP
+    - Filtros: usuário, período, tipo de ação, tipo de recurso
+    - Expandir linha para ver diff (tabela before/after lado a lado)
+    - Menu: adicionar "Auditoria" no grupo Sistema
+
+---
+
+## 🔧 REFATORAÇÃO / CODE REVIEW
+
+- [ ] **REF-01** — `AuthController::register()` usa `password_hash()` misturado com `Hash::make()` e retorna array em vez de `response()->json()`
+  - Substituir `password_hash()` por `Hash::make()`; retornar `response()->json([...], 201)`
+
+- [ ] **REF-02** — `DashboardController::laboratorio()` — método monolítico de 90+ linhas com múltiplas queries
+  - Extrair para `DashboardService` com métodos privados (`getTotais`, `getPedidosPorStatus`, etc.)
+
+- [ ] **REF-03** — Lógica de transação duplicada em `ClientController`, `TripController`, etc.
+  - Criar trait `HandlesTransactions` com método `executeTransaction(callable $cb)`
+
+- [ ] **REF-04** — `LogController` e `ErrorLogController` sem paginação (`.take(3000)` hardcoded)
+  - Implementar paginação padrão `per_page=50` com `paginate()`
+
+- [ ] **REF-05** — `ConsultaPublicaController` expõe email e nome completo do paciente na consulta pública
+  - Mascarar email (`d****@gmail.com`) e retornar apenas iniciais do nome
+
+- [ ] **REF-06** — `ResultadoExameController::store()` sem transação — race condition possível em concorrência
+  - Envolver `firstOrCreate()` em `DB::transaction()`
+
+- [ ] **REF-07** — Frontend: `loginFetch` e `logoutFetch` sem padrão claro de loading; `turnLoading()` chamado 2x
+  - Criar wrapper `apiAction(dispatch, fn)` que gerencia loading automaticamente
+
+- [ ] **REF-08** — Frontend: `LabDashboard.js` recalcula meses sem `useMemo()`
+  - Adicionar `useMemo()` nas funções de transformação de dados do dashboard
+
+- [ ] **REF-09** — `LogController` e `ErrorLogController` retornam até 3000 registros sem paginação
+  - Frontend: implementar paginação na tabela de logs
+
+- [ ] **REF-10** — `ClientRequest.php` valida CPF com `digits:11` apenas — aceita CPFs inválidos
+  - Criar regra customizada `ValidCpf` que verifica dígitos verificadores (módulo 11)
+
+---
+
+## 📋 ORDEM DE EXECUÇÃO RECOMENDADA (FASE 2)
+
+### Prioridade Alta
+1. **UX-01** — Menu com dropdowns (UX imediata, baixo risco)
+2. **AUD-01** — Auditoria de ações (compliance, segurança operacional)
+3. **REF-01** — AuthController (segurança: hash consistente)
+4. **REF-05** — Consulta pública (segurança: exposição de dados)
+5. **REF-06** — Race condition resultados (bug potencial)
+
+### Prioridade Média
+6. **REF-02** — DashboardService (manutenibilidade)
+7. **REF-04** — Paginação logs (performance)
+8. **REF-10** — Validação CPF real (qualidade de dados)
+9. **SEC-02** — Cookie httpOnly (segurança avançada)
+
+### Prioridade Baixa
+10. **REF-03** — Trait transações (DRY)
+11. **REF-07/08** — Melhorias frontend (qualidade)
+12. **REF-09** — Paginação frontend logs
