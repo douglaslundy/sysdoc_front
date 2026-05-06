@@ -195,7 +195,13 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#9c27b0'],
-                                    xaxis: { categories: chart.medicoNomes },
+                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    yaxis: {
+                                        labels: {
+                                            style: { colors: '#b0bec5', fontSize: '12px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
+                                    },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
@@ -205,7 +211,7 @@ export default function LabDashboard() {
                     </BaseCard>
                 </Grid>
 
-                {/* Pedidos por mês - linha */}
+                {/* Pedidos por mês */}
                 <Grid item xs={12} md={6}>
                     <BaseCard title="Pedidos por Mês (últimos 12 meses)">
                         <Chart
@@ -214,7 +220,14 @@ export default function LabDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#2196f3'],
-                                xaxis: { categories: chart.pedidos.meses },
+                                xaxis: {
+                                    categories: chart.pedidos.meses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
                                 stroke: { curve: 'smooth', width: 3 },
                                 dataLabels: { enabled: false },
@@ -235,7 +248,14 @@ export default function LabDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#4caf50'],
-                                xaxis: { categories: chart.clientes.meses },
+                                xaxis: {
+                                    categories: chart.clientes.meses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
                                 stroke: { curve: 'smooth', width: 3 },
                                 dataLabels: { enabled: false },
@@ -258,7 +278,13 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#ff9800'],
-                                    xaxis: { categories: chart.topExameNomes },
+                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    yaxis: {
+                                        labels: {
+                                            style: { colors: '#b0bec5', fontSize: '12px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
+                                    },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
@@ -281,8 +307,13 @@ export default function LabDashboard() {
                                     colors: ['#2196f3'],
                                     xaxis: {
                                         categories: chart.catNomes,
-                                        labels: { rotate: -30, style: { fontSize: '11px' } },
+                                        labels: {
+                                            rotate: -30,
+                                            style: { colors: '#b0bec5', fontSize: '11px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
                                     },
+                                    yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}

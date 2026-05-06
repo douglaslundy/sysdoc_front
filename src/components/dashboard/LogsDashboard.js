@@ -132,8 +132,10 @@ export default function LogsDashboard() {
                                     colors: ['#2196f3'],
                                     xaxis: {
                                         categories: chart.qrDias,
-                                        title: { text: 'Dia' },
+                                        title: { text: 'DIA', style: { color: '#b0bec5' } },
+                                        labels: { style: { colors: '#b0bec5' } },
                                     },
+                                    yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                     stroke: { curve: 'smooth', width: 3 },
                                     markers: { size: 4 },
                                     dataLabels: { enabled: false },
@@ -160,8 +162,10 @@ export default function LogsDashboard() {
                                     colors: ['#4caf50'],
                                     xaxis: {
                                         categories: chart.lkDias,
-                                        title: { text: 'Dia' },
+                                        title: { text: 'DIA', style: { color: '#b0bec5' } },
+                                        labels: { style: { colors: '#b0bec5' } },
                                     },
+                                    yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                     stroke: { curve: 'smooth', width: 3 },
                                     markers: { size: 4 },
                                     dataLabels: { enabled: false },

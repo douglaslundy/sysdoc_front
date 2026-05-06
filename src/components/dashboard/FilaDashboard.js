@@ -137,9 +137,14 @@ export default function FilaDashboard() {
                                     plotOptions: { bar: { horizontal: false, borderRadius: 3 } },
                                     xaxis: {
                                         categories: chart.espNomes,
-                                        labels: { rotate: -30, style: { fontSize: '11px' } },
+                                        labels: {
+                                            rotate: -30,
+                                            style: { colors: '#b0bec5', fontSize: '11px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
                                     },
-                                    legend: { position: 'top' },
+                                    yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    legend: { position: 'top', labels: { colors: '#b0bec5' } },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                     grid: { borderColor: 'transparent' },
@@ -164,7 +169,14 @@ export default function FilaDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#2196f3'],
-                                xaxis: { categories: chart.porMes.meses },
+                                xaxis: {
+                                    categories: chart.porMes.meses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
                                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
                                 stroke: { curve: 'smooth', width: 3 },
                                 dataLabels: { enabled: false },

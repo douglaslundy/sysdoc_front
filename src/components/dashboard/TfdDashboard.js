@@ -47,21 +47,40 @@ export default function TfdDashboard() {
     const chart = useMemo(() => {
         if (!dados) return null;
 
-        const { viagens_por_dia, motoristas, rotas } = dados;
+        const { viagens_por_dia, motoristas, rotas, viagens_por_mes, viagens_por_ano } = dados;
 
-        // Viagens por dia: array [{dia: 1, total: 5}, ...]
         const diasLabels = (viagens_por_dia || []).map(v => String(v.dia));
         const diasVals   = (viagens_por_dia || []).map(v => v.total || 0);
 
-        // Motoristas: array [{nome, total}] — horizontal bar
         const motoristaNomes = (motoristas || []).map(m => m.nome.split(' ').slice(0, 2).join(' ')).reverse();
         const motoristaVals  = (motoristas || []).map(m => m.total || 0).reverse();
 
-        // Rotas: array [{rota, total}] — horizontal bar
         const rotaNomes = (rotas || []).map(r => r.rota.substring(0, 25)).reverse();
         const rotaVals  = (rotas || []).map(r => r.total || 0).reverse();
 
-        return { diasLabels, diasVals, motoristaNomes, motoristaVals, rotaNomes, rotaVals };
+        // Séries históricas mensais
+        const mesMeses   = (viagens_por_mes || []).map(v => {
+            const [ano, mes] = v.mes.split('-');
+            const d = new Date(parseInt(ano), parseInt(mes) - 1, 1);
+            return d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase();
+        });
+        const mesViagens = (viagens_por_mes || []).map(v => v.viagens);
+        const mesPessoas = (viagens_por_mes || []).map(v => v.pessoas);
+        const mesKm      = (viagens_por_mes || []).map(v => v.km);
+
+        // Séries históricas anuais
+        const anoLabels  = (viagens_por_ano || []).map(v => v.ano);
+        const anoViagens = (viagens_por_ano || []).map(v => v.viagens);
+        const anoPessoas = (viagens_por_ano || []).map(v => v.pessoas);
+        const anoKm      = (viagens_por_ano || []).map(v => v.km);
+
+        return {
+            diasLabels, diasVals,
+            motoristaNomes, motoristaVals,
+            rotaNomes, rotaVals,
+            mesMeses, mesViagens, mesPessoas, mesKm,
+            anoLabels, anoViagens, anoPessoas, anoKm,
+        };
     }, [dados]);
 
     if (loading) {
@@ -155,7 +174,14 @@ export default function TfdDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#9c27b0'],
-                                    xaxis: { categories: chart.motoristaNomes },
+                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    yaxis: {
+                                        categories: chart.motoristaNomes,
+                                        labels: {
+                                            style: { colors: '#b0bec5', fontSize: '12px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
+                                    },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                     grid: { borderColor: 'transparent' },
@@ -179,7 +205,14 @@ export default function TfdDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#ff9800'],
-                                    xaxis: { categories: chart.rotaNomes },
+                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    yaxis: {
+                                        categories: chart.rotaNomes,
+                                        labels: {
+                                            style: { colors: '#b0bec5', fontSize: '12px' },
+                                            formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                        },
+                                    },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                     grid: { borderColor: 'transparent' },
@@ -189,6 +222,67 @@ export default function TfdDashboard() {
                         ) : (
                             <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
                         )}
+                    </BaseCard>
+                </Grid>
+
+                {/* Total de Viagens por Mês — barras agrupadas */}
+                <Grid item xs={12}>
+                    <BaseCard title="Total de Viagens por Mês (Últimos 12 Meses)">
+                        <Chart
+                            type="bar"
+                            height={300}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#4caf50', '#2196f3', '#ff9800'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                                xaxis: {
+                                    categories: chart.mesMeses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                legend: { position: 'top', labels: { colors: '#b0bec5' } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[
+                                { name: 'Viagens', data: chart.mesViagens },
+                                { name: 'Pessoas', data: chart.mesPessoas },
+                                { name: 'KM Rodados', data: chart.mesKm },
+                            ]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Total por Ano — barras agrupadas últimos 5 anos */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Total por Ano (Últimos 5 Anos)">
+                        <Chart
+                            type="bar"
+                            height={300}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#4caf50', '#2196f3', '#ff9800'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
+                                xaxis: {
+                                    categories: chart.anoLabels,
+                                    labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                legend: { position: 'top', labels: { colors: '#b0bec5' } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[
+                                { name: 'Viagens', data: chart.anoViagens },
+                                { name: 'Pessoas', data: chart.anoPessoas },
+                                { name: 'KM Rodados', data: chart.anoKm },
+                            ]}
+                        />
                     </BaseCard>
                 </Grid>
             </Grid>
