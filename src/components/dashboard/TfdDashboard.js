@@ -174,9 +174,11 @@ export default function TfdDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#9c27b0'],
-                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
-                                    yaxis: {
+                                    xaxis: {
                                         categories: chart.motoristaNomes,
+                                        labels: { style: { colors: '#b0bec5' } },
+                                    },
+                                    yaxis: {
                                         labels: {
                                             style: { colors: '#b0bec5', fontSize: '12px' },
                                             formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
@@ -205,9 +207,11 @@ export default function TfdDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#ff9800'],
-                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
-                                    yaxis: {
+                                    xaxis: {
                                         categories: chart.rotaNomes,
+                                        labels: { style: { colors: '#b0bec5' } },
+                                    },
+                                    yaxis: {
                                         labels: {
                                             style: { colors: '#b0bec5', fontSize: '12px' },
                                             formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
