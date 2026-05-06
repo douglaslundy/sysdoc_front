@@ -57,11 +57,12 @@ function gerarMeses(mapa) {
 export default function LabDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [erro, setErro] = useState(false);
 
     useEffect(() => {
         api.get('/dashboard/laboratorio')
             .then(res => setDados(res.data))
-            .catch(() => {})
+            .catch(() => setErro(true))
             .finally(() => setLoading(false));
     }, []);
 
@@ -96,10 +97,10 @@ export default function LabDashboard() {
         );
     }
 
-    if (!dados || !chart) {
+    if (erro || !dados || !chart) {
         return (
             <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Não foi possível carregar o dashboard.</Typography>
+                <Typography color="textSecondary">Dados não disponíveis.</Typography>
             </Box>
         );
     }
