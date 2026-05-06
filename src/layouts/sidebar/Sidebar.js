@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
-import Menuitems from "./MenuItems";
+import Menuitems, { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { AuthContext } from "../../contexts/AuthContext";
 
@@ -137,11 +137,51 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     );
   };
 
+  const isDashboardVisible =
+    profile === 'admin' || myPermissions.includes(DashboardItem.href);
+
   const SidebarContent = (
     <Box p={2} height="100%" sx={{ mt: "64px" }}>
       <LogoIcon />
       <Box mt={2}>
         <List disablePadding>
+          {/* Dashboard: botão fixo acima de todos os grupos */}
+          {isDashboardVisible && (
+            <NextLink href={DashboardItem.href} passHref>
+              <ListItem
+                button
+                onClick={onSidebarClose}
+                selected={pathname === DashboardItem.href}
+                sx={{
+                  mb: 1,
+                  borderRadius: 1,
+                  ...(pathname === DashboardItem.href && {
+                    color: theme.palette.primary.contrastText,
+                    backgroundColor: `${theme.palette.primary.main}!important`,
+                  }),
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <FeatherIcon
+                    icon={DashboardItem.icon}
+                    width="20"
+                    height="20"
+                    style={{
+                      color:
+                        pathname === DashboardItem.href
+                          ? theme.palette.primary.contrastText
+                          : theme.palette.text.primary,
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary={DashboardItem.title}
+                  primaryTypographyProps={{ fontWeight: 600, fontSize: "0.875rem" }}
+                />
+              </ListItem>
+            </NextLink>
+          )}
+
           {Menuitems.map((group) => renderGroup(group))}
         </List>
       </Box>

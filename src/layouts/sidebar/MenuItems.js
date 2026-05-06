@@ -3,18 +3,14 @@
  * Não contém regras de autorização — o filtro por perfil acontece em Sidebar.js
  * usando myPermissions carregado do banco via AuthContext.
  *
- * public: true  →  visível para qualquer usuário que autenticado (sem checar permissão)
+ * public: true  →  visível para qualquer usuário autenticado (sem checar permissão)
  * (ausente)     →  filtrado pelo array myPermissions do banco
  */
+
+// Botão fixo exibido acima de todos os grupos — sem dropdown
+export const DashboardItem = { title: "Dashboard", icon: "pie-chart", href: "/dashboard" };
+
 const Menuitems = [
-  {
-    title: "Geral",
-    icon: "home",
-    group: true,
-    children: [
-      { title: "Dashboard", icon: "pie-chart", href: "/dashboard" },
-    ],
-  },
   {
     title: "Administração",
     icon: "shield",
