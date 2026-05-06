@@ -229,15 +229,15 @@ export default function TfdDashboard() {
                     </BaseCard>
                 </Grid>
 
-                {/* Viagens e Pessoas por Mês — barras agrupadas */}
-                <Grid item xs={12} md={8}>
-                    <BaseCard title="Viagens e Pessoas por Mês (Últimos 12 Meses)">
+                {/* Viagens por Mês */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="Viagens por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
                             height={280}
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
-                                colors: ['#4caf50', '#2196f3'],
+                                colors: ['#4caf50'],
                                 plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
                                 xaxis: {
                                     categories: chart.mesMeses,
@@ -247,15 +247,38 @@ export default function TfdDashboard() {
                                     },
                                 },
                                 yaxis: { labels: { style: { colors: '#b0bec5' } } },
-                                legend: { position: 'top', labels: { colors: '#b0bec5' } },
                                 dataLabels: { enabled: false },
                                 tooltip: { theme: 'dark' },
                                 grid: { borderColor: 'transparent' },
                             }}
-                            series={[
-                                { name: 'Viagens', data: chart.mesViagens },
-                                { name: 'Pessoas', data: chart.mesPessoas },
-                            ]}
+                            series={[{ name: 'Viagens', data: chart.mesViagens }]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Pessoas por Mês */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="Pessoas por Mês (Últimos 12 Meses)">
+                        <Chart
+                            type="bar"
+                            height={280}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#2196f3'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
+                                xaxis: {
+                                    categories: chart.mesMeses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'Pessoas', data: chart.mesPessoas }]}
                         />
                     </BaseCard>
                 </Grid>
@@ -269,7 +292,7 @@ export default function TfdDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#ff9800'],
-                                plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
                                 xaxis: {
                                     categories: chart.mesMeses,
                                     labels: {
@@ -287,30 +310,50 @@ export default function TfdDashboard() {
                     </BaseCard>
                 </Grid>
 
-                {/* Viagens e Pessoas por Ano — barras agrupadas */}
-                <Grid item xs={12} md={8}>
-                    <BaseCard title="Viagens e Pessoas por Ano (Últimos 5 Anos)">
+                {/* Viagens por Ano */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="Viagens por Ano (Últimos 5 Anos)">
                         <Chart
                             type="bar"
                             height={280}
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
-                                colors: ['#4caf50', '#2196f3'],
+                                colors: ['#4caf50'],
                                 plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
                                 xaxis: {
                                     categories: chart.anoLabels,
                                     labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
                                 },
                                 yaxis: { labels: { style: { colors: '#b0bec5' } } },
-                                legend: { position: 'top', labels: { colors: '#b0bec5' } },
                                 dataLabels: { enabled: false },
                                 tooltip: { theme: 'dark' },
                                 grid: { borderColor: 'transparent' },
                             }}
-                            series={[
-                                { name: 'Viagens', data: chart.anoViagens },
-                                { name: 'Pessoas', data: chart.anoPessoas },
-                            ]}
+                            series={[{ name: 'Viagens', data: chart.anoViagens }]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Pessoas por Ano */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="Pessoas por Ano (Últimos 5 Anos)">
+                        <Chart
+                            type="bar"
+                            height={280}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#2196f3'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
+                                xaxis: {
+                                    categories: chart.anoLabels,
+                                    labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'Pessoas', data: chart.anoPessoas }]}
                         />
                     </BaseCard>
                 </Grid>
@@ -324,7 +367,7 @@ export default function TfdDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#ff9800'],
-                                plotOptions: { bar: { borderRadius: 3, columnWidth: '45%' } },
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
                                 xaxis: {
                                     categories: chart.anoLabels,
                                     labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
