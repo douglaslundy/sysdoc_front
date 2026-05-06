@@ -225,16 +225,16 @@ export default function TfdDashboard() {
                     </BaseCard>
                 </Grid>
 
-                {/* Total de Viagens por Mês — barras agrupadas */}
-                <Grid item xs={12}>
-                    <BaseCard title="Total de Viagens por Mês (Últimos 12 Meses)">
+                {/* Viagens e Pessoas por Mês — barras agrupadas */}
+                <Grid item xs={12} md={8}>
+                    <BaseCard title="Viagens e Pessoas por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
-                            height={300}
+                            height={280}
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
-                                colors: ['#4caf50', '#2196f3', '#ff9800'],
-                                plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                                colors: ['#4caf50', '#2196f3'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
                                 xaxis: {
                                     categories: chart.mesMeses,
                                     labels: {
@@ -251,22 +251,48 @@ export default function TfdDashboard() {
                             series={[
                                 { name: 'Viagens', data: chart.mesViagens },
                                 { name: 'Pessoas', data: chart.mesPessoas },
-                                { name: 'KM Rodados', data: chart.mesKm },
                             ]}
                         />
                     </BaseCard>
                 </Grid>
 
-                {/* Total por Ano — barras agrupadas últimos 5 anos */}
-                <Grid item xs={12} md={6}>
-                    <BaseCard title="Total por Ano (Últimos 5 Anos)">
+                {/* KM Rodados por Mês */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="KM Rodados por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
-                            height={300}
+                            height={280}
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
-                                colors: ['#4caf50', '#2196f3', '#ff9800'],
-                                plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
+                                colors: ['#ff9800'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
+                                xaxis: {
+                                    categories: chart.mesMeses,
+                                    labels: {
+                                        style: { colors: '#b0bec5', fontSize: '11px' },
+                                        formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val,
+                                    },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'KM Rodados', data: chart.mesKm }]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Viagens e Pessoas por Ano — barras agrupadas */}
+                <Grid item xs={12} md={8}>
+                    <BaseCard title="Viagens e Pessoas por Ano (Últimos 5 Anos)">
+                        <Chart
+                            type="bar"
+                            height={280}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#4caf50', '#2196f3'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '50%' } },
                                 xaxis: {
                                     categories: chart.anoLabels,
                                     labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
@@ -280,8 +306,31 @@ export default function TfdDashboard() {
                             series={[
                                 { name: 'Viagens', data: chart.anoViagens },
                                 { name: 'Pessoas', data: chart.anoPessoas },
-                                { name: 'KM Rodados', data: chart.anoKm },
                             ]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* KM Rodados por Ano */}
+                <Grid item xs={12} md={4}>
+                    <BaseCard title="KM Rodados por Ano (Últimos 5 Anos)">
+                        <Chart
+                            type="bar"
+                            height={280}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#ff9800'],
+                                plotOptions: { bar: { borderRadius: 3, columnWidth: '45%' } },
+                                xaxis: {
+                                    categories: chart.anoLabels,
+                                    labels: { style: { colors: '#b0bec5', fontSize: '13px' } },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'KM Rodados', data: chart.anoKm }]}
                         />
                     </BaseCard>
                 </Grid>
