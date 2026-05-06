@@ -37,10 +37,8 @@ export const addPedidoFetch = (pedido, onSuccess) => {
         api.post('/laboratorio/pedidos', pedido)
             .then((res) => {
                 dispatch(addPedido(res.data.pedido));
-                dispatch(addMessage('Pedido criado com sucesso!'));
-                dispatch(turnAlert());
                 dispatch(turnLoading());
-                onSuccess && onSuccess(res.data.pedido);
+                onSuccess && onSuccess(res.data.pedido, res.data.protocolo, res.data.senha);
             })
             .catch((error) => {
                 dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao criar pedido'));

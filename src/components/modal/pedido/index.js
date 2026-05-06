@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import {
     Grid, Stack, TextField, Button, FormControl, InputLabel, Select,
     MenuItem, Divider, Typography, Checkbox, FormControlLabel, Chip,
@@ -11,7 +15,7 @@ import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import BasicDatePicker from '../../inputs/datePicker';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { turnModal } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
@@ -52,6 +56,7 @@ export default function PedidoModal(props) {
     const [paciente, setPaciente] = useState(null);
     const [buscandoPaciente, setBuscandoPaciente] = useState(false);
     const [erroPaciente, setErroPaciente] = useState('');
+    const [credenciais, setCredenciais] = useState(null);
 
     useEffect(() => {
         if (isOpenModal) {
@@ -109,12 +114,60 @@ export default function PedidoModal(props) {
     };
 
     const handleSave = () => {
-        dispatch(changeTitleAlert('Pedido de exame criado com sucesso!'));
-        dispatch(addPedidoFetch(form, cleanForm));
+        dispatch(addPedidoFetch(form, (_pedido, protocolo, senha) => {
+            setCredenciais({ protocolo, senha });
+        }));
+    };
+
+    const handleFecharCredenciais = () => {
+        setCredenciais(null);
+        cleanForm();
     };
 
     return (
         <div>
+            <Dialog open={!!credenciais} onClose={handleFecharCredenciais} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FeatherIcon icon="check-circle" color="#4caf50" size={22} />
+                    Pedido Criado — Credenciais de Acesso
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        Anote a senha agora. Ela não poderá ser recuperada depois.
+                    </Alert>
+                    <Stack spacing={2}>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Protocolo</Typography>
+                            <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                    label={credenciais?.protocolo}
+                                    color="success"
+                                    sx={{ fontSize: 16, fontWeight: 'bold', letterSpacing: 1, px: 1 }}
+                                />
+                            </Box>
+                        </Box>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Senha de Acesso</Typography>
+                            <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                    label={credenciais?.senha}
+                                    color="warning"
+                                    sx={{ fontSize: 20, fontWeight: 'bold', letterSpacing: 4, px: 1 }}
+                                />
+                            </Box>
+                        </Box>
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Entregue estas credenciais ao paciente para que ele possa consultar o resultado do exame online.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="contained" onClick={handleFecharCredenciais}>
+                        Entendi, fechar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
                 <Box sx={style}>
