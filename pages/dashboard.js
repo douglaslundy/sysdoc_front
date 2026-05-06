@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
             {ABAS.map((item, idx) => (
                 <Box key={idx} hidden={aba !== idx} role="tabpanel">
-                    {aba === idx && item.component}
+                    {item.component}
                 </Box>
             ))}
         </Box>
