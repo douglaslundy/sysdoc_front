@@ -3,7 +3,7 @@
  * Não contém regras de autorização — o filtro por perfil acontece em Sidebar.js
  * usando myPermissions carregado do banco via AuthContext.
  *
- * public: true  →  visível para qualquer usuário autenticado (sem checar permissão)
+ * public: true  →  visível para qualquer usuário que autenticado (sem checar permissão)
  * (ausente)     →  filtrado pelo array myPermissions do banco
  */
 const Menuitems = [
