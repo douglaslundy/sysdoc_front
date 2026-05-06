@@ -40,6 +40,7 @@ export default function ResultadoModal(props) {
 
     const [valoresCampos, setValoresCampos] = useState({});
     const [openConfirm, setOpenConfirm] = useState(false);
+    const [credenciais, setCredenciais] = useState(null);
 
     useEffect(() => {
         if (resultado && resultado.campos) {
@@ -78,8 +79,9 @@ export default function ResultadoModal(props) {
     };
 
     const handleLiberar = () => {
-        dispatch(liberarResultadoFetch(resultado.id, () => {
+        dispatch(liberarResultadoFetch(resultado.id, (data) => {
             setOpenConfirm(false);
+            setCredenciais({ protocolo: data.protocolo, senha: data.senha });
         }));
     };
 
@@ -284,6 +286,28 @@ export default function ResultadoModal(props) {
                     <Button variant="contained" color="success" onClick={handleLiberar}>
                         Confirmar Liberação
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={!!credenciais} onClose={() => setCredenciais(null)}>
+                <DialogTitle>Resultado Liberado — Dados para o Paciente</DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        Anote as informações abaixo e repasse ao paciente. A senha não poderá ser recuperada depois.
+                    </DialogContentText>
+                    <Box display="flex" flexDirection="column" gap={1.5}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="body2" sx={{ minWidth: 80, fontWeight: 600 }}>Protocolo:</Typography>
+                            <Chip label={credenciais?.protocolo} color="primary" />
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="body2" sx={{ minWidth: 80, fontWeight: 600 }}>Senha:</Typography>
+                            <Chip label={credenciais?.senha} color="warning" />
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="contained" onClick={() => setCredenciais(null)}>Entendido</Button>
                 </DialogActions>
             </Dialog>
         </div>

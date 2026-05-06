@@ -94,7 +94,7 @@ export default function ListaPedidos() {
                                         <Chip label={pedido.status} color={STATUS_COR[pedido.status] || 'default'} size="small" />
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Box sx={{ '& button': { mx: 1 } }}>
+                                        <Box sx={{ '& button': { mx: 0.5 } }}>
                                             <Button
                                                 title="Preencher resultado"
                                                 onClick={() => handleAbrirResultado(pedido)}
@@ -104,6 +104,19 @@ export default function ListaPedidos() {
                                             >
                                                 <FeatherIcon icon="file-text" width="20" height="20" />
                                             </Button>
+                                            {pedido.status === 'liberado' && pedido.resultado?.id && (
+                                                <Button
+                                                    title="Baixar laudo PDF"
+                                                    component="a"
+                                                    href={`${process.env.NEXT_PUBLIC_API_URL}/laboratorio/resultados/${pedido.resultado.id}/pdf`}
+                                                    target="_blank"
+                                                    color="success"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    <FeatherIcon icon="download" width="20" height="20" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 title="Remover pedido"
                                                 onClick={() => dispatch(removePedidoFetch(pedido.id))}
