@@ -7,7 +7,7 @@
  * (ausente)     →  filtrado pelo array myPermissions do banco
  */
 
-// Botão fixo exibido acima de todos os grupos — sem dropdown
+// Botão fixo exibido acima de todos grupos — sem dropdown
 export const DashboardItem = { title: "Dashboard", icon: "pie-chart", href: "/dashboard" };
 
 const Menuitems = [
