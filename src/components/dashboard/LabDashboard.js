@@ -83,7 +83,7 @@ export default function LabDashboard() {
             topExameVals:  (top_exames || []).map(e => e.total).reverse(),
             catNomes:      (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
             catVals:       (pedidos_por_categoria || []).map(c => c.total),
-            medicoNomes:   (top_medicos || []).map(m => m.nome.split(' ').slice(0, 2).join(' ')).reverse(),
+            medicoNomes:   (top_medicos || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse(),
             medicoVals:    (top_medicos || []).map(m => m.total).reverse(),
             resultados:    resultados_status,
         };

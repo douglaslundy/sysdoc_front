@@ -52,7 +52,7 @@ export default function TfdDashboard() {
         const diasLabels = (viagens_por_dia || []).map(v => String(v.dia));
         const diasVals   = (viagens_por_dia || []).map(v => v.total || 0);
 
-        const motoristaNomes = (motoristas || []).map(m => m.nome.split(' ').slice(0, 2).join(' ')).reverse();
+        const motoristaNomes = (motoristas || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse();
         const motoristaVals  = (motoristas || []).map(m => m.total || 0).reverse();
 
         const rotaNomes = (rotas || []).map(r => r.rota.substring(0, 25)).reverse();
