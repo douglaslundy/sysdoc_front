@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
+import { DashboardLoading, DashboardErro } from './DashboardStatus';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
