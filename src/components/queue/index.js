@@ -12,7 +12,13 @@ import {
     styled,
     TableContainer,
     TablePagination,
-    TextField
+    TextField,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Chip,
+    Divider,
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
@@ -50,6 +56,7 @@ export default () => {
         title: 'Deseja realmente excluir',
         subTitle: 'Esta ação não poderá ser desfeita',
     });
+    const [viewQueue, setViewQueue] = useState(null);
 
     const dispatch = useDispatch();
     const { queues } = useSelector(state => state.queues);
@@ -512,6 +519,10 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
+                                                <Button title="Visualizar" onClick={() => setViewQueue(queue)} color="info" size="medium" variant="contained">
+                                                    <FeatherIcon icon="eye" width="20" height="20" />
+                                                </Button>
+
                                                 <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
@@ -555,5 +566,86 @@ export default () => {
                 setConfirmDialog={setConfirmDialog} />
 
         </BaseCard >
+
+        {/* Dialog de visualização do registro de fila */}
+        <Dialog open={!!viewQueue} onClose={() => setViewQueue(null)} maxWidth="sm" fullWidth>
+            <DialogTitle>
+                Registro de Fila — Posição {viewQueue?.position}
+                {viewQueue?.urgency == 1 && (
+                    <Chip label="URGENTE" color="error" size="small" sx={{ ml: 1 }} />
+                )}
+            </DialogTitle>
+            <DialogContent dividers>
+                {viewQueue && (
+                    <Box display="flex" flexDirection="column" gap={1.5}>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">CIDADÃO</Typography>
+                            <Typography variant="h6" fontWeight={600}>{viewQueue.client?.name?.toUpperCase() ?? '—'}</Typography>
+                        </Box>
+                        {viewQueue.client?.mother && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">MÃE</Typography>
+                                <Typography>{viewQueue.client.mother.toUpperCase()}</Typography>
+                            </Box>
+                        )}
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CPF</Typography>
+                                <Typography>{viewQueue.client?.cpf ?? '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CNS</Typography>
+                                <Typography>{viewQueue.client?.cns ?? '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">TELEFONE</Typography>
+                                <Typography>{viewQueue.client?.phone ?? '—'}</Typography>
+                            </Box>
+                        </Box>
+                        <Divider />
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">ESPECIALIDADE</Typography>
+                            <Typography fontWeight={600}>{viewQueue.speciality?.name?.toUpperCase() ?? '—'}</Typography>
+                        </Box>
+                        {viewQueue.obs && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">OBSERVAÇÃO</Typography>
+                                <Typography>{viewQueue.obs}</Typography>
+                            </Box>
+                        )}
+                        <Divider />
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">DATA DE ENTRADA</Typography>
+                                <Typography>{viewQueue.created_at ? format(parseISO(viewQueue.created_at), 'dd/MM/yyyy HH:mm') : '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CADASTRADO POR</Typography>
+                                <Typography>{viewQueue.user?.name ?? '—'}</Typography>
+                            </Box>
+                        </Box>
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">REALIZADO</Typography>
+                                <Chip
+                                    label={viewQueue.done == 1 ? 'SIM' : 'NÃO'}
+                                    color={viewQueue.done == 1 ? 'success' : 'default'}
+                                    size="small"
+                                />
+                            </Box>
+                            {viewQueue.done == 1 && viewQueue.date_of_realized && (
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">DATA DE REALIZAÇÃO</Typography>
+                                    <Typography>{format(parseISO(viewQueue.date_of_realized), 'dd/MM/yyyy')}</Typography>
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setViewQueue(null)} variant="outlined">Fechar</Button>
+            </DialogActions>
+        </Dialog>
     );
 };
