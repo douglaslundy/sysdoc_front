@@ -80,7 +80,7 @@ export default function LabDashboard() {
             statusLabels,
             statusValues:  Object.values(pedidos_por_status || {}),
             statusCores:   statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
-            topExameNomes: (top_exames || []).map(e => e.codigo || e.nome).reverse(),
+            topExameNomes: (top_exames || []).map(e => e.nome || e.codigo).reverse(),
             topExameVals:  (top_exames || []).map(e => e.total).reverse(),
             catNomes:      (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
             catVals:       (pedidos_por_categoria || []).map(c => c.total),
@@ -170,8 +170,8 @@ export default function LabDashboard() {
                                 plotOptions: {
                                     radialBar: {
                                         dataLabels: {
-                                            name: { fontSize: '14px' },
-                                            value: { fontSize: '18px', fontWeight: 'bold' },
+                                            name: { fontSize: '14px', color: '#b0bec5' },
+                                            value: { fontSize: '18px', fontWeight: 'bold', color: '#b0bec5' },
                                         },
                                     },
                                 },
