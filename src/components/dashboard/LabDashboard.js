@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
+import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
 import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -73,22 +73,31 @@ export default function LabDashboard() {
 
         const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos, realizados_por_mes, realizados_por_ano } = dados;
         const statusLabels = Object.keys(pedidos_por_status || {});
+        const statusValues = Object.values(pedidos_por_status || {});
+        const totalPedidos = statusValues.reduce((s, v) => s + v, 0);
+        const pctPedidosLiberados = totalPedidos > 0
+            ? Math.round(((pedidos_por_status?.liberado ?? 0) / totalPedidos) * 100)
+            : 0;
+        const pctResultadosLiberados = resultados_status?.liberados ?? 0;
 
         return {
-            pedidos:       gerarMeses(pedidos_por_mes || {}),
-            clientes:      gerarMeses(clientes_por_mes || {}),
+            pedidos:                gerarMeses(pedidos_por_mes || {}),
+            clientes:               gerarMeses(clientes_por_mes || {}),
             statusLabels,
-            statusValues:  Object.values(pedidos_por_status || {}),
-            statusCores:   statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
-            topExameNomes: (top_exames || []).map(e => e.nome || e.codigo).reverse(),
-            topExameVals:  (top_exames || []).map(e => e.total).reverse(),
-            catNomes:      (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
-            catVals:       (pedidos_por_categoria || []).map(c => c.total),
-            medicoNomes:   (top_medicos || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse(),
-            medicoVals:    (top_medicos || []).map(m => m.total).reverse(),
-            resultados:    resultados_status,
-            realizadosMes: gerarMeses(realizados_por_mes || {}),
-            realizadosAno: Object.entries(realizados_por_ano || {}).map(([ano, total]) => ({ ano: String(ano), total: Number(total) })),
+            statusValues,
+            statusCores:            statusLabels.map(s => CORES_STATUS[s] || '#607d8b'),
+            statusCounts:           statusLabels.map((s, i) => ({ label: s, value: statusValues[i], cor: CORES_STATUS[s] || '#607d8b' })),
+            pctPedidosLiberados,
+            pctResultadosLiberados,
+            topExameNomes:          (top_exames || []).map(e => e.nome || e.codigo).reverse(),
+            topExameVals:           (top_exames || []).map(e => e.total).reverse(),
+            catNomes:               (pedidos_por_categoria || []).map(c => c.nome.substring(0, 20)),
+            catVals:                (pedidos_por_categoria || []).map(c => c.total),
+            medicoNomes:            (top_medicos || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse(),
+            medicoVals:             (top_medicos || []).map(m => m.total).reverse(),
+            resultados:             resultados_status,
+            realizadosMes:          gerarMeses(realizados_por_mes || {}),
+            realizadosAno:          Object.entries(realizados_por_ano || {}).map(([ano, total]) => ({ ano: String(ano), total: Number(total) })),
         };
     }, [dados]);
 
@@ -138,28 +147,62 @@ export default function LabDashboard() {
             </Grid>
 
             <Grid container spacing={3}>
-                {/* Pedidos por status - Donut */}
+                {/* Pedidos por status - Velocímetro */}
                 <Grid item xs={12} md={4}>
                     <BaseCard title="Pedidos por Status">
                         {chart.statusLabels.length > 0 ? (
-                            <Chart
-                                type="donut"
-                                height={280}
-                                options={{
-                                    labels: chart.statusLabels,
-                                    colors: chart.statusCores,
-                                    chart: { ...chartFont, ...toolbarOff },
-                                    legend: { position: 'bottom', labels: { colors: '#b0bec5' } },
-                                    dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-                                    tooltip: { theme: 'dark' },
-                                }}
-                                series={chart.statusValues}
-                            />
+                            <>
+                                <Chart
+                                    type="radialBar"
+                                    height={240}
+                                    options={{
+                                        chart: { ...chartFont, ...toolbarOff },
+                                        plotOptions: {
+                                            radialBar: {
+                                                startAngle: -135,
+                                                endAngle: 135,
+                                                hollow: { size: '52%' },
+                                                track: { background: '#333', strokeWidth: '97%' },
+                                                dataLabels: {
+                                                    name: { show: true, fontSize: '11px', color: '#b0bec5', offsetY: 20 },
+                                                    value: { fontSize: '26px', fontWeight: 'bold', color: '#fff', offsetY: -15 },
+                                                },
+                                            },
+                                        },
+                                        fill: {
+                                            type: 'gradient',
+                                            gradient: {
+                                                shade: 'dark',
+                                                type: 'horizontal',
+                                                colorStops: [
+                                                    { offset: 0,   color: '#f44336', opacity: 1 },
+                                                    { offset: 35,  color: '#ff9800', opacity: 1 },
+                                                    { offset: 65,  color: '#9e9e9e', opacity: 1 },
+                                                    { offset: 100, color: '#4caf50', opacity: 1 },
+                                                ],
+                                            },
+                                        },
+                                        labels: ['Concluídos'],
+                                        tooltip: { theme: 'dark' },
+                                    }}
+                                    series={[chart.pctPedidosLiberados]}
+                                />
+                                <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center" mt={-1} mb={1}>
+                                    {chart.statusCounts.map(s => (
+                                        <Chip
+                                            key={s.label}
+                                            label={`${s.label}: ${s.value}`}
+                                            size="small"
+                                            sx={{ bgcolor: s.cor + '33', color: s.cor, fontWeight: 600, fontSize: '11px' }}
+                                        />
+                                    ))}
+                                </Box>
+                            </>
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
                 </Grid>
 
-                {/* Resultados liberados vs pendentes */}
+                {/* Resultados liberados vs pendentes - Gauge semicircular */}
                 <Grid item xs={12} md={4}>
                     <BaseCard title="Resultados: Liberados vs Pendentes">
                         <Chart
@@ -167,23 +210,23 @@ export default function LabDashboard() {
                             height={280}
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
-                                labels: ['Liberados', 'Pendentes'],
-                                colors: ['#4caf50', '#ff9800'],
                                 plotOptions: {
                                     radialBar: {
+                                        startAngle: -90,
+                                        endAngle: 90,
+                                        hollow: { size: '58%' },
+                                        track: { background: '#333', strokeWidth: '97%' },
                                         dataLabels: {
-                                            name: { fontSize: '14px', color: '#b0bec5' },
-                                            value: { fontSize: '18px', fontWeight: 'bold', color: '#b0bec5' },
+                                            name: { fontSize: '13px', color: '#b0bec5', offsetY: -8 },
+                                            value: { fontSize: '28px', fontWeight: 'bold', color: '#b0bec5', offsetY: -40 },
                                         },
                                     },
                                 },
-                                legend: { show: true, position: 'bottom', labels: { colors: '#b0bec5' } },
+                                colors: ['#4caf50'],
+                                labels: ['Liberados'],
                                 tooltip: { theme: 'dark' },
                             }}
-                            series={[
-                                chart.resultados.liberados,
-                                chart.resultados.pendentes,
-                            ]}
+                            series={[chart.pctResultadosLiberados]}
                         />
                     </BaseCard>
                 </Grid>

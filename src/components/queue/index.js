@@ -226,6 +226,7 @@ export default () => {
     };
 
     return (
+        <>
         <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
             <AlertModal />
 
@@ -647,5 +648,6 @@ export default () => {
                 <Button onClick={() => setViewQueue(null)} variant="outlined">Fechar</Button>
             </DialogActions>
         </Dialog>
+        </>
     );
 };
