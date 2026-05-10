@@ -71,7 +71,7 @@ export default function LabDashboard() {
     const chart = useMemo(() => {
         if (!dados) return null;
 
-        const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos } = dados;
+        const { pedidos_por_status, pedidos_por_mes, top_exames, pedidos_por_categoria, clientes_por_mes, resultados_status, top_medicos, realizados_por_mes, realizados_por_ano } = dados;
         const statusLabels = Object.keys(pedidos_por_status || {});
 
         return {
@@ -87,6 +87,8 @@ export default function LabDashboard() {
             medicoNomes:   (top_medicos || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse(),
             medicoVals:    (top_medicos || []).map(m => m.total).reverse(),
             resultados:    resultados_status,
+            realizadosMes: gerarMeses(realizados_por_mes || {}),
+            realizadosAno: Object.entries(realizados_por_ano || {}).map(([ano, total]) => ({ ano: String(ano), total: Number(total) })),
         };
     }, [dados]);
 
@@ -269,6 +271,56 @@ export default function LabDashboard() {
                             }}
                             series={[{ name: 'Clientes', data: chart.clientes.valores }]}
                         />
+                    </BaseCard>
+                </Grid>
+
+                {/* Resultados liberados por mês */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Resultados Liberados por Mês (últimos 12 meses)">
+                        <Chart
+                            type="area"
+                            height={260}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#4caf50'],
+                                xaxis: {
+                                    categories: chart.realizadosMes.meses,
+                                    labels: { style: { colors: '#b0bec5', fontSize: '11px' }, formatter: v => typeof v === 'string' ? v.toUpperCase() : v },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
+                                stroke: { curve: 'smooth', width: 3 },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'Liberados', data: chart.realizadosMes.valores }]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Resultados liberados por ano */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Resultados Liberados por Ano">
+                        {chart.realizadosAno.length > 0 ? (
+                            <Chart
+                                type="bar"
+                                height={260}
+                                options={{
+                                    chart: { ...chartFont, ...toolbarOff },
+                                    colors: ['#009688'],
+                                    xaxis: {
+                                        categories: chart.realizadosAno.map(r => r.ano),
+                                        labels: { style: { colors: '#b0bec5', fontSize: '11px' } },
+                                    },
+                                    yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    dataLabels: { enabled: false },
+                                    tooltip: { theme: 'dark' },
+                                    grid: { borderColor: 'transparent' },
+                                }}
+                                series={[{ name: 'Liberados', data: chart.realizadosAno.map(r => r.total) }]}
+                            />
+                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
                     </BaseCard>
                 </Grid>
 

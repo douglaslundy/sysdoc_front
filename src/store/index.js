@@ -27,6 +27,7 @@ import categoriasExameReducer from './ducks/categoriasExame';
 import medicosSolicitantesReducer from './ducks/medicosSolicitantes';
 import accessProfilesReducer from './ducks/accessProfiles';
 import auditLogsReducer from './ducks/auditLogs';
+import labConfigReducer from './ducks/labConfig';
 
 
 export default configureStore({
@@ -58,5 +59,6 @@ export default configureStore({
         medicosSolicitantes: medicosSolicitantesReducer,
         accessProfiles: accessProfilesReducer,
         auditLogs: auditLogsReducer,
+        labConfig: labConfigReducer,
     },
 });

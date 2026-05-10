@@ -36,11 +36,12 @@ const Menuitems = [
     icon: "thermometer",
     group: true,
     children: [
-      { title: "Exames",     icon: "thermometer", href: "/laboratorio/exames" },
-      { title: "Pedidos",    icon: "clipboard",   href: "/laboratorio/pedidos" },
-      { title: "Categorias", icon: "tag",         href: "/laboratorio/categorias" },
-      { title: "Médicos",    icon: "user-check",  href: "/laboratorio/medicos" },
-      { title: "Agenda",     icon: "calendar",    href: "/laboratorio/agenda" },
+      { title: "Exames",         icon: "thermometer", href: "/laboratorio/exames" },
+      { title: "Pedidos",        icon: "clipboard",   href: "/laboratorio/pedidos" },
+      { title: "Categorias",     icon: "tag",         href: "/laboratorio/categorias" },
+      { title: "Médicos",        icon: "user-check",  href: "/laboratorio/medicos" },
+      { title: "Agenda",         icon: "calendar",    href: "/laboratorio/agenda" },
+      { title: "Configurações",  icon: "settings",    href: "/laboratorio/configuracoes", profile: ['admin'] },
     ],
   },
   {

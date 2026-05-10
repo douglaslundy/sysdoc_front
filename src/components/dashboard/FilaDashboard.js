@@ -62,7 +62,7 @@ export default function FilaDashboard() {
     const chart = useMemo(() => {
         if (!dados) return null;
 
-        const { especialidades, entradas_por_mes } = dados;
+        const { especialidades, entradas_por_mes, especialidades_realizadas, realizadas_por_mes } = dados;
 
         const espNomes = (especialidades || []).map(e => e.nome);
         const espNormal = (especialidades || []).map(e => e.normal || 0);
@@ -70,7 +70,11 @@ export default function FilaDashboard() {
 
         const porMes = gerarMeses(entradas_por_mes || {});
 
-        return { espNomes, espNormal, espUrgente, porMes };
+        const especialidadeRealizadaNomes = (especialidades_realizadas || []).map(e => e.nome).reverse();
+        const especialidadeRealizadaVals = (especialidades_realizadas || []).map(e => e.total).reverse();
+        const realizadasPorMes = gerarMeses(realizadas_por_mes || {});
+
+        return { espNomes, espNormal, espUrgente, porMes, especialidadeRealizadaNomes, especialidadeRealizadaVals, realizadasPorMes };
     }, [dados]);
 
     if (loading) return <DashboardLoading />;
@@ -172,6 +176,56 @@ export default function FilaDashboard() {
                                 grid: { borderColor: 'transparent' },
                             }}
                             series={[{ name: 'Entradas', data: chart.porMes.valores }]}
+                        />
+                    </BaseCard>
+                </Grid>
+
+                {/* Especialidades realizadas */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Especialidades Realizadas (total geral)">
+                        {chart.especialidadeRealizadaNomes.length > 0 ? (
+                            <Chart
+                                type="bar"
+                                height={300}
+                                options={{
+                                    chart: { ...chartFont, ...toolbarOff },
+                                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                                    colors: ['#4caf50'],
+                                    xaxis: {
+                                        categories: chart.especialidadeRealizadaNomes,
+                                        labels: { style: { colors: '#b0bec5' } },
+                                    },
+                                    yaxis: { labels: { style: { colors: '#b0bec5', fontSize: '12px' } } },
+                                    dataLabels: { enabled: false },
+                                    tooltip: { theme: 'dark' },
+                                }}
+                                series={[{ name: 'Realizados', data: chart.especialidadeRealizadaVals }]}
+                            />
+                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                    </BaseCard>
+                </Grid>
+
+                {/* Realizados por mês */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Atendimentos Realizados por Mês (últimos 12 meses)">
+                        <Chart
+                            type="area"
+                            height={300}
+                            options={{
+                                chart: { ...chartFont, ...toolbarOff },
+                                colors: ['#4caf50'],
+                                xaxis: {
+                                    categories: chart.realizadasPorMes.meses,
+                                    labels: { style: { colors: '#b0bec5', fontSize: '11px' }, formatter: v => typeof v === 'string' ? v.toUpperCase() : v },
+                                },
+                                yaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
+                                stroke: { curve: 'smooth', width: 3 },
+                                dataLabels: { enabled: false },
+                                tooltip: { theme: 'dark' },
+                                grid: { borderColor: 'transparent' },
+                            }}
+                            series={[{ name: 'Realizados', data: chart.realizadasPorMes.valores }]}
                         />
                     </BaseCard>
                 </Grid>

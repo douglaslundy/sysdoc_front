@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, MenuItem, Select, Table, TableBody, TableCell,
     TableContainer, TableHead, TablePagination, TableRow, Typography,
-    FormControl, InputLabel,
+    FormControl, InputLabel, TextField,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -24,12 +24,22 @@ export default function ListaPedidos() {
     const { pedidos } = useSelector(state => state.pedidosExame);
 
     const [filtroStatus, setFiltroStatus] = useState('');
+    const [busca, setBusca] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
+    const buscaRef = useRef(null);
 
     useEffect(() => {
         dispatch(getAllPedidos());
     }, []);
+
+    const handleBusca = (valor) => {
+        setBusca(valor);
+        clearTimeout(buscaRef.current);
+        buscaRef.current = setTimeout(() => {
+            dispatch(getAllPedidos({ busca: valor || undefined }));
+        }, 400);
+    };
 
     const filtrados = pedidos.filter(p => !filtroStatus || p.status === filtroStatus);
 
@@ -73,6 +83,16 @@ export default function ListaPedidos() {
                             {Object.keys(STATUS_COR).map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                         </Select>
                     </FormControl>
+                    <TextField
+                        size="small"
+                        placeholder="Buscar por nome, CNS ou CPF"
+                        value={busca}
+                        onChange={e => handleBusca(e.target.value)}
+                        sx={{ minWidth: 260 }}
+                        InputProps={{
+                            startAdornment: <FeatherIcon icon="search" width={16} height={16} style={{ marginRight: 8, opacity: 0.5 }} />,
+                        }}
+                    />
                     <Fab color="primary" title="Novo Pedido" onClick={() => dispatch(turnModal())}>
                         <FeatherIcon icon="plus" />
                     </Fab>

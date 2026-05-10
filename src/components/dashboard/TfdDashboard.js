@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
+import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -37,13 +37,16 @@ export default function TfdDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(false);
+    const [periodo, setPeriodo] = useState('mes');
 
     useEffect(() => {
-        api.get('/dashboard/tfd')
+        setLoading(true);
+        setErro(false);
+        api.get('/dashboard/tfd', { params: { periodo } })
             .then(res => setDados(res.data))
             .catch(() => setErro(true))
             .finally(() => setLoading(false));
-    }, []);
+    }, [periodo]);
 
     const chart = useMemo(() => {
         if (!dados) return null;
@@ -122,6 +125,13 @@ export default function TfdDashboard() {
                 </Grid>
             </Grid>
 
+            <Box mb={2} display="flex" alignItems="center" gap={1}>
+                <FeatherIcon icon="calendar" width={16} height={16} style={{ opacity: 0.6 }} />
+                <Typography variant="caption" color="text.secondary">
+                    Referência: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                </Typography>
+            </Box>
+
             <Grid container spacing={3}>
                 {/* Viagens por dia do mês — linha */}
                 <Grid item xs={12}>
@@ -151,13 +161,30 @@ export default function TfdDashboard() {
                     </BaseCard>
                 </Grid>
 
+                {/* Seletor de período para motoristas e rotas */}
+                <Grid item xs={12}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                        <Typography variant="body2" color="text.secondary">Período (motoristas e rotas):</Typography>
+                        <ToggleButtonGroup
+                            value={periodo}
+                            exclusive
+                            onChange={(_, v) => v && setPeriodo(v)}
+                            size="small"
+                        >
+                            <ToggleButton value="mes">Mês atual</ToggleButton>
+                            <ToggleButton value="12meses">Últimos 12 meses</ToggleButton>
+                            <ToggleButton value="ano">Este ano</ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+                </Grid>
+
                 {/* Viagens por Motorista — barras horizontal */}
                 <Grid item xs={12} md={6}>
                     <BaseCard title="Viagens por Motorista">
                         {chart.motoristaNomes.length > 0 ? (
                             <Chart
                                 type="bar"
-                                height={300}
+                                height={Math.max(300, (chart.motoristaNomes?.length || 5) * 32)}
                                 options={{
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
@@ -190,7 +217,7 @@ export default function TfdDashboard() {
                         {chart.rotaNomes.length > 0 ? (
                             <Chart
                                 type="bar"
-                                height={300}
+                                height={Math.max(300, (chart.rotaNomes?.length || 5) * 32)}
                                 options={{
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
