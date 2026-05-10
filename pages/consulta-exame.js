@@ -37,6 +37,26 @@ export default function ConsultaExame() {
         setForm({ protocolo: '', senha: '' });
     };
 
+    const handleImprimirLaudo = async () => {
+        try {
+            const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/consulta-exame/pdf/${form.protocolo}`,
+                { senha: form.senha },
+                { responseType: 'blob' },
+            );
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `laudo-${form.protocolo}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            // erro silenciado — PDF pode não estar disponível
+        }
+    };
+
     return (
         <Box minHeight="100vh" bgcolor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" p={2}>
             <Box maxWidth={680} width="100%">
@@ -90,7 +110,18 @@ export default function ConsultaExame() {
                                         Válido até: {resultado.data_validade ? new Date(resultado.data_validade).toLocaleDateString('pt-BR') : '—'}
                                     </Typography>
                                 </Box>
-                                <Button variant="outlined" size="small" onClick={handleNova}>Nova Consulta</Button>
+                                <Box display="flex" gap={1}>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        color="success"
+                                        onClick={handleImprimirLaudo}
+                                        startIcon={<span style={{ fontSize: 14 }}>⬇</span>}
+                                    >
+                                        Baixar Laudo PDF
+                                    </Button>
+                                    <Button variant="outlined" size="small" onClick={handleNova}>Nova Consulta</Button>
+                                </Box>
                             </Box>
 
                             <Divider sx={{ mb: 2 }} />
