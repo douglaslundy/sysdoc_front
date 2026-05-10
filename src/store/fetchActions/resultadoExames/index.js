@@ -42,7 +42,11 @@ export const salvarCamposFetch = (resultadoId, campos, onSuccess) => {
                 onSuccess && onSuccess(res.data.resultado);
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error?.response?.data?.error || 'Erro ao salvar campos'));
+                const erros = error?.response?.data?.errors;
+                const msg = error?.response?.data?.error
+                    || (erros && Object.values(erros).flat()[0])
+                    || 'Erro ao salvar campos';
+                dispatch(addAlertMessage(msg));
                 dispatch(turnLoading());
             });
     };
@@ -60,7 +64,10 @@ export const liberarResultadoFetch = (resultadoId, onSuccess) => {
                 onSuccess && onSuccess(res.data);
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error?.response?.data?.error || 'Erro ao liberar resultado'));
+                const msg = error?.response?.data?.error
+                    || error?.response?.data?.message
+                    || 'Erro ao liberar resultado';
+                dispatch(addAlertMessage(msg));
                 dispatch(turnLoading());
             });
     };
