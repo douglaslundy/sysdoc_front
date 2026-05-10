@@ -149,8 +149,8 @@ export default function LabDashboard() {
                                     labels: chart.statusLabels,
                                     colors: chart.statusCores,
                                     chart: { ...chartFont, ...toolbarOff },
-                                    legend: { position: 'bottom' },
-                                    dataLabels: { enabled: true },
+                                    legend: { position: 'bottom', labels: { colors: '#b0bec5' } },
+                                    dataLabels: { enabled: true, style: { colors: ['#fff'] } },
                                     tooltip: { theme: 'dark' },
                                 }}
                                 series={chart.statusValues}
@@ -177,7 +177,7 @@ export default function LabDashboard() {
                                         },
                                     },
                                 },
-                                legend: { show: true, position: 'bottom' },
+                                legend: { show: true, position: 'bottom', labels: { colors: '#b0bec5' } },
                                 tooltip: { theme: 'dark' },
                             }}
                             series={[
