@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
+import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
 import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
+import { DashboardLoading, DashboardErro } from './DashboardStatus';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
@@ -72,21 +73,8 @@ export default function FilaDashboard() {
         return { espNomes, espNormal, espUrgente, porMes };
     }, [dados]);
 
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (erro || !dados || !chart) {
-        return (
-            <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Dados não disponíveis.</Typography>
-            </Box>
-        );
-    }
+    if (loading) return <DashboardLoading />;
+    if (erro || !dados || !chart) return <DashboardErro />;
 
     const { totais } = dados;
 
