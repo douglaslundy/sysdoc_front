@@ -20,6 +20,12 @@ const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
 };
 
+const formatDate = (s) => {
+    if (!s) return '—';
+    const [y, m, d] = s.substring(0, 10).split('-');
+    return `${d}/${m}/${y}`;
+};
+
 export default function ListaPedidos() {
     const dispatch = useDispatch();
     const { pedidos } = useSelector(state => state.pedidosExame);
@@ -88,7 +94,7 @@ export default function ListaPedidos() {
                     </FormControl>
                     <TextField
                         size="small"
-                        placeholder="Buscar por nome, CNS ou CPF"
+                        placeholder="Buscar por nome, CNS, CPF ou protocolo"
                         value={busca}
                         onChange={e => handleBusca(e.target.value)}
                         sx={{ minWidth: 260 }}
@@ -104,6 +110,7 @@ export default function ListaPedidos() {
                     <Table aria-label="pedidos" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
                         <TableHead>
                             <TableRow>
+                                <TableCell><Typography color="textSecondary" variant="h6">Protocolo</Typography></TableCell>
                                 <TableCell><Typography color="textSecondary" variant="h6">Paciente</Typography></TableCell>
                                 <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>
                                 <TableCell><Typography color="textSecondary" variant="h6">Exames</Typography></TableCell>
@@ -115,14 +122,19 @@ export default function ListaPedidos() {
                             {filtrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(pedido => (
                                 <TableRow key={pedido.id} hover>
                                     <TableCell>
+                                        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: 1 }}>
+                                            {pedido.resultado?.protocolo ?? '—'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>{pedido.cliente?.name || '—'}</Typography>
                                         {pedido.medico_solicitante?.nome && (
                                             <Typography color="textSecondary" sx={{ fontSize: '12px' }}>Dr. {pedido.medico_solicitante.nome}</Typography>
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="h6">{pedido.data_pedido}</Typography>
-                                        {pedido.data_coleta && <Typography color="textSecondary" sx={{ fontSize: '12px' }}>Coleta: {pedido.data_coleta}</Typography>}
+                                        <Typography variant="h6">{formatDate(pedido.data_pedido)}</Typography>
+                                        {pedido.data_coleta && <Typography color="textSecondary" sx={{ fontSize: '12px' }}>Coleta: {formatDate(pedido.data_coleta)}</Typography>}
                                     </TableCell>
                                     <TableCell>
                                         {pedido.exames?.slice(0, 2).map(e => (
@@ -181,7 +193,7 @@ export default function ListaPedidos() {
                             ))}
                             {filtrados.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={5} align="center">
+                                    <TableCell colSpan={6} align="center">
                                         <Typography color="text.secondary">Nenhum pedido encontrado</Typography>
                                     </TableCell>
                                 </TableRow>
