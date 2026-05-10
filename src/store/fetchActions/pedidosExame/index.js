@@ -80,3 +80,21 @@ export const removePedidoFetch = (id) => {
             });
     };
 };
+
+export const updatePedidoFetch = (id, dados, onSuccess) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+        api.patch(`/laboratorio/pedidos/${id}`, dados)
+            .then((res) => {
+                dispatch(editPedido(res.data.pedido));
+                dispatch(addMessage('Pedido atualizado com sucesso!'));
+                dispatch(turnAlert());
+                dispatch(turnLoading());
+                onSuccess && onSuccess(res.data.pedido);
+            })
+            .catch((error) => {
+                dispatch(addAlertMessage(error?.response?.data?.error || 'Erro ao atualizar pedido'));
+                dispatch(turnLoading());
+            });
+    };
+};

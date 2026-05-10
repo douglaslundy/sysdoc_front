@@ -14,6 +14,7 @@ import PedidoModal from '../../modal/pedido';
 import ResultadoModal from '../../modal/resultado';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
+import EditarPedidoDialog from '../../modal/editarPedido';
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -28,6 +29,7 @@ export default function ListaPedidos() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const buscaRef = useRef(null);
+    const [editarPedido, setEditarPedido] = useState(null);
 
     useEffect(() => {
         dispatch(getAllPedidos());
@@ -132,6 +134,17 @@ export default function ListaPedidos() {
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box sx={{ '& button': { mx: 0.5 } }}>
+                                            {!['liberado', 'cancelado'].includes(pedido.status) && (
+                                                <Button
+                                                    title="Editar pedido"
+                                                    onClick={() => setEditarPedido(pedido)}
+                                                    color="warning"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    <FeatherIcon icon="edit-2" width="20" height="20" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 title="Preencher resultado"
                                                 onClick={() => handleAbrirResultado(pedido)}
@@ -188,5 +201,10 @@ export default function ListaPedidos() {
             </BaseCard>
         </PedidoModal>
         </ResultadoModal>
+        <EditarPedidoDialog
+            open={!!editarPedido}
+            onClose={() => setEditarPedido(null)}
+            pedido={editarPedido}
+        />
     );
 }
