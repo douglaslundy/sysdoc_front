@@ -73,6 +73,7 @@ export default function ListaPedidos() {
     };
 
     return (
+        <>
         <ResultadoModal>
         <PedidoModal>
             <BaseCard title={`Você possui ${pedidos.length} Pedidos Cadastrados`}>
@@ -206,5 +207,6 @@ export default function ListaPedidos() {
             onClose={() => setEditarPedido(null)}
             pedido={editarPedido}
         />
+        </>
     );
 }
