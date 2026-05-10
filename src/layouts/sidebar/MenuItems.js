@@ -84,7 +84,6 @@ const Menuitems = [
     group: true,
     children: [
       { title: "Auditoria",      icon: "eye",            href: "/auditoria" },
-      { title: "Logs",           icon: "clipboard",      href: "/logs" },
       { title: "Logs de Erro",   icon: "alert-triangle", href: "/errorlogs" },
       { title: "Logs de QRCODE", icon: "maximize",       href: "/qrcodelogs" },
     ],

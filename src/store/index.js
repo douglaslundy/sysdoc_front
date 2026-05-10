@@ -11,7 +11,6 @@ import callReducer from './ducks/calls';
 import clientReducer from './ducks/clients';
 import specialityReducer from './ducks/specialities';
 import queueReducer from './ducks/queues';
-import logReducer from './ducks/logs';
 import errorlogReducer from './ducks/errorlogs';
 import vehiclesReducer from './ducks/vehicles';
 import routesReducer from './ducks/routes';
@@ -43,7 +42,6 @@ export default configureStore({
         clients: clientReducer,
         specialities: specialityReducer,
         queues: queueReducer,
-        logs: logReducer,
         errorlogs: errorlogReducer,
         vehicles: vehiclesReducer,
         routes: routesReducer,
