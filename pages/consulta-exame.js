@@ -95,10 +95,10 @@ export default function ConsultaExame() {
 
                             <Divider sx={{ mb: 2 }} />
 
-                            {Object.entries(resultado.campos_por_exame || {}).map(([exameId, campos]) => (
+                            {Object.entries(resultado.campos_por_exame || {}).map(([exameId, grupo]) => (
                                 <Box key={exameId} mb={3}>
                                     <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
-                                        Exame #{exameId}
+                                        {grupo.nome_exame}
                                     </Typography>
                                     <TableContainer>
                                         <Table size="small">
@@ -111,7 +111,7 @@ export default function ConsultaExame() {
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {campos.map((rc, i) => (
+                                                {(grupo.campos || []).map((rc, i) => (
                                                     <TableRow key={i}>
                                                         <TableCell>{rc.campo}</TableCell>
                                                         <TableCell>{rc.valor_numerico ?? rc.valor_texto ?? '—'}</TableCell>

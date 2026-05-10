@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
+import { api } from '../../../services/api';
 import { getAllPedidos, removePedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { iniciarResultado, getResultado } from '../../../store/fetchActions/resultadoExames';
 import { turnModal, turnResultadoModal } from '../../../store/ducks/Layout';
@@ -31,6 +32,22 @@ export default function ListaPedidos() {
     }, []);
 
     const filtrados = pedidos.filter(p => !filtroStatus || p.status === filtroStatus);
+
+    const handleDownloadPdf = async (resultadoId, protocolo) => {
+        try {
+            const res = await api.get(`/laboratorio/resultados/${resultadoId}/pdf`, { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `laudo-${protocolo || resultadoId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            // erro tratado pelo interceptor global do api.js
+        }
+    };
 
     const handleAbrirResultado = (pedido) => {
         if (pedido.resultado) {
@@ -107,9 +124,7 @@ export default function ListaPedidos() {
                                             {pedido.status === 'liberado' && pedido.resultado?.id && (
                                                 <Button
                                                     title="Baixar laudo PDF"
-                                                    component="a"
-                                                    href={`${process.env.NEXT_PUBLIC_API_URL}/laboratorio/resultados/${pedido.resultado.id}/pdf`}
-                                                    target="_blank"
+                                                    onClick={() => handleDownloadPdf(pedido.resultado.id, pedido.resultado.protocolo)}
                                                     color="success"
                                                     size="medium"
                                                     variant="contained"

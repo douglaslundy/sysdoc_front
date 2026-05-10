@@ -10,6 +10,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
+import { api } from '../../../services/api';
 import { turnResultadoModal } from '../../../store/ducks/Layout';
 import { clearResultado } from '../../../store/ducks/resultadoExames';
 import { salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
@@ -67,6 +68,23 @@ export default function ResultadoModal(props) {
 
     const buildPayload = () => Object.values(valoresCampos).filter(c => c.exame_campo_id);
 
+    const handleDownloadPdf = async () => {
+        if (!resultado?.id) return;
+        try {
+            const res = await api.get(`/laboratorio/resultados/${resultado.id}/pdf`, { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `laudo-${resultado.protocolo || resultado.id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            // erro tratado pelo interceptor global do api.js
+        }
+    };
+
     const handleClose = () => {
         setValoresCampos({});
         setOpenConfirm(false);
@@ -118,8 +136,7 @@ export default function ResultadoModal(props) {
                                                 size="small"
                                                 variant="outlined"
                                                 startIcon={<FeatherIcon icon="download" size={14} />}
-                                                href={`${process.env.NEXT_PUBLIC_API_URL}/laboratorio/resultados/${resultado.id}/pdf`}
-                                                target="_blank"
+                                                onClick={handleDownloadPdf}
                                             >
                                                 PDF
                                             </Button>
@@ -166,6 +183,7 @@ export default function ResultadoModal(props) {
                                                                     value={val.valor_numerico ?? ''}
                                                                     onChange={e => setCampoValor(campo.id, exame.id, 'valor_numerico', e.target.value)}
                                                                     disabled={jaLiberado}
+                                                                    inputProps={{ max: 99999999999, step: 'any' }}
                                                                     sx={{ width: 120 }}
                                                                 />
                                                             )}

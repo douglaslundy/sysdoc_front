@@ -197,7 +197,10 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#9c27b0'],
-                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    xaxis: {
+                                        categories: chart.medicoNomes,
+                                        labels: { style: { colors: '#b0bec5' } },
+                                    },
                                     yaxis: {
                                         labels: {
                                             style: { colors: '#b0bec5', fontSize: '12px' },
@@ -280,7 +283,10 @@ export default function LabDashboard() {
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
                                     colors: ['#ff9800'],
-                                    xaxis: { labels: { style: { colors: '#b0bec5' } } },
+                                    xaxis: {
+                                        categories: chart.topExameNomes,
+                                        labels: { style: { colors: '#b0bec5' } },
+                                    },
                                     yaxis: {
                                         labels: {
                                             style: { colors: '#b0bec5', fontSize: '12px' },
