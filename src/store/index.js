@@ -27,6 +27,8 @@ import medicosSolicitantesReducer from './ducks/medicosSolicitantes';
 import accessProfilesReducer from './ducks/accessProfiles';
 import auditLogsReducer from './ducks/auditLogs';
 import labConfigReducer from './ducks/labConfig';
+import estabelecimentosReducer from './ducks/estabelecimentos';
+import alvarasReducer from './ducks/alvaras';
 
 
 export default configureStore({
@@ -58,5 +60,7 @@ export default configureStore({
         accessProfiles: accessProfilesReducer,
         auditLogs: auditLogsReducer,
         labConfig: labConfigReducer,
+        estabelecimentos: estabelecimentosReducer,
+        alvaras: alvarasReducer,
     },
 });

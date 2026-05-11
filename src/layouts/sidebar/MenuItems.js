@@ -79,6 +79,15 @@ const Menuitems = [
     ],
   },
   {
+    title: "Vigilância Sanitária",
+    icon: "shield",
+    group: true,
+    children: [
+      { title: "Estabelecimentos", icon: "home",       href: "/estabelecimentos" },
+      { title: "Alvarás",          icon: "award",      href: "/alvaras" },
+    ],
+  },
+  {
     title: "Sistema",
     icon: "settings",
     group: true,
