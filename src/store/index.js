@@ -27,6 +27,7 @@ import medicosSolicitantesReducer from './ducks/medicosSolicitantes';
 import accessProfilesReducer from './ducks/accessProfiles';
 import auditLogsReducer from './ducks/auditLogs';
 import labConfigReducer from './ducks/labConfig';
+import vigilanciaConfigReducer from './ducks/vigilanciaConfig';
 import estabelecimentosReducer from './ducks/estabelecimentos';
 import alvarasReducer from './ducks/alvaras';
 
@@ -60,6 +61,7 @@ export default configureStore({
         accessProfiles: accessProfilesReducer,
         auditLogs: auditLogsReducer,
         labConfig: labConfigReducer,
+        vigilanciaConfig: vigilanciaConfigReducer,
         estabelecimentos: estabelecimentosReducer,
         alvaras: alvarasReducer,
     },

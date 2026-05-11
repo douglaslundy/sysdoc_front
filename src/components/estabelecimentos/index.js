@@ -117,14 +117,6 @@ export default function ListaEstabelecimentos() {
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
-                <FormControl sx={{ minWidth: 110 }}>
-                    <InputLabel>Por página</InputLabel>
-                    <Select value={perPage} label="Por página" onChange={handlePerPage}>
-                        {PER_PAGE_OPTIONS.map(n => (
-                            <MenuItem key={n} value={n}>{n}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
                 <Fab color="primary" onClick={handleNovo} size="medium" title="Novo estabelecimento">
                     <FeatherIcon icon="plus" />
                 </Fab>
@@ -161,7 +153,7 @@ export default function ListaEstabelecimentos() {
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2">{est.cnaes}</Typography>
+                                    <Typography variant="body2">{trunc(est.cnaes, 15)}</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2">{formatDate(est.created_at)}</Typography>
@@ -183,7 +175,15 @@ export default function ListaEstabelecimentos() {
             </TableContainer>
 
             {pagination && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                    <FormControl size="small" sx={{ minWidth: 110 }}>
+                        <InputLabel>Por página</InputLabel>
+                        <Select value={perPage} label="Por página" onChange={handlePerPage}>
+                            {PER_PAGE_OPTIONS.map(n => (
+                                <MenuItem key={n} value={n}>{n}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                     <Typography variant="body2" color="textSecondary">
                         Página {pagination.current_page} de {pagination.last_page}
                     </Typography>

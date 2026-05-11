@@ -10,7 +10,7 @@ import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
 import AlvaraDialog from '../modal/alvara';
-import { getAllAlvaras, removeAlvaraFetch } from '../../store/fetchActions/alvaras';
+import { getAllAlvaras, removeAlvaraFetch, downloadAlvaraPdf } from '../../store/fetchActions/alvaras';
 import { changeTitleAlert } from '../../store/ducks/Layout';
 
 const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'default' };
@@ -158,14 +158,6 @@ export default function ListaAlvaras() {
                         ))}
                     </Select>
                 </FormControl>
-                <FormControl sx={{ minWidth: 110 }}>
-                    <InputLabel>Por página</InputLabel>
-                    <Select value={perPage} label="Por página" onChange={handlePerPage}>
-                        {PER_PAGE_OPTIONS.map(n => (
-                            <MenuItem key={n} value={n}>{n}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
                 <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará">
                     <FeatherIcon icon="plus" />
                 </Fab>
@@ -222,6 +214,17 @@ export default function ListaAlvaras() {
                                         <Button onClick={() => handleEditar(alv)} color="primary" variant="contained" size="small" title="Editar">
                                             <FeatherIcon icon="edit" width="18" height="18" />
                                         </Button>
+                                        {alv.status === 'Vigente' && (
+                                            <Button
+                                                onClick={() => dispatch(downloadAlvaraPdf(alv.id, alv.numero_alvara))}
+                                                color="success"
+                                                variant="contained"
+                                                size="small"
+                                                title="Baixar PDF"
+                                            >
+                                                <FeatherIcon icon="download" width="18" height="18" />
+                                            </Button>
+                                        )}
                                         <Button onClick={() => handleExcluir(alv)} color="error" variant="contained" size="small" title="Excluir">
                                             <FeatherIcon icon="trash" width="18" height="18" />
                                         </Button>
@@ -234,7 +237,15 @@ export default function ListaAlvaras() {
             </TableContainer>
 
             {pagination && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                    <FormControl size="small" sx={{ minWidth: 110 }}>
+                        <InputLabel>Por página</InputLabel>
+                        <Select value={perPage} label="Por página" onChange={handlePerPage}>
+                            {PER_PAGE_OPTIONS.map(n => (
+                                <MenuItem key={n} value={n}>{n}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                     <Typography variant="body2" color="textSecondary">
                         Página {pagination.current_page} de {pagination.last_page}
                     </Typography>
