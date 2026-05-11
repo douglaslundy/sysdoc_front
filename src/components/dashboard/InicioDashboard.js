@@ -90,19 +90,16 @@ export default function InicioDashboard() {
     return (
         <Box>
             <Grid container spacing={3} mb={3}>
-                <Grid item xs={6} sm={4} md={2} lg={2}>
+                <Grid item xs={6} sm={6} md={3}>
                     <CardTotal icon="users" titulo="Clientes" valor={totais.clientes} cor="#2196f3" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2} lg={2}>
-                    <CardTotal icon="activity" titulo="Especialidades" valor={totais.especialidades} cor="#4caf50" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2} lg={2}>
+                <Grid item xs={6} sm={6} md={3}>
                     <CardTotal icon="file-text" titulo="Ofícios" valor={totais.oficios} cor="#ff9800" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2} lg={2}>
+                <Grid item xs={6} sm={6} md={3}>
                     <CardTotal icon="book" titulo="Portarias" valor={totais.portarias} cor="#9c27b0" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2} lg={2}>
+                <Grid item xs={6} sm={6} md={3}>
                     <CardTotal icon="cpu" titulo="Modelos IA" valor={totais.modelos_ia} cor="#00bcd4" />
                 </Grid>
             </Grid>

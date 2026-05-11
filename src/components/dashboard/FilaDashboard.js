@@ -89,7 +89,15 @@ export default function FilaDashboard() {
         <Box>
             {/* Totalizadores */}
             <Grid container spacing={3} mb={3}>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={6} sm={3}>
+                    <CardTotal
+                        icon="activity"
+                        titulo="Especialidades Cadastradas"
+                        valor={totais?.especialidades}
+                        cor="#9c27b0"
+                    />
+                </Grid>
+                <Grid item xs={6} sm={3}>
                     <CardTotal
                         icon="users"
                         titulo="Total na Fila"
@@ -97,7 +105,7 @@ export default function FilaDashboard() {
                         cor="#2196f3"
                     />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={6} sm={3}>
                     <CardTotal
                         icon="calendar"
                         titulo="Fila Últimos 7 Dias"
@@ -105,7 +113,7 @@ export default function FilaDashboard() {
                         cor="#ff9800"
                     />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={6} sm={3}>
                     <CardTotal
                         icon="check-circle"
                         titulo="Total Realizados"
