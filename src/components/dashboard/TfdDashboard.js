@@ -81,11 +81,14 @@ export default function TfdDashboard() {
         const anoPessoas = (viagens_por_ano || []).map(v => v.pessoas);
         const anoKm      = (viagens_por_ano || []).map(v => v.km);
 
+        const alturaMotoristaRotas = Math.max(300, Math.max(motoristaNomes.length, rotaNomes.length) * 32);
+
         return {
             diasLabels, diasVals,
             diasAgLabels, diasAgVals,
             motoristaNomes, motoristaVals,
             rotaNomes, rotaVals,
+            alturaMotoristaRotas,
             mesMeses, mesViagens, mesPessoas, mesKm,
             anoLabels, anoViagens, anoPessoas, anoKm,
         };
@@ -220,7 +223,7 @@ export default function TfdDashboard() {
                         {chart.motoristaNomes.length > 0 ? (
                             <Chart
                                 type="bar"
-                                height={Math.max(300, (chart.motoristaNomes?.length || 5) * 32)}
+                                height={chart.alturaMotoristaRotas}
                                 options={{
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
@@ -253,7 +256,7 @@ export default function TfdDashboard() {
                         {chart.rotaNomes.length > 0 ? (
                             <Chart
                                 type="bar"
-                                height={Math.max(300, (chart.rotaNomes?.length || 5) * 32)}
+                                height={chart.alturaMotoristaRotas}
                                 options={{
                                     chart: { ...chartFont, ...toolbarOff },
                                     plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
