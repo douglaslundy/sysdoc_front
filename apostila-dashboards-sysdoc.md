@@ -1,19 +1,20 @@
-# Apostila: Segurança e Performance em Dashboards — Sysdoc
+# Apostila: Segurança, Performance e Auditoria — Sysdoc
 
 **Projeto:** Sysdoc (Jr Ferragens)
 **Stack:** Laravel 10 (backend) + Next.js 12 / React 17 (frontend)
-**Data:** Maio 2026
+**Última atualização:** Maio 2026 — Fases A–N concluídas
 
 ---
 
 ## Introdução
 
-Esta apostila documenta as melhorias aplicadas nos dashboards analíticos do Sysdoc. O sistema possui 4 dashboards (Laboratório, Fila, TFD e Logs/QR), cada um consumindo um endpoint do backend que executa múltiplas queries de agregação no banco de dados.
+Esta apostila documenta as melhorias aplicadas no Sysdoc ao longo de seis sessões de implementação (fases A a N). O sistema possui 4 dashboards analíticos, um módulo de laboratório completo, sistema de auditoria de ações, gestão de filas, TFD, atendimento e documentos.
 
-Os problemas encontrados se dividem em três categorias:
-- **Segurança** — quem pode acessar o quê, e com que frequência
+Os tópicos se dividem em quatro categorias:
+- **Segurança** — quem pode acessar o quê, rastreabilidade e proteção de endpoints
 - **Performance** — como as queries impactam o banco de dados
 - **Confiabilidade e código** — o que acontece quando algo falha
+- **Auditoria** — registro completo de ações no sistema (LGPD)
 
 ---
 
@@ -107,6 +108,67 @@ Porque violar o princípio de responsabilidade única. O controller deve process
 
 ---
 
+### 1.3 Exclusão com Cascata — `forceDelete()` vs Soft Delete
+
+#### O que é
+
+O Laravel tem soft delete — em vez de deletar fisicamente, ele marca o registro com `deleted_at`. Isso permite "lixeira" e recuperação de dados. No banco, as foreign keys com `ON DELETE CASCADE` **não disparam** em soft delete, pois o SQL nunca executa um `DELETE` real.
+
+#### O problema encontrado
+
+O `PedidoExame` usava `SoftDeletes`. Seus filhos (`pedido_exame_itens`, `resultado_exames`, `resultado_campos`) não têm soft delete. A situação criada era contraditória:
+
+```php
+// O que acontecia com delete() simples:
+$pedido->delete();
+// → Marca pedido com deleted_at (recuperável)
+// → NÃO aciona CASCADE do banco
+// → Filhos ficam órfãos no banco para sempre
+
+// Tentativa 1: deletar filhos manualmente antes:
+$pedido->resultado?->campos()->delete();
+$pedido->resultado?->delete();
+$pedido->itens()->delete();
+$pedido->delete(); // soft delete
+// → Filhos são deletados fisicamente (irrecuperável)
+// → Pai fica com deleted_at (teóricamente recuperável, mas filhos não existem mais)
+// → Contradição: recuperar o pai nunca funcionaria
+```
+
+#### A solução correta: `forceDelete()`
+
+```php
+// PedidoExameController::destroy()
+public function destroy(PedidoExame $pedido)
+{
+    // ...verificações de status...
+    $pedido->forceDelete(); // DELETE físico → aciona ON DELETE CASCADE do banco
+}
+```
+
+`forceDelete()` emite um `DELETE` SQL real, que aciona o `ON DELETE CASCADE` definido nas migrations filhas. O banco cuida de todo o cascade automaticamente, de forma atômica.
+
+**Consequência importante:** `forceDelete()` dispara o evento `forceDeleted` do Eloquent, **não** `deleted`. Isso significa que observers registrados em `deleted()` não são chamados:
+
+```php
+// PedidoExameObserver — situação anterior (bug silencioso)
+public function deleted(PedidoExame $pedido): void
+{
+    AuditService::record('DELETE', $pedido, $pedido->toArray(), null);
+    // Este método NUNCA era chamado para forceDelete()!
+}
+
+// Correção: adicionar forceDeleted()
+public function forceDeleted(PedidoExame $pedido): void
+{
+    AuditService::record('DELETE', $pedido, $pedido->toArray(), null);
+}
+```
+
+**Regra prática:** Se um modelo usa `forceDelete()`, o observer precisa implementar `forceDeleted()`. Os dois eventos são independentes.
+
+---
+
 ## Parte 2 — Performance
 
 ### 2.1 Cache no Servidor
@@ -155,8 +217,21 @@ public function laboratorio()
 **TTLs escolhidos por endpoint:**
 - Laboratório: 300s (5 min) — dados históricos, mudam pouco
 - Fila: 120s (2 min) — mais dinâmica
-- TFD: 300s (5 min)
+- TFD: 300s (5 min) — inclui `periodo` na cache key (cada período tem seu cache)
 - Logs: 600s (10 min) — dados de acesso, mudam menos
+
+**Cache key dinâmica para TFD:**
+
+```php
+// Errado — um único cache para todos os períodos
+Cache::remember('dashboard.tfd', 300, fn() => ...);
+
+// Correto — cache separado por período e por mês de referência
+$key = 'dashboard.tfd.' . $periodo . '.' . now()->format('Y-m');
+Cache::remember($key, 300, fn() => ...);
+```
+
+Sem o `now()->format('Y-m')`, o dashboard do dia 1 de junho poderia ainda mostrar os dados de maio.
 
 **Analogia:** É como uma fotocopiadora. Na primeira vez, você tira a cópia do original (a query). Nas próximas, você copia a cópia — muito mais rápido.
 
@@ -406,8 +481,6 @@ if (erro || !dados || !chart) {
 }
 ```
 
-Além de duplicação, havia inconsistência: o `TfdDashboard` tinha estado de erro mas os outros não.
-
 #### Como ficou
 
 **Passo 1 — Criar componente compartilhado** `src/components/dashboard/DashboardStatus.js`:
@@ -435,29 +508,12 @@ export function DashboardErro() {
 **Passo 2 — Usar em todos os dashboards**:
 
 ```jsx
-// Antes (em cada arquivo)
-import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
-
-// Depois
-import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
-import { DashboardLoading, DashboardErro } from './DashboardStatus';
-```
-
-```jsx
 // Antes (12 linhas duplicadas)
 if (loading) {
-    return (
-        <Box display="flex" ...>
-            <CircularProgress />
-        </Box>
-    );
+    return (<Box display="flex" ...><CircularProgress /></Box>);
 }
 if (erro || !dados || !chart) {
-    return (
-        <Box p={4} ...>
-            <Typography>Dados não disponíveis.</Typography>
-        </Box>
-    );
+    return (<Box p={4} ...><Typography>Dados não disponíveis.</Typography></Box>);
 }
 
 // Depois (2 linhas)
@@ -484,8 +540,6 @@ const motoristaNomes = (motoristas || [])
     .reverse();
 ```
 
-Se qualquer motorista vier sem nome do banco, o `useMemo` inteiro falha e o dashboard não renderiza nada — nem os gráficos que funcionavam.
-
 #### Como ficou
 
 ```jsx
@@ -498,9 +552,238 @@ O operador `??` (nullish coalescing) retorna o lado direito apenas quando o lado
 
 ---
 
-## Parte 4 — UX / Frontend
+### 3.4 Datas: `split('-')` vs `new Date()`
 
-### 4.1 Dashboards Sempre Montados (Sem Re-fetch por Aba)
+#### O problema
+
+```js
+// Bug silencioso de timezone
+const d = new Date('2026-05-10'); // interpreta como UTC midnight
+d.toLocaleDateString('pt-BR');    // em UTC-3 retorna "09/05/2026" ← dia errado!
+```
+
+Strings ISO sem horário (`2026-05-10`) são interpretadas como UTC. Ao converter para o timezone local (UTC-3), a meia-noite de UTC vira 21h do dia anterior — a data volta um dia.
+
+#### A solução
+
+```js
+// Correto — ignora timezone completamente
+const formatDate = (s) => {
+    if (!s) return '—';
+    const [y, m, d] = s.substring(0, 10).split('-');
+    return `${d}/${m}/${y}`;
+};
+```
+
+Extraindo diretamente da string ISO sem criar um objeto `Date`, o offset de fuso nunca entra no processo. Aplicado em todas as exibições de data do módulo de pedidos de exame.
+
+---
+
+## Parte 4 — Sistema de Auditoria
+
+### 4.1 Visão Geral do Sistema
+
+O Sysdoc implementa auditoria completa de ações via `AuditService::record()`. Cada ação relevante gera um registro na tabela `audit_logs` com:
+
+- `user_id`, `user_name` — quem executou
+- `action` — o que fez (CREATE, UPDATE, DELETE, VIEW, etc.)
+- `model_type`, `model_id` — sobre qual registro
+- `endpoint`, `method` — de qual rota
+- `ip_address` — de onde
+- `old_values`, `new_values` — o que mudou (JSON)
+
+```php
+// Assinatura do método
+AuditService::record(
+    string $action,
+    ?Model $model,
+    ?array $oldValues = null,
+    ?array $newValues = null,
+    ?User $actingUser = null  // opcional: usuário explícito (ex: no login)
+): void
+```
+
+**Importante:** `AuditService::record()` silencia todas as exceções internamente com `catch (\Throwable)`. O audit nunca quebra a operação principal — se falhar, o usuário não percebe e a operação continua.
+
+---
+
+### 4.2 Bug Crítico: ENUM Silenciando Auditorias
+
+#### O problema
+
+A coluna `audit_logs.action` foi criada como `ENUM`:
+
+```sql
+-- Migration original
+action ENUM('LOGIN', 'LOGOUT', 'CREATE', 'UPDATE', 'DELETE') NOT NULL
+```
+
+Quando novos tipos de ação foram introduzidos (`VIEW`, `VIEW_REPORT`, `LIBERAR`, `DOWNLOAD`), o MySQL rejeitava a inserção com um erro de constraint — mas esse erro era engolido pelo `catch (\Throwable)` do `AuditService`. **Zero logs foram gravados para essas ações desde o início, sem qualquer alerta.**
+
+#### Como foi detectado
+
+Ao verificar a tabela `audit_logs` em produção: nenhum registro com `action = 'VIEW'` ou `'LIBERAR'` existia, mesmo após semanas de uso. O `catch` silenciador escondia um erro estrutural.
+
+#### A correção
+
+```php
+// Migration: 2026_05_10_400000_alter_audit_logs_action_to_varchar
+DB::statement("ALTER TABLE audit_logs MODIFY COLUMN action VARCHAR(30) NOT NULL");
+```
+
+`VARCHAR(30)` aceita qualquer string de até 30 caracteres. Novas ações podem ser adicionadas sem migration. O ENUM era uma restrição sem valor real — o código já controla quais strings são usadas.
+
+**Lição:** Nunca use ENUM para campos que representam estados extensíveis do domínio. Use VARCHAR com validação na camada de aplicação.
+
+---
+
+### 4.3 Auditoria de Visualização — Padrão `view*Fetch`
+
+#### O problema de auditar GETs via store Redux
+
+O frontend usava um padrão comum no Redux: ao carregar uma listagem, os dados ficam no store. Ao clicar em um registro para abrir o modal, o dado era extraído diretamente do store — sem fazer nenhuma nova requisição HTTP:
+
+```js
+// Padrão anterior — sem audit
+const handleVerCliente = (cliente) => {
+    setClienteModal(cliente); // dados vêm do store, não do backend
+};
+// → QueueController::show() NUNCA é chamado → AuditService::record('VIEW') NUNCA dispara
+```
+
+#### A solução: `view*Fetch`
+
+```js
+// fetchActions/queues/index.js
+export const viewQueueFetch = (id, onSuccess) => (dispatch) => {
+    api.get(`/queues/${id}`)
+        .then((res) => { onSuccess && onSuccess(res.data); })
+        .catch(() => {});
+};
+
+// queue/index.js — ao clicar no botão de visualizar
+dispatch(viewQueueFetch(queue.id, setViewQueue));
+// → Chama GET /queues/{id} → QueueController::show() → AuditService::record('VIEW') ✓
+```
+
+**Contrato do padrão:**
+1. Thunk chama `GET /resource/{id}` ao backend
+2. Backend tem `AuditService::record('VIEW', $model)` no `show()`
+3. Callback `onSuccess(res.data)` seta o estado local que abre o modal
+
+**Recursos cobertos:** `viewClientFetch`, `viewPedidoFetch`, `viewQueueFetch`.
+
+**Benefício adicional:** O modal sempre exibe dados frescos do banco, não dados que podem ter sido modificados desde que a listagem foi carregada.
+
+---
+
+### 4.4 Cobertura Completa de Auditoria
+
+Após a Fase N, todos os controllers relevantes do sistema registram auditoria para CREATE, UPDATE e DELETE:
+
+| Controller | CREATE | UPDATE | DELETE |
+|---|---|---|---|
+| LetterController | ✓ | ✓ | ✓ |
+| OrdinanceController | ✓ | ✓ | ✓ |
+| QueueController | ✓ | ✓ | ✓ |
+| ExameController | ✓ | ✓ | ✓ |
+| CategoriaExameController | ✓ | ✓ | ✓ |
+| ExameCampoController | ✓ | ✓ | ✓ |
+| CampoReferenciaController | ✓ | ✓ | ✓ |
+| MedicoSolicitanteController | ✓ | ✓ | ✓ |
+| VehicleController | ✓ | ✓ | ✓ (active=false) |
+| RouteController | ✓ | ✓ | ✓ (active=false) |
+| RoomController | ✓ | ✓ | ✓ |
+| CallController | ✓ | ✓ | — |
+| CallServiceController | ✓ | ✓ | ✓ |
+| SystemPageController | ✓ | ✓ | ✓ |
+| SectorController | ✓ | ✓ | ✓ |
+| PedidoExameController | ✓ via observer | ✓ | ✓ via forceDeleted() |
+| ResultadoExameController | — | ✓ LIBERAR | ✓ DOWNLOAD |
+| ClientController | — | ✓ | ✓ |
+| AuthController | LOGIN | — | — |
+
+**Padrão aplicado em todos:**
+
+```php
+// store()
+$model = Model::create($data);
+AuditService::record('CREATE', $model, null, $model->toArray());
+
+// update()
+$old = $model->toArray();           // captura ANTES da alteração
+$model->update($data);              // ou $model->save()
+AuditService::record('UPDATE', $model, $old, $model->toArray());
+
+// destroy()
+AuditService::record('DELETE', $model, $model->toArray(), null);
+$model->delete();                   // DEPOIS do audit — garante que o dado ainda existe
+```
+
+**Por que auditar ANTES do delete?** Após `$model->delete()`, `$model->toArray()` pode retornar dados incompletos dependendo do tipo de delete. Capturar antes garante que `old_values` estará completo no log.
+
+---
+
+### 4.5 Página de Auditoria — Filtros e Exibição
+
+#### Filtro de usuário inoperante (bug corrigido)
+
+```js
+// Frontend enviava:
+params: { user_name: 'Douglas' }
+
+// Backend verificava apenas:
+if ($request->filled('user_id')) { ... }  // user_name era ignorado
+```
+
+Fix: o backend passou a filtrar por `user_name` (exact match). Mais robusto que `user_id` — um usuário deletado perde o ID, mas o nome permanece nos logs históricos.
+
+#### Select de usuários via API
+
+```php
+// Novo endpoint: GET /audit-logs/users
+public function users()
+{
+    return AuditLog::select('user_id', 'user_name')
+        ->whereNotNull('user_id')
+        ->distinct()
+        ->orderBy('user_name')
+        ->get();
+}
+```
+
+O frontend popula o select dinamicamente com os usuários que já têm logs — não exige acesso à tabela de usuários.
+
+#### Exibição de endpoint nas ações VIEW
+
+```js
+// Helper que transforma a URL em nome legível
+const endpointLabel = (endpoint) => {
+    if (!endpoint) return null;
+    return endpoint
+        .replace(/^api\//, '')        // remove prefixo 'api/'
+        .replace(/\/\d+$/, '')        // remove ID numérico no final
+        .replace(/\/\d+\//, '/')      // remove ID numérico no meio
+        .replace(/-/g, ' ');          // hífens viram espaços
+};
+
+// 'api/queues/42'              → 'queues'
+// 'api/clients/7'              → 'clients'
+// 'api/detailed-client-report' → 'detailed client report'
+```
+
+Exibido após o chip da ação VIEW/VIEW_REPORT:
+
+```
+[VIEW] / clients
+[VIEW_REPORT] / detailed client report
+```
+
+---
+
+## Parte 5 — UX / Frontend
+
+### 5.1 Dashboards Sempre Montados (Sem Re-fetch por Aba)
 
 #### O que é
 
@@ -520,8 +803,6 @@ Fluxo problemático:
 2. Usuário vai para aba "TFD" → FilaDashboard é **desmontado** (estado perdido)
 3. Usuário volta para "Fila" → FilaDashboard monta **de novo** → API chamada **de novo**
 
-Cada troca de aba = uma nova chamada de API.
-
 #### Como ficou
 
 ```jsx
@@ -534,10 +815,6 @@ Cada troca de aba = uma nova chamada de API.
 
 Com `hidden`, o componente **permanece montado** mas é ocultado via CSS (`display: none`). O estado é preservado. Trocar de aba é instantâneo, sem novas requisições.
 
-**Por que `hidden` e não `display: none` manual?** O atributo HTML `hidden` aplica `display: none` nativamente, o componente React não renderiza seus filhos visualmente, mas permanece na árvore de componentes com estado intacto.
-
-**Comparação:**
-
 | Abordagem | Troca de aba | Re-fetch | Memória |
 |---|---|---|---|
 | `&&` (antes) | Remonta componente | Sim, sempre | Baixa (apenas 1 montado) |
@@ -547,45 +824,129 @@ Para 4 dashboards com dados leves, o consumo extra de memória é irrelevante fr
 
 ---
 
-## Resumo das Melhorias
+### 5.2 PDF Download Autenticado
 
-| # | Problema | Tipo | Solução |
-|---|---|---|---|
-| 1 | Sem rate limiting | Segurança | `throttle:20,1` nas rotas |
-| 2 | Sem controle de acesso | Segurança | Gates + middleware `can:` |
-| 3 | COUNT sem WHERE em logs | Performance | Cache de 10 min no endpoint |
-| 4 | 14 queries por requisição | Performance | `Cache::remember` no servidor |
-| 5 | Re-fetch ao trocar aba | UX | `hidden` em vez de `&&` |
-| 6 | Sem try/catch em Lab/Logs | Confiabilidade | Try/catch por seção + `Log::error` |
-| 7 | DATE_FORMAT impede índice | Performance | `whereBetween` com datas explícitas |
-| 8 | Colunas sem índice | Performance | Migration com `$table->index()` |
-| 9 | `.split()` sem null guard | Confiabilidade | Operador `??` antes do split |
-| 10 | Sem Cache-Control | Performance | Header `private, max-age=300` |
-| 11 | Loading/erro duplicado | Código | Componente `DashboardStatus` |
-| 12 | Helper fora do useMemo | Código | Função movida para escopo de módulo |
-| 13 | Magic numbers | Manutenção | Constantes de classe `private const` |
+#### O problema
+
+Links `<a href={url}>` não enviam headers HTTP. O backend protege o endpoint de download com `middleware('auth:sanctum')` — o token Bearer é necessário. Um link simples sempre retorna `401 Unauthorized`.
+
+#### A solução
+
+```js
+const handleDownloadPdf = async (pedidoId) => {
+    try {
+        const response = await api.get(`/laboratorio/pedidos/${pedidoId}/pdf`, {
+            responseType: 'blob',  // recebe bytes, não JSON
+        });
+        const url = URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `laudo-${pedidoId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);  // libera memória
+    } catch (err) {
+        // tratar erro
+    }
+};
+```
+
+A instância `api` (Axios) já inclui `Authorization: Bearer {token}` em todas as requisições. O arquivo é recebido como blob em memória e convertido em URL temporária para download.
 
 ---
 
-## Commits de Referência
+## Resumo das Melhorias (Estado Atual — Fase N)
 
-### Backend (`sysdoc_back`)
-| Commit | Tarefa |
-|---|---|
-| `ffcd50b` | try/catch com fallback em laboratorio() e logs() |
-| `f92a6ff` | Cache::remember nos 4 endpoints (2–10min TTL) |
-| `1c08aa7` | Cache-Control: private, max-age=300 |
-| `d070b6c` | Migration de índices nas colunas dos dashboards |
-| `3f68eb9` | whereBetween em vez de DATE_FORMAT |
-| `669d4d1` | Gates de permissão por perfil |
-| `ffcd50b` | throttle:20,1 nas rotas de dashboard |
-| `d5d2032` | Constantes de classe (TOP_EXAMES etc.) |
+### Segurança
 
-### Frontend (`sysdoc_front`)
-| Commit | Tarefa |
-|---|---|
-| `62d7b43` | Rate limiting — tratamento de 429 no frontend |
-| `6387f33` | Null guard em nome.split() |
-| `bcb8c8c` | hidden em vez de && (sem re-fetch ao trocar aba) |
-| `a959297` | DashboardStatus.js + LabDashboard atualizado |
-| `aa004d8` | DashboardStatus aplicado em Fila, Logs e TFD |
+| # | Problema | Solução |
+|---|---|---|
+| 1 | Sem rate limiting nos dashboards | `throttle:20,1` nas rotas |
+| 2 | Sem controle de acesso por perfil | Gates + middleware `can:` |
+| 3 | ENUM em audit_logs silenciava ações VIEW/LIBERAR/DOWNLOAD | Migration para `VARCHAR(30)` |
+| 4 | Audit de VIEW não disparava (dados do Redux store) | Padrão `view*Fetch` com GET real |
+| 5 | forceDelete() não auditado (observer `deleted` não chamado) | Método `forceDeleted()` no observer |
+| 6 | Cascade deletion inconsistente (soft delete + hard delete filhos) | `forceDelete()` com DB CASCADE |
+
+### Performance
+
+| # | Problema | Solução |
+|---|---|---|
+| 7 | 14 queries por requisição ao dashboard | `Cache::remember` servidor (2–10 min) |
+| 8 | Re-fetch ao trocar de aba no dashboard | `hidden` em vez de `&&` |
+| 9 | Sem Cache-Control no browser | Header `private, max-age=300` |
+| 10 | `DATE_FORMAT()` impedindo uso de índice no WHERE | `whereBetween` com datas explícitas |
+| 11 | Colunas sem índice em tabelas de crescimento contínuo | Migration com `$table->index()` |
+| 12 | COUNT sem WHERE em tabela de logs | Cache de 10 min resolve o impacto prático |
+| 13 | Cache TFD sem diferenciação de período e mês | Cache key dinâmica `tfd.{periodo}.{Y-m}` |
+
+### Confiabilidade e Código
+
+| # | Problema | Solução |
+|---|---|---|
+| 14 | Sem try/catch nos endpoints Lab e Logs | Try/catch por seção + `Log::error` |
+| 15 | Loading/erro duplicado 4× nos dashboards | Componente `DashboardStatus.js` |
+| 16 | `.split()` sem null guard crashava o dashboard | Operador `??` antes do split |
+| 17 | Magic numbers em limits de queries | Constantes `private const TOP_EXAMES = 10` |
+| 18 | `new Date(str)` retornava dia errado (UTC offset) | `s.substring(0,10).split('-')` |
+| 19 | `catch (Exception)` não capturava `\Error` | `catch (\Throwable)` em controllers críticos |
+
+### Auditoria
+
+| # | Problema | Solução |
+|---|---|---|
+| 20 | Login não auditado | `AuditService::record('LOGIN', ..., $user)` em `AuthController::login()` |
+| 21 | ~30% dos controllers sem audit CREATE/UPDATE/DELETE | Fase N: cobertura 100% em 15 controllers |
+| 22 | Filtro de usuário na auditoria não funcionava | Filtro por `user_name` + endpoint `/audit-logs/users` |
+| 23 | Recurso exibido com casing original (`PedidoExame`) | Uppercase com espaços na página de auditoria |
+| 24 | Ações VIEW/VIEW_REPORT sem contexto do recurso acessado | Helper `endpointLabel()` exibindo `/ resource-name` |
+
+---
+
+## Commits de Referência (Backend)
+
+| Fase | Hash | Descrição |
+|---|---|---|
+| A–E | `5b8113c` | fix: bugs críticos laboratório |
+| A–E | `498868a` | fix: auditoria, consulta pública, validações |
+| A–E | `2f34714` | feat: pesquisa pedidos, LabConfig, dashboards |
+| A–E | `9fb30b9` | fix: inputs duplicados no modal resultado |
+| A–E | `580975b` | chore: remove sistema de logs antigo |
+| A–E | `7c1de27` | feat: editar pedido de exame |
+| F–I | `3909151` | fix: cache key mensal TFD, limits dashboard |
+| F–I | `386682b` | fix: laudo PDF médico solicitante, catch Throwable |
+| F–I | `5d73b2a` | feat: busca por protocolo em pedidos |
+| F–I | `500734c` | feat: download laudo PDF na consulta pública |
+| J–K | `e39e1bc` | fix: confirmação ao excluir pedido |
+| K | `ff6744b` | feat: audit VIEW ficha de cliente |
+| L | `e9ea87a` | feat: audit VIEW pedido de exame individual |
+| L | `afedfce` | feat: audit VIEW registro de fila |
+| M | `b727d85` | fix: forceDelete() ao excluir pedido |
+| M | `c619d20` | feat: bloco Exames no relatório de cliente |
+| M | `0d82c3e` | fix: remove show() duplicado no QueueController |
+| M | `acbcd4e` | **fix: ENUM → VARCHAR(30) em audit_logs.action** |
+| M | `970c534` | feat: filtro user_name + endpoint /audit-logs/users |
+| N | `845a784` | feat: AuditService CREATE/UPDATE/DELETE em todos os controllers |
+
+## Commits de Referência (Frontend)
+
+| Fase | Hash | Descrição |
+|---|---|---|
+| A–E | `b0bcfdc` | fix: LabDashboard nome exame + dark mode |
+| A–E | `38285f3` | fix: dashboards, PDF blob, validação numérica |
+| A–E | `79a420f` | feat: pesquisa, labConfig, TFD período, gráficos |
+| A–E | `b489219` | chore: remove logs antigo |
+| A–E | `0a7d075` | feat: editar pedido (frontend) |
+| F–I | `c0260e3` | fix: dark mode, cache TFD, limits dashboard |
+| F–I | `17fa822` | fix: mensagens de erro em salvar/liberar |
+| F–I | `56fa175` | feat: fila — visualizar registro completo |
+| F–I | `6a3ed9a` | feat: protocolo, datas formatadas, busca protocolo |
+| F–I | `d58ab67` | feat: botão baixar laudo PDF na consulta pública |
+| F–I | `e875362` | feat: gauge charts no dashboard lab |
+| J | `e39e1bc` | fix: confirmação antes de excluir pedido |
+| L | `87f3e05` | feat: viewPedidoFetch chama GET antes de abrir dialog |
+| L | `132b309` | feat: viewQueueFetch chama GET antes de abrir dialog |
+| M | `3d4c478` | feat: bloco Exames + contadores no client_report |
+| M | `3c8ca9f` | feat: select usuários, recurso uppercase, auditoria |
+| M | `b74e89a` | feat: endpoint após ação VIEW/VIEW_REPORT |
