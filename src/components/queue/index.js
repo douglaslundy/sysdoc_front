@@ -28,7 +28,7 @@ import QueueOutcomeModal from "../modal/outcomequeue";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllQueues, inactiveQueueFetch } from "../../store/fetchActions/queues";
+import { getAllQueues, inactiveQueueFetch, viewQueueFetch } from "../../store/fetchActions/queues";
 import { showQueue } from "../../store/ducks/queues";
 import { turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
@@ -520,7 +520,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar" onClick={() => setViewQueue(queue)} color="info" size="medium" variant="contained">
+                                                <Button title="Visualizar" onClick={() => dispatch(viewQueueFetch(queue.id, setViewQueue))} color="info" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 

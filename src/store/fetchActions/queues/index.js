@@ -81,6 +81,14 @@ export const editDoneQueue = (queue, cleanForm) => {
     };
 }
 
+export const viewQueueFetch = (queueId, onSuccess) => {
+    return (dispatch) => {
+        api.get(`/queues/${queueId}`)
+            .then((res) => { onSuccess && onSuccess(res.data); })
+            .catch(() => {});
+    };
+};
+
 export const inactiveQueueFetch = (queue) => {
     return (dispatch) => {
         dispatch(turnLoading())
