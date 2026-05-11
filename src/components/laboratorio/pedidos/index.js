@@ -7,7 +7,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../../services/api';
-import { getAllPedidos, removePedidoFetch } from '../../../store/fetchActions/pedidosExame';
+import { getAllPedidos, removePedidoFetch, viewPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { iniciarResultado, getResultado } from '../../../store/fetchActions/resultadoExames';
 import { turnModal, turnResultadoModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import PedidoModal from '../../modal/pedido';
@@ -162,7 +162,7 @@ export default function ListaPedidos() {
                                             {!['liberado', 'cancelado'].includes(pedido.status) && (
                                                 <Button
                                                     title="Editar pedido"
-                                                    onClick={() => setEditarPedido(pedido)}
+                                                    onClick={() => dispatch(viewPedidoFetch(pedido.id, setEditarPedido))}
                                                     color="warning"
                                                     size="medium"
                                                     variant="contained"

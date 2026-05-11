@@ -80,6 +80,14 @@ export const removePedidoFetch = (id) => {
     };
 };
 
+export const viewPedidoFetch = (pedidoId, onSuccess) => {
+    return (dispatch) => {
+        api.get(`/laboratorio/pedidos/${pedidoId}`)
+            .then((res) => { onSuccess && onSuccess(res.data); })
+            .catch(() => {});
+    };
+};
+
 export const updatePedidoFetch = (id, dados, onSuccess) => {
     return (dispatch) => {
         dispatch(turnLoading());
