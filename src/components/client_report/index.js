@@ -27,6 +27,10 @@ import { clearClientReport } from "../../store/ducks/clients";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from "date-fns";
 
+const STATUS_COR = {
+    solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
+};
+
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     "&:nth-of-type(odd)": {
         backgroundColor: theme.palette.action.hover,
@@ -303,7 +307,7 @@ export default () => {
 
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                            Viagens
+                            Viagens ({reportData?.trips?.length ?? 0})
                         </Typography>
 
                         <TableContainer>
@@ -411,7 +415,7 @@ export default () => {
 
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                            Filas
+                            Filas ({reportData?.queue?.length ?? 0})
                         </Typography>
 
                         <TableContainer>
@@ -485,6 +489,86 @@ export default () => {
                                                 <Typography variant="h6">
                                                     Nenhuma fila ou especialidade vinculada a este cliente.
                                                 </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+
+                    <Divider />
+
+                    <Box>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                            Exames ({reportData?.pedidos_exame?.length ?? 0})
+                        </Typography>
+
+                        <TableContainer>
+                            <Table aria-label="tabela de exames" sx={{ whiteSpace: 'nowrap' }}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Exames</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Médico Solicitante</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Cadastrado por</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">Liberado por</Typography></TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {reportData?.pedidos_exame?.length ? (
+                                        [...reportData.pedidos_exame]
+                                            .sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido))
+                                            .map((pedido) => (
+                                                <StyledTableRow key={pedido.id} hover>
+                                                    <TableCell>
+                                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                                            {formatDate(pedido.data_pedido)}
+                                                        </Typography>
+                                                        {pedido.data_coleta && (
+                                                            <Typography color="textSecondary" sx={{ fontSize: '12px' }}>
+                                                                Coleta: {formatDate(pedido.data_coleta)}
+                                                            </Typography>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {pedido.exames?.length ? (
+                                                            pedido.exames.map((e) => (
+                                                                <Chip key={e.id} label={e.nome || e.codigo} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
+                                                            ))
+                                                        ) : (
+                                                            <Typography color="textSecondary" variant="h6">—</Typography>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {pedido.medico_solicitante?.nome?.toUpperCase() || '—'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={pedido.status?.replace(/_/g, ' ').toUpperCase()}
+                                                            color={STATUS_COR[pedido.status] || 'default'}
+                                                            size="small"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {pedido.criado_por?.name?.toUpperCase() || '—'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Typography variant="h6">
+                                                            {pedido.resultado?.liberado_por?.name?.toUpperCase() || '—'}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </StyledTableRow>
+                                            ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6}>
+                                                <Typography variant="h6">Nenhum exame encontrado.</Typography>
                                             </TableCell>
                                         </TableRow>
                                     )}
