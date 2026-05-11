@@ -20,8 +20,7 @@ import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllClients, inactiveClientFetch } from "../../store/fetchActions/clients";
-import { showClient } from "../../store/ducks/clients";
+import { getAllClients, inactiveClientFetch, viewClientFetch } from "../../store/fetchActions/clients";
 import { changeTitleAlert, turnModal, turnModalGetPendingSales } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
@@ -50,16 +49,12 @@ export default () => {
     const [allClients, setAllClients] = useState(clients);
 
     const HandleEditClient = async client => {
-
         setConfirmDialog({
-            ...confirmDialog, isOpen: true, title: `Deseja Editar o cliente ${client.name}`, confirm:
-
-                () => (
-                    dispatch(showClient(client)),
-                    dispatch(turnModal())
-                )
-
-        })
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja Editar o cliente ${client.name}`,
+            confirm: () => dispatch(viewClientFetch(client.id)),
+        });
     }
 
     const HandleInactiveClient = async client => {

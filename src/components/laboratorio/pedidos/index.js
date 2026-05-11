@@ -190,15 +190,17 @@ export default function ListaPedidos() {
                                                     <FeatherIcon icon="download" width="20" height="20" />
                                                 </Button>
                                             )}
-                                            <Button
-                                                title="Remover pedido"
-                                                onClick={() => handleRemoverPedido(pedido)}
-                                                color="error"
-                                                size="medium"
-                                                variant="contained"
-                                            >
-                                                <FeatherIcon icon="trash" width="20" height="20" />
-                                            </Button>
+                                            {pedido.status !== 'liberado' && (
+                                                <Button
+                                                    title="Remover pedido"
+                                                    onClick={() => handleRemoverPedido(pedido)}
+                                                    color="error"
+                                                    size="medium"
+                                                    variant="contained"
+                                                >
+                                                    <FeatherIcon icon="trash" width="20" height="20" />
+                                                </Button>
+                                            )}
                                         </Box>
                                     </TableCell>
                                 </TableRow>

@@ -1,8 +1,8 @@
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
-import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport  } from "../../ducks/clients";
-import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
+import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport, showClient } from "../../ducks/clients";
+import { turnAlert, addMessage, addAlertMessage, turnLoading, turnModal } from "../../ducks/Layout";
 import { format, parse, parseISO } from 'date-fns';
 
 
@@ -150,6 +150,17 @@ export const editClientFetch = (client, cleanForm) => {
             })
     };
 }
+
+export const viewClientFetch = (clientId) => {
+    return (dispatch) => {
+        api.get(`/clients/${clientId}`)
+            .then((res) => {
+                dispatch(showClient(res.data));
+                dispatch(turnModal());
+            })
+            .catch(() => {});
+    };
+};
 
 export const inactiveClientFetch = (client) => {
     return (dispatch) => {
