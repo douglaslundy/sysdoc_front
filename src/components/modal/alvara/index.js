@@ -10,9 +10,16 @@ import {
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 
+const STATUS_OPTIONS = [
+    'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
+    'Deferido', 'Indeferido', 'Vigente', 'A vencer', 'Vencido', 'Em renovação',
+    'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofício', 'Interditado',
+];
+
 const EMPTY = {
     estabelecimento_id: '',
     nivel_risco: '',
+    status: 'Não requerido',
     data_alvara: '',
     vencimento_alvara: '',
     contato: '',
@@ -29,10 +36,11 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
             setForm(alvara
                 ? {
                     estabelecimento_id: alvara.estabelecimento_id || '',
-                    nivel_risco: alvara.nivel_risco || '',
-                    data_alvara: alvara.data_alvara?.substring(0, 10) || '',
-                    vencimento_alvara: alvara.vencimento_alvara?.substring(0, 10) || '',
-                    contato: alvara.contato || '',
+                    nivel_risco:        alvara.nivel_risco || '',
+                    status:             alvara.status || 'Não requerido',
+                    data_alvara:        alvara.data_alvara?.substring(0, 10) || '',
+                    vencimento_alvara:  alvara.vencimento_alvara?.substring(0, 10) || '',
+                    contato:            alvara.contato || '',
                 }
                 : EMPTY
             );
@@ -55,7 +63,11 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
+        >
             <DialogTitle>
                 {alvara?.id
                     ? `Editar Alvará — ${alvara.numero_alvara}`
@@ -100,6 +112,20 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
                                 <MenuItem value="2">2 — Médio</MenuItem>
                                 <MenuItem value="3">3 — Alto</MenuItem>
                                 <MenuItem value="N/A">N/A</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth>
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                name="status"
+                                value={form.status}
+                                label="Status"
+                                onChange={change}
+                            >
+                                {STATUS_OPTIONS.map(s => (
+                                    <MenuItem key={s} value={s}>{s}</MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
 

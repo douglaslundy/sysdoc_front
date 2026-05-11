@@ -4,10 +4,20 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import { Box, Button, Stack, TextField } from '@mui/material';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { addEstabelecimentoFetch, editEstabelecimentoFetch } from '../../../store/fetchActions/estabelecimentos';
 
-const EMPTY = { nome_responsavel: '', nome_estabelecimento: '', endereco: '', cnaes: '' };
+const EMPTY = {
+    nome_responsavel: '',
+    nome_estabelecimento: '',
+    endereco: '',
+    cnaes: '',
+    razao_social: '',
+    nome_fantasia: '',
+    cnpj: '',
+    telefone: '',
+    obs: '',
+};
 
 export default function EstabelecimentoDialog({ open, onClose, estabelecimento, onSuccess }) {
     const dispatch = useDispatch();
@@ -17,10 +27,15 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
         if (open) {
             setForm(estabelecimento
                 ? {
-                    nome_responsavel: estabelecimento.nome_responsavel || '',
+                    nome_responsavel:     estabelecimento.nome_responsavel || '',
                     nome_estabelecimento: estabelecimento.nome_estabelecimento || '',
-                    endereco: estabelecimento.endereco || '',
-                    cnaes: estabelecimento.cnaes || '',
+                    endereco:             estabelecimento.endereco || '',
+                    cnaes:                estabelecimento.cnaes || '',
+                    razao_social:         estabelecimento.razao_social || '',
+                    nome_fantasia:        estabelecimento.nome_fantasia || '',
+                    cnpj:                 estabelecimento.cnpj || '',
+                    telefone:             estabelecimento.telefone || '',
+                    obs:                  estabelecimento.obs || '',
                 }
                 : EMPTY
             );
@@ -38,12 +53,17 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
+        >
             <DialogTitle>
                 {estabelecimento?.id ? 'Editar Estabelecimento' : 'Novo Estabelecimento'}
             </DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Dados principais</Typography>
                     <Stack spacing={2}>
                         <TextField
                             label="Nome do Estabelecimento"
@@ -83,6 +103,53 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
                             minRows={2}
                             inputProps={{ autoComplete: 'off' }}
                             helperText="Ex: 86.30-3-04"
+                        />
+                    </Stack>
+
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 3, mb: 1 }}>Dados complementares</Typography>
+                    <Stack spacing={2}>
+                        <TextField
+                            label="Razão Social"
+                            name="razao_social"
+                            value={form.razao_social}
+                            onChange={change}
+                            fullWidth
+                            inputProps={{ autoComplete: 'off', maxLength: 255 }}
+                        />
+                        <TextField
+                            label="Nome Fantasia"
+                            name="nome_fantasia"
+                            value={form.nome_fantasia}
+                            onChange={change}
+                            fullWidth
+                            inputProps={{ autoComplete: 'off', maxLength: 255 }}
+                        />
+                        <TextField
+                            label="CNPJ"
+                            name="cnpj"
+                            value={form.cnpj}
+                            onChange={change}
+                            fullWidth
+                            inputProps={{ autoComplete: 'off', maxLength: 18 }}
+                            helperText="Formato: 00.000.000/0000-00"
+                        />
+                        <TextField
+                            label="Telefone"
+                            name="telefone"
+                            value={form.telefone}
+                            onChange={change}
+                            fullWidth
+                            inputProps={{ autoComplete: 'off', maxLength: 20 }}
+                        />
+                        <TextField
+                            label="Observações"
+                            name="obs"
+                            value={form.obs}
+                            onChange={change}
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            inputProps={{ autoComplete: 'off', maxLength: 5000 }}
                         />
                     </Stack>
                 </Box>

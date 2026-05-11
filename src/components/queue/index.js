@@ -569,7 +569,11 @@ export default () => {
         </BaseCard >
 
         {/* Dialog de visualização do registro de fila */}
-        <Dialog open={!!viewQueue} onClose={() => setViewQueue(null)} maxWidth="sm" fullWidth>
+        <Dialog
+            open={!!viewQueue}
+            onClose={() => setViewQueue(null)}
+            PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
+        >
             <DialogTitle>
                 Registro de Fila — Posição {viewQueue?.position}
                 {viewQueue?.urgency == 1 && (

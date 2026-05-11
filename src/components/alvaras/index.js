@@ -15,6 +15,12 @@ import { changeTitleAlert } from '../../store/ducks/Layout';
 
 const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'default' };
 
+const STATUS_OPTIONS = [
+    'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
+    'Deferido', 'Indeferido', 'Vigente', 'A vencer', 'Vencido', 'Em renovação',
+    'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofício', 'Interditado',
+];
+
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': { backgroundColor: theme.palette.action.hover },
     '&:last-child td, &:last-child th': { border: 0 },
@@ -32,6 +38,7 @@ export default function ListaAlvaras() {
 
     const [busca, setBusca] = useState('');
     const [nivelRisco, setNivelRisco] = useState('');
+    const [statusFiltro, setStatusFiltro] = useState('');
     const [page, setPage] = useState(1);
     const buscaRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,6 +49,7 @@ export default function ListaAlvaras() {
         page,
         busca: busca || undefined,
         nivel_risco: nivelRisco || undefined,
+        status: statusFiltro || undefined,
         ...overrides,
     });
 
@@ -64,6 +72,13 @@ export default function ListaAlvaras() {
         setNivelRisco(valor);
         setPage(1);
         dispatch(getAllAlvaras(buildParams({ nivel_risco: valor || undefined, page: 1 })));
+    };
+
+    const handleStatusFiltro = ({ target }) => {
+        const valor = target.value;
+        setStatusFiltro(valor);
+        setPage(1);
+        dispatch(getAllAlvaras(buildParams({ status: valor || undefined, page: 1 })));
     };
 
     const handlePage = (delta) => {
@@ -118,6 +133,15 @@ export default function ListaAlvaras() {
                         <MenuItem value="N/A">N/A</MenuItem>
                     </Select>
                 </FormControl>
+                <FormControl sx={{ minWidth: 180 }}>
+                    <InputLabel>Status</InputLabel>
+                    <Select value={statusFiltro} label="Status" onChange={handleStatusFiltro}>
+                        <MenuItem value="">Todos</MenuItem>
+                        {STATUS_OPTIONS.map(s => (
+                            <MenuItem key={s} value={s}>{s}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará">
                     <FeatherIcon icon="plus" />
                 </Fab>
@@ -130,6 +154,7 @@ export default function ListaAlvaras() {
                             <TableCell><Typography variant="h6" color="textSecondary">Número</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Risco</Typography></TableCell>
+                            <TableCell><Typography variant="h6" color="textSecondary">Status</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Emissão</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Vencimento</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Contato</Typography></TableCell>
@@ -140,10 +165,10 @@ export default function ListaAlvaras() {
                         {alvaras.map((alv) => (
                             <StyledTableRow key={alv.id} hover>
                                 <TableCell>
-                                    <Typography variant="h6" fontWeight={600}>{alv.numero_alvara}</Typography>
+                                    <Typography variant="h6" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{alv.numero_alvara}</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
                                         {alv.estabelecimento?.nome_estabelecimento || '—'}
                                     </Typography>
                                 </TableCell>
@@ -153,6 +178,9 @@ export default function ListaAlvaras() {
                                         color={NIVEIS_COR[alv.nivel_risco] || 'default'}
                                         size="small"
                                     />
+                                </TableCell>
+                                <TableCell>
+                                    <Typography variant="body2">{alv.status || '—'}</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2">{formatDate(alv.data_alvara)}</Typography>

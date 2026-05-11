@@ -136,9 +136,6 @@ export default function LabDashboard() {
                     <CardTotal icon="clipboard" titulo="Pedidos" valor={totais.pedidos} cor="#ff9800" />
                 </Grid>
                 <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="users" titulo="Clientes" valor={totais.clientes} cor="#4caf50" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
                     <CardTotal icon="user-check" titulo="Médicos" valor={totais.medicos} cor="#9c27b0" />
                 </Grid>
                 <Grid item xs={6} sm={4} md={2}>
