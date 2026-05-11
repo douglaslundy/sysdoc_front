@@ -14,6 +14,7 @@ import { api } from '../../../services/api';
 import { turnResultadoModal } from '../../../store/ducks/Layout';
 import { clearResultado } from '../../../store/ducks/resultadoExames';
 import { salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
+import { getAllPedidos } from '../../../store/fetchActions/pedidosExame';
 
 const style = {
     position: 'absolute',
@@ -100,6 +101,7 @@ export default function ResultadoModal(props) {
         dispatch(liberarResultadoFetch(resultado.id, (data) => {
             setOpenConfirm(false);
             setCredenciais({ protocolo: data.protocolo, senha: data.senha });
+            dispatch(getAllPedidos());
         }));
     };
 

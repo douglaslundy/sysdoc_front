@@ -153,7 +153,7 @@ export default function TfdDashboard() {
                                     colors: ['#4caf50'],
                                     xaxis: {
                                         categories: chart.diasLabels,
-                                        title: { text: 'Dia' },
+                                        title: { text: 'DIA' },
                                     },
                                     stroke: { curve: 'smooth', width: 3 },
                                     markers: { size: 4 },
@@ -181,7 +181,7 @@ export default function TfdDashboard() {
                                     colors: ['#2196f3'],
                                     xaxis: {
                                         categories: chart.diasAgLabels,
-                                        title: { text: 'Dia' },
+                                        title: { text: 'DIA' },
                                     },
                                     stroke: { curve: 'smooth', width: 3 },
                                     markers: { size: 4 },

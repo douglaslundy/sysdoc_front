@@ -101,7 +101,7 @@ export default function ListaPedidos() {
                         <InputLabel>Status</InputLabel>
                         <Select value={filtroStatus} label="Status" onChange={e => setFiltroStatus(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
-                            {Object.keys(STATUS_COR).map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                            {Object.keys(STATUS_COR).map(s => <MenuItem key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <TextField
@@ -109,7 +109,7 @@ export default function ListaPedidos() {
                         placeholder="Buscar por nome, CNS, CPF ou protocolo"
                         value={busca}
                         onChange={e => handleBusca(e.target.value)}
-                        sx={{ minWidth: 260 }}
+                        sx={{ minWidth: 410 }}
                         InputProps={{
                             startAdornment: <FeatherIcon icon="search" width={16} height={16} style={{ marginRight: 8, opacity: 0.5 }} />,
                         }}
