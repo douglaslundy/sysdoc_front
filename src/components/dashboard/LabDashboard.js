@@ -78,7 +78,10 @@ export default function LabDashboard() {
         const pctPedidosLiberados = totalPedidos > 0
             ? Math.round(((pedidos_por_status?.liberado ?? 0) / totalPedidos) * 100)
             : 0;
-        const pctResultadosLiberados = resultados_status?.liberados ?? 0;
+        const totalResultados = (resultados_status?.liberados ?? 0) + (resultados_status?.pendentes ?? 0);
+        const pctResultadosLiberados = totalResultados > 0
+            ? Math.round(((resultados_status?.liberados ?? 0) / totalResultados) * 100)
+            : 0;
 
         return {
             pedidos:                gerarMeses(pedidos_por_mes || {}),
@@ -228,6 +231,10 @@ export default function LabDashboard() {
                             }}
                             series={[chart.pctResultadosLiberados]}
                         />
+                        <Box display="flex" justifyContent="center" gap={1} mt={1}>
+                            <Chip size="small" label={`Liberados: ${dados?.resultados_status?.liberados ?? 0}`} sx={{ bgcolor: '#4caf50', color: '#fff' }} />
+                            <Chip size="small" label={`Pendentes: ${dados?.resultados_status?.pendentes ?? 0}`} sx={{ bgcolor: '#607d8b', color: '#fff' }} />
+                        </Box>
                     </BaseCard>
                 </Grid>
 
