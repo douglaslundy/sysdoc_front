@@ -79,16 +79,18 @@ export default () => {
   }, []);
 
   useEffect(() => {
+    const term = (searchValue ?? '').toLowerCase().trim();
     setAllTrips(
-      searchValue
-        ? [
-          ...trips.filter((trip) =>
-            trip.license_plate.toString().includes(searchValue.toString())
-          ),
-        ]
+      term
+        ? trips.filter((trip) => {
+            const motorista = (trip.driver?.name ?? '').toLowerCase();
+            const destino   = (trip.route?.destination ?? '').toLowerCase();
+            const placa     = (trip.vehicle?.license_plate ?? '').toLowerCase();
+            return motorista.includes(term) || destino.includes(term) || placa.includes(term);
+          })
         : trips
     );
-  }, [trips]);
+  }, [searchValue, trips]);
 
   const HandleInactiveTrip = async (trip) => {
     setConfirmDialog({
@@ -202,6 +204,14 @@ export default () => {
         >
           <FeatherIcon icon="search" width="45" height="45" />
         </Button>
+
+        <TextField
+          label="Buscar por motorista, destino ou placa"
+          value={searchValue ?? ''}
+          onChange={(e) => setSearchValue(e.target.value)}
+          size="small"
+          sx={{ minWidth: 280 }}
+        />
 
         {profile === "admin" && (
           <>

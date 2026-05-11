@@ -195,7 +195,7 @@ export default function FilaDashboard() {
                                         categories: chart.especialidadeRealizadaNomes,
                                         labels: { style: { colors: '#b0bec5' } },
                                     },
-                                    yaxis: { labels: { style: { colors: '#b0bec5', fontSize: '12px' } } },
+                                    yaxis: { labels: { style: { colors: '#b0bec5', fontSize: '12px' }, formatter: (val) => typeof val === 'string' ? val.toUpperCase() : val } },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
                                 }}
