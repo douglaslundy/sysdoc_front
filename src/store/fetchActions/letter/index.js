@@ -68,7 +68,7 @@ export const getTextAI = (letter) => {
         api.post('/letters/newLetter', letter)
             .then((res) =>
             (
-                dispatch(getTextOpenAi(res.data)),
+                dispatch(getTextOpenAi(res.data.content)),
                 dispatch(addMessage(`Modelo Gerado com Sucesso`)),
                 dispatch(turnLoading()),
             ))
