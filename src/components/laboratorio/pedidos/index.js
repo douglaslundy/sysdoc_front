@@ -9,12 +9,13 @@ import FeatherIcon from 'feather-icons-react';
 import { api } from '../../../services/api';
 import { getAllPedidos, removePedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { iniciarResultado, getResultado } from '../../../store/fetchActions/resultadoExames';
-import { turnModal, turnResultadoModal } from '../../../store/ducks/Layout';
+import { turnModal, turnResultadoModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import PedidoModal from '../../modal/pedido';
 import ResultadoModal from '../../modal/resultado';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
 import EditarPedidoDialog from '../../modal/editarPedido';
+import ConfirmDialog from '../../confirmDialog';
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -36,6 +37,7 @@ export default function ListaPedidos() {
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const buscaRef = useRef(null);
     const [editarPedido, setEditarPedido] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
 
     useEffect(() => {
         dispatch(getAllPedidos());
@@ -65,6 +67,16 @@ export default function ListaPedidos() {
         } catch {
             // erro tratado pelo interceptor global do api.js
         }
+    };
+
+    const handleRemoverPedido = (pedido) => {
+        dispatch(changeTitleAlert(`Pedido de ${pedido.cliente?.name || 'paciente'} excluído com sucesso!`));
+        setConfirmDialog({
+            isOpen: true,
+            title: `Deseja excluir o pedido de ${pedido.cliente?.name || 'paciente'}?`,
+            subTitle: 'Esta ação não poderá ser desfeita',
+            confirm: removePedidoFetch(pedido.id),
+        });
     };
 
     const handleAbrirResultado = (pedido) => {
@@ -180,7 +192,7 @@ export default function ListaPedidos() {
                                             )}
                                             <Button
                                                 title="Remover pedido"
-                                                onClick={() => dispatch(removePedidoFetch(pedido.id))}
+                                                onClick={() => handleRemoverPedido(pedido)}
                                                 color="error"
                                                 size="medium"
                                                 variant="contained"
@@ -219,6 +231,7 @@ export default function ListaPedidos() {
             onClose={() => setEditarPedido(null)}
             pedido={editarPedido}
         />
+        <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </>
     );
 }

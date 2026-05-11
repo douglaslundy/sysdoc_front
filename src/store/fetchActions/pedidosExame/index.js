@@ -70,7 +70,6 @@ export const removePedidoFetch = (id) => {
         api.delete(`/laboratorio/pedidos/${id}`)
             .then(() => {
                 dispatch(removePedido({ id }));
-                dispatch(addMessage('Pedido removido com sucesso!'));
                 dispatch(turnAlert());
                 dispatch(turnLoading());
             })
