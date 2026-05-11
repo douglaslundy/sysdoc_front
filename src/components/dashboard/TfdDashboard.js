@@ -51,10 +51,13 @@ export default function TfdDashboard() {
     const chart = useMemo(() => {
         if (!dados) return null;
 
-        const { viagens_por_dia, motoristas, rotas, viagens_por_mes, viagens_por_ano } = dados;
+        const { viagens_por_dia, viagens_por_dia_agendadas, motoristas, rotas, viagens_por_mes, viagens_por_ano } = dados;
 
         const diasLabels = (viagens_por_dia || []).map(v => String(v.dia));
         const diasVals   = (viagens_por_dia || []).map(v => v.total || 0);
+
+        const diasAgLabels = (viagens_por_dia_agendadas || []).map(v => String(v.dia));
+        const diasAgVals   = (viagens_por_dia_agendadas || []).map(v => v.total || 0);
 
         const motoristaNomes = (motoristas || []).map(m => (m.nome ?? '').split(' ').slice(0, 2).join(' ')).reverse();
         const motoristaVals  = (motoristas || []).map(m => m.total || 0).reverse();
@@ -80,6 +83,7 @@ export default function TfdDashboard() {
 
         return {
             diasLabels, diasVals,
+            diasAgLabels, diasAgVals,
             motoristaNomes, motoristaVals,
             rotaNomes, rotaVals,
             mesMeses, mesViagens, mesPessoas, mesKm,
@@ -91,6 +95,10 @@ export default function TfdDashboard() {
     if (erro || !dados || !chart) return <DashboardErro />;
 
     const { totais } = dados;
+    const nomeMes = (() => {
+        const s = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    })();
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
@@ -133,9 +141,9 @@ export default function TfdDashboard() {
             </Box>
 
             <Grid container spacing={3}>
-                {/* Viagens por dia do mês — linha */}
-                <Grid item xs={12}>
-                    <BaseCard title="Viagens por Dia do Mês">
+                {/* Viagens realizadas por dia do mês — linha */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title={`Viagens por Dia do Mês — ${nomeMes}`}>
                         {chart.diasLabels.length > 0 ? (
                             <Chart
                                 type="line"
@@ -157,6 +165,34 @@ export default function TfdDashboard() {
                             />
                         ) : (
                             <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                        )}
+                    </BaseCard>
+                </Grid>
+
+                {/* Viagens agendadas por dia do mês — linha */}
+                <Grid item xs={12} md={6}>
+                    <BaseCard title={`Viagens Agendadas — ${nomeMes}`}>
+                        {chart.diasAgLabels.length > 0 ? (
+                            <Chart
+                                type="line"
+                                height={260}
+                                options={{
+                                    chart: { ...chartFont, ...toolbarOff },
+                                    colors: ['#2196f3'],
+                                    xaxis: {
+                                        categories: chart.diasAgLabels,
+                                        title: { text: 'Dia' },
+                                    },
+                                    stroke: { curve: 'smooth', width: 3 },
+                                    markers: { size: 4 },
+                                    dataLabels: { enabled: false },
+                                    tooltip: { theme: 'dark' },
+                                    grid: { borderColor: 'transparent' },
+                                }}
+                                series={[{ name: 'Agendadas', data: chart.diasAgVals }]}
+                            />
+                        ) : (
+                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem viagens agendadas</Typography>
                         )}
                     </BaseCard>
                 </Grid>
