@@ -28,6 +28,15 @@ const ACOES = [
 
 const FORM_INICIAL = { action: '', model_type: '', user_name: '', date_from: '', date_to: '' };
 
+const endpointLabel = (endpoint) => {
+    if (!endpoint) return null;
+    return endpoint
+        .replace(/^api\//, '')        // remove prefixo api/
+        .replace(/\/\d+$/, '')        // remove ID numérico final
+        .replace(/\/\d+\//, '/')      // remove IDs intermediários
+        .replace(/-/g, ' ');          // hífens → espaços
+};
+
 export default function Auditoria() {
     const dispatch = useDispatch();
     const { logs, total, perPage } = useSelector(s => s.auditLogs);
@@ -171,7 +180,14 @@ export default function Auditoria() {
                                         <Typography variant="body2" fontWeight={600}>{log.user_name?.toUpperCase()}</Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
+                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                            <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
+                                            {['VIEW', 'VIEW_REPORT'].includes(log.action) && log.endpoint && (
+                                                <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
+                                                    / {endpointLabel(log.endpoint)}
+                                                </Typography>
+                                            )}
+                                        </Box>
                                     </TableCell>
                                     <TableCell>
                                         {log.model_type
