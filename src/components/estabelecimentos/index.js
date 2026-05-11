@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Box, Button, Fab, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, TextField, Typography, styled,
+    Box, Button, Fab, FormControl, InputLabel, MenuItem, Select,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    TextField, Typography, styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -11,6 +12,8 @@ import ConfirmDialog from '../confirmDialog';
 import EstabelecimentoDialog from '../modal/estabelecimento';
 import { getAllEstabelecimentos, removeEstabelecimentoFetch } from '../../store/fetchActions/estabelecimentos';
 import { changeTitleAlert } from '../../store/ducks/Layout';
+
+const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': { backgroundColor: theme.palette.action.hover },
@@ -23,19 +26,32 @@ const formatDate = (s) => {
     return `${d}/${m}/${y}`;
 };
 
+const trunc = (s, n = 30) => {
+    if (!s) return '—';
+    return s.length > n ? s.substring(0, n) + '…' : s;
+};
+
 export default function ListaEstabelecimentos() {
     const dispatch = useDispatch();
     const { estabelecimentos, pagination } = useSelector(state => state.estabelecimentos);
 
     const [busca, setBusca] = useState('');
     const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
     const buscaRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editando, setEditando] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
 
+    const buildParams = (overrides = {}) => ({
+        page,
+        per_page: perPage,
+        busca: busca || undefined,
+        ...overrides,
+    });
+
     const carregar = (params = {}) => {
-        dispatch(getAllEstabelecimentos({ page, busca: busca || undefined, ...params }));
+        dispatch(getAllEstabelecimentos(buildParams(params)));
     };
 
     useEffect(() => {
@@ -48,14 +64,21 @@ export default function ListaEstabelecimentos() {
         setPage(1);
         clearTimeout(buscaRef.current);
         buscaRef.current = setTimeout(() => {
-            dispatch(getAllEstabelecimentos({ busca: valor || undefined, page: 1 }));
+            dispatch(getAllEstabelecimentos(buildParams({ busca: valor || undefined, page: 1 })));
         }, 400);
+    };
+
+    const handlePerPage = ({ target }) => {
+        const valor = Number(target.value);
+        setPerPage(valor);
+        setPage(1);
+        dispatch(getAllEstabelecimentos(buildParams({ per_page: valor, page: 1 })));
     };
 
     const handlePage = (delta) => {
         const novaPage = page + delta;
         setPage(novaPage);
-        dispatch(getAllEstabelecimentos({ busca: busca || undefined, page: novaPage }));
+        dispatch(getAllEstabelecimentos(buildParams({ page: novaPage })));
     };
 
     const handleNovo = () => {
@@ -86,7 +109,7 @@ export default function ListaEstabelecimentos() {
     return (
         <BaseCard title={`Estabelecimentos${pagination ? ` — ${pagination.total} registros` : ''}`}>
             <AlertModal />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
                     sx={{ flexGrow: 1 }}
                     label="Pesquisar por nome, responsável ou CNAE"
@@ -94,6 +117,14 @@ export default function ListaEstabelecimentos() {
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
+                <FormControl sx={{ minWidth: 110 }}>
+                    <InputLabel>Por página</InputLabel>
+                    <Select value={perPage} label="Por página" onChange={handlePerPage}>
+                        {PER_PAGE_OPTIONS.map(n => (
+                            <MenuItem key={n} value={n}>{n}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <Fab color="primary" onClick={handleNovo} size="medium" title="Novo estabelecimento">
                     <FeatherIcon icon="plus" />
                 </Fab>
@@ -115,14 +146,18 @@ export default function ListaEstabelecimentos() {
                         {estabelecimentos.map((est) => (
                             <StyledTableRow key={est.id} hover>
                                 <TableCell>
-                                    <Typography variant="h6" fontWeight={600}>{est.nome_estabelecimento}</Typography>
+                                    <Typography variant="h6" fontWeight={600} sx={{ textTransform: 'uppercase' }}>
+                                        {trunc(est.nome_estabelecimento)}
+                                    </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2">{est.nome_responsavel}</Typography>
+                                    <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
+                                        {trunc(est.nome_responsavel)}
+                                    </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {est.endereco}
+                                    <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
+                                        {trunc(est.endereco)}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -149,7 +184,7 @@ export default function ListaEstabelecimentos() {
 
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2 }}>
-                    <Typography variant="body2">
+                    <Typography variant="body2" color="textSecondary">
                         Página {pagination.current_page} de {pagination.last_page}
                     </Typography>
                     <Button size="small" disabled={pagination.current_page <= 1} onClick={() => handlePage(-1)}>Anterior</Button>

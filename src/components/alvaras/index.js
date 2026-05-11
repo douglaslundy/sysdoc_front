@@ -17,9 +17,11 @@ const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'defau
 
 const STATUS_OPTIONS = [
     'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
-    'Deferido', 'Indeferido', 'Vigente', 'A vencer', 'Vencido', 'Em renovação',
+    'Vigente', 'Vencido', 'Em renovação',
     'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofício', 'Interditado',
 ];
+
+const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': { backgroundColor: theme.palette.action.hover },
@@ -32,6 +34,11 @@ const formatDate = (s) => {
     return `${d}/${m}/${y}`;
 };
 
+const trunc = (s, n = 30) => {
+    if (!s) return '—';
+    return s.length > n ? s.substring(0, n) + '…' : s;
+};
+
 export default function ListaAlvaras() {
     const dispatch = useDispatch();
     const { alvaras, pagination } = useSelector(state => state.alvaras);
@@ -40,6 +47,7 @@ export default function ListaAlvaras() {
     const [nivelRisco, setNivelRisco] = useState('');
     const [statusFiltro, setStatusFiltro] = useState('');
     const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
     const buscaRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editando, setEditando] = useState(null);
@@ -47,6 +55,7 @@ export default function ListaAlvaras() {
 
     const buildParams = (overrides = {}) => ({
         page,
+        per_page: perPage,
         busca: busca || undefined,
         nivel_risco: nivelRisco || undefined,
         status: statusFiltro || undefined,
@@ -54,7 +63,7 @@ export default function ListaAlvaras() {
     });
 
     useEffect(() => {
-        dispatch(getAllAlvaras({ page: 1 }));
+        dispatch(getAllAlvaras({ page: 1, per_page: perPage }));
     }, []);
 
     const handleBusca = ({ target }) => {
@@ -79,6 +88,13 @@ export default function ListaAlvaras() {
         setStatusFiltro(valor);
         setPage(1);
         dispatch(getAllAlvaras(buildParams({ status: valor || undefined, page: 1 })));
+    };
+
+    const handlePerPage = ({ target }) => {
+        const valor = Number(target.value);
+        setPerPage(valor);
+        setPage(1);
+        dispatch(getAllAlvaras(buildParams({ per_page: valor, page: 1 })));
     };
 
     const handlePage = (delta) => {
@@ -123,7 +139,7 @@ export default function ListaAlvaras() {
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
-                <FormControl sx={{ minWidth: 150 }}>
+                <FormControl sx={{ minWidth: 140 }}>
                     <InputLabel>Nível de Risco</InputLabel>
                     <Select value={nivelRisco} label="Nível de Risco" onChange={handleNivelRisco}>
                         <MenuItem value="">Todos</MenuItem>
@@ -133,12 +149,20 @@ export default function ListaAlvaras() {
                         <MenuItem value="N/A">N/A</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl sx={{ minWidth: 180 }}>
+                <FormControl sx={{ minWidth: 170 }}>
                     <InputLabel>Status</InputLabel>
                     <Select value={statusFiltro} label="Status" onChange={handleStatusFiltro}>
                         <MenuItem value="">Todos</MenuItem>
                         {STATUS_OPTIONS.map(s => (
                             <MenuItem key={s} value={s}>{s}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ minWidth: 110 }}>
+                    <InputLabel>Por página</InputLabel>
+                    <Select value={perPage} label="Por página" onChange={handlePerPage}>
+                        {PER_PAGE_OPTIONS.map(n => (
+                            <MenuItem key={n} value={n}>{n}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
@@ -169,7 +193,7 @@ export default function ListaAlvaras() {
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
-                                        {alv.estabelecimento?.nome_estabelecimento || '—'}
+                                        {trunc(alv.estabelecimento?.nome_estabelecimento)}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -211,7 +235,7 @@ export default function ListaAlvaras() {
 
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2 }}>
-                    <Typography variant="body2">
+                    <Typography variant="body2" color="textSecondary">
                         Página {pagination.current_page} de {pagination.last_page}
                     </Typography>
                     <Button size="small" disabled={pagination.current_page <= 1} onClick={() => handlePage(-1)}>Anterior</Button>

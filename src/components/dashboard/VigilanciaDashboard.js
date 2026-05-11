@@ -116,16 +116,13 @@ export default function VigilanciaDashboard() {
                 <Grid item xs={6} sm={4} md={2}>
                     <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
+                <Grid item xs={6} sm={4} md={3}>
+                    <CardTotal icon="check-circle" titulo="Vigentes (por data)" valor={totais.vigentes} cor="#4caf50" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
+                <Grid item xs={6} sm={4} md={3}>
+                    <CardTotal icon="alert-circle" titulo="Vencidos (por data)" valor={totais.vencidos} cor="#f44336" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="clock" titulo="A Vencer" valor={totais.a_vencer} cor="#ff9800" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
+                <Grid item xs={12} sm={4} md={2}>
                     <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
                 </Grid>
             </Grid>

@@ -12,7 +12,7 @@ import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelec
 
 const STATUS_OPTIONS = [
     'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
-    'Deferido', 'Indeferido', 'Vigente', 'A vencer', 'Vencido', 'Em renovação',
+    'Vigente', 'Vencido', 'Em renovação',
     'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofício', 'Interditado',
 ];
 
