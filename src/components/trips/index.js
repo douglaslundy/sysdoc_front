@@ -259,7 +259,6 @@ export default () => {
           }}
           color="primary"
           aria-label="add"
-          disabled={profile !== "admin" && profile !== "tfd"}
         >
           <FeatherIcon icon="user-plus" />
         </Fab>
@@ -441,7 +440,6 @@ export default () => {
                         color="success"
                         size="medium"
                         variant="contained"
-                        disabled={profile !== "admin" && profile !== "tfd"}
                       >
                         <FeatherIcon icon="users" width="20" height="20" />
                         <div style={{ marginLeft: "5px" }}>
@@ -472,7 +470,6 @@ export default () => {
                           color="primary"
                           size="medium"
                           variant="contained"
-                          disabled={profile !== "admin" && profile !== "tfd"}
                         >
                           <FeatherIcon icon="edit" width="20" height="20" />
                         </Button>
@@ -485,7 +482,6 @@ export default () => {
                           color="error"
                           size="medium"
                           variant="contained"
-                          disabled={profile !== "admin" && profile !== "tfd"}
                         >
                           <FeatherIcon icon="trash" width="20" height="20" />
                         </Button>
