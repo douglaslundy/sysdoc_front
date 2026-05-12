@@ -9,11 +9,11 @@ import VigilanciaDashboard from '../src/components/dashboard/VigilanciaDashboard
 
 const ABAS = [
     { label: 'Início',               component: <InicioDashboard /> },
+    { label: 'Vigilância Sanitária', component: <VigilanciaDashboard /> },
     { label: 'Laboratório',          component: <LabDashboard /> },
     { label: 'Fila',                 component: <FilaDashboard /> },
     { label: 'TFD',                  component: <TfdDashboard /> },
     { label: 'Logs/QR',              component: <LogsDashboard /> },
-    { label: 'Vigilância Sanitária', component: <VigilanciaDashboard /> },
 ];
 
 export default function DashboardPage() {
