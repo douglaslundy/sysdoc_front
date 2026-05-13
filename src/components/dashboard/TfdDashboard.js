@@ -1,12 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import dynamic from 'next/dynamic';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import { DashboardLoading, DashboardErro } from './DashboardStatus';
-
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+import Chart from '../charts/ApexChartSafe';
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (

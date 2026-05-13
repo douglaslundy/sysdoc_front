@@ -5,6 +5,9 @@ const PUBLIC_PATHS = [
     '/consulta-exame',
     '/esqueci-senha',
     '/redefinir-senha',
+    '/transparency/medicines',
+    '/transparency/medicines-panel',
+    '/transparency/medicines-monthly-acquisitions',
 ];
 
 function isPublicPath(pathname) {

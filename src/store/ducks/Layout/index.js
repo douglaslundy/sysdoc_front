@@ -19,9 +19,11 @@ const INITIAL_STATE = {
 
 export const addMessage = createAction('ADD_MESSAGE');
 export const removeMessage = createAction('REMOVE_MESSAGE');
+export const clearMessages = createAction('CLEAR_MESSAGES');
 
 export const addAlertMessage = createAction('ADD_ALERT_MESSAGE');
 export const removeAlertMessage = createAction('REMOVE_ALERT_MESSAGE');
+export const clearAlertMessages = createAction('CLEAR_ALERT_MESSAGES');
 
 export const turnLoading = createAction('IS_OPEN_LOADING');
 export const turnModal = createAction('IS_OPEN_MODAL');
@@ -45,11 +47,17 @@ const uiReducer = createReducer(INITIAL_STATE, (builder) => {
     .addCase(removeMessage, (state, action) => {
       state.messages = state.messages.filter(msg => msg !== action.payload);
     })
+    .addCase(clearMessages, (state) => {
+      state.messages = [];
+    })
     .addCase(addAlertMessage, (state, action) => {
       state.alertMessages.push(action.payload);
     })
     .addCase(removeAlertMessage, (state, action) => {
       state.alertMessages = state.alertMessages.filter(msg => msg !== action.payload);
+    })
+    .addCase(clearAlertMessages, (state) => {
+      state.alertMessages = [];
     })
     .addCase(turnLoading, (state) => {
       state.isOpenLoading = !state.isOpenLoading;

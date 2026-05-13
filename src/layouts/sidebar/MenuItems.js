@@ -89,6 +89,17 @@ const Menuitems = [
     ],
   },
   {
+    title: "Farmácia Básica",
+    icon: "package",
+    group: true,
+    children: [
+      { title: "Medicamentos",         icon: "archive", href: "/pharmacy/medicines" },
+      { title: "Status Diário",        icon: "calendar", href: "/pharmacy/daily-status" },
+      { title: "Aquisições Mensais",   icon: "bar-chart-2", href: "/pharmacy/monthly-acquisitions" },
+      { title: "Conformidade",         icon: "check-square", href: "/pharmacy/compliance" },
+    ],
+  },
+  {
     title: "Sistema",
     icon: "settings",
     group: true,
