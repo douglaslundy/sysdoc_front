@@ -38,30 +38,35 @@ export default function MedicinesMonthlyPublicList() {
     }, []);
 
     return (
-        <Box sx={{ p: 2 }}>
-            <Typography variant="h3" sx={{ mb: 1 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
+        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: '#0b1220', color: '#e2e8f0' }}>
+            <Typography variant="h3" sx={{ mb: 1, color: '#f8fafc', fontWeight: 700 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
+            <Typography variant="body2" sx={{ mb: 2, color: '#94a3b8' }}>
                 Mês de referência: {formatMonth(data.reference_month)} | Última atualização: {formatDateTime(data.last_update_at)}
             </Typography>
-            <TableContainer>
+            <TableContainer sx={{ border: '1px solid #1e293b', borderRadius: 2, bgcolor: '#0f172a' }}>
                 <Table>
                     <TableHead>
-                        <TableRow>
-                            <TableCell>Medicamento</TableCell>
-                            <TableCell>Quantidade</TableCell>
-                            <TableCell>Unidade</TableCell>
-                            <TableCell>Origem</TableCell>
-                            <TableCell>Observação</TableCell>
+                        <TableRow sx={{ bgcolor: '#111827' }}>
+                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Medicamento</TableCell>
+                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Quantidade</TableCell>
+                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Unidade</TableCell>
+                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Origem</TableCell>
+                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Observação</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
+                        {data.items.length === 0 && (
+                            <TableRow>
+                                <TableCell sx={{ color: '#94a3b8' }} colSpan={5}>Nenhum registro disponível.</TableCell>
+                            </TableRow>
+                        )}
                         {data.items.map((item, idx) => (
-                            <TableRow key={`${item.medicine_id}-${idx}`}>
-                                <TableCell>{item.active_ingredient} ({item.internal_code})</TableCell>
-                                <TableCell>{item.acquired_quantity}</TableCell>
-                                <TableCell>{formatUnit(item.unit_measure)}</TableCell>
-                                <TableCell>{item.source_document || '-'}</TableCell>
-                                <TableCell>{item.note || '-'}</TableCell>
+                            <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: '#111827' } }}>
+                                <TableCell sx={{ color: '#e2e8f0' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
+                                <TableCell sx={{ color: '#e2e8f0' }}>{item.acquired_quantity}</TableCell>
+                                <TableCell sx={{ color: '#e2e8f0' }}>{formatUnit(item.unit_measure)}</TableCell>
+                                <TableCell sx={{ color: '#e2e8f0' }}>{item.source_document || '-'}</TableCell>
+                                <TableCell sx={{ color: '#e2e8f0' }}>{item.note || '-'}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

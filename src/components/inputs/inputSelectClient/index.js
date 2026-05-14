@@ -1,92 +1,59 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useMemo, useState } from "react";
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
-
-function sleep(delay = 0) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, delay);
-  });
-}
 
 export default function index(props) {
   const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState([]);
-  const loading = open && options.length === 0;
+  const [searchText, setSearchText] = useState("");
+  const { label, name, setClient, clients, wd, value } = props;
+  const safeClients = Array.isArray(clients) ? clients : [];
 
-  useEffect(() => {
-    let active = true;
+  const selectedClient = useMemo(
+    () => safeClients.find((cli) => Number(cli.id) === Number(value)) || null,
+    [safeClients, value]
+  );
 
-    if (!loading) {
-      return undefined;
-    }
+  const filteredOptions = useMemo(() => {
+    const query = (searchText || "").trim().toLowerCase();
+    if (!query) return safeClients;
 
-    (async () => {
-      await sleep(1e3);
-
-      if (active) {
-        setOptions([...clients]);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-
-  }, [loading]);
-
-  useEffect(() => {
-    if (!open) {
-      setOptions([]);
-    }
-  }, [open]);
-
-  const { label, name, setClient, clients, wd } = props;
-  const [selectedId, setSelectedId] = useState(0);
-
-  // const getClient = () => {
-  //   setClient(clients.filter((cli) => cli.id == selectedId)[0]);
-  // } 
+    return safeClients.filter((cli) =>
+      `${cli.name || ""} ${cli.cns || ""} ${cli.cpf || ""} ${cli.phone || ""}`
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [safeClients, searchText]);
 
   return (
     <Autocomplete
       id="client"
-      // sx={{ width: "85%" }}
       sx={wd ? { width: wd } : { width: "85%" }}
       open={open}
-      onOpen={() => {
-        setOpen(true);
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      isOptionEqualToValue={(option, selected) => Number(option.id) === Number(selected.id)}
+      getOptionLabel={(option) => `${(option.name || "").toUpperCase()} ${option.cns || ''} ${option.cpf || ''} ${option.phone || ''}`}
+      noOptionsText={"Cliente inexistente!!!"}
+      options={filteredOptions}
+      name={name}
+      value={selectedClient}
+      inputValue={searchText}
+      onInputChange={(_, newInputValue, reason) => {
+        if (reason === 'reset') return;
+        setSearchText(newInputValue);
       }}
-      onClose={() => {
+      onChange={(_, newValue) => {
+        const picked = safeClients.find((cli) => Number(cli.id) === Number(newValue?.id));
+        setClient(picked || {});
+        setSearchText('');
         setOpen(false);
       }}
-      isOptionEqualToValue={(option, value) => option.id === value.id}
-      // getOptionLabel={(option) => `${option.full_name} - Código: ${option.id}`}
-      getOptionLabel={(option) => `${option.name.toUpperCase()} ${option.cns ? option.cns : ''}  ${option.cpf ? option.cpf : ''}   ${option.phone ? option.phone : ''}`}
-      noOptionsText={"Cliente inexistente!!!"}
-      options={options}
-      loading={loading}
-      name={name}
-      // onChange={(_, newValue) => { setSelectedId(newValue?.id) }}
-      onChange={(_, newValue) => { setClient(clients.filter((cli) => cli.id == newValue?.id)[0]) }}
-
       renderInput={(params) => (
-
         <TextField
           {...params}
           label={label}
-          onChange={(_, value) => { setOptions([...clients.filter((cli) => cli.name == value)]) }}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <React.Fragment>
-                {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                {params.InputProps.endAdornment}
-              </React.Fragment>
-            ),
-          }}
+          InputProps={{ ...params.InputProps }}
         />
-
       )}
     />
   );

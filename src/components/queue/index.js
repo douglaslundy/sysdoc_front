@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -28,7 +28,15 @@ import QueueOutcomeModal from "../modal/outcomequeue";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
-import { getAllQueues, inactiveQueueFetch, viewQueueFetch } from "../../store/fetchActions/queues";
+import {
+    getAllQueues,
+    inactiveQueueFetch,
+    viewQueueFetch,
+    listQueueAttachments,
+    uploadQueueAttachment,
+    deleteQueueAttachment,
+    downloadQueueAttachment
+} from "../../store/fetchActions/queues";
 import { showQueue } from "../../store/ducks/queues";
 import { turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
@@ -39,6 +47,7 @@ import AlertModal from "../messagesModal";
 
 import protocolPDF from "../../reports/protocol"
 import generateQueuePDF from "../../reports/queues"
+import { addAlertMessage, addMessage } from "../../store/ducks/Layout";
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -57,6 +66,9 @@ export default () => {
         subTitle: 'Esta ação não poderá ser desfeita',
     });
     const [viewQueue, setViewQueue] = useState(null);
+    const [attachments, setAttachments] = useState([]);
+    const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(false);
+    const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
 
     const dispatch = useDispatch();
     const { queues } = useSelector(state => state.queues);
@@ -179,6 +191,7 @@ export default () => {
 
             setAllQueues(filteredQueues);
         } else {
+            let filteredQueues = [...queues];
             filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
             filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
 
@@ -213,24 +226,88 @@ export default () => {
         setSearchValue(target.value);
     };
 
+    const HandleInactiveQueue = (queue) => {
+        dispatch(inactiveQueueFetch(queue));
+    };
 
-    const SwitchModal = ({ option }) => {
-        switch (option) {
-            case 'outcome':
-                return <QueueOutcomeModal />;
-            case 'add':
-                return <QueueModal />;
-            default:
-                return <></>;
+    const loadQueueAttachments = async (queueId) => {
+        setIsAttachmentsLoading(true);
+        try {
+            const res = await listQueueAttachments(queueId);
+            setAttachments(res.data || []);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao carregar anexos da fila.'));
+        } finally {
+            setIsAttachmentsLoading(false);
         }
+    };
+
+    const handleViewQueue = (queueId) => {
+        dispatch(viewQueueFetch(queueId, async (data) => {
+            setViewQueue(data);
+            await loadQueueAttachments(data.id);
+        }));
+    };
+
+    const handleUploadAttachment = async (event) => {
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+
+        if (!files.length || !viewQueue?.id) {
+            return;
+        }
+
+        setIsAttachmentUploading(true);
+        try {
+            await uploadQueueAttachment(viewQueue.id, files);
+            dispatch(addMessage(files.length > 1 ? 'Anexos enviados com sucesso.' : 'Anexo enviado com sucesso.'));
+            await loadQueueAttachments(viewQueue.id);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao enviar anexo.'));
+        } finally {
+            setIsAttachmentUploading(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId) => {
+        if (!viewQueue?.id) {
+            return;
+        }
+
+        try {
+            await deleteQueueAttachment(viewQueue.id, attachmentId);
+            dispatch(addMessage('Anexo removido com sucesso.'));
+            await loadQueueAttachments(viewQueue.id);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao remover anexo.'));
+        }
+    };
+
+    const handleDownloadAttachment = async (attachment) => {
+        if (!viewQueue?.id) {
+            return;
+        }
+
+        try {
+            await downloadQueueAttachment(viewQueue.id, attachment);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao baixar anexo.'));
+        }
+    };
+
+    const formatBytes = (bytes) => {
+        if (!bytes || bytes <= 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        const value = bytes / (1024 ** idx);
+        return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
     };
 
     return (
         <>
         <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
             <AlertModal />
-
-            <SwitchModal option={option} />
+            {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
 
             <Box sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
@@ -325,7 +402,7 @@ export default () => {
                                     Cidadão
                                 </Typography>
                                 <Typography color="textSecondary" variant="h6">
-                                    MÃE
+                                    Mãe
                                 </Typography>
                                 <Typography color="textSecondary" variant="h6">
                                     CPF / CNS / Telefone
@@ -520,7 +597,19 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar" onClick={() => dispatch(viewQueueFetch(queue.id, setViewQueue))} color="info" size="medium" variant="contained">
+                                                {Number(queue?.attachments_count || 0) > 0 && (
+                                                    <Button
+                                                        title={`${queue.attachments_count} anexo(s)`}
+                                                        color="secondary"
+                                                        size="medium"
+                                                        variant="contained"
+                                                        disabled
+                                                    >
+                                                        <FeatherIcon icon="paperclip" width="20" height="20" />
+                                                    </Button>
+                                                )}
+
+                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
@@ -571,7 +660,10 @@ export default () => {
         {/* Dialog de visualização do registro de fila */}
         <Dialog
             open={!!viewQueue}
-            onClose={() => setViewQueue(null)}
+            onClose={() => {
+                setViewQueue(null);
+                setAttachments([]);
+            }}
             PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
         >
             <DialogTitle>
@@ -645,6 +737,43 @@ export default () => {
                                 </Box>
                             )}
                         </Box>
+                        <Divider />
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">ANEXOS DO PEDIDO</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                Cada registro da fila pode receber multiplos arquivos (PDF, JPG, JPEG e PNG).
+                            </Typography>
+                            <Box mt={1} mb={1}>
+                                <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading}>
+                                    {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s) (PDF/JPG/PNG)'}
+                                    <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
+                                </Button>
+                            </Box>
+                            {isAttachmentsLoading && (
+                                <Typography color="text.secondary">Carregando anexos...</Typography>
+                            )}
+                            {!isAttachmentsLoading && attachments.length === 0 && (
+                                <Typography color="text.secondary">Nenhum anexo enviado.</Typography>
+                            )}
+                            {!isAttachmentsLoading && attachments.length > 0 && attachments.map((attachment) => (
+                                <Box key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" py={0.8}>
+                                    <Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{attachment.original_name}</Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {attachment.mime_type} | {formatBytes(attachment.size_bytes)}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ "& button": { ml: 1 } }}>
+                                        <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
+                                            Baixar
+                                        </Button>
+                                        <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteAttachment(attachment.id)}>
+                                            Remover
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
                     </Box>
                 )}
             </DialogContent>
@@ -655,3 +784,5 @@ export default () => {
         </>
     );
 };
+
+

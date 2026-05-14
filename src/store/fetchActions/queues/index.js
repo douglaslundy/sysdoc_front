@@ -18,9 +18,22 @@ export const getAllQueues = () => {
     }
 }
 
-export const addQueueFetch = (queue, cleanForm) => {
+export const addQueueFetch = (queue, callbacks = {}) => {
     const { 'sysvendas.id': user } = parseCookies();
     const { 'sysvendas.username': username } = parseCookies();
+    let {
+        onSuccess,
+        onError,
+        closeOnSuccess = true,
+        cleanForm,
+        showGlobalAlert = true,
+        showGlobalMessage = true
+    } = callbacks;
+    // When modal stays open, prefer local feedback only.
+    if (!closeOnSuccess) {
+        showGlobalAlert = false;
+        showGlobalMessage = false;
+    }
 
     return (dispatch) => {
 
@@ -40,14 +53,16 @@ export const addQueueFetch = (queue, cleanForm) => {
             .then((res) =>
             (
                 dispatch(addQueue(res.data)),
-                dispatch(addMessage(`A especialidade foi adicionada com sucesso!`)),
-                dispatch(turnAlert()),
+                showGlobalMessage && dispatch(addMessage(`A especialidade foi adicionada com sucesso!`)),
+                showGlobalAlert && dispatch(turnAlert()),
                 dispatch(turnLoading()),
-                cleanForm()
+                closeOnSuccess && cleanForm && cleanForm(),
+                onSuccess && onSuccess(res.data)
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
+                onError && onError(error);
                 return error.response ? error.response.data : 'erro desconhecido';
             })
     };
@@ -89,6 +104,10 @@ export const viewQueueFetch = (queueId, onSuccess) => {
     };
 };
 
+export const getQueueById = (queueId) => {
+    return api.get(`/queues/${queueId}`);
+};
+
 export const inactiveQueueFetch = (queue) => {
     return (dispatch) => {
         dispatch(turnLoading())
@@ -109,6 +128,44 @@ export const inactiveQueueFetch = (queue) => {
 }
 
 export const editQueueFetch = (queue, cleanForm) => {
+    if (typeof cleanForm === 'object' && cleanForm !== null) {
+        const callbacks = cleanForm;
+        const {
+            onSuccess,
+            onError,
+            closeOnSuccess = true,
+            cleanForm: cleanFormCallback,
+            showGlobalAlert = true,
+            showGlobalMessage = true
+        } = callbacks;
+
+        return (dispatch) => {
+            dispatch(turnLoading());
+
+            const payload = {
+                ...queue,
+                id_client: queue.client ?? queue.id_client,
+                id_specialities: queue.speciality ?? queue.id_specialities,
+            };
+
+            api.put(`/queues/${queue.id}`, payload)
+                .then((res) => (
+                    dispatch(editQueue(res.data)),
+                    showGlobalMessage && dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
+                    showGlobalAlert && dispatch(turnAlert()),
+                    dispatch(turnLoading()),
+                    closeOnSuccess && cleanFormCallback && cleanFormCallback(),
+                    onSuccess && onSuccess(res.data)
+                ))
+                .catch((error) => {
+                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(turnLoading());
+                    onError && onError(error);
+                    return error.response ? error.response.data : 'erro desconhecido';
+                });
+        };
+    }
+
     return (dispatch) => {
         dispatch(turnLoading());
 
@@ -133,3 +190,40 @@ export const editQueueFetch = (queue, cleanForm) => {
             });
     };
 }
+
+export const listQueueAttachments = (queueId) => {
+    return api.get(`/queues/${queueId}/attachments`);
+};
+
+export const uploadQueueAttachment = (queueId, files) => {
+    const formData = new FormData();
+    const normalizedFiles = Array.isArray(files) ? files : [files];
+    normalizedFiles.forEach((file) => formData.append('files[]', file));
+
+    return api.post(`/queues/${queueId}/attachments`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
+export const deleteQueueAttachment = (queueId, attachmentId) => {
+    return api.delete(`/queues/${queueId}/attachments/${attachmentId}`);
+};
+
+export const downloadQueueAttachment = async (queueId, attachment) => {
+    const response = await api.get(
+        `/queues/${queueId}/attachments/${attachment.id}/download`,
+        { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], { type: attachment.mime_type || 'application/octet-stream' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = attachment.original_name || `anexo-${attachment.id}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
+};
