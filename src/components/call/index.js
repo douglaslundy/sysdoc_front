@@ -12,7 +12,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getTodayCalls, inactiveCallFetch } from "../../store/fetchActions/calls";
 import { showCall } from "../../store/ducks/calls";
-import { changeTitleAlert, turnModal, turnModalViewService } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
@@ -52,7 +52,7 @@ export default () => {
 
     const HandleViewCall = async call => {
         dispatch(showCall(call));
-        dispatch(turnModalViewCall());
+        dispatch(turnModal());
     }
 
     const HandleEditCall = async call => {

@@ -242,3 +242,21 @@ export const finishCallFetch = (call, cleanForm) => {
             })
     };
 }
+
+export const inactiveCallFetch = (call) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        api.delete(`/calls/${call.id}`)
+            .then(() => (
+                dispatch(inactiveCall(call)),
+                dispatch(addMessage(`Atendimento ${call.call_prefix ?? ''} ${call.call_number ?? call.id} foi excluído com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading())
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error?.response ? `ERROR - ${error.response.data.message ?? error.response.data.error}` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+            });
+    };
+}

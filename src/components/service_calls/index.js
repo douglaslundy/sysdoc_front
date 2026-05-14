@@ -23,13 +23,13 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllServices, inactiveServiceFetch } from "../../store/fetchActions/service_calls";
 import { showService } from "../../store/ducks/service_calls";
-import { changeTitleAlert, turnModal, turnModalViewService } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 import { useRouter } from "next/router";
-import { setFilteredCalls } from "../../store/ducks/calls";
+import { addCalls } from "../../store/ducks/calls";
 
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -67,7 +67,7 @@ export default () => {
 
     const HandleViewService = async service => {
         dispatch(showService(service));
-        dispatch(turnModalViewService());
+        dispatch(turnModal());
     }
 
     const HandleEditService = async service => {
@@ -76,7 +76,7 @@ export default () => {
     }
 
     const HandleGoCalls = services => {
-        dispatch(setFilteredCalls(services));
+        dispatch(addCalls(services));
         router.push('/listing_calls');
     }
 

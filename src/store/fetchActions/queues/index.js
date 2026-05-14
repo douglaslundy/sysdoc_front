@@ -107,3 +107,29 @@ export const inactiveQueueFetch = (queue) => {
             })
     }
 }
+
+export const editQueueFetch = (queue, cleanForm) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        const payload = {
+            ...queue,
+            id_client: queue.client ?? queue.id_client,
+            id_specialities: queue.speciality ?? queue.id_specialities,
+        };
+
+        api.put(`/queues/${queue.id}`, payload)
+            .then((res) => (
+                dispatch(editQueue(res.data)),
+                dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
+                dispatch(turnAlert()),
+                dispatch(turnLoading()),
+                cleanForm && cleanForm()
+            ))
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                return error.response ? error.response.data : 'erro desconhecido';
+            });
+    };
+}
