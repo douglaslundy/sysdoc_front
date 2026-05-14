@@ -64,6 +64,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
         const visiblePages = pages.filter((pg) => {
           if (!pg?.ativo) return false;
+          if (pg.path === DashboardItem.href) return false;
           if (profile === "admin") return true;
           return myPermissions.includes(pg.path);
         });
