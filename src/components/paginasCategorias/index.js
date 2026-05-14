@@ -26,6 +26,7 @@ export default function PaginasCategorias() {
 
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(FORM_INICIAL);
+    const [busca, setBusca] = useState('');
 
     useEffect(() => {
         dispatch(getAllPageCategories());
@@ -57,10 +58,26 @@ export default function PaginasCategorias() {
         });
     };
 
+    const categoriasFiltradas = [...pageCategories]
+        .filter(cat =>
+            (cat.nome || '').toLowerCase().includes(busca.toLowerCase()) ||
+            (cat.icone || '').toLowerCase().includes(busca.toLowerCase())
+        )
+        .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
+
     return (
         <BaseCard title="Categorias de Páginas do Sistema">
             <AlertModal />
             <Stack spacing={2}>
+                <TextField
+                    size="small"
+                    label="Pesquisar categoria"
+                    placeholder="Buscar por nome ou ícone..."
+                    value={busca}
+                    onChange={e => setBusca(e.target.value)}
+                    inputProps={{ maxLength: 80 }}
+                    sx={{ maxWidth: 420 }}
+                />
                 <Box display="grid" gap={2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr 1fr auto auto' }}>
                     <TextField label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                     <FormControl fullWidth>
@@ -105,7 +122,7 @@ export default function PaginasCategorias() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {[...pageCategories].sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999)).map(cat => (
+                        {categoriasFiltradas.map(cat => (
                             <TableRow key={cat.id}>
                                 <TableCell><Typography variant="body2" fontWeight={600}>{cat.nome}</Typography></TableCell>
                                 <TableCell>{cat.icone || '—'}</TableCell>
@@ -117,6 +134,13 @@ export default function PaginasCategorias() {
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {categoriasFiltradas.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} align="center">
+                                    <Typography color="text.secondary">Nenhuma categoria encontrada</Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </Stack>
