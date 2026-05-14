@@ -39,6 +39,7 @@ export default function Perfis() {
     const [openModal, setOpenModal] = useState(false);
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(FORM_INICIAL);
+    const [busca, setBusca] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -83,12 +84,25 @@ export default function Perfis() {
     };
 
     const categorias = agruparPorCategoria(pages);
+    const perfisFiltrados = profiles.filter(profile =>
+        profile.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+        profile.slug?.toLowerCase().includes(busca.toLowerCase()) ||
+        profile.descricao?.toLowerCase().includes(busca.toLowerCase())
+    );
 
     return (
         <>
             <BaseCard title={`Você possui ${profiles.length} Perfis de Acesso Cadastrados`}>
                 <AlertModal />
-                <Box display="flex" justifyContent="flex-end" mb={2}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="wrap" mb={2}>
+                    <TextField
+                        size="small"
+                        placeholder="Buscar por nome, slug ou descrição..."
+                        value={busca}
+                        onChange={e => { setBusca(e.target.value); setPage(0); }}
+                        inputProps={{ maxLength: 80 }}
+                        sx={{ minWidth: 320 }}
+                    />
                     <Fab color="primary" title="Novo Perfil" onClick={handleNovo}>
                         <FeatherIcon icon="plus" />
                     </Fab>
@@ -105,7 +119,7 @@ export default function Perfis() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {profiles.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(profile => (
+                            {perfisFiltrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(profile => (
                                 <TableRow key={profile.id} hover>
                                     <TableCell>
                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>{profile.nome}</Typography>
@@ -144,10 +158,10 @@ export default function Perfis() {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {profiles.length === 0 && (
+                            {perfisFiltrados.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={5} align="center">
-                                        <Typography color="text.secondary">Nenhum perfil cadastrado</Typography>
+                                        <Typography color="text.secondary">Nenhum perfil encontrado</Typography>
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -155,7 +169,7 @@ export default function Perfis() {
                     </Table>
                     <TablePagination
                         component="div"
-                        count={profiles.length}
+                        count={perfisFiltrados.length}
                         page={page}
                         onPageChange={(_, p) => setPage(p)}
                         rowsPerPage={rowsPerPage}
