@@ -18,6 +18,31 @@ import LogoIcon from "../logo/LogoIcon";
 import Menuitems, { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { AuthContext } from "../../contexts/AuthContext";
+import { api } from "../../services/api";
+
+const CATEGORY_ICONS = {
+  Administracao: "shield",
+  Cadastros: "users",
+  Laboratorio: "thermometer",
+  TFD: "send",
+  Atendimento: "activity",
+  Documentos: "file-text",
+  "Vigilancia Sanitaria": "shield",
+  Farmacia: "package",
+  "Farmacia Basica": "package",
+  Sistema: "settings",
+  Geral: "grid",
+  Relatorios: "bar-chart-2",
+  Outros: "grid",
+};
+
+const normalizeCategory = (value) => {
+  if (!value) return "Outros";
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
 
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const { profile, myPermissions } = useContext(AuthContext);
@@ -25,10 +50,97 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
+  const [dynamicMenu, setDynamicMenu] = useState([]);
 
-  // Auto-expandir o grupo que contém a rota ativa
+  const menuGroups = dynamicMenu.length > 0 ? dynamicMenu : Menuitems;
+
   useEffect(() => {
-    Menuitems.forEach((group) => {
+    let mounted = true;
+
+    const buildDynamicMenu = async () => {
+      try {
+        const res = await api.get("/system-pages");
+        const pages = Array.isArray(res.data) ? res.data : [];
+
+        const visiblePages = pages.filter((pg) => {
+          if (!pg?.ativo) return false;
+          if (profile === "admin") return true;
+          return myPermissions.includes(pg.path);
+        });
+
+        if (visiblePages.length === 0) {
+          if (mounted) setDynamicMenu([]);
+          return;
+        }
+
+        const grouped = visiblePages.reduce((acc, pg) => {
+          const category = pg.category?.nome || pg.categoria || "Outros";
+          if (!acc[category]) {
+            acc[category] = { children: [], icon: pg.category?.icone, order: pg.category?.ordem ?? 999 };
+          }
+          if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
+          acc[category].children.push({
+            title: pg.titulo,
+            icon: pg.icone || "circle",
+            href: pg.path,
+            order: Number(pg.ordem ?? 999),
+          });
+          return acc;
+        }, {});
+
+        const groups = Object.entries(grouped)
+          .map(([category, groupData]) => {
+            const normalized = normalizeCategory(category);
+            return {
+              title: category,
+              icon: groupData.icon || CATEGORY_ICONS[normalized] || groupData.children[0]?.icon || "grid",
+              order: groupData.order ?? 999,
+              group: true,
+              children: groupData.children.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)),
+            };
+          })
+          .sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
+
+        const existingPaths = new Set(groups.flatMap((g) => g.children.map((c) => c.href)));
+        const fallbackGroups = Menuitems.map((g) => ({ ...g, children: [...g.children] }));
+        fallbackGroups.forEach((g) => {
+          const missingChildren = g.children.filter((c) => {
+            if (existingPaths.has(c.href)) return false;
+            if (profile === "admin") return true;
+            return myPermissions.includes(c.href);
+          });
+          if (missingChildren.length === 0) return;
+
+          const group = groups.find((x) => x.title === g.title);
+          if (group) {
+            group.children = [...group.children, ...missingChildren]
+              .sort((a, b) => ((a.order ?? 999) - (b.order ?? 999)) || a.title.localeCompare(b.title));
+          } else {
+            groups.push({
+              title: g.title,
+              icon: g.icon,
+              order: 999,
+              group: true,
+              children: missingChildren.sort((a, b) => a.title.localeCompare(b.title)),
+            });
+          }
+        });
+
+        if (mounted) setDynamicMenu(groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)));
+      } catch (_) {
+        if (mounted) setDynamicMenu([]);
+      }
+    };
+
+    buildDynamicMenu();
+
+    return () => {
+      mounted = false;
+    };
+  }, [profile, myPermissions]);
+
+  useEffect(() => {
+    menuGroups.forEach((group) => {
       const hasActive = group.children.some((child) => pathname === child.href);
       if (hasActive) {
         setOpenGroups((prev) =>
@@ -36,7 +148,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         );
       }
     });
-  }, [pathname]);
+  }, [pathname, menuGroups]);
 
   const toggleGroup = (title) => {
     setOpenGroups((prev) =>
@@ -83,9 +195,9 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
   const renderGroup = (group) => {
     const visibleChildren = group.children.filter((child) => {
-      if (child.public) return true;           // sempre visível para autenticados
-      if (profile === 'admin') return true;    // admin bypass (centralizado aqui e no AuthGuard)
-      return myPermissions.includes(child.href); // banco como fonte única de verdade
+      if (child.public) return true;
+      if (profile === "admin") return true;
+      return myPermissions.includes(child.href);
     });
     if (visibleChildren.length === 0) return null;
 
@@ -129,23 +241,20 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         </ListItemButton>
 
         <Collapse in={isOpen} timeout="auto" unmountOnExit>
-          <List disablePadding>
-            {visibleChildren.map((child) => renderLeaf(child))}
-          </List>
+          <List disablePadding>{visibleChildren.map((child) => renderLeaf(child))}</List>
         </Collapse>
       </Box>
     );
   };
 
   const isDashboardVisible =
-    profile === 'admin' || myPermissions.includes(DashboardItem.href);
+    profile === "admin" || myPermissions.includes(DashboardItem.href);
 
   const SidebarContent = (
     <Box p={2} height="100%" sx={{ mt: "64px" }}>
       <LogoIcon />
       <Box mt={2}>
         <List disablePadding>
-          {/* Dashboard: botão fixo acima de todos os grupos */}
           {isDashboardVisible && (
             <NextLink href={DashboardItem.href} passHref>
               <ListItem
@@ -182,7 +291,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
             </NextLink>
           )}
 
-          {Menuitems.map((group) => renderGroup(group))}
+          {menuGroups.map((group) => renderGroup(group))}
         </List>
       </Box>
     </Box>

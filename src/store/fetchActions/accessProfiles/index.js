@@ -1,5 +1,10 @@
 import { api } from '../../../services/api';
-import { addProfiles, addProfile, editProfile, removeProfile, showProfile, addPages, addPage, editPage, removePage, setMyPermissions } from '../../ducks/accessProfiles';
+import {
+    addProfiles, addProfile, editProfile, removeProfile, showProfile,
+    addPages, addPage, editPage, removePage,
+    setPageCategories, addPageCategory, editPageCategory, removePageCategory,
+    setMyPermissions
+} from '../../ducks/accessProfiles';
 import { turnLoading, addMessage, addAlertMessage, turnAlert } from '../../ducks/Layout';
 
 export const getAllProfiles = () => (dispatch) => {
@@ -13,6 +18,13 @@ export const getAllPages = () => (dispatch) => {
     dispatch(turnLoading());
     api.get('/system-pages')
         .then(res => { dispatch(addPages(res.data)); dispatch(turnLoading()); })
+        .catch(() => dispatch(turnLoading()));
+};
+
+export const getAllPageCategories = () => (dispatch) => {
+    dispatch(turnLoading());
+    api.get('/page-categories')
+        .then(res => { dispatch(setPageCategories(res.data)); dispatch(turnLoading()); })
         .catch(() => dispatch(turnLoading()));
 };
 
@@ -110,8 +122,56 @@ export const removePageFetch = (id) => (dispatch) => {
         });
 };
 
+export const addPageCategoryFetch = (data, onSuccess) => (dispatch) => {
+    dispatch(turnLoading());
+    api.post('/page-categories', data)
+        .then(res => {
+            dispatch(addPageCategory(res.data));
+            dispatch(addMessage(`Categoria "${res.data.nome}" criada!`));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            onSuccess && onSuccess();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || err?.response?.data?.error || 'Erro ao criar categoria'));
+            dispatch(turnLoading());
+        });
+};
+
+export const editPageCategoryFetch = (id, data, onSuccess) => (dispatch) => {
+    dispatch(turnLoading());
+    api.put(`/page-categories/${id}`, data)
+        .then(res => {
+            dispatch(editPageCategory(res.data));
+            dispatch(addMessage(`Categoria "${res.data.nome}" atualizada!`));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+            onSuccess && onSuccess();
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || err?.response?.data?.error || 'Erro ao atualizar categoria'));
+            dispatch(turnLoading());
+        });
+};
+
+export const removePageCategoryFetch = (id) => (dispatch) => {
+    dispatch(turnLoading());
+    api.delete(`/page-categories/${id}`)
+        .then(() => {
+            dispatch(removePageCategory({ id }));
+            dispatch(addMessage('Categoria removida!'));
+            dispatch(turnAlert());
+            dispatch(turnLoading());
+        })
+        .catch(err => {
+            dispatch(addAlertMessage(err?.response?.data?.message || err?.response?.data?.error || 'Erro ao remover categoria'));
+            dispatch(turnLoading());
+        });
+};
+
 export const getMyPermissions = () => (dispatch) => {
     api.get('/auth/my-permissions')
         .then(res => dispatch(setMyPermissions(res.data.paths || [])))
         .catch(() => {});
 };
+

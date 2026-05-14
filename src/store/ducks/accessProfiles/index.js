@@ -4,6 +4,7 @@ const INITIAL_STATE = {
     profiles: [],
     profile: {},
     pages: [],
+    pageCategories: [],
     myPermissions: [],
 };
 
@@ -16,6 +17,10 @@ export const addPages = createAction('ADD_PAGES');
 export const addPage = createAction('ADD_PAGE');
 export const editPage = createAction('EDIT_PAGE');
 export const removePage = createAction('REMOVE_PAGE');
+export const setPageCategories = createAction('SET_PAGE_CATEGORIES');
+export const addPageCategory = createAction('ADD_PAGE_CATEGORY');
+export const editPageCategory = createAction('EDIT_PAGE_CATEGORY');
+export const removePageCategory = createAction('REMOVE_PAGE_CATEGORY');
 export const setMyPermissions = createAction('SET_MY_PERMISSIONS');
 
 const accessProfilesReducer = createReducer(INITIAL_STATE, (builder) => {
@@ -36,6 +41,14 @@ const accessProfilesReducer = createReducer(INITIAL_STATE, (builder) => {
         })
         .addCase(removePage, (state, action) => {
             state.pages = state.pages.filter(p => p.id !== action.payload.id);
+        })
+        .addCase(setPageCategories, (state, action) => { state.pageCategories = action.payload; })
+        .addCase(addPageCategory, (state, action) => { state.pageCategories = [action.payload, ...state.pageCategories]; })
+        .addCase(editPageCategory, (state, action) => {
+            state.pageCategories = state.pageCategories.map(c => c.id === action.payload.id ? action.payload : c);
+        })
+        .addCase(removePageCategory, (state, action) => {
+            state.pageCategories = state.pageCategories.filter(c => c.id !== action.payload.id);
         })
         .addCase(setMyPermissions, (state, action) => { state.myPermissions = action.payload; });
 });

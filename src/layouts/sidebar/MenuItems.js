@@ -1,24 +1,21 @@
 /**
- * Catálogo estático de navegação.
- * Não contém regras de autorização — o filtro por perfil acontece em Sidebar.js
+ * Catalogo estatico de navegacao.
+ * Nao contem regras de autorizacao - o filtro por perfil acontece em Sidebar.js
  * usando myPermissions carregado do banco via AuthContext.
- *
- * public: true  →  visível para qualquer usuário autenticado (sem checar permissão)
- * (ausente)     →  filtrado pelo array myPermissions do banco
  */
 
-// Botão fixo exibido acima de todos grupos — sem dropdown
 export const DashboardItem = { title: "Dashboard", icon: "pie-chart", href: "/dashboard" };
 
 const Menuitems = [
   {
-    title: "Administração",
+    title: "Administracao",
     icon: "shield",
     group: true,
     children: [
-      { title: "Usuários",           icon: "user",   href: "/users" },
-      { title: "Perfis de Acesso",   icon: "shield", href: "/perfis" },
-      { title: "Páginas do Sistema", icon: "layout", href: "/paginas-sistema" },
+      { title: "Usuarios", icon: "user", href: "/users" },
+      { title: "Perfis de Acesso", icon: "shield", href: "/perfis" },
+      { title: "Paginas do Sistema", icon: "layout", href: "/paginas-sistema" },
+      { title: "Categorias de Paginas", icon: "tag", href: "/paginas-categorias" },
     ],
   },
   {
@@ -26,22 +23,22 @@ const Menuitems = [
     icon: "users",
     group: true,
     children: [
-      { title: "Clientes",       icon: "users",       href: "/clients" },
+      { title: "Clientes", icon: "users", href: "/clients" },
       { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report" },
-      { title: "Especialidades", icon: "award",       href: "/specialities" },
+      { title: "Especialidades", icon: "award", href: "/specialities" },
     ],
   },
   {
-    title: "Laboratório",
+    title: "Laboratorio",
     icon: "thermometer",
     group: true,
     children: [
-      { title: "Exames",         icon: "thermometer", href: "/laboratorio/exames" },
-      { title: "Pedidos",        icon: "clipboard",   href: "/laboratorio/pedidos" },
-      { title: "Categorias",     icon: "tag",         href: "/laboratorio/categorias" },
-      { title: "Médicos",        icon: "user-check",  href: "/laboratorio/medicos" },
-      { title: "Agenda",         icon: "calendar",    href: "/laboratorio/agenda" },
-      { title: "Configurações",  icon: "settings",    href: "/laboratorio/configuracoes", profile: ['admin'] },
+      { title: "Exames", icon: "thermometer", href: "/laboratorio/exames" },
+      { title: "Pedidos", icon: "clipboard", href: "/laboratorio/pedidos" },
+      { title: "Categorias", icon: "tag", href: "/laboratorio/categorias" },
+      { title: "Medicos", icon: "user-check", href: "/laboratorio/medicos" },
+      { title: "Agenda", icon: "calendar", href: "/laboratorio/agenda" },
+      { title: "Configuracoes", icon: "settings", href: "/laboratorio/configuracoes", profile: ["admin"] },
     ],
   },
   {
@@ -49,9 +46,9 @@ const Menuitems = [
     icon: "send",
     group: true,
     children: [
-      { title: "Veículos", icon: "truck",   href: "/vehicles" },
-      { title: "Rotas",    icon: "map",     href: "/routes" },
-      { title: "Viagens",  icon: "map-pin", href: "/trips" },
+      { title: "Veiculos", icon: "truck", href: "/vehicles" },
+      { title: "Rotas", icon: "map", href: "/routes" },
+      { title: "Viagens", icon: "map-pin", href: "/trips" },
     ],
   },
   {
@@ -59,13 +56,13 @@ const Menuitems = [
     icon: "activity",
     group: true,
     children: [
-      { title: "Fila",             icon: "layers",      href: "/queue" },
-      { title: "Salas",            icon: "grid",        href: "/rooms" },
-      { title: "Minha Sala",       icon: "monitor",     href: "/listing_calls" },
-      { title: "Em Atendimento",   icon: "activity",    href: "/attending" },
+      { title: "Fila", icon: "layers", href: "/queue" },
+      { title: "Salas", icon: "grid", href: "/rooms" },
+      { title: "Minha Sala", icon: "monitor", href: "/listing_calls" },
+      { title: "Em Atendimento", icon: "activity", href: "/attending" },
       { title: "Novo Atendimento", icon: "plus-circle", href: "/call" },
-      { title: "Painel",           icon: "layout",      href: "/panel" },
-      { title: "Serviços",         icon: "tool",        href: "/service_calls" },
+      { title: "Painel", icon: "layout", href: "/panel" },
+      { title: "Servicos", icon: "tool", href: "/service_calls" },
     ],
   },
   {
@@ -73,30 +70,30 @@ const Menuitems = [
     icon: "file-text",
     group: true,
     children: [
-      { title: "Ofícios",    icon: "send",      href: "/letters" },
-      { title: "Portarias",  icon: "file-text", href: "/ordinance" },
-      { title: "Modelos IA", icon: "cpu",       href: "/models" },
+      { title: "Oficios", icon: "send", href: "/letters" },
+      { title: "Portarias", icon: "file-text", href: "/ordinance" },
+      { title: "Modelos IA", icon: "cpu", href: "/models" },
     ],
   },
   {
-    title: "Vigilância Sanitária",
+    title: "Vigilancia Sanitaria",
     icon: "shield",
     group: true,
     children: [
-      { title: "Estabelecimentos", icon: "home",       href: "/estabelecimentos" },
-      { title: "Alvarás",          icon: "award",      href: "/alvaras" },
-      { title: "Configurações",    icon: "settings",   href: "/vigilancia/configuracoes", profile: ['admin'] },
+      { title: "Estabelecimentos", icon: "home", href: "/estabelecimentos" },
+      { title: "Alvaras", icon: "award", href: "/alvaras" },
+      { title: "Configuracoes", icon: "settings", href: "/vigilancia/configuracoes", profile: ["admin"] },
     ],
   },
   {
-    title: "Farmácia Básica",
+    title: "Farmacia Basica",
     icon: "package",
     group: true,
     children: [
-      { title: "Medicamentos",         icon: "archive", href: "/pharmacy/medicines" },
-      { title: "Status Diário",        icon: "calendar", href: "/pharmacy/daily-status" },
-      { title: "Aquisições Mensais",   icon: "bar-chart-2", href: "/pharmacy/monthly-acquisitions" },
-      { title: "Conformidade",         icon: "check-square", href: "/pharmacy/compliance" },
+      { title: "Medicamentos", icon: "archive", href: "/pharmacy/medicines" },
+      { title: "Status Diario", icon: "calendar", href: "/pharmacy/daily-status" },
+      { title: "Aquisicoes Mensais", icon: "bar-chart-2", href: "/pharmacy/monthly-acquisitions" },
+      { title: "Conformidade", icon: "check-square", href: "/pharmacy/compliance" },
     ],
   },
   {
@@ -104,11 +101,12 @@ const Menuitems = [
     icon: "settings",
     group: true,
     children: [
-      { title: "Auditoria",      icon: "eye",            href: "/auditoria" },
-      { title: "Logs de Erro",   icon: "alert-triangle", href: "/errorlogs" },
-      { title: "Logs de QRCODE", icon: "maximize",       href: "/qrcodelogs" },
+      { title: "Auditoria", icon: "eye", href: "/auditoria" },
+      { title: "Logs de Erro", icon: "alert-triangle", href: "/errorlogs" },
+      { title: "Logs de QRCODE", icon: "maximize", href: "/qrcodelogs" },
     ],
   },
 ];
 
 export default Menuitems;
+

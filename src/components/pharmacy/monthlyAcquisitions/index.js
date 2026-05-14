@@ -22,7 +22,25 @@ export default function MonthlyAcquisitionsManager() {
     const dispatch = useDispatch();
     const { monthlyAcquisitions } = useSelector(state => state.medicineMonthlyAcquisitions);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [referenceMonth, setReferenceMonth] = useState(new Date().toISOString().slice(0, 7));
+    const now = new Date();
+    const defaultMaskedMonth = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const [referenceMonth, setReferenceMonth] = useState(defaultMaskedMonth);
+
+    const toApiMonth = (maskedMonth) => {
+        const cleaned = String(maskedMonth || '').replace(/\D/g, '').slice(0, 6);
+        if (cleaned.length !== 6) return null;
+        const month = cleaned.slice(0, 2);
+        const year = cleaned.slice(2, 6);
+        const monthNum = Number(month);
+        if (monthNum < 1 || monthNum > 12) return null;
+        return `${year}-${month}`;
+    };
+
+    const formatMonthMask = (value) => {
+        const cleaned = String(value || '').replace(/\D/g, '').slice(0, 6);
+        if (cleaned.length <= 2) return cleaned;
+        return `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    };
 
     useEffect(() => {
         dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
@@ -35,12 +53,16 @@ export default function MonthlyAcquisitionsManager() {
     }, []);
 
     useEffect(() => {
-        dispatch(getMonthlyAcquisitions({ reference_month: referenceMonth, per_page: 200 }));
+        const apiMonth = toApiMonth(referenceMonth);
+        if (!apiMonth) return;
+        dispatch(getMonthlyAcquisitions({ reference_month: apiMonth, per_page: 200 }));
     }, [referenceMonth]);
 
     const onSuccess = () => {
         setDialogOpen(false);
-        dispatch(getMonthlyAcquisitions({ reference_month: referenceMonth, per_page: 200 }));
+        const apiMonth = toApiMonth(referenceMonth);
+        if (!apiMonth) return;
+        dispatch(getMonthlyAcquisitions({ reference_month: apiMonth, per_page: 200 }));
     };
 
     return (
@@ -50,8 +72,9 @@ export default function MonthlyAcquisitionsManager() {
                 <TextField
                     label="Mês de referência"
                     value={referenceMonth}
-                    onChange={(e) => setReferenceMonth(e.target.value)}
-                    helperText="AAAA-MM"
+                    onChange={(e) => setReferenceMonth(formatMonthMask(e.target.value))}
+                    helperText="MM/AAAA"
+                    inputProps={{ maxLength: 7, inputMode: 'numeric', placeholder: 'MM/AAAA' }}
                 />
                 <Fab color="primary" size="medium" onClick={() => setDialogOpen(true)}>
                     <FeatherIcon icon="plus" />
