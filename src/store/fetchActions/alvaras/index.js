@@ -74,18 +74,46 @@ export const removeAlvaraFetch = (id) => {
     };
 };
 
+const parseBlobJsonMessage = async (blob) => {
+    if (!blob || typeof blob.text !== 'function') return null;
+    try {
+        const text = await blob.text();
+        const json = JSON.parse(text);
+        return json?.message || json?.error || null;
+    } catch {
+        return null;
+    }
+};
+
 export const downloadAlvaraPdf = (id, numeroAlvara) => async (dispatch) => {
     try {
         const res = await api.get(`/alvaras/${id}/pdf`, { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-        const a   = document.createElement('a');
-        a.href     = url;
-        a.download = `alvara-${numeroAlvara}.pdf`;
+        const a = document.createElement('a');
+        const safeNumber = String(numeroAlvara ?? 'sem-numero').replace(/[\\/]+/g, '-');
+        a.href = url;
+        a.download = `alvara-${safeNumber}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-    } catch {
-        dispatch(addAlertMessage('Erro ao gerar PDF do alvará'));
+    } catch (error) {
+        const status = error?.response?.status;
+        const backendMsg = await parseBlobJsonMessage(error?.response?.data);
+
+        if (status === 401) {
+            dispatch(addAlertMessage('Sessão expirada. Faça login novamente.'));
+            return;
+        }
+        if (status === 404) {
+            dispatch(addAlertMessage(backendMsg || 'Alvará não encontrado para geração do PDF.'));
+            return;
+        }
+        if (status === 422) {
+            dispatch(addAlertMessage(backendMsg || 'Dados inválidos para gerar o PDF do alvará.'));
+            return;
+        }
+
+        dispatch(addAlertMessage(backendMsg || 'Erro ao gerar PDF do alvará.'));
     }
 };
