@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
-import { DashboardErro, DashboardLoading } from './DashboardStatus';
+import { DashboardErro, DashboardLoading, getDashboardErrorMessage } from './DashboardStatus';
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
@@ -54,16 +54,16 @@ function normalizeMeses(aquisicoesPorMes = [], janelaMeses = 12) {
 export default function FarmaciaDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(false);
+    const [erro, setErro] = useState(null);
     const [janelaDias, setJanelaDias] = useState(30);
     const [janelaMeses, setJanelaMeses] = useState(12);
 
     useEffect(() => {
         setLoading(true);
-        setErro(false);
+        setErro(null);
         api.get('/dashboard/farmacia', { params: { janela_dias: janelaDias, janela_meses: janelaMeses } })
             .then((res) => setDados(res.data))
-            .catch(() => setErro(true))
+            .catch((err) => setErro(err))
             .finally(() => setLoading(false));
     }, [janelaDias, janelaMeses]);
 
@@ -104,7 +104,7 @@ export default function FarmaciaDashboard() {
     }, [dados, janelaMeses]);
 
     if (loading) return <DashboardLoading />;
-    if (erro || !dados || !chart) return <DashboardErro />;
+    if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Farmacia', erro)} />;
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
@@ -249,3 +249,4 @@ export default function FarmaciaDashboard() {
         </Box>
     );
 }
+

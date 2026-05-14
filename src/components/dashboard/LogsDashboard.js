@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
-import { DashboardLoading, DashboardErro } from './DashboardStatus';
+import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 import Chart from '../charts/ApexChartSafe';
 
 function CardTotal({ icon, titulo, valor, cor }) {
@@ -34,12 +34,12 @@ function CardTotal({ icon, titulo, valor, cor }) {
 export default function LogsDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(false);
+    const [erro, setErro] = useState(null);
 
     useEffect(() => {
         api.get('/dashboard/logs')
             .then(res => setDados(res.data))
-            .catch(() => setErro(true))
+            .catch((err) => setErro(err))
             .finally(() => setLoading(false));
     }, []);
 
@@ -60,7 +60,7 @@ export default function LogsDashboard() {
     }, [dados]);
 
     if (loading) return <DashboardLoading />;
-    if (erro || !dados || !chart) return <DashboardErro />;
+    if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Logs', erro)} />;
 
     const { totais } = dados;
 
@@ -169,3 +169,4 @@ export default function LogsDashboard() {
         </Box>
     );
 }
+

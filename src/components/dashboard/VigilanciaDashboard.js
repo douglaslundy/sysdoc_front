@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
+import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607d8b' };
 
@@ -49,12 +50,12 @@ function gerarMesesFromMap(mapa) {
 export default function VigilanciaDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(false);
+    const [erro, setErro] = useState(null);
 
     useEffect(() => {
         api.get('/dashboard/vigilancia')
             .then(res => setDados(res.data))
-            .catch(() => setErro(true))
+            .catch((err) => setErro(err))
             .finally(() => setLoading(false));
     }, []);
 
@@ -87,13 +88,7 @@ export default function VigilanciaDashboard() {
         );
     }
 
-    if (erro || !dados || !chart) {
-        return (
-            <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Dados não disponíveis.</Typography>
-            </Box>
-        );
-    }
+    if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Vigilancia Sanitaria', erro)} />;
 
     const { totais } = dados;
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
@@ -244,3 +239,4 @@ export default function VigilanciaDashboard() {
         </Box>
     );
 }
+

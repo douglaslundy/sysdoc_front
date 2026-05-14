@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
+import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
@@ -47,12 +48,12 @@ function gerarMeses(mapa) {
 export default function InicioDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(false);
+    const [erro, setErro] = useState(null);
 
     useEffect(() => {
         api.get('/dashboard/inicio')
             .then(res => setDados(res.data))
-            .catch(() => setErro(true))
+            .catch((err) => setErro(err))
             .finally(() => setLoading(false));
     }, []);
 
@@ -73,13 +74,7 @@ export default function InicioDashboard() {
         );
     }
 
-    if (erro || !dados || !chart) {
-        return (
-            <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Dados não disponíveis.</Typography>
-            </Box>
-        );
-    }
+    if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Inicio', erro)} />;
 
     const { totais } = dados;
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
@@ -187,3 +182,4 @@ export default function InicioDashboard() {
         </Box>
     );
 }
+

@@ -1,21 +1,28 @@
+﻿import dynamic from 'next/dynamic';
 import React from 'react';
+import { Box, Typography } from '@mui/material';
 
-let ReactApexChart = null;
-
-if (typeof window !== 'undefined') {
-    try {
-        // Resolve at runtime to avoid hard build-time failure when dependency is missing.
-        ReactApexChart = (0, eval)('require')('react-apexcharts').default;
-    } catch (_) {
-        ReactApexChart = null;
-    }
-}
+const ReactApexChart = dynamic(() => import('react-apexcharts'), {
+    ssr: false,
+    loading: () => null,
+});
 
 export default function ApexChartSafe(props) {
     if (!ReactApexChart) {
-        return null;
+        return (
+            <Box p={2} textAlign="center">
+                <Typography color="textSecondary">Falha ao carregar biblioteca de graficos.</Typography>
+            </Box>
+        );
     }
 
-    return <ReactApexChart {...props} />;
+    try {
+        return <ReactApexChart {...props} />;
+    } catch (_) {
+        return (
+            <Box p={2} textAlign="center">
+                <Typography color="textSecondary">Falha ao renderizar grafico.</Typography>
+            </Box>
+        );
+    }
 }
-

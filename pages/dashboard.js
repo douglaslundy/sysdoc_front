@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
@@ -14,7 +14,7 @@ const ABAS = [
     { label: 'Laboratório',          component: <LabDashboard /> },
     { label: 'Fila',                 component: <FilaDashboard /> },
     { label: 'TFD',                  component: <TfdDashboard /> },
-    { label: 'Farmacia',             component: <FarmaciaDashboard /> },
+    { label: 'Farmácia',             component: <FarmaciaDashboard /> },
     { label: 'Logs/QR',              component: <LogsDashboard /> },
 ];
 
@@ -36,12 +36,11 @@ export default function DashboardPage() {
                 </Tabs>
             </Box>
 
-            {ABAS.map((item, idx) => (
-                <Box key={idx} hidden={aba !== idx} role="tabpanel">
-                    {item.component}
-                </Box>
-            ))}
+            <Box role="tabpanel">
+                {ABAS[aba]?.component}
+            </Box>
         </Box>
     );
 }
+
 

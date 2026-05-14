@@ -27,6 +27,25 @@ const ACOES = [
 ];
 
 const FORM_INICIAL = { action: '', model_type: '', user_name: '', date_from: '', date_to: '' };
+const PAGE_LABELS = {
+    '/': 'Início',
+    '/dashboard': 'Dashboard',
+    '/auditoria': 'Auditoria',
+    '/users': 'Usuários',
+    '/clients': 'Clientes',
+    '/client_report': 'Relatório de Clientes',
+    '/laboratorio/exames': 'Laboratório - Exames',
+    '/laboratorio/pedidos': 'Laboratório - Pedidos',
+    '/laboratorio/resultados': 'Laboratório - Resultados',
+    '/fila': 'Fila',
+    '/tfd': 'TFD',
+    '/estabelecimentos': 'Vigilância - Estabelecimentos',
+    '/alvaras': 'Vigilância - Alvarás',
+    '/pharmacy/medicines': 'Farmácia - Medicamentos',
+    '/pharmacy/daily-status': 'Farmácia - Status Diário',
+    '/pharmacy/monthly-acquisitions': 'Farmácia - Aquisições Mensais',
+    '/pharmacy/compliance': 'Farmácia - Conformidade',
+};
 
 const endpointLabel = (endpoint) => {
     if (!endpoint) return null;
@@ -35,6 +54,34 @@ const endpointLabel = (endpoint) => {
         .replace(/\/\d+$/, '')        // remove ID numérico final
         .replace(/\/\d+\//, '/')      // remove IDs intermediários
         .replace(/-/g, ' ');          // hífens → espaços
+};
+
+const pageViewPathLabel = (log) => {
+    const event = log?.new_values?.event;
+    const path = log?.new_values?.path;
+    if (event !== 'PAGE_VIEW' || !path) return null;
+
+    return String(path)
+        .replace(/^\/+/, '')
+        .replace(/\/\d+$/, '')
+        .replace(/\/\d+\//, '/')
+        .replace(/-/g, ' ') || '/';
+};
+
+const pageViewFriendlyLabel = (log) => {
+    const path = log?.new_values?.path;
+    if (!path) return null;
+
+    const normalized = `/${String(path).replace(/^\/+/, '').replace(/\/\d+$/, '')}`;
+    if (PAGE_LABELS[normalized]) return PAGE_LABELS[normalized];
+
+    const fallback = normalized
+        .replace(/^\/+/, '')
+        .replace(/-/g, ' ')
+        .replace(/\//g, ' / ')
+        .trim();
+
+    return fallback ? fallback.toUpperCase() : '/';
 };
 
 export default function Auditoria() {
@@ -182,9 +229,9 @@ export default function Auditoria() {
                                     <TableCell>
                                         <Box display="flex" alignItems="center" gap={0.5}>
                                             <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
-                                            {['VIEW', 'VIEW_REPORT'].includes(log.action) && log.endpoint && (
+                                            {['VIEW', 'VIEW_REPORT'].includes(log.action) && (pageViewPathLabel(log) || log.endpoint) && (
                                                 <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
-                                                    / {endpointLabel(log.endpoint)}
+                                                    / {pageViewFriendlyLabel(log) ?? pageViewPathLabel(log) ?? endpointLabel(log.endpoint)}
                                                 </Typography>
                                             )}
                                         </Box>
@@ -244,3 +291,4 @@ export default function Auditoria() {
         </BaseCard>
     );
 }
+

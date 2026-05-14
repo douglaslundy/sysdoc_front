@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
-import { DashboardLoading, DashboardErro } from './DashboardStatus';
+import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 import Chart from '../charts/ApexChartSafe';
 
 const CORES_STATUS = {
@@ -56,12 +56,12 @@ function gerarMeses(mapa) {
 export default function LabDashboard() {
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(false);
+    const [erro, setErro] = useState(null);
 
     useEffect(() => {
         api.get('/dashboard/laboratorio')
             .then(res => setDados(res.data))
-            .catch(() => setErro(true))
+            .catch((err) => setErro(err))
             .finally(() => setLoading(false));
     }, []);
 
@@ -110,13 +110,7 @@ export default function LabDashboard() {
         );
     }
 
-    if (erro || !dados || !chart) {
-        return (
-            <Box p={4} textAlign="center">
-                <Typography color="textSecondary">Dados não disponíveis.</Typography>
-            </Box>
-        );
-    }
+    if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Laboratorio', erro)} />;
 
     const { totais } = dados;
 
@@ -431,3 +425,4 @@ export default function LabDashboard() {
         </Box>
     );
 }
+
