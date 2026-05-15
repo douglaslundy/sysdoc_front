@@ -35,6 +35,7 @@ import { getAllClients } from '../../../store/fetchActions/clients';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
 import protocolPDF from "../../../reports/protocol";
+import ConfirmDialog from '../../confirmDialog';
 
 const style = {
     position: 'absolute',
@@ -79,6 +80,13 @@ export default function QueueModal(props) {
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
     const [pendingFiles, setPendingFiles] = useState([]);
     const [isSubmittingQueue, setIsSubmittingQueue] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: '',
+        subTitle: '',
+        confirm: null,
+        onConfirm: null,
+    });
 
     const syncQueueSnapshot = async (queueId) => {
         const res = await getQueueById(queueId);
@@ -314,6 +322,17 @@ export default function QueueModal(props) {
         }
     };
 
+    const confirmDeleteAttachment = (attachment) => {
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja realmente excluir o anexo "${attachment.original_name}"?`,
+            subTitle: 'Esta acao nao podera ser desfeita.',
+            onConfirm: () => handleDeleteAttachment(attachment.id),
+            confirm: null,
+        });
+    };
+
     const handleDownloadAttachment = async (attachment) => {
         if (!queue?.id) {
             return;
@@ -502,7 +521,7 @@ export default function QueueModal(props) {
                                                             <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
                                                                 Baixar
                                                             </Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteAttachment(attachment.id)}>
+                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>
                                                                 Remover
                                                             </Button>
                                                         </MuiBox>
@@ -551,6 +570,7 @@ export default function QueueModal(props) {
 
                 </Box>
             </Modal>
+            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }

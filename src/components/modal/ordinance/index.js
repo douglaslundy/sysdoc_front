@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Grid, Stack, TextField, Alert, Button, FormControl, InputLabel, Select, MenuItem, Typography, Divider, Box as MuiBox } from "@mui/material";
 import BaseCard from "../../baseCard/BaseCard";
+import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
@@ -62,6 +63,13 @@ export default function OrdinanceModal(props) {
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
     const [pendingFiles, setPendingFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: '',
+        subTitle: '',
+        confirm: null,
+        onConfirm: null,
+    });
 
     const changeItem = ({ target }) => setForm({ ...form, [target.name]: target.value });
 
@@ -155,6 +163,17 @@ export default function OrdinanceModal(props) {
         } catch (error) {
             setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Erro ao remover anexo.' });
         }
+    };
+
+    const confirmDeleteAttachment = (attachment) => {
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja realmente excluir o anexo "${attachment.original_name}"?`,
+            subTitle: 'Esta acao nao podera ser desfeita.',
+            onConfirm: () => handleDeleteAttachment(attachment.id),
+            confirm: null,
+        });
     };
 
     const handleDownloadAttachment = async (attachment) => {
@@ -264,7 +283,7 @@ export default function OrdinanceModal(props) {
                                                         </MuiBox>
                                                         <MuiBox sx={{ "& button": { ml: 1 } }}>
                                                             <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>Baixar</Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteAttachment(attachment.id)}>Remover</Button>
+                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>Remover</Button>
                                                         </MuiBox>
                                                     </MuiBox>
                                                 ))}
@@ -296,6 +315,7 @@ export default function OrdinanceModal(props) {
                     </Grid>
                 </Box>
             </Modal>
+            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }

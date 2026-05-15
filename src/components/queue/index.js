@@ -64,6 +64,8 @@ export default () => {
         isOpen: false,
         title: 'Deseja realmente excluir',
         subTitle: 'Esta ação não poderá ser desfeita',
+        confirm: null,
+        onConfirm: null,
     });
     const [viewQueue, setViewQueue] = useState(null);
     const [attachments, setAttachments] = useState([]);
@@ -281,6 +283,17 @@ export default () => {
         } catch (error) {
             dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao remover anexo.'));
         }
+    };
+
+    const confirmDeleteAttachment = (attachment) => {
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja realmente excluir o anexo "${attachment.original_name}"?`,
+            subTitle: 'Esta acao nao podera ser desfeita.',
+            onConfirm: () => handleDeleteAttachment(attachment.id),
+            confirm: null,
+        });
     };
 
     const handleDownloadAttachment = async (attachment) => {
@@ -767,7 +780,7 @@ export default () => {
                                         <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
                                             Baixar
                                         </Button>
-                                        <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteAttachment(attachment.id)}>
+                                        <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>
                                             Remover
                                         </Button>
                                     </Box>

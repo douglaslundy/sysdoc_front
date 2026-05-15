@@ -39,6 +39,16 @@ export default function ConfirmDialog(props) {
     const { confirmDialog, setConfirmDialog } = props;
     const classes = useStyles();
     const dispatch = useDispatch();
+
+    const handleConfirm = () => {
+        if (typeof confirmDialog.onConfirm === 'function') {
+            confirmDialog.onConfirm();
+        } else if (confirmDialog.confirm) {
+            dispatch(confirmDialog.confirm);
+        }
+        setConfirmDialog({ ...confirmDialog, isOpen: false });
+    };
+
     return (
 
         <Dialog open={confirmDialog.isOpen}
@@ -61,7 +71,7 @@ export default function ConfirmDialog(props) {
 
             <DialogActions className={classes.dialogAction}>
                 <Button
-                    onClick={() => {dispatch(confirmDialog.confirm), setConfirmDialog({ ...confirmDialog, isOpen: false })}}
+                    onClick={handleConfirm}
                     color="error" size="medium" variant="contained">
                     <FeatherIcon icon="check" width="40" height="20" />
                     Sim
