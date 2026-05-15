@@ -35,9 +35,9 @@ export default function MedicinesPublicList() {
 
     return (
         <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Medicamentos Diários</Typography>
+            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>TransparÃªncia da FarmÃ¡cia - Medicamentos DiÃ¡rios</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-                Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
+                Data de referÃªncia: {formatDate(data.reference_date)} | Ãšltima atualizaÃ§Ã£o: {formatDateTime(data.last_update_at)}
             </Typography>
             <TableContainer sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 2, bgcolor: 'background.paper' }}>
                 <Table>
@@ -45,14 +45,14 @@ export default function MedicinesPublicList() {
                         <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
                             <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Medicamento</TableCell>
                             <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Status</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Distribuição Gratuita</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Observação</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>DistribuiÃ§Ã£o Gratuita</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>ObservaÃ§Ã£o</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data.items.length === 0 && (
                             <TableRow>
-                                <TableCell sx={{ color: 'text.secondary' }} colSpan={4}>Nenhum registro disponível.</TableCell>
+                                <TableCell sx={{ color: 'text.secondary' }} colSpan={4}>Nenhum registro disponÃ­vel.</TableCell>
                             </TableRow>
                         )}
                         {data.items.map((item, idx) => (
@@ -60,12 +60,12 @@ export default function MedicinesPublicList() {
                                 <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
                                 <TableCell>
                                     <Chip
-                                        label={item.availability_status === 'available' ? 'Disponível' : 'Indisponível'}
+                                        label={item.availability_status === 'available' ? 'DisponÃ­vel' : 'IndisponÃ­vel'}
                                         color={item.availability_status === 'available' ? 'success' : 'error'}
                                         size="small"
                                     />
                                 </TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.is_free_distribution ? 'Sim' : 'Não'}</TableCell>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.is_free_distribution ? 'Sim' : 'NÃ£o'}</TableCell>
                                 <TableCell sx={{ color: 'text.primary' }}>{item.public_note || '-'}</TableCell>
                             </TableRow>
                         ))}

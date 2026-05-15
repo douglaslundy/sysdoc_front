@@ -43,13 +43,13 @@ export default function MedicinesPanel() {
         <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
             <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Painel de Disponibilidade de Medicamentos</Typography>
             <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-                Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
+                Data de referÃªncia: {formatDate(data.reference_date)} | Ãšltima atualizaÃ§Ã£o: {formatDateTime(data.last_update_at)}
             </Typography>
             <Grid container spacing={2}>
                 {data.items.length === 0 && (
                     <Grid item xs={12}>
                         <Paper sx={{ p: 2, bgcolor: 'background.paper', color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
-                            Nenhum registro disponível.
+                            Nenhum registro disponÃ­vel.
                         </Paper>
                     </Grid>
                 )}
@@ -78,7 +78,7 @@ export default function MedicinesPanel() {
                                         : alpha(theme.palette.error.main, 0.9),
                                 }}
                             >
-                                {item.availability_status === 'available' ? 'DISPONÍVEL' : 'INDISPONÍVEL'}
+                                {item.availability_status === 'available' ? 'DISPONÃVEL' : 'INDISPONÃVEL'}
                             </Typography>
                         </Paper>
                     </Grid>

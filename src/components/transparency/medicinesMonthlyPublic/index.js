@@ -41,9 +41,9 @@ export default function MedicinesMonthlyPublicList() {
 
     return (
         <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
+            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>TransparÃªncia da FarmÃ¡cia - AquisiÃ§Ãµes Mensais</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-                Mês de referência: {formatMonth(data.reference_month)} | Última atualização: {formatDateTime(data.last_update_at)}
+                MÃªs de referÃªncia: {formatMonth(data.reference_month)} | Ãšltima atualizaÃ§Ã£o: {formatDateTime(data.last_update_at)}
             </Typography>
             <TableContainer sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 2, bgcolor: 'background.paper' }}>
                 <Table>
@@ -53,13 +53,13 @@ export default function MedicinesMonthlyPublicList() {
                             <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Quantidade</TableCell>
                             <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Unidade</TableCell>
                             <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Origem</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Observação</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>ObservaÃ§Ã£o</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data.items.length === 0 && (
                             <TableRow>
-                                <TableCell sx={{ color: 'text.secondary' }} colSpan={5}>Nenhum registro disponível.</TableCell>
+                                <TableCell sx={{ color: 'text.secondary' }} colSpan={5}>Nenhum registro disponÃ­vel.</TableCell>
                             </TableRow>
                         )}
                         {data.items.map((item, idx) => (
