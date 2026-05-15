@@ -299,6 +299,18 @@ export default () => {
                                                         <FeatherIcon icon="eye" width="20" height="20" />
                                                     </Button>
 
+                                                    {Number(letter?.attachments_count || 0) > 0 && (
+                                                        <Button
+                                                            title={`${letter.attachments_count} anexo(s)`}
+                                                            color="secondary"
+                                                            size="medium"
+                                                            variant="contained"
+                                                            disabled
+                                                        >
+                                                            <FeatherIcon icon="paperclip" width="20" height="20" />
+                                                        </Button>
+                                                    )}
+
                                                     <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
                                                         disabled={profile != "admin" && letter.id_user != user}>
                                                         <FeatherIcon icon="edit" width="20" height="20" />

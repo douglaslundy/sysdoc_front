@@ -4,7 +4,8 @@ import {
     addOrdinance,
     editOrdinance,
     addOrdinances,
-    getTextOpenAi
+    getTextOpenAi,
+    showOrdinance
 } from "../../ducks/ordinances";
 import {
     turnAlert,
@@ -44,6 +45,10 @@ export const addOrdinanceFetch = (ordinance, cleanForm) => {
         api.post('/ordinances', ordinance)
             .then((res) => (
                 dispatch(addOrdinance({
+                    ...res.data.ordinance,
+                    user: { name: username }
+                })),
+                dispatch(showOrdinance({
                     ...res.data.ordinance,
                     user: { name: username }
                 })),
@@ -124,4 +129,41 @@ export const inactiveOrdinanceFetch = (ordinance) => {
                 dispatch(turnLoading());
             });
     };
+};
+
+export const listOrdinanceAttachments = (ordinanceId) => {
+    return api.get(`/ordinances/${ordinanceId}/attachments`);
+};
+
+export const uploadOrdinanceAttachment = (ordinanceId, files) => {
+    const formData = new FormData();
+    const normalizedFiles = Array.isArray(files) ? files : [files];
+    normalizedFiles.forEach((file) => formData.append('files[]', file));
+
+    return api.post(`/ordinances/${ordinanceId}/attachments`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
+export const deleteOrdinanceAttachment = (ordinanceId, attachmentId) => {
+    return api.delete(`/ordinances/${ordinanceId}/attachments/${attachmentId}`);
+};
+
+export const downloadOrdinanceAttachment = async (ordinanceId, attachment) => {
+    const response = await api.get(
+        `/ordinances/${ordinanceId}/attachments/${attachment.id}/download`,
+        { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], { type: attachment.mime_type || 'application/octet-stream' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = attachment.original_name || `anexo-${attachment.id}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
 };

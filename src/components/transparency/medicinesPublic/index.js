@@ -1,5 +1,6 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
 
 const formatDate = (value) => {
@@ -23,6 +24,7 @@ const formatDateTime = (value) => {
 };
 
 export default function MedicinesPublicList() {
+    const theme = useTheme();
     const [data, setData] = useState({ items: [], reference_date: '', last_update_at: null });
 
     useEffect(() => {
@@ -32,39 +34,39 @@ export default function MedicinesPublicList() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: '#0b1220', color: '#e2e8f0' }}>
-            <Typography variant="h3" sx={{ mb: 1, color: '#f8fafc', fontWeight: 700 }}>TransparÃªncia da FarmÃ¡cia - Medicamentos DiÃ¡rios</Typography>
-            <Typography variant="body2" sx={{ mb: 2, color: '#94a3b8' }}>
-                Data de referÃªncia: {formatDate(data.reference_date)} | Ãšltima atualizaÃ§Ã£o: {formatDateTime(data.last_update_at)}
+        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Medicamentos Diários</Typography>
+            <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
             </Typography>
-            <TableContainer sx={{ border: '1px solid #1e293b', borderRadius: 2, bgcolor: '#0f172a' }}>
+            <TableContainer sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 2, bgcolor: 'background.paper' }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ bgcolor: '#111827' }}>
-                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Medicamento</TableCell>
-                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>Status</TableCell>
-                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>DistribuiÃ§Ã£o Gratuita</TableCell>
-                            <TableCell sx={{ color: '#cbd5e1', fontWeight: 700 }}>ObservaÃ§Ã£o</TableCell>
+                        <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Medicamento</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Status</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Distribuição Gratuita</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Observação</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data.items.length === 0 && (
                             <TableRow>
-                                <TableCell sx={{ color: '#94a3b8' }} colSpan={4}>Nenhum registro disponÃ­vel.</TableCell>
+                                <TableCell sx={{ color: 'text.secondary' }} colSpan={4}>Nenhum registro disponível.</TableCell>
                             </TableRow>
                         )}
                         {data.items.map((item, idx) => (
-                            <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: '#111827' } }}>
-                                <TableCell sx={{ color: '#e2e8f0' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
+                            <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: alpha(theme.palette.primary.main, 0.04) } }}>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
                                 <TableCell>
                                     <Chip
-                                        label={item.availability_status === 'available' ? 'DisponÃ­vel' : 'IndisponÃ­vel'}
+                                        label={item.availability_status === 'available' ? 'Disponível' : 'Indisponível'}
                                         color={item.availability_status === 'available' ? 'success' : 'error'}
                                         size="small"
                                     />
                                 </TableCell>
-                                <TableCell sx={{ color: '#e2e8f0' }}>{item.is_free_distribution ? 'Sim' : 'NÃ£o'}</TableCell>
-                                <TableCell sx={{ color: '#e2e8f0' }}>{item.public_note || '-'}</TableCell>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.is_free_distribution ? 'Sim' : 'Não'}</TableCell>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.public_note || '-'}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

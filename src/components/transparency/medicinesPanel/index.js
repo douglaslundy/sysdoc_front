@@ -1,5 +1,6 @@
-Ôªøimport React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
 
 const formatDate = (value) => {
@@ -23,6 +24,7 @@ const formatDateTime = (value) => {
 };
 
 export default function MedicinesPanel() {
+    const theme = useTheme();
     const [data, setData] = useState({ items: [], reference_date: '', last_update_at: null });
 
     const loadData = () => {
@@ -38,26 +40,45 @@ export default function MedicinesPanel() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, background: '#0b1220', minHeight: '100vh', color: '#e2e8f0' }}>
-            <Typography variant="h2" sx={{ mb: 1, color: '#f8fafc', fontWeight: 700 }}>Painel de Disponibilidade de Medicamentos</Typography>
-            <Typography variant="body1" sx={{ mb: 3, color: '#94a3b8' }}>
-                Data de refer√™ncia: {formatDate(data.reference_date)} | √öltima atualiza√ß√£o: {formatDateTime(data.last_update_at)}
+        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+            <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Painel de Disponibilidade de Medicamentos</Typography>
+            <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+                Data de referÍncia: {formatDate(data.reference_date)} | ⁄ltima atualizaÁ„o: {formatDateTime(data.last_update_at)}
             </Typography>
             <Grid container spacing={2}>
                 {data.items.length === 0 && (
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, bgcolor: '#0f172a', color: '#94a3b8', border: '1px solid #1e293b' }}>
-                            Nenhum registro dispon√≠vel.
+                        <Paper sx={{ p: 2, bgcolor: 'background.paper', color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
+                            Nenhum registro disponÌvel.
                         </Paper>
                     </Grid>
                 )}
                 {data.items.map((item, idx) => (
                     <Grid item xs={12} md={6} lg={4} key={`${item.medicine_id}-${idx}`}>
-                        <Paper sx={{ p: 2, bgcolor: '#0f172a', color: '#e2e8f0', border: '1px solid #1e293b', borderLeft: item.availability_status === 'available' ? '6px solid #22c55e' : '6px solid #ef4444' }}>
-                            <Typography variant="h5" sx={{ color: '#f8fafc' }}>{item.active_ingredient}</Typography>
-                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>{item.pharmaceutical_form} - {item.presentation}</Typography>
-                            <Typography variant="body1" sx={{ mt: 1, fontWeight: 700, color: item.availability_status === 'available' ? '#86efac' : '#fca5a5' }}>
-                                {item.availability_status === 'available' ? 'DISPON√çVEL' : 'INDISPON√çVEL'}
+                        <Paper
+                            sx={{
+                                p: 2,
+                                bgcolor: 'background.paper',
+                                color: 'text.primary',
+                                border: `1px solid ${theme.palette.divider}`,
+                                borderLeft: item.availability_status === 'available'
+                                    ? `6px solid ${theme.palette.success.main}`
+                                    : `6px solid ${theme.palette.error.main}`,
+                            }}
+                        >
+                            <Typography variant="h5" sx={{ color: 'text.primary' }}>{item.active_ingredient}</Typography>
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>{item.pharmaceutical_form} - {item.presentation}</Typography>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    mt: 1,
+                                    fontWeight: 700,
+                                    color: item.availability_status === 'available'
+                                        ? alpha(theme.palette.success.main, 0.9)
+                                        : alpha(theme.palette.error.main, 0.9),
+                                }}
+                            >
+                                {item.availability_status === 'available' ? 'DISPONÕVEL' : 'INDISPONÕVEL'}
                             </Typography>
                         </Paper>
                     </Grid>

@@ -329,6 +329,18 @@ export default () => {
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
+                                                {Number(ordinance?.attachments_count || 0) > 0 && (
+                                                    <Button
+                                                        title={`${ordinance.attachments_count} anexo(s)`}
+                                                        color="secondary"
+                                                        size="medium"
+                                                        variant="contained"
+                                                        disabled
+                                                    >
+                                                        <FeatherIcon icon="paperclip" width="20" height="20" />
+                                                    </Button>
+                                                )}
+
                                                 <Button
                                                     title="Editar Portaria"
                                                     onClick={() => { HandleEditOrdinance(ordinance) }}

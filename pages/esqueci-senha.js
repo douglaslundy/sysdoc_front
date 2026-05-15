@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import {
     Box, Button, TextField, Typography, Paper, Alert, CircularProgress, Link,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import NextLink from 'next/link';
 import { api } from '../src/services/api';
 
 export default function EsqueciSenha() {
+    const theme = useTheme();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [sucesso, setSucesso] = useState(false);
@@ -20,7 +22,16 @@ export default function EsqueciSenha() {
             await api.post('/forgot-password', { email });
             setSucesso(true);
         } catch (err) {
-            setErro(err.response?.data?.message || 'Erro ao enviar e-mail. Tente novamente.');
+            const apiMessage = String(err?.response?.data?.message || '');
+            const lower = apiMessage.toLowerCase();
+
+            if (err?.response?.status === 429) {
+                setErro('Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.');
+            } else if (lower.includes('authentication required') || lower.includes('expected response code "250" but got code "530"')) {
+                setErro('Nao foi possivel enviar o e-mail no momento por indisponibilidade do servico de envio. Tente novamente em instantes.');
+            } else {
+                setErro(err.response?.data?.message || 'Erro ao enviar e-mail. Tente novamente.');
+            }
         } finally {
             setLoading(false);
         }
@@ -32,17 +43,27 @@ export default function EsqueciSenha() {
             alignItems="center"
             justifyContent="center"
             minHeight="100vh"
-            bgcolor="#f5f5f5"
+            bgcolor="background.default"
             p={2}
         >
-            <Paper elevation={3} sx={{ p: 4, maxWidth: 440, width: '100%', borderRadius: 2 }}>
+            <Paper
+                elevation={3}
+                sx={{
+                    p: 4,
+                    maxWidth: 440,
+                    width: '100%',
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    color: 'text.primary',
+                }}
+            >
                 <Box textAlign="center" mb={3}>
-                    <FeatherIcon icon="lock" width="48" height="48" color="#1976d2" />
+                    <FeatherIcon icon="lock" width="48" height="48" color={theme.palette.primary.main} />
                     <Typography variant="h4" fontWeight="bold" mt={1}>
                         Esqueceu a senha?
                     </Typography>
-                    <Typography color="textSecondary" mt={1}>
-                        Informe seu e-mail cadastrado e enviaremos um link para redefinição.
+                    <Typography color="text.secondary" mt={1}>
+                        Informe seu e-mail cadastrado e enviaremos um link para redefinicao.
                     </Typography>
                 </Box>
 
@@ -50,8 +71,8 @@ export default function EsqueciSenha() {
                     <Alert severity="success" sx={{ mb: 2 }}>
                         <Typography fontWeight="bold">E-mail enviado!</Typography>
                         <Typography variant="body2" mt={0.5}>
-                            Se o e-mail estiver cadastrado, você receberá as instruções em breve.
-                            Verifique também a caixa de spam.
+                            Se o e-mail estiver cadastrado, voce recebera as instrucoes em breve.
+                            Verifique tambem a caixa de spam.
                         </Typography>
                     </Alert>
                 ) : (
@@ -75,7 +96,7 @@ export default function EsqueciSenha() {
                             disabled={loading}
                             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <FeatherIcon icon="send" width="18" height="18" />}
                         >
-                            {loading ? 'Enviando...' : 'Enviar link de redefinição'}
+                            {loading ? 'Enviando...' : 'Enviar link de redefinicao'}
                         </Button>
                     </form>
                 )}
@@ -83,7 +104,7 @@ export default function EsqueciSenha() {
                 <Box textAlign="center" mt={3}>
                     <NextLink href="/login" passHref>
                         <Link underline="hover" color="primary">
-                            ← Voltar para o login
+                            Voltar para o login
                         </Link>
                     </NextLink>
                 </Box>
