@@ -792,6 +792,20 @@ input[type="checkbox"],
   box-shadow: var(--lg-shadow-panel);
 }
 
+.dashboard-stat-card {
+  background: var(--lg-glass-panel) !important;
+  backdrop-filter: var(--lg-blur-panel);
+  -webkit-backdrop-filter: var(--lg-blur-panel);
+  border: 0.5px solid var(--lg-border);
+  border-top: 1px solid var(--lg-border-strong);
+  border-radius: 14px !important;
+  box-shadow: var(--lg-shadow-panel) !important;
+}
+
+.dashboard-stat-card__content {
+  padding: 16px !important;
+}
+
 .attendance-timer,
 [class*="timer-display"] {
   font-size: 22px;

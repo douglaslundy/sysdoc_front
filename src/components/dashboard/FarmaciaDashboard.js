@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -8,8 +8,8 @@ import { DashboardErro, DashboardLoading, getDashboardErrorMessage } from './Das
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent>
+        <Card className="dashboard-stat-card" sx={{ height: '100%' }}>
+            <CardContent className="dashboard-stat-card__content">
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
                         <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
@@ -108,6 +108,21 @@ export default function FarmaciaDashboard() {
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
+    const toggleGroupSx = {
+        background: 'var(--lg-glass-input)',
+        border: '0.5px solid var(--lg-border-input)',
+        borderRadius: '10px',
+        '& .MuiToggleButton-root': {
+            color: 'var(--lg-text-secondary)',
+            border: 'none',
+            textTransform: 'none',
+            px: 1.4,
+        },
+        '& .MuiToggleButton-root.Mui-selected': {
+            color: 'var(--lg-text-primary)',
+            background: 'rgba(var(--lg-accent-rgb), 0.14)',
+        },
+    };
     const totais = dados.totais || {};
     const alturaTop = Math.max(300, chart.topNomes.length * 36);
 
@@ -135,6 +150,7 @@ export default function FarmaciaDashboard() {
                     exclusive
                     onChange={(_, v) => v && setJanelaDias(v)}
                     size="small"
+                    sx={toggleGroupSx}
                 >
                     <ToggleButton value={7}>7 dias</ToggleButton>
                     <ToggleButton value={30}>30 dias</ToggleButton>
@@ -148,6 +164,7 @@ export default function FarmaciaDashboard() {
                     exclusive
                     onChange={(_, v) => v && setJanelaMeses(v)}
                     size="small"
+                    sx={toggleGroupSx}
                 >
                     <ToggleButton value={3}>3 meses</ToggleButton>
                     <ToggleButton value={6}>6 meses</ToggleButton>
@@ -249,4 +266,3 @@ export default function FarmaciaDashboard() {
         </Box>
     );
 }
-

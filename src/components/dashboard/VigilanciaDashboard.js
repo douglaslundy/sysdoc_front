@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -10,8 +10,8 @@ const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent>
+        <Card className="dashboard-stat-card" sx={{ height: '100%' }}>
+            <CardContent className="dashboard-stat-card__content">
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
                         <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
