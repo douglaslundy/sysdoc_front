@@ -1,25 +1,26 @@
-import React, { useState, useEffect, useContext } from 'react';
-import AlertModal from '../../messagesModal'
+﻿import React, { useState, useEffect, useContext } from 'react';
+import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 
 import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    InputLabel,
-    Select,
-    MenuItem,
-    FormControl,
-    FormControlLabel,
-    Switch
-} from "@mui/material";
+  Grid,
+  Stack,
+  TextField,
+  Alert,
+  Button,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  FormControlLabel,
+  Switch,
+  Typography,
+} from '@mui/material';
 
-import BaseCard from "../../baseCard/BaseCard";
+import BaseCard from '../../baseCard/BaseCard';
 
 import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
@@ -27,230 +28,336 @@ import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store
 import { AuthContext } from '../../../contexts/AuthContext';
 import { getAllProfiles } from '../../../store/fetchActions/accessProfiles';
 
-
 const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '400px',
+  maxWidth: '95vw',
+  maxHeight: '92vh',
+  overflow: 'auto',
+  background: 'var(--lg-glass-modal)',
+  backdropFilter: 'var(--lg-blur-modal)',
+  WebkitBackdropFilter: 'var(--lg-blur-modal)',
+  border: '0.5px solid var(--lg-border)',
+  borderTop: '1px solid var(--lg-border-strong)',
+  boxShadow: 'var(--lg-shadow-modal)',
+  borderRadius: '20px',
+  p: 3.2,
 };
 
-
 export default function UserModal(props) {
+  const [form, setForm] = useState({
+    profile: '',
+    name: '',
+    email: '',
+    cpf: '',
+    is_driver: false,
+    password: '',
+    password2: '',
+  });
 
-    const [form, setForm] = useState({
-        profile: "",
-        name: "",
-        email: "",
-        cpf: "",
-        is_driver: false,
-        password: "",
-        password2: "",
+  const { user } = useSelector((state) => state.users);
+  const { isOpenUserModal } = useSelector((state) => state.layout);
+  const { profiles: dbProfiles } = useSelector((state) => state.accessProfiles);
+  const dispatch = useDispatch();
+  const { user: userId, profile: userProfile } = useContext(AuthContext);
+
+  const { profile, name, email, cpf, is_driver, password, password2 } = form;
+  const [texto, setTexto] = useState();
+
+  const changeItem = ({ target }) => {
+    setForm({ ...form, [target.name]: target.value });
+  };
+
+  const cleanForm = () => {
+    setForm({
+      profile: '',
+      name: '',
+      email: '',
+      cpf: '',
+      is_driver: false,
+      password: '',
+      password2: '',
     });
+    setTexto('');
+    dispatch(turnUserModal());
+    dispatch(showUser({}));
+  };
 
-    const { user } = useSelector(state => state.users);
-    const { isOpenUserModal } = useSelector(state => state.layout);
-    const { profiles: dbProfiles } = useSelector(state => state.accessProfiles);
-    const dispatch = useDispatch();
-    const { user: userId, profile: userProfile } = useContext(AuthContext);
+  const handleSaveData = async () => {
+    password && password !== password2
+      ? dispatch(addAlertMessage('As senhas precisam ser iguais'))
+      : user && user.id
+        ? handlePutData()
+        : handlePostData();
+  };
 
-    const { profile, name, email, cpf, is_driver, password, password2 } = form;
-    const [texto, setTexto] = useState();
+  const handlePostData = async () => {
+    dispatch(changeTitleAlert(`O usuario ${form.name} foi cadastrado com sucesso!`));
+    dispatch(addUserFetch(form, cleanForm));
+  };
 
-    const changeItem = ({ target }) => {
-        setForm({ ...form, [target.name]: target.value });
-    };
-
-    const cleanForm = () => {
-        setForm({
-            profile: "",
-            name: "",
-            email: "",
-            cpf: "",
-            is_driver: false,
-            password: "",
-            password2: "",
-        });
-        setTexto('');
-        dispatch(turnUserModal());
-        dispatch(showUser({}));
+  const handlePutData = async () => {
+    if (password && password !== password2) {
+      return;
     }
 
+    dispatch(changeTitleAlert(`O usuario ${form.name} foi atualizado com sucesso!`));
+    dispatch(editUserFetch(form, cleanForm));
+  };
 
-    const handleSaveData = async () => {
-        password && password !== password2 ? dispatch(addAlertMessage("As senhas precisam ser iguais")) : user && user.id ? handlePutData() : handlePostData()
+  const handleIsDriver = (isDriver) => {
+    setForm({
+      ...form,
+      is_driver: !isDriver,
+    });
+  };
+
+  const handleClose = () => {
+    cleanForm();
+  };
+
+  useEffect(() => {
+    if (user && user.id) setForm(user);
+  }, [user]);
+
+  useEffect(() => {
+    if (isOpenUserModal && userProfile === 'admin' && dbProfiles.length === 0) {
+      dispatch(getAllProfiles());
     }
+  }, [isOpenUserModal, userProfile, dbProfiles.length, dispatch]);
 
-    const handlePostData = async () => {
-        dispatch(changeTitleAlert(`O usuário ${form.name} foi Cadastrado com sucesso!`));
-        dispatch(addUserFetch(form, cleanForm));
-    };
+  return (
+    <div>
+      {props.children}
+      <Modal
+        keepMounted
+        open={isOpenUserModal}
+        onClose={handleClose}
+        aria-labelledby="keep-mounted-modal-title"
+        aria-describedby="keep-mounted-modal-description"
+        slotProps={{
+          backdrop: {
+            sx: {
+              background: 'var(--lg-overlay-bg)',
+              backdropFilter: 'var(--lg-blur-overlay)',
+              WebkitBackdropFilter: 'var(--lg-blur-overlay)',
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            ...style,
+            '& .MuiCard-root': {
+              background: 'transparent',
+              boxShadow: 'none',
+            },
+            '& .MuiCardContent-root': {
+              p: 0,
+            },
+            '& .MuiInputLabel-root': {
+              fontSize: '10px',
+              fontWeight: 700,
+              color: 'var(--lg-text-muted)',
+              letterSpacing: '0.07em',
+              textTransform: 'uppercase',
+            },
+            '& .MuiInputBase-root': {
+              background: 'var(--lg-glass-input)',
+              border: '0.5px solid var(--lg-border-input)',
+              borderRadius: '10px',
+              color: 'var(--lg-text-primary)',
+              boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
+            },
+            '& .MuiOutlinedInput-notchedOutline': {
+              border: 'none',
+            },
+            '& .MuiInputBase-root.Mui-focused': {
+              background: 'var(--lg-glass-input-focus)',
+              boxShadow: 'var(--lg-focus-ring)',
+            },
+            '& .MuiInputBase-input::placeholder': {
+              color: 'var(--lg-text-muted)',
+              opacity: 1,
+            },
+            '& .MuiInputBase-input': {
+              color: 'var(--lg-text-primary)',
+            },
+            '& .MuiFormControlLabel-root': {
+              m: 0,
+              px: 1.6,
+              py: 1.2,
+              borderRadius: '10px',
+              border: '0.5px solid var(--lg-border-input)',
+              background: 'rgba(var(--lg-accent-rgb), 0.04)',
+            },
+            '& .MuiFormControlLabel-label': {
+              fontSize: '13px',
+              color: 'var(--lg-text-secondary)',
+              textTransform: 'none',
+              letterSpacing: 'normal',
+              fontWeight: 400,
+            },
+          }}
+        >
+          <AlertModal />
 
-    const handlePutData = async () => {
+          <Grid container spacing={0}>
+            <Grid item xs={12} lg={12}>
+              <BaseCard title={user && user.id ? 'Editar Usuario' : 'Cadastrar Usuario'}>
+                {texto && <Alert variant="filled" severity="warning">{texto}</Alert>}
 
-        if (password && password !== password2)
-            alert("erro")
+                <Typography
+                  sx={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    color: 'var(--lg-text-muted)',
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                    mb: 2,
+                  }}
+                >
+                  Dados do usuario
+                </Typography>
 
-        dispatch(changeTitleAlert(`O usuário ${form.name} foi atualizado com sucesso!`));
-        dispatch(editUserFetch(form, cleanForm));
-    };
+                <Stack spacing={2}>
+                  {userProfile === 'admin' && (
+                    <FormControl fullWidth required>
+                      <InputLabel>Perfil do Usuario</InputLabel>
+                      <Select
+                        id="profile"
+                        value={profile}
+                        name="profile"
+                        label="Perfil do Usuario"
+                        onChange={changeItem}
+                        variant="outlined"
+                        disabled={Boolean(user && user.id === userId)}
+                      >
+                        {dbProfiles
+                          .filter((p) => p.ativo && p.slug !== 'admin')
+                          .map((p) => (
+                            <MenuItem key={p.id} value={p.slug}>
+                              {p.nome}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  )}
 
-    const handleIsDriver = is_driver => {
-        setForm({
-            ...form,
-            is_driver: !is_driver
-        });
-    };
+                  <TextField
+                    id="name"
+                    label="Nome"
+                    variant="outlined"
+                    name="name"
+                    value={name || ''}
+                    onChange={changeItem}
+                    required
+                    inputProps={{
+                      style: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                  />
 
-    const handleClose = () => {
-        cleanForm();
-    };
+                  <TextField
+                    id="email"
+                    label="@Email"
+                    variant="outlined"
+                    type="email"
+                    name="email"
+                    value={email || ''}
+                    onChange={changeItem}
+                    required
+                  />
 
-    useEffect(() => {
-        if (user && user.id) setForm(user);
-    }, [user]);
+                  <CpfCnpj
+                    value={cpf || ''}
+                    label={'CPF'}
+                    name={'cpf'}
+                    changeItem={changeItem}
+                    disabled={Boolean(user && user.id)}
+                  />
 
-    // Carrega perfis do banco quando admin abre o modal (se ainda não carregados)
-    useEffect(() => {
-        if (isOpenUserModal && userProfile === 'admin' && dbProfiles.length === 0) {
-            dispatch(getAllProfiles());
-        }
-    }, [isOpenUserModal]);
+                  <FormControlLabel
+                    control={<Switch checked={is_driver} onClick={() => handleIsDriver(is_driver)} />}
+                    label={is_driver ? 'DIRIGE VEICULO OFICIAL' : 'NAO DIRIGE VEICULO OFICIAL'}
+                  />
 
-    return (
-        <div>
-            {props.children}
-            <Modal
-                keepMounted
-                open={isOpenUserModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-            >
-                <Box sx={style}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="password"
+                    label="Senha"
+                    type="password"
+                    value={password || ''}
+                    onChange={changeItem}
+                    id="password"
+                  />
 
-                    <AlertModal />
+                  <TextField
+                    required
+                    fullWidth
+                    name="password2"
+                    label="Repita a Senha"
+                    type="password"
+                    value={password2 || ''}
+                    onChange={changeItem}
+                    id="password2"
+                  />
+                </Stack>
 
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={user && user.id ? "Editar Usuário" : "Cadastrar Usuário"}>
-                                {texto &&
-                                    <Alert variant="filled" severity="warning">
-                                        {texto}
-                                    </Alert>
-                                }
+                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                  <Button
+                    onClick={handleSaveData}
+                    variant="contained"
+                    sx={{
+                      flex: 1,
+                      py: 1.2,
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
+                      boxShadow: 'var(--lg-shadow-btn)',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      '&:hover': {
+                        opacity: 0.92,
+                        transform: 'translateY(-1px)',
+                        boxShadow: 'var(--lg-shadow-btn-hover)',
+                        background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
+                      },
+                    }}
+                  >
+                    Gravar
+                  </Button>
 
-                                <br />
-
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
-
-                                    {(userProfile && (userProfile === "admin")) && (
-                                        <FormControl fullWidth required>
-                                            <InputLabel>Perfil do Usuário</InputLabel>
-                                            <Select
-                                                id="profile"
-                                                value={profile}
-                                                name="profile"
-                                                label="Perfil do Usuário"
-                                                onChange={changeItem}
-                                                variant="outlined"
-                                                disabled={user && user.id == userId ? true : false}
-                                            >
-                                                {dbProfiles
-                                                    .filter(p => p.ativo && p.slug !== 'admin')
-                                                    .map((p) => (
-                                                        <MenuItem key={p.id} value={p.slug}>{p.nome}</MenuItem>
-                                                    ))}
-                                            </Select>
-                                        </FormControl>
-                                    )}
-
-                                    <TextField
-                                        id="name"
-                                        label="Nome"
-                                        variant="outlined"
-                                        name="name"
-                                        value={name ? name : ''}
-                                        onChange={changeItem}
-                                        required
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase"
-                                            }
-                                        }}
-                                    />
-                                    <TextField
-                                        id="email"
-                                        label="@Email"
-                                        variant="outlined"
-                                        type="email"
-                                        name="email"
-                                        value={email ? email : ''}
-                                        onChange={changeItem}
-                                        required
-                                    />
-
-                                    <CpfCnpj value={cpf ? cpf : ''}
-                                        label={'CPF'}
-                                        name={'cpf'}
-                                        changeItem={changeItem}
-                                        disabled={user && user.id ? true : false}
-                                    />
-
-                                    <FormControlLabel control={<Switch checked={is_driver}
-                                        onClick={() => handleIsDriver(is_driver)} />} label={is_driver ? "DIRIGE VEÍCULO OFICIAL" : "NÃO DIRIGE VEÍCULO OFICIAL"} />
-
-                                    <TextField
-                                        margin="normal"
-                                        required
-                                        fullWidth
-                                        name="password"
-                                        label="Senha"
-                                        type="password"
-                                        value={password ? password : ''}
-                                        onChange={changeItem}
-                                        id="password"
-                                    />
-
-                                    <TextField
-                                        margin="normal"
-                                        required
-                                        fullWidth
-                                        name="password2"
-                                        label="Repita a Senha"
-                                        type="password"
-                                        value={password2 ? password2 : ''}
-                                        onChange={changeItem}
-                                        id="password2"
-                                    />
-
-                                </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-                                {texto}
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" mt={2}>
-                                        Gravar
-                                    </Button>
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
+                  <Button
+                    onClick={cleanForm}
+                    variant="outlined"
+                    sx={{
+                      py: 1.2,
+                      px: 2.2,
+                      borderRadius: '10px',
+                      background: 'var(--lg-glass-input)',
+                      border: '0.5px solid var(--lg-border-input)',
+                      color: 'var(--lg-text-secondary)',
+                      textTransform: 'none',
+                      '&:hover': {
+                        background: 'var(--lg-glass-input-focus)',
+                        color: 'var(--lg-text-primary)',
+                        border: '0.5px solid var(--lg-border-input)',
+                      },
+                    }}
+                  >
+                    Cancelar
+                  </Button>
                 </Box>
-            </Modal>
-        </div>
-    );
+              </BaseCard>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
+    </div>
+  );
 }
