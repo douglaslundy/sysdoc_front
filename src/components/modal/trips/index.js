@@ -184,6 +184,7 @@ export default function TripModal(props) {
                                                     name="departure_date, "
                                                     value={departure_date}
                                                     setValue={handleSetDepartureDate}
+                                                    className=""
                                                     required
                                                 />
 
@@ -226,7 +227,7 @@ export default function TripModal(props) {
                                         changeItem={changeItem}
                                     />
 
-                                    <TextField className="lg-search-field"
+                                    <TextField
                                         id="Obs"
                                         label={obs && obs.length > 0 ? `Observações: ${300 - obs.length} caracteres restantes` : 'Observações'}
                                         multiline

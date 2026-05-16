@@ -6,7 +6,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ptBrLocale from 'date-fns/locale/pt-BR';
 
 export default function BasicDatePicker(props) {
-  const { label, name, value, setValue, disabled = false, sx } = props;
+  const { label, name, value, setValue, disabled = false, sx, className = "lg-search-field" } = props;
 
   const parsedValue =
     value instanceof Date
@@ -27,7 +27,7 @@ export default function BasicDatePicker(props) {
         renderInput={(params) => (
           <TextField
             {...params}
-            className="lg-search-field"
+            className={className}
             size="small"
             sx={{
               minWidth: 180,
