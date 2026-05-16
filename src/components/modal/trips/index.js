@@ -168,11 +168,13 @@ export default function TripModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    <Box sx={{
-                                        '& > :not(style)': { mb: 0 },
-                                        'display': 'flex',
-                                        'justify-content': 'space-between'
-                                    }} >
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                                            gap: 2,
+                                        }}
+                                    >
 
                                         {isOpenModal &&
                                             <>
@@ -183,7 +185,6 @@ export default function TripModal(props) {
                                                     value={departure_date}
                                                     setValue={handleSetDepartureDate}
                                                     required
-                                                    sx={{ width: '50%', mr: 2 }}
                                                 />
 
                                                 <DateTime
@@ -192,7 +193,6 @@ export default function TripModal(props) {
                                                     name="departure_time"
                                                     value={departure_time}
                                                     onChange={changeItem}
-                                                    wd={"50%"}
                                                 />
                                             </>
 
@@ -208,7 +208,6 @@ export default function TripModal(props) {
                                         value={driver_id}
                                         store={getDrivers(users)}
                                         changeItem={changeItem}
-                                        wd={"100%"}
                                     />
 
                                     <Select

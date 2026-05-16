@@ -447,7 +447,6 @@ export default function QueueModal(props) {
                                             clients={clients}
                                             value={form.client}
                                             setClient={setClient}
-                                            wd={"100%"}
                                         />
 
                                     }
@@ -574,6 +573,5 @@ export default function QueueModal(props) {
         </div>
     );
 }
-
 
 

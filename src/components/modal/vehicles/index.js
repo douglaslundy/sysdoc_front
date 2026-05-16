@@ -126,11 +126,12 @@ export default function VehicleModal(props) {
                                 {/* <FormGroup > */}
                                 <Stack spacing={3}>
 
-                                    <Box sx={{
-                                        '& > :not(style)': { mb: 0 },
-                                        'display': 'flex',
-                                        'justify-content': 'space-between'
-                                    }}
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr 1fr' },
+                                            gap: 2,
+                                        }}
                                     >
 
                                         <TextField
@@ -140,7 +141,6 @@ export default function VehicleModal(props) {
                                             value={brand ? brand : ''}
                                             onChange={changeItem}
                                             required
-                                            sx={{ width: '30%', mr: 2 }}
                                             inputProps={{
                                                 style: {
                                                     textTransform: "uppercase",
@@ -156,7 +156,6 @@ export default function VehicleModal(props) {
                                             name="model"
                                             value={model ? model : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '30%', mr: 2 }}
                                             required
                                             inputProps={{
                                                 style: {
@@ -173,7 +172,6 @@ export default function VehicleModal(props) {
                                             variant="outlined"
                                             name="color"
                                             value={color ? color : ''}
-                                            sx={{ width: '24%', mr: 2 }}
                                             onChange={changeItem}
                                             required
                                             inputProps={{
@@ -191,7 +189,6 @@ export default function VehicleModal(props) {
                                             name="year"
                                             value={year ? year : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '15%', mr: 2 }}
                                             required
                                             type="number"
                                             inputProps={{
@@ -203,11 +200,12 @@ export default function VehicleModal(props) {
                                         />
                                     </Box>
 
-                                    <Box sx={{
-                                        '& > :not(style)': { mb: 0 },
-                                        'display': 'flex',
-                                        'justify-content': 'space-between'
-                                    }}
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 2fr 1fr' },
+                                            gap: 2,
+                                        }}
                                     >
 
                                         <TextField
@@ -216,7 +214,6 @@ export default function VehicleModal(props) {
                                             name="license_plate"
                                             value={license_plate ? license_plate : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '20%', mr: 2 }}
                                             required
                                             inputProps={{
                                                 style: {
@@ -233,7 +230,6 @@ export default function VehicleModal(props) {
                                             name="renavan"
                                             value={renavan ? renavan : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '20%', mr: 2 }}
                                             required
                                             inputProps={{
                                                 style: {
@@ -250,7 +246,6 @@ export default function VehicleModal(props) {
                                             name="chassis"
                                             value={chassis ? chassis : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '40%', mr: 2 }}
                                             required
                                             inputProps={{
                                                 style: {
@@ -267,7 +262,6 @@ export default function VehicleModal(props) {
                                             name="capacity"
                                             value={capacity ? capacity : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '15%', mr: 2 }}
                                             required
                                             type="number"
                                             inputProps={{

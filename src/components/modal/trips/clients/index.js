@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -69,7 +69,7 @@ export default function TripClientsModal(props) {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta ação não poderá ser desfeita',
+        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
     });
 
 
@@ -186,7 +186,7 @@ export default function TripClientsModal(props) {
             dispatch(changeTitleAlert(`Viagem de ${cli?.name} foi confirmada com sucesso!`));
             dispatch(confirmedClientTrip(cli));
         } else {
-            dispatch(changeTitleAlert(`A confirmação da viagem de ${cli?.name} foi revogada com sucesso!`));
+            dispatch(changeTitleAlert(`A confirmaÃ§Ã£o da viagem de ${cli?.name} foi revogada com sucesso!`));
             dispatch(unConfirmedClientTrip(cli));
         }
     };
@@ -206,7 +206,7 @@ export default function TripClientsModal(props) {
     }, [trip]);
 
 
-    // Atualiza o client_id quando o cliente é selecionado
+    // Atualiza o client_id quando o cliente Ã© selecionado
     useEffect(() => {
         setForm(prevForm => ({
             ...prevForm,
@@ -224,7 +224,7 @@ export default function TripClientsModal(props) {
         }
     ]
 
-    // Carrega os clientes quando o modal é aberto
+    // Carrega os clientes quando o modal Ã© aberto
     useEffect(() => {
         if (isOpenModal) {
             if (clients.length <= 0) {
@@ -254,7 +254,7 @@ export default function TripClientsModal(props) {
                         <Grid item xs={12} lg={12}>
                             <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
                             
-                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.brand ? `${" - VEÃCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
                                 ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
@@ -279,11 +279,10 @@ export default function TripClientsModal(props) {
 
                                     <DateTime
                                         id="time"
-                                        label="Horário do compromisso"
+                                        label="HorÃ¡rio do compromisso"
                                         name="time"
                                         value={time ? time : ''}
                                         onChange={changeItem}
-                                        wd={"20%"}
                                     />
 
                                     {
@@ -304,24 +303,23 @@ export default function TripClientsModal(props) {
                                                     name="client_id"
                                                     clients={clients}
                                                     setClient={setClient}
-                                                    wd={"100%"}
                                                 />
                                             )
                                         )
                                     }
 
-                                    <Box sx={{
-                                        '& > :not(style)': { mb: 0 },
-                                        'display': 'flex',
-                                        'justify-content': 'space-between'
-                                    }}
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                                            gap: 2,
+                                        }}
                                     >
 
                                         <Select
                                             value={person_type ? person_type : ''}
                                             label={'QUALIFIQUE O CLIENTE'}
                                             name={'person_type'}
-                                            wd={{ width: '49%', mr: 2 }}
                                             store={typesOfPerson}
                                             changeItem={changeItem}
                                         />
@@ -330,14 +328,13 @@ export default function TripClientsModal(props) {
                                         <Phone value={phone ? phone : ''}
                                             label={'Telefone'}
                                             name={'phone'}
-                                            sx={{ width: '49%', mr: 0 }}
                                             changeItem={changeItem}
                                         />
                                     </Box>
 
                                     <TextField
                                         id="departure_location"
-                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
+                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÃDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÃDA'}
                                         multiline
                                         rows={2}
                                         value={departure_location ? departure_location : ''}
@@ -414,7 +411,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        SAÍDA
+                                                        SAÃDA
                                                     </Typography>
                                                 </TableCell>
 
@@ -426,7 +423,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        HORÁRIO
+                                                        HORÃRIO
                                                     </Typography>
                                                 </TableCell>
 
@@ -438,7 +435,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell align="center">
                                                     <Typography color="textSecondary" variant="h6">
-                                                        Ações
+                                                        AÃ§Ãµes
                                                     </Typography>
                                                 </TableCell>
 
@@ -520,7 +517,7 @@ export default function TripClientsModal(props) {
                                                                 <TableCell>
                                                                     <FormGroup>
                                                                         <FormControlLabel control={<Switch checked={cli?.pivot?.is_confirmed == 1}
-                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed == 1 ? "SIM" : "NÃO"} />
+                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed == 1 ? "SIM" : "NÃƒO"} />
                                                                     </FormGroup>
 
                                                                     <Typography

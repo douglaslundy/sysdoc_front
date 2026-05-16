@@ -140,7 +140,6 @@ export default function QueueModal(props) {
                                             value={date_of_realized}
                                             setValue={handleSetDn}
                                             required
-                                            sx={{ width: '22%', mr: 2 }}
                                         />
                                     }
 

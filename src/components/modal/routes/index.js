@@ -145,10 +145,9 @@ export default function RouteModal(props) {
 
                                     <Box
                                         sx={{
-                                            display: 'flex',
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' },
                                             gap: 2,
-                                            alignItems: 'center',
-                                            '& > :not(style)': { mb: 3 },
                                         }}
                                     >
 
@@ -159,7 +158,6 @@ export default function RouteModal(props) {
                                             value={origin ? origin : ''}
                                             onChange={changeItem}
                                             required
-                                            sx={{ width: '60%', mr: 2 }}
                                             inputProps={{
                                                 style: {
                                                     textTransform: "uppercase",
@@ -175,7 +173,6 @@ export default function RouteModal(props) {
                                             name={'origin_state'}
                                             store={states}
                                             changeItem={changeItem}
-                                            wd={'20%'}
                                         />
 
                                     </Box>
@@ -186,10 +183,9 @@ export default function RouteModal(props) {
 
                                     <Box
                                         sx={{
-                                            display: 'flex',
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '3fr 1fr' },
                                             gap: 2,
-                                            alignItems: 'center',
-                                            '& > :not(style)': { mb: 3 },
                                         }}
                                     >
 
@@ -199,7 +195,6 @@ export default function RouteModal(props) {
                                             name="destination"
                                             value={destination ? destination : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '60%', mr: 2 }}
                                             required
                                             inputProps={{
                                                 style: {
@@ -216,7 +211,6 @@ export default function RouteModal(props) {
                                             name={'destination_state'}
                                             store={states}
                                             changeItem={changeItem}
-                                            wd={'20%'}
                                         />
                                     </Box>
 
@@ -224,11 +218,12 @@ export default function RouteModal(props) {
 
                                 <Stack spacing={3}>
 
-                                    <Box sx={{
-                                        '& > :not(style)': { mb: 0 },
-                                        'display': 'flex',
-                                        'justify-content': 'space-between'
-                                    }}
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: { xs: '1fr', md: '1fr' },
+                                            gap: 2,
+                                        }}
                                     >
 
                                         <TextField
@@ -237,7 +232,6 @@ export default function RouteModal(props) {
                                             name="distance"
                                             value={distance ? distance : ''}
                                             onChange={changeItem}
-                                            sx={{ width: '20%', mr: 2 }}
                                             required
                                             type="number"
                                             inputProps={{
