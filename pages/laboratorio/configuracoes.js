@@ -100,7 +100,7 @@ export default function ConfiguracoesLaboratorio() {
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Nome do Estabelecimento"
                             name="nome_estabelecimento"
                             value={form.nome_estabelecimento}
@@ -108,7 +108,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Razão Social"
                             name="razao_social"
                             value={form.razao_social}
@@ -116,7 +116,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={5}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Rua"
                             name="endereco_rua"
                             value={form.endereco_rua}
@@ -124,7 +124,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={2}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Número"
                             name="endereco_numero"
                             value={form.endereco_numero}
@@ -132,7 +132,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={3}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Bairro"
                             name="endereco_bairro"
                             value={form.endereco_bairro}
@@ -140,7 +140,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={2}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="CEP"
                             name="endereco_cep"
                             value={form.endereco_cep}
@@ -151,7 +151,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={3}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="Telefone"
                             name="telefone"
                             value={form.telefone}
@@ -159,7 +159,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="CNPJ"
                             name="cnpj"
                             value={form.cnpj}
@@ -170,7 +170,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12} md={5}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth label="E-mail do Laboratório"
                             name="email_lab"
                             value={form.email_lab}
@@ -189,7 +189,7 @@ export default function ConfiguracoesLaboratorio() {
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth multiline minRows={2}
                             label="Rodapé 1"
                             name="rodape1"
@@ -199,7 +199,7 @@ export default function ConfiguracoesLaboratorio() {
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <TextField
+                        <TextField className="lg-search-field"
                             fullWidth multiline minRows={3}
                             label="Rodapé 2"
                             name="rodape2"

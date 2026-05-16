@@ -250,15 +250,15 @@ export default function OrdinanceModal(props) {
                                         </Select>
                                     </FormControl>
                                     <Typography variant="body2"><strong>Normativa:</strong> use quando a portaria estabelecer regras gerais.<br /><strong>Ordinatória:</strong> use quando tratar de organização interna.</Typography>
-                                    <TextField label={title && title.length > 0 ? `Título: ${255 - title.length} caracteres restantes` : 'Título'} name="title" value={title || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
-                                    <TextField label={subject && subject.length > 0 ? `Assunto: ${255 - subject.length} caracteres restantes` : 'Assunto'} name="subject" value={subject || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
-                                    <TextField label={signatory_name && signatory_name.length > 0 ? `Signatário: ${150 - signatory_name.length} caracteres restantes` : 'Nome do Signatário'} name="signatory_name" value={signatory_name || ''} onChange={changeItem} required inputProps={{ maxLength: 150 }} />
-                                    <TextField label={signatory_role && signatory_role.length > 0 ? `Cargo: ${150 - signatory_role.length} caracteres restantes` : 'Cargo do Signatário'} name="signatory_role" value={signatory_role || ''} onChange={changeItem} inputProps={{ maxLength: 150 }} />
-                                    <TextField label={summary && summary.length > 0 ? `Resumo: ${1000 - summary.length} caracteres restantes` : 'Resumo'} multiline rows={4} value={summary || ''} name="summary" onChange={changeItem} inputProps={{ maxLength: 1000 }} />
-                                    <TextField label="Fundamentação Legal" multiline rows={3} value={legal_basis || ''} name="legal_basis" onChange={changeItem} />
-                                    <TextField label="Instruções adicionais para IA" multiline rows={2} value={additional_instructions || ''} name="additional_instructions" onChange={changeItem} />
-                                    <TextField label={content ? `O modelo gerado possui ${content.length} caracteres` : 'Conteúdo da portaria'} multiline rows={12} value={content || ''} name="content" onChange={changeItem} />
-                                    <TextField label="Observações" multiline rows={3} value={notes || ''} name="notes" onChange={changeItem} />
+                                    <TextField className="lg-search-field" label={title && title.length > 0 ? `Título: ${255 - title.length} caracteres restantes` : 'Título'} name="title" value={title || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
+                                    <TextField className="lg-search-field" label={subject && subject.length > 0 ? `Assunto: ${255 - subject.length} caracteres restantes` : 'Assunto'} name="subject" value={subject || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
+                                    <TextField className="lg-search-field" label={signatory_name && signatory_name.length > 0 ? `Signatário: ${150 - signatory_name.length} caracteres restantes` : 'Nome do Signatário'} name="signatory_name" value={signatory_name || ''} onChange={changeItem} required inputProps={{ maxLength: 150 }} />
+                                    <TextField className="lg-search-field" label={signatory_role && signatory_role.length > 0 ? `Cargo: ${150 - signatory_role.length} caracteres restantes` : 'Cargo do Signatário'} name="signatory_role" value={signatory_role || ''} onChange={changeItem} inputProps={{ maxLength: 150 }} />
+                                    <TextField className="lg-search-field" label={summary && summary.length > 0 ? `Resumo: ${1000 - summary.length} caracteres restantes` : 'Resumo'} multiline rows={4} value={summary || ''} name="summary" onChange={changeItem} inputProps={{ maxLength: 1000 }} />
+                                    <TextField className="lg-search-field" label="Fundamentação Legal" multiline rows={3} value={legal_basis || ''} name="legal_basis" onChange={changeItem} />
+                                    <TextField className="lg-search-field" label="Instruções adicionais para IA" multiline rows={2} value={additional_instructions || ''} name="additional_instructions" onChange={changeItem} />
+                                    <TextField className="lg-search-field" label={content ? `O modelo gerado possui ${content.length} caracteres` : 'Conteúdo da portaria'} multiline rows={12} value={content || ''} name="content" onChange={changeItem} />
+                                    <TextField className="lg-search-field" label="Observações" multiline rows={3} value={notes || ''} name="notes" onChange={changeItem} />
                                 </Stack>
 
                                 <br />

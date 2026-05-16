@@ -99,36 +99,36 @@ export default function ConfiguracoesVigilancia() {
                 <Typography variant="h6" gutterBottom mt={1}>Identificação Institucional</Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={2}>
-                        <TextField fullWidth label="UF (Estado)" name="estado"
+                        <TextField className="lg-search-field" fullWidth label="UF (Estado)" name="estado"
                             value={form.estado} onChange={change}
                             inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
                         />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField fullWidth label="Município" name="nome_municipio"
+                        <TextField className="lg-search-field" fullWidth label="Município" name="nome_municipio"
                             value={form.nome_municipio} onChange={change} />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="Nome da Prefeitura" name="nome_prefeitura"
+                        <TextField className="lg-search-field" fullWidth label="Nome da Prefeitura" name="nome_prefeitura"
                             value={form.nome_prefeitura} onChange={change} />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField fullWidth label="CNPJ da Prefeitura" name="cnpj_prefeitura"
+                        <TextField className="lg-search-field" fullWidth label="CNPJ da Prefeitura" name="cnpj_prefeitura"
                             value={form.cnpj_prefeitura} onChange={change}
                             inputProps={{ maxLength: 18 }} />
                     </Grid>
                     <Grid item xs={12} md={8}>
-                        <TextField fullWidth label="Nome da Secretaria" name="nome_secretaria"
+                        <TextField className="lg-search-field" fullWidth label="Nome da Secretaria" name="nome_secretaria"
                             value={form.nome_secretaria} onChange={change}
                             placeholder="Ex: Secretaria Municipal de Saúde" />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField fullWidth label="CNPJ da Secretaria" name="cnpj_secretaria"
+                        <TextField className="lg-search-field" fullWidth label="CNPJ da Secretaria" name="cnpj_secretaria"
                             value={form.cnpj_secretaria} onChange={change}
                             inputProps={{ maxLength: 18 }} />
                     </Grid>
                     <Grid item xs={12} md={8}>
-                        <TextField fullWidth label="Divisão" name="divisao"
+                        <TextField className="lg-search-field" fullWidth label="Divisão" name="divisao"
                             value={form.divisao} onChange={change}
                             placeholder="Ex: Divisão de Vigilância Sanitária" />
                     </Grid>
@@ -140,20 +140,20 @@ export default function ConfiguracoesVigilancia() {
                 <Typography variant="h6" gutterBottom>Endereço e Contato</Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="Endereço" name="endereco"
+                        <TextField className="lg-search-field" fullWidth label="Endereço" name="endereco"
                             value={form.endereco} onChange={change} />
                     </Grid>
                     <Grid item xs={12} md={2}>
-                        <TextField fullWidth label="CEP" name="cep"
+                        <TextField className="lg-search-field" fullWidth label="CEP" name="cep"
                             value={form.cep} onChange={change}
                             inputProps={{ maxLength: 9 }} />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <TextField fullWidth label="Telefone" name="telefone"
+                        <TextField className="lg-search-field" fullWidth label="Telefone" name="telefone"
                             value={form.telefone} onChange={change} />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="E-mail" name="email"
+                        <TextField className="lg-search-field" fullWidth label="E-mail" name="email"
                             value={form.email} onChange={change}
                             type="email" />
                     </Grid>
@@ -165,11 +165,11 @@ export default function ConfiguracoesVigilancia() {
                 <Typography variant="h6" gutterBottom>Responsável pela Vigilância</Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="Nome do Responsável" name="nome_responsavel"
+                        <TextField className="lg-search-field" fullWidth label="Nome do Responsável" name="nome_responsavel"
                             value={form.nome_responsavel} onChange={change} />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <TextField fullWidth label="Cargo" name="cargo_responsavel"
+                        <TextField className="lg-search-field" fullWidth label="Cargo" name="cargo_responsavel"
                             value={form.cargo_responsavel} onChange={change}
                             placeholder="Ex: Coordenador de Vigilância Sanitária" />
                     </Grid>
@@ -181,7 +181,7 @@ export default function ConfiguracoesVigilancia() {
                 <Typography variant="h6" gutterBottom>Tipo de Alvará</Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={8}>
-                        <TextField fullWidth label="Título do Alvará (grant_type)" name="grant_type"
+                        <TextField className="lg-search-field" fullWidth label="Título do Alvará (grant_type)" name="grant_type"
                             value={form.grant_type} onChange={change}
                             placeholder="Ex: ALVARÁ SANITÁRIO DE FUNCIONAMENTO" />
                     </Grid>
@@ -192,7 +192,7 @@ export default function ConfiguracoesVigilancia() {
                 {/* ── Observações ── */}
                 <Typography variant="h6" gutterBottom>Observações (aparecem no PDF do Alvará)</Typography>
                 <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                    <TextField
+                    <TextField className="lg-search-field"
                         fullWidth
                         size="small"
                         label="Nova observação"

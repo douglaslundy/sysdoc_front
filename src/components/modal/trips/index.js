@@ -226,7 +226,7 @@ export default function TripModal(props) {
                                         changeItem={changeItem}
                                     />
 
-                                    <TextField
+                                    <TextField className="lg-search-field"
                                         id="Obs"
                                         label={obs && obs.length > 0 ? `Observações: ${300 - obs.length} caracteres restantes` : 'Observações'}
                                         multiline
