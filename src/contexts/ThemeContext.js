@@ -28,7 +28,7 @@ const getInitialMode = () => {
     return storedLiquidGlassMode;
   }
 
-  return "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
 
 export const CustomThemeProvider = ({ children }) => {

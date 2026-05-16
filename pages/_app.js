@@ -63,6 +63,11 @@ export default function MyApp(props) {
       <Head>
         <title>SysDoc - Controle de Documentos</title>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var saved=localStorage.getItem('lg-theme')||localStorage.getItem('themeMode');var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var theme=(saved==='light'||saved==='dark')?saved:(prefersDark?'dark':'light');document.documentElement.setAttribute('data-theme',theme);})();`,
+          }}
+        />
       </Head>
       <Provider store={store}>
         <AuthProvider>
