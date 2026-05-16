@@ -65,7 +65,7 @@ export default function SignIn() {
                     <Image width={310} height={80} src={LogoDark} alt={LogoDark} />
                 </Typography>
 
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '140%', ml: '-20%' }}>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '120%', ml: '-10%' }}>
                     <AlertModal />
                     <Stack spacing={1.5}>
                         <TextField
