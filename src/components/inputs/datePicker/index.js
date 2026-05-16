@@ -24,7 +24,20 @@ export default function BasicDatePicker(props) {
         views={['year', 'month', 'day']}
         value={parsedValue}
         onChange={(newValue) => setValue(newValue)}
-        renderInput={(params) => <TextField {...params} sx={sx} />}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            className="lg-search-field"
+            size="small"
+            sx={{
+              minWidth: 180,
+              "& .MuiInputBase-input": {
+                paddingLeft: "12px",
+              },
+              ...sx,
+            }}
+          />
+        )}
       />
     </LocalizationProvider>
   );
