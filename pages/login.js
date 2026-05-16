@@ -3,6 +3,8 @@ import Avatar from '@mui/material/Avatar';
 import FeatherIcon from "feather-icons-react";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
@@ -39,6 +41,7 @@ export default function SignIn() {
         cpf: '',
         password: ''
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
@@ -93,11 +96,25 @@ export default function SignIn() {
                             fullWidth
                             name="password"
                             label="Senha"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={changeItem}
                             id="password"
                             autoComplete="current-password"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            edge="end"
+                                            size="small"
+                                        >
+                                            <FeatherIcon icon={showPassword ? 'eye-off' : 'eye'} width="16" height="16" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     minHeight: '56px',
