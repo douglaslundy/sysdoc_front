@@ -79,7 +79,7 @@ export default function PaginasCategorias() {
                     sx={{ maxWidth: 420 }}
                 />
                 <Box display="grid" gap={2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr 1fr auto auto' }}>
-                    <TextField label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
+                    <TextField className="lg-search-field" label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                     <FormControl fullWidth>
                         <InputLabel>Ícone</InputLabel>
                         <Select
@@ -105,7 +105,7 @@ export default function PaginasCategorias() {
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField label="Ordem" type="number" value={form.ordem} onChange={e => setForm(f => ({ ...f, ordem: e.target.value }))} />
+                    <TextField className="lg-search-field" label="Ordem" type="number" value={form.ordem} onChange={e => setForm(f => ({ ...f, ordem: e.target.value }))} />
                     <FormControlLabel control={<Switch checked={form.ativo} onChange={e => setForm(f => ({ ...f, ativo: e.target.checked }))} />} label="Ativa" />
                     <Button variant="contained" onClick={salvar}>{editId ? 'Atualizar' : 'Criar'}</Button>
                     {editId && <Button variant="outlined" onClick={() => { setEditId(null); setForm(FORM_INICIAL); }}>Cancelar</Button>}
