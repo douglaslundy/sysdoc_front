@@ -159,21 +159,38 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
   const renderLeaf = (item) => (
     <NextLink href={item.href} passHref key={item.href}>
-      <ListItem
-        button
+      <ListItemButton
         onClick={onSidebarClose}
-        selected={pathname === item.href}
         sx={{
-          pl: 4,
-          mb: 0.5,
-          borderRadius: 1,
+          pl: 4.5,
+          py: 0.9,
+          mb: 0.6,
+          borderRadius: "10px",
+          color: "var(--lg-nav-color)",
+          position: "relative",
+          transition: "background 0.14s ease, color 0.14s ease",
+          "&:hover": {
+            background: "var(--lg-nav-hover-bg)",
+            color: "var(--lg-text-primary)",
+          },
           ...(pathname === item.href && {
-            color: theme.palette.primary.contrastText,
-            backgroundColor: `${theme.palette.primary.main}!important`,
+            background: "var(--lg-nav-active-bg)",
+            color: "var(--lg-nav-active-color)",
+            fontWeight: 500,
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              left: 0,
+              top: "20%",
+              height: "60%",
+              width: "3px",
+              background: "var(--lg-nav-active-bar)",
+              borderRadius: "0 3px 3px 0",
+            },
           }),
         }}
       >
-        <ListItemIcon sx={{ minWidth: 36 }}>
+        <ListItemIcon sx={{ minWidth: 34 }}>
           <FeatherIcon
             icon={item.icon}
             width="18"
@@ -181,16 +198,16 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
             style={{
               color:
                 pathname === item.href
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.text.secondary,
+                  ? "var(--lg-nav-active-color)"
+                  : "var(--lg-nav-color)",
             }}
           />
         </ListItemIcon>
         <ListItemText
           primary={item.title}
-          primaryTypographyProps={{ fontSize: "0.85rem" }}
+          primaryTypographyProps={{ fontSize: "0.82rem" }}
         />
-      </ListItem>
+      </ListItemButton>
     </NextLink>
   );
 
@@ -210,34 +227,44 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         <ListItemButton
           onClick={() => toggleGroup(group.title)}
           sx={{
-            borderRadius: 1,
-            mb: 0.5,
+            borderRadius: "10px",
+            mb: 0.6,
+            color: "var(--lg-text-primary)",
+            "&:hover": {
+              background: "var(--lg-nav-hover-bg)",
+            },
             ...(hasActive && !isOpen && {
-              color: theme.palette.primary.main,
+              color: "var(--lg-nav-active-color)",
             }),
           }}
         >
-          <ListItemIcon sx={{ minWidth: 36 }}>
+          <ListItemIcon sx={{ minWidth: 34 }}>
             <FeatherIcon
               icon={group.icon}
               width="20"
               height="20"
               style={{
                 color: hasActive && !isOpen
-                  ? theme.palette.primary.main
-                  : theme.palette.text.primary,
+                  ? "var(--lg-nav-active-color)"
+                  : "var(--lg-text-primary)",
               }}
             />
           </ListItemIcon>
           <ListItemText
             primary={group.title}
-            primaryTypographyProps={{ fontWeight: 600, fontSize: "0.875rem" }}
+            primaryTypographyProps={{
+              fontWeight: 700,
+              fontSize: "9px",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--lg-text-muted)",
+            }}
           />
           <FeatherIcon
             icon={isOpen ? "chevron-up" : "chevron-down"}
             width="16"
             height="16"
-            style={{ color: theme.palette.text.secondary }}
+            style={{ color: "var(--lg-text-muted)", opacity: 0.4 }}
           />
         </ListItemButton>
 
@@ -252,26 +279,55 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     profile === "admin" || myPermissions.includes(DashboardItem.href);
 
   const SidebarContent = (
-    <Box p={2} height="100%" sx={{ mt: "64px" }}>
-      <LogoIcon />
+    <Box
+      p={2}
+      height="100%"
+      sx={{
+        mt: "64px",
+      }}
+    >
+      <Box
+        sx={{
+          borderBottom: "0.5px solid var(--lg-border)",
+          pb: 1.5,
+          mb: 1.5,
+        }}
+      >
+        <LogoIcon />
+      </Box>
       <Box mt={2}>
         <List disablePadding>
           {isDashboardVisible && (
             <NextLink href={DashboardItem.href} passHref>
-              <ListItem
-                button
+              <ListItemButton
                 onClick={onSidebarClose}
-                selected={pathname === DashboardItem.href}
                 sx={{
-                  mb: 1,
-                  borderRadius: 1,
+                  mb: 0.8,
+                  borderRadius: "10px",
+                  color: "var(--lg-nav-color)",
+                  position: "relative",
+                  transition: "background 0.14s ease, color 0.14s ease",
+                  "&:hover": {
+                    background: "var(--lg-nav-hover-bg)",
+                    color: "var(--lg-text-primary)",
+                  },
                   ...(pathname === DashboardItem.href && {
-                    color: theme.palette.primary.contrastText,
-                    backgroundColor: `${theme.palette.primary.main}!important`,
+                    background: "var(--lg-nav-active-bg)",
+                    color: "var(--lg-nav-active-color)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      left: 0,
+                      top: "20%",
+                      height: "60%",
+                      width: "3px",
+                      background: "var(--lg-nav-active-bar)",
+                      borderRadius: "0 3px 3px 0",
+                    },
                   }),
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 36 }}>
+                <ListItemIcon sx={{ minWidth: 34 }}>
                   <FeatherIcon
                     icon={DashboardItem.icon}
                     width="20"
@@ -279,16 +335,16 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
                     style={{
                       color:
                         pathname === DashboardItem.href
-                          ? theme.palette.primary.contrastText
-                          : theme.palette.text.primary,
+                          ? "var(--lg-nav-active-color)"
+                          : "var(--lg-nav-color)",
                     }}
                   />
                 </ListItemIcon>
                 <ListItemText
                   primary={DashboardItem.title}
-                  primaryTypographyProps={{ fontWeight: 600, fontSize: "0.875rem" }}
+                  primaryTypographyProps={{ fontWeight: 500, fontSize: "0.82rem" }}
                 />
-              </ListItem>
+              </ListItemButton>
             </NextLink>
           )}
 
@@ -318,7 +374,11 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         sx: {
           width: "265px",
           border: "0 !important",
-          boxShadow: "0px 7px 30px 0px rgb(113 122 131 / 11%)",
+          background: "var(--lg-glass-sidebar)",
+          backdropFilter: "var(--lg-blur-sidebar)",
+          WebkitBackdropFilter: "var(--lg-blur-sidebar)",
+          borderRight: "0.5px solid var(--lg-border-sidebar)",
+          boxShadow: "var(--lg-shadow-panel)",
         },
       }}
     >
