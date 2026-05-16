@@ -8,7 +8,7 @@ import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607d8b' };
 
-function CardTotal({ icon, titulo, valor, cor }) {
+function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 56 }) {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -19,7 +19,7 @@ function CardTotal({ icon, titulo, valor, cor }) {
                     </Box>
                     <Box
                         sx={{
-                            width: 56, height: 56,
+                            width: iconBoxWidth, height: 56,
                             borderRadius: '50%',
                             bgcolor: cor + '22',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -104,7 +104,7 @@ export default function VigilanciaDashboard() {
         <Box>
             <Grid container spacing={3} mb={3}>
                 <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
+                    <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" iconBoxWidth={68} />
                 </Grid>
                 <Grid item xs={6} sm={4} md={2}>
                     <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
@@ -113,10 +113,10 @@ export default function VigilanciaDashboard() {
                     <CardTotal icon="check-circle" titulo="Vigentes (por data)" valor={totais.vigentes} cor="#4caf50" />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3}>
-                    <CardTotal icon="alert-circle" titulo="Vencidos (por data)" valor={totais.vencidos} cor="#f44336" />
+                    <CardTotal icon="x-circle" titulo="Vencidos (por data)" valor={totais.vencidos} cor="#f44336" />
                 </Grid>
                 <Grid item xs={12} sm={4} md={2}>
-                    <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
+                    <CardTotal icon="clock" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
                 </Grid>
             </Grid>
 
