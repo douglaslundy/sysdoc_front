@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -108,7 +108,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar Especialidade"
+                    placeholder="Pesquisar Especialidade"
                     name="search"
                     value={searchValue}
                     onChange={searchSpecialities}
@@ -305,3 +305,4 @@ export default () => {
         </BaseCard >
     );
 };
+

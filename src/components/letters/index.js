@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -78,7 +78,7 @@ export default () => {
     }, [year]);
 
     useEffect(() => {
-        // executado apenas quando é carregado a pagina a primeira vez, ou quando é adicionado um registro 
+        // executado apenas quando é carregado a página a primeira vez, ou quando é adicionado um registro 
         setAllLetters(searchValue ?
             [...letters.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
                 .filter(lett => new Date(lett.created_at).getFullYear() == year)]
@@ -141,7 +141,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "65%" }}
-                    label="Pesquisar ofício"
+                    placeholder="Pesquisar ofício"
                     name="search"
                     value={searchValue}
                     onChange={searchLetters}
@@ -355,3 +355,4 @@ export default () => {
         </BaseCard >
     );
 };
+
