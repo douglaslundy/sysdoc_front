@@ -65,7 +65,7 @@ export default function SignIn() {
                     <Image width={310} height={80} src={LogoDark} alt={LogoDark} />
                 </Typography>
 
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '140%', ml: '-20%' }}>
                     <AlertModal />
                     <Stack spacing={1.5}>
                         <TextField
@@ -80,11 +80,11 @@ export default function SignIn() {
                             autoFocus
                             sx={{
                                 '& .MuiOutlinedInput-root': {
-                                    minHeight: '78px',
+                                    minHeight: '56px',
                                 },
                                 '& .MuiOutlinedInput-input': {
-                                    paddingTop: '27.7px',
-                                    paddingBottom: '27.7px',
+                                    paddingTop: '16.5px',
+                                    paddingBottom: '16.5px',
                                 },
                             }}
                         />
@@ -100,11 +100,11 @@ export default function SignIn() {
                             autoComplete="current-password"
                             sx={{
                                 '& .MuiOutlinedInput-root': {
-                                    minHeight: '78px',
+                                    minHeight: '56px',
                                 },
                                 '& .MuiOutlinedInput-input': {
-                                    paddingTop: '27.7px',
-                                    paddingBottom: '27.7px',
+                                    paddingTop: '16.5px',
+                                    paddingBottom: '16.5px',
                                 },
                             }}
                         />
