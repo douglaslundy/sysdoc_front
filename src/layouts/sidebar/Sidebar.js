@@ -53,6 +53,12 @@ const normalizeIconName = (iconName, fallback = "circle") => {
   return normalized.length > 0 ? normalized : fallback;
 };
 
+const getForcedIconByPath = (href) => {
+  if (href === "/errorlogs") return "alert-triangle";
+  if (href === "/qrcodelogs") return "maximize";
+  return null;
+};
+
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const { profile, myPermissions } = useContext(AuthContext);
   const { pathname } = useRouter();
@@ -91,7 +97,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
           acc[category].children.push({
             title: pg.titulo,
-            icon: normalizeIconName(pg.icone, "circle"),
+            icon: getForcedIconByPath(pg.path) || normalizeIconName(pg.icone, "circle"),
             href: pg.path,
             order: Number(pg.ordem ?? 999),
           });
