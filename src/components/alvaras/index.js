@@ -133,8 +133,9 @@ export default function ListaAlvaras() {
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
+                    className="lg-search-field"
                     sx={{ flexGrow: 1, minWidth: 200 }}
-                    label="Pesquisar por nÃºmero ou estabelecimento"
+                    placeholder="Pesquisar por número ou estabelecimento"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}

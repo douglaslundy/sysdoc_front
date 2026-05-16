@@ -330,6 +330,7 @@ export default () => {
             >
 
                 <TextField
+                    className="lg-search-field"
                     sx={{ width: "46%" }}
                     placeholder="Pesquisar por Nome / CPF / CNS"
                     name="search"

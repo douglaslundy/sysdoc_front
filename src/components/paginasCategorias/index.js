@@ -70,9 +70,9 @@ export default function PaginasCategorias() {
             <AlertModal />
             <Stack spacing={2}>
                 <TextField
+                    className="lg-search-field"
                     size="small"
-                    placeholder="Pesquisar categoria"
-                    placeholder="Buscar por nome ou Ã­cone..."
+                    placeholder="Buscar por nome ou ícone..."
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     inputProps={{ maxLength: 80 }}

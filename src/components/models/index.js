@@ -107,6 +107,7 @@ export default () => {
             }}>
 
                 <TextField
+                    className="lg-search-field"
                     sx={{ width: "85%" }}
                     placeholder="Pesquisar um modelo criado"
                     name="search"

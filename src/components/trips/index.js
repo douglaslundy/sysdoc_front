@@ -206,6 +206,7 @@ export default () => {
         </Button>
 
         <TextField
+          className="lg-search-field"
           placeholder="Buscar por motorista, destino ou placa"
           value={searchValue ?? ''}
           onChange={(e) => setSearchValue(e.target.value)}

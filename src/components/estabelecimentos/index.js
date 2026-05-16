@@ -111,8 +111,9 @@ export default function ListaEstabelecimentos() {
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
+                    className="lg-search-field"
                     sx={{ flexGrow: 1 }}
-                    label="Pesquisar por nome, responsÃ¡vel ou CNAE"
+                    placeholder="Pesquisar por nome, responsável ou CNAE"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}

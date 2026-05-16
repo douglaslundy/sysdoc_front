@@ -154,7 +154,7 @@ export default function Users() {
         }}
       >
         <TextField
-          className="search-input user-search"
+          className="search-input user-search lg-search-field"
           sx={{
             width: "100%",
             "& .MuiOutlinedInput-root": {

@@ -168,6 +168,7 @@ export default () => {
                 }}
             >
                 <TextField
+                    className="lg-search-field"
                     sx={{ width: "65%" }}
                     placeholder="Pesquisar portaria"
                     name="search"

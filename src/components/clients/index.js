@@ -121,6 +121,7 @@ export default () => {
                 'justify-content': 'stretch'
             }}>
                 <TextField
+                    className="lg-search-field"
                     sx={{ width: "100%" }}
                     placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
                     name="search"

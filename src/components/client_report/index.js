@@ -183,6 +183,7 @@ export default () => {
                 }}
             >
                 <TextField
+                    className="lg-search-field"
                     sx={{ width: "100%" }}
                     placeholder="Pesquisar cliente: Informe o CPF ou CNS"
                     name="search"
