@@ -328,7 +328,6 @@ input[type="checkbox"],
   flex-shrink: 0;
 }
 
-label,
 .form-label,
 [class*="field-label"] {
   font-size: 11px;
@@ -338,6 +337,14 @@ label,
   text-transform: uppercase;
   display: block;
   margin-bottom: 5px;
+}
+
+/* Nao aplicar o estilo de label global em labels internos do MUI (floating label),
+   para evitar deslocamento vertical e espacamento visual inconsistente. */
+.MuiFormControl-root .MuiInputLabel-root,
+.MuiFormControl-root label.MuiInputLabel-root {
+  margin-bottom: 0;
+  display: inline-flex;
 }
 
 .form-group,
