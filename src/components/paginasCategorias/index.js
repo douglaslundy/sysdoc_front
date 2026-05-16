@@ -79,7 +79,7 @@ export default function PaginasCategorias() {
                     sx={{ maxWidth: 420 }}
                 />
                 <Box display="grid" gap={2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr 1fr auto auto' }}>
-                    <TextField className="lg-search-field" label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
+                    <TextField className="lg-search-field" placeholder="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                     <FormControl fullWidth>
                         <InputLabel>Ícone</InputLabel>
                         <Select
