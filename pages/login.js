@@ -80,11 +80,11 @@ export default function SignIn() {
                             autoFocus
                             sx={{
                                 '& .MuiOutlinedInput-root': {
-                                    minHeight: '56px',
+                                    minHeight: '78px',
                                 },
                                 '& .MuiOutlinedInput-input': {
-                                    paddingTop: '16.5px',
-                                    paddingBottom: '16.5px',
+                                    paddingTop: '27.7px',
+                                    paddingBottom: '27.7px',
                                 },
                             }}
                         />
@@ -100,11 +100,11 @@ export default function SignIn() {
                             autoComplete="current-password"
                             sx={{
                                 '& .MuiOutlinedInput-root': {
-                                    minHeight: '56px',
+                                    minHeight: '78px',
                                 },
                                 '& .MuiOutlinedInput-input': {
-                                    paddingTop: '16.5px',
-                                    paddingBottom: '16.5px',
+                                    paddingTop: '27.7px',
+                                    paddingBottom: '27.7px',
                                 },
                             }}
                         />
