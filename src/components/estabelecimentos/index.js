@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Fab, FormControl, InputLabel, MenuItem, Select,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -21,14 +21,14 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const formatDate = (s) => {
-    if (!s) return '—';
+    if (!s) return 'â€”';
     const [y, m, d] = s.substring(0, 10).split('-');
     return `${d}/${m}/${y}`;
 };
 
 const trunc = (s, n = 30) => {
-    if (!s) return '—';
-    return s.length > n ? s.substring(0, n) + '…' : s;
+    if (!s) return 'â€”';
+    return s.length > n ? s.substring(0, n) + 'â€¦' : s;
 };
 
 export default function ListaEstabelecimentos() {
@@ -92,11 +92,11 @@ export default function ListaEstabelecimentos() {
     };
 
     const handleExcluir = (est) => {
-        dispatch(changeTitleAlert(`Estabelecimento ${est.nome_estabelecimento} excluído com sucesso!`));
+        dispatch(changeTitleAlert(`Estabelecimento ${est.nome_estabelecimento} excluÃ­do com sucesso!`));
         setConfirmDialog({
             isOpen: true,
             title: `Deseja excluir ${est.nome_estabelecimento}?`,
-            subTitle: 'Esta ação não poderá ser desfeita',
+            subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
             confirm: removeEstabelecimentoFetch(est.id),
         });
     };
@@ -107,12 +107,12 @@ export default function ListaEstabelecimentos() {
     };
 
     return (
-        <BaseCard title={`Estabelecimentos${pagination ? ` — ${pagination.total} registros` : ''}`}>
+        <BaseCard title={`Estabelecimentos${pagination ? ` â€” ${pagination.total} registros` : ''}`}>
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
                     sx={{ flexGrow: 1 }}
-                    label="Pesquisar por nome, responsável ou CNAE"
+                    label="Pesquisar por nome, responsÃ¡vel ou CNAE"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
@@ -127,11 +127,11 @@ export default function ListaEstabelecimentos() {
                     <TableHead>
                         <TableRow>
                             <TableCell><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Responsável</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Endereço</Typography></TableCell>
+                            <TableCell><Typography variant="h6" color="textSecondary">ResponsÃ¡vel</Typography></TableCell>
+                            <TableCell><Typography variant="h6" color="textSecondary">EndereÃ§o</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">CNAE</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Cadastro</Typography></TableCell>
-                            <TableCell align="center"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
+                            <TableCell align="center"><Typography variant="h6" color="textSecondary">AÃ§Ãµes</Typography></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -177,18 +177,18 @@ export default function ListaEstabelecimentos() {
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
                     <FormControl size="small" sx={{ minWidth: 110 }}>
-                        <InputLabel>Por página</InputLabel>
-                        <Select value={perPage} label="Por página" onChange={handlePerPage}>
+                        <InputLabel>Por pÃ¡gina</InputLabel>
+                        <Select value={perPage} label="Por pÃ¡gina" onChange={handlePerPage}>
                             {PER_PAGE_OPTIONS.map(n => (
                                 <MenuItem key={n} value={n}>{n}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                     <Typography variant="body2" color="textSecondary">
-                        Página {pagination.current_page} de {pagination.last_page}
+                        PÃ¡gina {pagination.current_page} de {pagination.last_page}
                     </Typography>
                     <Button size="small" disabled={pagination.current_page <= 1} onClick={() => handlePage(-1)}>Anterior</Button>
-                    <Button size="small" disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePage(1)}>Próxima</Button>
+                    <Button size="small" disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePage(1)}>PrÃ³xima</Button>
                 </Box>
             )}
 
@@ -203,3 +203,4 @@ export default function ListaEstabelecimentos() {
         </BaseCard>
     );
 }
+

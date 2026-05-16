@@ -331,7 +331,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "46%" }}
-                    label="Pesquisar por Nome / CPF / CNS"
+                    placeholder="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
                     onChange={searchQueues}
@@ -797,5 +797,7 @@ export default () => {
         </>
     );
 };
+
+
 
 

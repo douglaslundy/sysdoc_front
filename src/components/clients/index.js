@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -40,7 +40,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta ação não poderá ser desfeita',
+        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -101,11 +101,11 @@ export default () => {
 
             const name = removeAccents(cli.name.toString().trim().toLowerCase());
             const cnsMatch = cli.cns && cli.cns.toString() === search;
-            const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condição para pesquisa por CPF
+            const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condiÃ§Ã£o para pesquisa por CPF
             const phoneMatch = cli?.phone?.includes(search);
             const nameMatch = name.includes(search);
 
-            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condição de retorno
+            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condiÃ§Ã£o de retorno
         });
 
         setAllClients(filteredClients);
@@ -113,7 +113,7 @@ export default () => {
 
 
     return (
-        <BaseCard title={`Você possui ${allClients.length} Clientes Cadastrados`}>
+        <BaseCard title={`VocÃª possui ${allClients.length} Clientes Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -122,7 +122,7 @@ export default () => {
             }}>
                 <TextField
                     sx={{ width: "100%" }}
-                    label="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
+                    placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
                     name="search"
                     autoComplete="off"
                     value={searchValue}
@@ -154,23 +154,23 @@ export default () => {
                             </TableCell>
                             {/* <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Endereço
+                                    EndereÃ§o
                                 </Typography>
                             </TableCell> */}
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    MÃE / CPF / CNS
+                                    MÃƒE / CPF / CNS
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Telefone / Endereço / Obs
+                                    Telefone / EndereÃ§o / Obs
                                 </Typography>
                             </TableCell>
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    Ações
+                                    AÃ§Ãµes
                                 </Typography>
                             </TableCell>
 
@@ -250,7 +250,7 @@ export default () => {
 
                                             <TableCell>
                                                 <Typography variant="h6">{client?.phone}</Typography>
-                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
+                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, NÂº {client?.addresses?.number}</Typography>
                                                 <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
                                             </TableCell>
 
@@ -299,3 +299,4 @@ export default () => {
         </BaseCard >
     );
 };
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, FormControlLabel, Stack, Switch, Table, TableBody,
     TableCell, TableHead, TableRow, TextField, Typography, FormControl, InputLabel, Select, MenuItem
@@ -66,13 +66,13 @@ export default function PaginasCategorias() {
         .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
 
     return (
-        <BaseCard title="Categorias de Páginas do Sistema">
+        <BaseCard title="Categorias de PÃ¡ginas do Sistema">
             <AlertModal />
             <Stack spacing={2}>
                 <TextField
                     size="small"
-                    label="Pesquisar categoria"
-                    placeholder="Buscar por nome ou ícone..."
+                    placeholder="Pesquisar categoria"
+                    placeholder="Buscar por nome ou Ã­cone..."
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     inputProps={{ maxLength: 80 }}
@@ -81,20 +81,20 @@ export default function PaginasCategorias() {
                 <Box display="grid" gap={2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr 1fr auto auto' }}>
                     <TextField label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                     <FormControl fullWidth>
-                        <InputLabel>Ícone</InputLabel>
+                        <InputLabel>Ãcone</InputLabel>
                         <Select
                             name="icone"
                             value={form.icone}
-                            label="Ícone"
+                            label="Ãcone"
                             onChange={e => setForm(f => ({ ...f, icone: e.target.value }))}
                             renderValue={val => val ? (
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <FeatherIcon icon={val} width="16" height="16" />
                                     <span>{val}</span>
                                 </Box>
-                            ) : <em>Sem ícone</em>}
+                            ) : <em>Sem Ã­cone</em>}
                         >
-                            <MenuItem value=""><em>Sem ícone</em></MenuItem>
+                            <MenuItem value=""><em>Sem Ã­cone</em></MenuItem>
                             {ICONES.map(ic => (
                                 <MenuItem key={ic} value={ic}>
                                     <Box display="flex" alignItems="center" gap={1}>
@@ -115,17 +115,17 @@ export default function PaginasCategorias() {
                     <TableHead>
                         <TableRow>
                             <TableCell>Nome</TableCell>
-                            <TableCell>Ícone</TableCell>
+                            <TableCell>Ãcone</TableCell>
                             <TableCell>Ordem</TableCell>
                             <TableCell>Status</TableCell>
-                            <TableCell align="right">Ações</TableCell>
+                            <TableCell align="right">AÃ§Ãµes</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {categoriasFiltradas.map(cat => (
                             <TableRow key={cat.id}>
                                 <TableCell><Typography variant="body2" fontWeight={600}>{cat.nome}</Typography></TableCell>
-                                <TableCell>{cat.icone || '—'}</TableCell>
+                                <TableCell>{cat.icone || 'â€”'}</TableCell>
                                 <TableCell>{cat.ordem ?? 999}</TableCell>
                                 <TableCell><Chip size="small" label={cat.ativo ? 'Ativa' : 'Inativa'} color={cat.ativo ? 'success' : 'default'} /></TableCell>
                                 <TableCell align="right">
@@ -147,3 +147,4 @@ export default function PaginasCategorias() {
         </BaseCard>
     );
 }
+

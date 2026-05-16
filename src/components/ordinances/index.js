@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -44,7 +44,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta ação não poderá ser desfeita',
+        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -122,7 +122,7 @@ export default () => {
             confirm: inactiveOrdinanceFetch(ordinance)
         });
 
-        dispatch(changeTitleAlert(`A Portaria ${ordinance.number} foi excluída com sucesso!`));
+        dispatch(changeTitleAlert(`A Portaria ${ordinance.number} foi excluÃ­da com sucesso!`));
     };
 
     const searchOrdinances = ({ target }) => {
@@ -156,7 +156,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allOrdinances.length} portarias cadastradas`}>
+        <BaseCard title={`VocÃª possui ${allOrdinances.length} portarias cadastradas`}>
             <AlertModal />
             <ViewOrdinanceModal />
 
@@ -169,7 +169,7 @@ export default () => {
             >
                 <TextField
                     sx={{ width: "65%" }}
-                    label="Pesquisar portaria"
+                    placeholder="Pesquisar portaria"
                     name="search"
                     value={searchValue}
                     onChange={searchOrdinances}
@@ -203,22 +203,22 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Número / Data
+                                    NÃºmero / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Título / Assunto
+                                    TÃ­tulo / Assunto
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Usuário / Tipo
+                                    UsuÃ¡rio / Tipo
                                 </Typography>
                             </TableCell>
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    Ações
+                                    AÃ§Ãµes
                                 </Typography>
                             </TableCell>
                         </TableRow>
@@ -395,3 +395,5 @@ export default () => {
         </BaseCard>
     );
 };
+
+

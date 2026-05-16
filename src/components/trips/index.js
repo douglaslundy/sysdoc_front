@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
   Typography,
   Box,
@@ -17,7 +17,7 @@ import {
   Switch,
 } from "@mui/material";
 
-import { useTheme } from "@mui/material/styles"; // ⬅️ Importa o tema
+import { useTheme } from "@mui/material/styles"; // â¬…ï¸ Importa o tema
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import TripModal from "../modal/trips";
@@ -53,13 +53,13 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
-  const theme = useTheme(); // ⬅️ Hook do tema
+  const theme = useTheme(); // â¬…ï¸ Hook do tema
   const { user, profile } = useContext(AuthContext);
 
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
-    subTitle: "Esta ação não poderá ser desfeita",
+    subTitle: "Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita",
   });
 
   const dispatch = useDispatch();
@@ -166,7 +166,7 @@ export default () => {
     isOk ? theme.palette.primary.main : theme.palette.text.primary;
 
   return (
-    <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastrados`}>
+    <BaseCard title={`VocÃª possui ${allTrips.length} Viagens Cadastrados`}>
       <AlertModal />
       <Box
         sx={{
@@ -179,7 +179,7 @@ export default () => {
 
         <BasicDatePicker
           sx={{ mr: 2 }}
-          label="Data de Início"
+          label="Data de InÃ­cio"
           name="date_begin"
           value={dateBegin}
           setValue={setDateBegin}
@@ -206,7 +206,7 @@ export default () => {
         </Button>
 
         <TextField
-          label="Buscar por motorista, destino ou placa"
+          placeholder="Buscar por motorista, destino ou placa"
           value={searchValue ?? ''}
           onChange={(e) => setSearchValue(e.target.value)}
           size="small"
@@ -276,7 +276,7 @@ export default () => {
             label={
               selectAllTrips
                 ? "Desmarcar todas as viagens!"
-                : "Marcar todas as viagens para impressão!"
+                : "Marcar todas as viagens para impressÃ£o!"
             }
           />
 
@@ -318,22 +318,22 @@ export default () => {
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  MOTORISTA / VEÍCULO
+                  MOTORISTA / VEÃCULO
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  ROTA / HORÁRIO
+                  ROTA / HORÃRIO
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  LOTAÇÃO
+                  LOTAÃ‡ÃƒO
                 </Typography>
               </TableCell>
               <TableCell align="center">
                 <Typography color="textSecondary" variant="h6">
-                  Ações
+                  AÃ§Ãµes
                 </Typography>
               </TableCell>
             </TableRow>
@@ -358,7 +358,7 @@ export default () => {
                         }
                         label={
                           !printTrips.find((t) => t.id === trip.id)
-                            ? "NÃO"
+                            ? "NÃƒO"
                             : "SIM"
                         }
                       />
@@ -392,12 +392,12 @@ export default () => {
                           >
                             {trip?.driver
                               ? trip.driver.name.toUpperCase()
-                              : "MOTORISTA NÃO ATRIBUIDO"}
+                              : "MOTORISTA NÃƒO ATRIBUIDO"}
                           </Typography>
                           <Typography variant="h6">
                             {trip?.vehicle
                               ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES `
-                              : "VEÍCULO NÃO ATRIBUIDO"}
+                              : "VEÃCULO NÃƒO ATRIBUIDO"}
                           </Typography>
                         </Box>
                       </Box>
@@ -509,3 +509,5 @@ export default () => {
     </BaseCard>
   );
 };
+
+

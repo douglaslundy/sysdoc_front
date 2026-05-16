@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
     Typography,
     Box,
@@ -62,7 +62,7 @@ const InfoItem = ({ label, value }) => (
         >
             {label}
         </Typography>
-        <Typography variant="h6">{value || "Não informado"}</Typography>
+        <Typography variant="h6">{value || "NÃ£o informado"}</Typography>
     </Box>
 );
 
@@ -80,7 +80,7 @@ export default () => {
     };
 
     const formatDate = (value) => {
-        if (!value) return "Não informado";
+        if (!value) return "NÃ£o informado";
         try {
             return format(parseISO(value), "dd/MM/yyyy");
         } catch {
@@ -89,7 +89,7 @@ export default () => {
     };
 
     const formatDateTime = (value) => {
-        if (!value) return "Não informado";
+        if (!value) return "NÃ£o informado";
         try {
             return format(parseISO(value), "dd/MM/yyyy HH:mm");
         } catch {
@@ -103,7 +103,7 @@ export default () => {
             FEMININE: "Feminino",
         };
 
-        return map[value] || value || "Não informado";
+        return map[value] || value || "NÃ£o informado";
     };
 
     const reportData = Array.isArray(clientReport)
@@ -169,8 +169,8 @@ export default () => {
         <BaseCard
             title={
                 hasClientData && reportData?.name
-                    ? `Relatório do Cliente ${reportData.name}`
-                    : "Relatório detalhado do cliente"
+                    ? `RelatÃ³rio do Cliente ${reportData.name}`
+                    : "RelatÃ³rio detalhado do cliente"
             }
         >
             <AlertModal />
@@ -184,7 +184,7 @@ export default () => {
             >
                 <TextField
                     sx={{ width: "100%" }}
-                    label="Pesquisar cliente: Informe o CPF ou CNS"
+                    placeholder="Pesquisar cliente: Informe o CPF ou CNS"
                     name="search"
                     autoComplete="off"
                     value={searchValue}
@@ -219,7 +219,7 @@ export default () => {
                 >
                     <CircularProgress size={22} />
                     <Typography variant="h6">
-                        Carregando relatório do cliente...
+                        Carregando relatÃ³rio do cliente...
                     </Typography>
                 </Box>
             )}
@@ -254,7 +254,7 @@ export default () => {
                                 <InfoItem label="E-mail" value={reportData?.email} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
-                                <InfoItem label="Mãe" value={reportData?.mother?.toUpperCase()} />
+                                <InfoItem label="MÃ£e" value={reportData?.mother?.toUpperCase()} />
                             </Grid>
                             <Grid item xs={12} md={6} lg={4}>
                                 <InfoItem label="Pai" value={reportData?.father?.toUpperCase()} />
@@ -296,8 +296,8 @@ export default () => {
 
                             <Grid item xs={12} md={12} lg={4}>
                                 <InfoItem
-                                    label="Observações"
-                                    value={reportData?.obs?.toUpperCase() || "Nenhuma observação cadastrada"}
+                                    label="ObservaÃ§Ãµes"
+                                    value={reportData?.obs?.toUpperCase() || "Nenhuma observaÃ§Ã£o cadastrada"}
                                 />
                             </Grid>
                         </Grid>
@@ -331,12 +331,12 @@ export default () => {
                                         </TableCell>
                                         <TableCell>
                                             <Typography color="textSecondary" variant="h6">
-                                                Veículo
+                                                VeÃ­culo
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Typography color="textSecondary" variant="h6">
-                                                Observação
+                                                ObservaÃ§Ã£o
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -353,7 +353,7 @@ export default () => {
                                                             {formatDate(trip?.departure_date)}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                            {trip?.departure_time?.slice(0, 5) || "Não informado"}
+                                                            {trip?.departure_time?.slice(0, 5) || "NÃ£o informado"}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
                                                             ID viagem: {trip?.id}
@@ -362,37 +362,37 @@ export default () => {
 
                                                     <TableCell>
                                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                                            {(trip?.route?.origin?.toUpperCase() || "Origem não informada").toUpperCase()}
+                                                            {(trip?.route?.origin?.toUpperCase() || "Origem nÃ£o informada").toUpperCase()}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                            {(trip?.route?.destination?.toUpperCase() || "Destino não informado").toUpperCase()}
+                                                            {(trip?.route?.destination?.toUpperCase() || "Destino nÃ£o informado").toUpperCase()}
                                                         </Typography>
                                                     </TableCell>
 
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {trip?.driver?.name?.toUpperCase() || "Não informado"}
+                                                            {trip?.driver?.name?.toUpperCase() || "NÃ£o informado"}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                            CPF: {trip?.driver?.cpf || "Não informado"}
+                                                            CPF: {trip?.driver?.cpf || "NÃ£o informado"}
                                                         </Typography>
                                                     </TableCell>
 
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {trip?.vehicle?.brand?.toUpperCase() || ""} {trip?.vehicle?.model?.toUpperCase() || "Não informado"}
+                                                            {trip?.vehicle?.brand?.toUpperCase() || ""} {trip?.vehicle?.model?.toUpperCase() || "NÃ£o informado"}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                            Placa: {trip?.vehicle?.license_plate?.toUpperCase() || "Não informado"}
+                                                            Placa: {trip?.vehicle?.license_plate?.toUpperCase() || "NÃ£o informado"}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                                                            Ano: {trip?.vehicle?.year || "Não informado"}
+                                                            Ano: {trip?.vehicle?.year || "NÃ£o informado"}
                                                         </Typography>
                                                     </TableCell>
 
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {trip?.obs?.toUpperCase() || "Sem observação"}
+                                                            {trip?.obs?.toUpperCase() || "Sem observaÃ§Ã£o"}
                                                         </Typography>
                                                     </TableCell>
                                                 </StyledTableRow>
@@ -444,7 +444,7 @@ export default () => {
                                         </TableCell>
                                         <TableCell>
                                             <Typography color="textSecondary" variant="h6">
-                                                Observações
+                                                ObservaÃ§Ãµes
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -458,7 +458,7 @@ export default () => {
                                                 <StyledTableRow key={item?.id || index} hover>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "Não informado"}
+                                                            {item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "NÃ£o informado"}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
@@ -468,7 +468,7 @@ export default () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO'}
+                                                            {item?.done === '1' ? 'REALIZADO' : 'NÃƒO REALIZADO'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
@@ -478,7 +478,7 @@ export default () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {item?.obs?.toUpperCase() || "Sem observações"}
+                                                            {item?.obs?.toUpperCase() || "Sem observaÃ§Ãµes"}
                                                         </Typography>
                                                     </TableCell>
                                                 </StyledTableRow>
@@ -510,7 +510,7 @@ export default () => {
                                     <TableRow>
                                         <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>
                                         <TableCell><Typography color="textSecondary" variant="h6">Exames</Typography></TableCell>
-                                        <TableCell><Typography color="textSecondary" variant="h6">Médico Solicitante</Typography></TableCell>
+                                        <TableCell><Typography color="textSecondary" variant="h6">MÃ©dico Solicitante</Typography></TableCell>
                                         <TableCell><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
                                         <TableCell><Typography color="textSecondary" variant="h6">Cadastrado por</Typography></TableCell>
                                         <TableCell><Typography color="textSecondary" variant="h6">Liberado por</Typography></TableCell>
@@ -538,12 +538,12 @@ export default () => {
                                                                 <Chip key={e.id} label={e.nome || e.codigo} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
                                                             ))
                                                         ) : (
-                                                            <Typography color="textSecondary" variant="h6">—</Typography>
+                                                            <Typography color="textSecondary" variant="h6">â€”</Typography>
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {pedido.medico_solicitante?.nome?.toUpperCase() || '—'}
+                                                            {pedido.medico_solicitante?.nome?.toUpperCase() || 'â€”'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
@@ -555,12 +555,12 @@ export default () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {pedido.criado_por?.name?.toUpperCase() || '—'}
+                                                            {pedido.criado_por?.name?.toUpperCase() || 'â€”'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {pedido.resultado?.liberado_por?.name?.toUpperCase() || '—'}
+                                                            {pedido.resultado?.liberado_por?.name?.toUpperCase() || 'â€”'}
                                                         </Typography>
                                                     </TableCell>
                                                 </StyledTableRow>
@@ -586,10 +586,11 @@ export default () => {
             ) : !loadingReport && !searched ? (
                 <Box sx={{ px: 2, pb: 2 }}>
                     <Typography color="textSecondary" variant="h6">
-                        Pesquise por um CPF ou CNS para exibir o relatório detalhado do cliente.
+                        Pesquise por um CPF ou CNS para exibir o relatÃ³rio detalhado do cliente.
                     </Typography>
                 </Box>
             ) : null}
         </BaseCard>
     );
 };
+

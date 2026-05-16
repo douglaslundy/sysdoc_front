@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -97,7 +97,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
+        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a InteligÃªncia Artificial`}>
             <ViewModelModal />
 
             <Box sx={{
@@ -108,7 +108,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar um modelo criado"
+                    placeholder="Pesquisar um modelo criado"
                     name="search"
                     value={searchValue}
                     onChange={searchmodels}
@@ -130,12 +130,12 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Usuário / Data
+                                    UsuÃ¡rio / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Remetente / Destinatário
+                                    Remetente / DestinatÃ¡rio
                                 </Typography>
                             </TableCell>
 
@@ -147,7 +147,7 @@ export default () => {
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    Ações
+                                    AÃ§Ãµes
                                 </Typography>
                             </TableCell>
 
@@ -247,7 +247,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar OfÃ­cio" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
@@ -271,3 +271,5 @@ export default () => {
         </BaseCard >
     );
 };
+
+

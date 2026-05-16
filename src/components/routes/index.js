@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -44,7 +44,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta ação não poderá ser desfeita',
+        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -94,7 +94,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Você possui ${allRoutes.length} Rotas Cadastrados`}>
+        <BaseCard title={`VocÃª possui ${allRoutes.length} Rotas Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -104,7 +104,7 @@ export default () => {
 
                 <TextField
                     sx={{ width: "85%" }}
-                    label="Pesquisar rota por placa"
+                    placeholder="Pesquisar rota por placa"
                     name="search"
                     value={searchValue}
                     onChange={searchRoutes}
@@ -114,7 +114,7 @@ export default () => {
                             textTransform: "uppercase",
                         },
                         maxLength: 50,
-                        autoComplete: "off", // Desativa o preenchimento automático
+                        autoComplete: "off", // Desativa o preenchimento automÃ¡tico
                     }}
 
                 />
@@ -146,19 +146,19 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    ORIGEM X DESTINO / USUÁRIO
+                                    ORIGEM X DESTINO / USUÃRIO
                                 </Typography>
                             </TableCell>
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    DISTÂNCIA
+                                    DISTÃ‚NCIA
                                 </Typography>
                             </TableCell>
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    Ações
+                                    AÃ§Ãµes
                                 </Typography>
                             </TableCell>
 
@@ -283,3 +283,5 @@ export default () => {
         </BaseCard >
     );
 };
+
+
