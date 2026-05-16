@@ -54,7 +54,7 @@ const normalizeIconName = (iconName, fallback = "circle") => {
 };
 
 const getForcedIconByPath = (href) => {
-  if (href === "/errorlogs") return "alert-triangle";
+  if (href === "/errorlogs") return "alert-circle";
   if (href === "/qrcodelogs") return "maximize";
   return null;
 };
