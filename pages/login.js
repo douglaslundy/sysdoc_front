@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import FeatherIcon from "feather-icons-react";
 import Button from '@mui/material/Button';
-// import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
@@ -32,19 +31,17 @@ function Copyright(props) {
     );
 }
 
-
 export default function SignIn() {
-
     const dispatch = useDispatch();
 
     const [form, setForm] = useState({
-        "cpf": '',
-        "password": ''
+        cpf: '',
+        password: ''
     });
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
-    }
+    };
 
     const { cpf, password } = form;
 
@@ -63,16 +60,13 @@ export default function SignIn() {
                     alignItems: 'center',
                 }}
             >
-
                 <Typography component="h1" variant="h5">
-                    {/* <Image width={110} height={80} src={LogoDark} alt={LogoDark} />                     */}
                     <Image width={310} height={80} src={LogoDark} alt={LogoDark} />
                 </Typography>
 
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <AlertModal />
                     <TextField
-                        margin="normal"
                         required
                         fullWidth
                         id="CPF"
@@ -82,9 +76,9 @@ export default function SignIn() {
                         onChange={changeItem}
                         autoComplete="cpf"
                         autoFocus
+                        sx={{ mt: 0, mb: 1.5 }}
                     />
                     <TextField
-                        margin="normal"
                         required
                         fullWidth
                         name="password"
@@ -94,6 +88,7 @@ export default function SignIn() {
                         onChange={changeItem}
                         id="password"
                         autoComplete="current-password"
+                        sx={{ mt: 0, mb: 1.5 }}
                     />
                     {/* <FormControlLabel
                         control={<Checkbox value="remember" color="primary" />}
@@ -135,9 +130,9 @@ export async function getServerSideProps(context) {
                 destination: '/',
                 permanent: false,
             }
-        }
+        };
     }
     return {
         props: {},
-    }
+    };
 }
