@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -44,7 +44,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -94,7 +94,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`VocÃª possui ${allRoutes.length} Rotas Cadastrados`}>
+        <BaseCard title={`Você possui ${allRoutes.length} Rotas Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -115,7 +115,7 @@ export default () => {
                             textTransform: "uppercase",
                         },
                         maxLength: 50,
-                        autoComplete: "off", // Desativa o preenchimento automÃ¡tico
+                        autoComplete: "off", // Desativa o preenchimento automático
                     }}
 
                 />
@@ -147,7 +147,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    ORIGEM X DESTINO / USUÃRIO
+                                    ORIGEM X DESTINO / USUÁRIO
                                 </Typography>
                             </TableCell>
 
@@ -159,7 +159,7 @@ export default () => {
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -44,7 +44,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -122,7 +122,7 @@ export default () => {
             confirm: inactiveOrdinanceFetch(ordinance)
         });
 
-        dispatch(changeTitleAlert(`A Portaria ${ordinance.number} foi excluÃ­da com sucesso!`));
+        dispatch(changeTitleAlert(`A Portaria ${ordinance.number} foi excluída com sucesso!`));
     };
 
     const searchOrdinances = ({ target }) => {
@@ -156,7 +156,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`VocÃª possui ${allOrdinances.length} portarias cadastradas`}>
+        <BaseCard title={`Você possui ${allOrdinances.length} portarias cadastradas`}>
             <AlertModal />
             <ViewOrdinanceModal />
 
@@ -204,22 +204,22 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    NÃºmero / Data
+                                    Número / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    TÃ­tulo / Assunto
+                                    Título / Assunto
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    UsuÃ¡rio / Tipo
+                                    Usuário / Tipo
                                 </Typography>
                             </TableCell>
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
                         </TableRow>

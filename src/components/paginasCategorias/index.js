@@ -66,7 +66,7 @@ export default function PaginasCategorias() {
         .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
 
     return (
-        <BaseCard title="Categorias de PÃ¡ginas do Sistema">
+        <BaseCard title="Categorias de Páginas do Sistema">
             <AlertModal />
             <Stack spacing={2}>
                 <TextField
@@ -81,20 +81,20 @@ export default function PaginasCategorias() {
                 <Box display="grid" gap={2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr 1fr auto auto' }}>
                     <TextField label="Nome" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                     <FormControl fullWidth>
-                        <InputLabel>Ãcone</InputLabel>
+                        <InputLabel>Ícone</InputLabel>
                         <Select
                             name="icone"
                             value={form.icone}
-                            label="Ãcone"
+                            label="Ícone"
                             onChange={e => setForm(f => ({ ...f, icone: e.target.value }))}
                             renderValue={val => val ? (
                                 <Box display="flex" alignItems="center" gap={1}>
                                     <FeatherIcon icon={val} width="16" height="16" />
                                     <span>{val}</span>
                                 </Box>
-                            ) : <em>Sem Ã­cone</em>}
+                            ) : <em>Sem ícone</em>}
                         >
-                            <MenuItem value=""><em>Sem Ã­cone</em></MenuItem>
+                            <MenuItem value=""><em>Sem ícone</em></MenuItem>
                             {ICONES.map(ic => (
                                 <MenuItem key={ic} value={ic}>
                                     <Box display="flex" alignItems="center" gap={1}>
@@ -115,17 +115,17 @@ export default function PaginasCategorias() {
                     <TableHead>
                         <TableRow>
                             <TableCell>Nome</TableCell>
-                            <TableCell>Ãcone</TableCell>
+                            <TableCell>Ícone</TableCell>
                             <TableCell>Ordem</TableCell>
                             <TableCell>Status</TableCell>
-                            <TableCell align="right">AÃ§Ãµes</TableCell>
+                            <TableCell align="right">Ações</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {categoriasFiltradas.map(cat => (
                             <TableRow key={cat.id}>
                                 <TableCell><Typography variant="body2" fontWeight={600}>{cat.nome}</Typography></TableCell>
-                                <TableCell>{cat.icone || 'â€”'}</TableCell>
+                                <TableCell>{cat.icone || '—'}</TableCell>
                                 <TableCell>{cat.ordem ?? 999}</TableCell>
                                 <TableCell><Chip size="small" label={cat.ativo ? 'Ativa' : 'Inativa'} color={cat.ativo ? 'success' : 'default'} /></TableCell>
                                 <TableCell align="right">

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -40,7 +40,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -101,11 +101,11 @@ export default () => {
 
             const name = removeAccents(cli.name.toString().trim().toLowerCase());
             const cnsMatch = cli.cns && cli.cns.toString() === search;
-            const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condiÃ§Ã£o para pesquisa por CPF
+            const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condição para pesquisa por CPF
             const phoneMatch = cli?.phone?.includes(search);
             const nameMatch = name.includes(search);
 
-            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condiÃ§Ã£o de retorno
+            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condição de retorno
         });
 
         setAllClients(filteredClients);
@@ -113,7 +113,7 @@ export default () => {
 
 
     return (
-        <BaseCard title={`VocÃª possui ${allClients.length} Clientes Cadastrados`}>
+        <BaseCard title={`Você possui ${allClients.length} Clientes Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -155,7 +155,7 @@ export default () => {
                             </TableCell>
                             {/* <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    EndereÃ§o
+                                    Endereço
                                 </Typography>
                             </TableCell> */}
                             <TableCell>
@@ -165,13 +165,13 @@ export default () => {
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Telefone / EndereÃ§o / Obs
+                                    Telefone / Endereço / Obs
                                 </Typography>
                             </TableCell>
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
 
@@ -251,7 +251,7 @@ export default () => {
 
                                             <TableCell>
                                                 <Typography variant="h6">{client?.phone}</Typography>
-                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, NÂº {client?.addresses?.number}</Typography>
+                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
                                                 <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
                                             </TableCell>
 

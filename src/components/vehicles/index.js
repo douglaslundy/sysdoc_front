@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -44,7 +44,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -94,7 +94,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`VocÃª possui ${allVehicles.length} VeÃ­culos Cadastrados`}>
+        <BaseCard title={`Você possui ${allVehicles.length} Veículos Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -105,7 +105,7 @@ export default () => {
                 <TextField
                     className="lg-search-field"
                     sx={{ width: "85%" }}
-                    placeholder="Pesquisar veÃ­culo por placa"
+                    placeholder="Pesquisar veículo por placa"
                     name="search"
                     value={searchValue}
                     onChange={searchVehicles}
@@ -115,7 +115,7 @@ export default () => {
                             textTransform: "uppercase",
                         },
                         maxLength: 50,
-                        autoComplete: "off", // Desativa o preenchimento automÃ¡tico
+                        autoComplete: "off", // Desativa o preenchimento automático
                     }}
 
                 />
@@ -147,7 +147,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    MARCA MODELO COR CAPACIDADE / USUÃRIO
+                                    MARCA MODELO COR CAPACIDADE / USUÁRIO
                                 </Typography>
                             </TableCell>
 
@@ -159,7 +159,7 @@ export default () => {
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
 
@@ -250,12 +250,12 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar VeÃ­culo" onClick={() => { HandleEditVehicle(vehicle) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Editar Veículo" onClick={() => { HandleEditVehicle(vehicle) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && vehicle.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir VeÃ­culo" onClick={() => { HandleInactiveVehicle(vehicle) }} color="error" size="medium" variant="contained"
+                                                <Button title="Excluir Veículo" onClick={() => { HandleInactiveVehicle(vehicle) }} color="error" size="medium" variant="contained"
                                                     // disabled={vehicle.id_user == user || profile == "admin" ? allVehicles.length - index !== allVehicles.length : true}>
                                                     disabled={profile != "admin" && vehicle.id_user != user}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />

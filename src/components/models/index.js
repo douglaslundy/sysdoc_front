@@ -97,7 +97,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a InteligÃªncia Artificial`}>
+        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
             <ViewModelModal />
 
             <Box sx={{
@@ -131,12 +131,12 @@ export default () => {
                         <TableRow>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    UsuÃ¡rio / Data
+                                    Usuário / Data
                                 </Typography>
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Remetente / DestinatÃ¡rio
+                                    Remetente / Destinatário
                                 </Typography>
                             </TableCell>
 
@@ -148,7 +148,7 @@ export default () => {
 
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
 
@@ -248,7 +248,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar OfÃ­cio" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 

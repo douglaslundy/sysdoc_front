@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -16,9 +16,9 @@ import { changeTitleAlert } from '../../store/ducks/Layout';
 const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'default' };
 
 const STATUS_OPTIONS = [
-    'NÃ£o requerido', 'Dispensado', 'Protocolado', 'Em anÃ¡lise', 'Em exigÃªncia',
-    'Vigente', 'Vencido', 'Em renovaÃ§Ã£o',
-    'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofÃ­cio', 'Interditado',
+    'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
+    'Vigente', 'Vencido', 'Em renovação',
+    'Suspenso', 'Cassado', 'Cancelado', 'Cancelado de ofício', 'Interditado',
 ];
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
@@ -29,14 +29,14 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const formatDate = (s) => {
-    if (!s) return 'â€”';
+    if (!s) return '—';
     const [y, m, d] = s.substring(0, 10).split('-');
     return `${d}/${m}/${y}`;
 };
 
 const trunc = (s, n = 30) => {
-    if (!s) return 'â€”';
-    return s.length > n ? s.substring(0, n) + 'â€¦' : s;
+    if (!s) return '—';
+    return s.length > n ? s.substring(0, n) + '…' : s;
 };
 
 export default function ListaAlvaras() {
@@ -114,11 +114,11 @@ export default function ListaAlvaras() {
     };
 
     const handleExcluir = (alvara) => {
-        dispatch(changeTitleAlert(`AlvarÃ¡ ${alvara.numero_alvara} excluÃ­do com sucesso!`));
+        dispatch(changeTitleAlert(`Alvará ${alvara.numero_alvara} excluído com sucesso!`));
         setConfirmDialog({
             isOpen: true,
-            title: `Deseja excluir o alvarÃ¡ ${alvara.numero_alvara}?`,
-            subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+            title: `Deseja excluir o alvará ${alvara.numero_alvara}?`,
+            subTitle: 'Esta ação não poderá ser desfeita',
             confirm: removeAlvaraFetch(alvara.id),
         });
     };
@@ -129,7 +129,7 @@ export default function ListaAlvaras() {
     };
 
     return (
-        <BaseCard title={`AlvarÃ¡s${pagination ? ` â€” ${pagination.total} registros` : ''}`}>
+        <BaseCard title={`Alvarás${pagination ? ` — ${pagination.total} registros` : ''}`}>
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
@@ -141,12 +141,12 @@ export default function ListaAlvaras() {
                     inputProps={{ autoComplete: 'off' }}
                 />
                 <FormControl sx={{ minWidth: 140 }}>
-                    <InputLabel>NÃ­vel de Risco</InputLabel>
-                    <Select value={nivelRisco} label="NÃ­vel de Risco" onChange={handleNivelRisco}>
+                    <InputLabel>Nível de Risco</InputLabel>
+                    <Select value={nivelRisco} label="Nível de Risco" onChange={handleNivelRisco}>
                         <MenuItem value="">Todos</MenuItem>
-                        <MenuItem value="1">1 â€” Baixo</MenuItem>
-                        <MenuItem value="2">2 â€” MÃ©dio</MenuItem>
-                        <MenuItem value="3">3 â€” Alto</MenuItem>
+                        <MenuItem value="1">1 — Baixo</MenuItem>
+                        <MenuItem value="2">2 — Médio</MenuItem>
+                        <MenuItem value="3">3 — Alto</MenuItem>
                         <MenuItem value="N/A">N/A</MenuItem>
                     </Select>
                 </FormControl>
@@ -159,7 +159,7 @@ export default function ListaAlvaras() {
                         ))}
                     </Select>
                 </FormControl>
-                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvarÃ¡">
+                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará">
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -168,14 +168,14 @@ export default function ListaAlvaras() {
                 <Table sx={{ mt: 2, whiteSpace: 'nowrap' }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell><Typography variant="h6" color="textSecondary">NÃºmero</Typography></TableCell>
+                            <TableCell><Typography variant="h6" color="textSecondary">Número</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Risco</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Status</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">EmissÃ£o</Typography></TableCell>
+                            <TableCell><Typography variant="h6" color="textSecondary">Emissão</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Vencimento</Typography></TableCell>
                             <TableCell><Typography variant="h6" color="textSecondary">Contato</Typography></TableCell>
-                            <TableCell align="center"><Typography variant="h6" color="textSecondary">AÃ§Ãµes</Typography></TableCell>
+                            <TableCell align="center"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -197,7 +197,7 @@ export default function ListaAlvaras() {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2">{alv.status || 'â€”'}</Typography>
+                                    <Typography variant="body2">{alv.status || '—'}</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2">{formatDate(alv.data_alvara)}</Typography>
@@ -207,7 +207,7 @@ export default function ListaAlvaras() {
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {alv.contato || 'â€”'}
+                                        {alv.contato || '—'}
                                     </Typography>
                                 </TableCell>
                                 <TableCell align="center">
@@ -240,18 +240,18 @@ export default function ListaAlvaras() {
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
                     <FormControl size="small" sx={{ minWidth: 110 }}>
-                        <InputLabel>Por pÃ¡gina</InputLabel>
-                        <Select value={perPage} label="Por pÃ¡gina" onChange={handlePerPage}>
+                        <InputLabel>Por página</InputLabel>
+                        <Select value={perPage} label="Por página" onChange={handlePerPage}>
                             {PER_PAGE_OPTIONS.map(n => (
                                 <MenuItem key={n} value={n}>{n}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                     <Typography variant="body2" color="textSecondary">
-                        PÃ¡gina {pagination.current_page} de {pagination.last_page}
+                        Página {pagination.current_page} de {pagination.last_page}
                     </Typography>
                     <Button size="small" disabled={pagination.current_page <= 1} onClick={() => handlePage(-1)}>Anterior</Button>
-                    <Button size="small" disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePage(1)}>PrÃ³xima</Button>
+                    <Button size="small" disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePage(1)}>Próxima</Button>
                 </Box>
             )}
 

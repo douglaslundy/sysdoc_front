@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -69,7 +69,7 @@ export default function TripClientsModal(props) {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
 
@@ -186,7 +186,7 @@ export default function TripClientsModal(props) {
             dispatch(changeTitleAlert(`Viagem de ${cli?.name} foi confirmada com sucesso!`));
             dispatch(confirmedClientTrip(cli));
         } else {
-            dispatch(changeTitleAlert(`A confirmaÃ§Ã£o da viagem de ${cli?.name} foi revogada com sucesso!`));
+            dispatch(changeTitleAlert(`A confirmação da viagem de ${cli?.name} foi revogada com sucesso!`));
             dispatch(unConfirmedClientTrip(cli));
         }
     };
@@ -206,7 +206,7 @@ export default function TripClientsModal(props) {
     }, [trip]);
 
 
-    // Atualiza o client_id quando o cliente Ã© selecionado
+    // Atualiza o client_id quando o cliente é selecionado
     useEffect(() => {
         setForm(prevForm => ({
             ...prevForm,
@@ -224,7 +224,7 @@ export default function TripClientsModal(props) {
         }
     ]
 
-    // Carrega os clientes quando o modal Ã© aberto
+    // Carrega os clientes quando o modal é aberto
     useEffect(() => {
         if (isOpenModal) {
             if (clients.length <= 0) {
@@ -254,7 +254,7 @@ export default function TripClientsModal(props) {
                         <Grid item xs={12} lg={12}>
                             <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
                             
-                                ${trip?.vehicle?.brand ? `${" - VEÃCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
                                 ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
@@ -279,7 +279,7 @@ export default function TripClientsModal(props) {
 
                                     <DateTime
                                         id="time"
-                                        label="HorÃ¡rio do compromisso"
+                                        label="Horário do compromisso"
                                         name="time"
                                         value={time ? time : ''}
                                         onChange={changeItem}
@@ -334,7 +334,7 @@ export default function TripClientsModal(props) {
 
                                     <TextField
                                         id="departure_location"
-                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÃDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÃDA'}
+                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
                                         multiline
                                         rows={2}
                                         value={departure_location ? departure_location : ''}
@@ -411,7 +411,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        SAÃDA
+                                                        SAÍDA
                                                     </Typography>
                                                 </TableCell>
 
@@ -423,7 +423,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        HORÃRIO
+                                                        HORÁRIO
                                                     </Typography>
                                                 </TableCell>
 
@@ -435,7 +435,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell align="center">
                                                     <Typography color="textSecondary" variant="h6">
-                                                        AÃ§Ãµes
+                                                        Ações
                                                     </Typography>
                                                 </TableCell>
 

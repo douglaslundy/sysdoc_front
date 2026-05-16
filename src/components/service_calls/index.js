@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -47,7 +47,7 @@ export default () => {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
-        subTitle: 'Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita',
+        subTitle: 'Esta ação não poderá ser desfeita',
     });
 
     const dispatch = useDispatch();
@@ -81,7 +81,7 @@ export default () => {
     }
 
     const HandleInactiveService = async service => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o ServiÃ§o ${service.name}`, confirm: inactiveServiceFetch(service) })
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Serviço ${service.name}`, confirm: inactiveServiceFetch(service) })
         dispatch(changeTitleAlert(`O servico ${service.name} foi excluido com sucesso!`))
     }
 
@@ -107,7 +107,7 @@ export default () => {
     };
 
     return (
-        <BaseCard title={`VocÃª possui ${allServices.length} ServiÃ§os Cadastrados`}>
+        <BaseCard title={`Você possui ${allServices.length} Serviços Cadastrados`}>
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
@@ -150,7 +150,7 @@ export default () => {
                             </TableCell>
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    Nome / DescriÃ§Ã£o
+                                    Nome / Descrição
                                 </Typography>
                             </TableCell>
                             <TableCell>
@@ -160,7 +160,7 @@ export default () => {
                             </TableCell>
                             <TableCell align="center">
                                 <Typography color="textSecondary" variant="h6">
-                                    AÃ§Ãµes
+                                    Ações
                                 </Typography>
                             </TableCell>
                         </TableRow>
@@ -262,7 +262,7 @@ export default () => {
                                                     </div>
                                                 </Button>
 
-                                                <Button title="DesistÃªncias" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'ABANDONED')) }} color="error" size="medium" variant="contained"
+                                                <Button title="Desistências" onClick={() => { HandleGoCalls(service.calls.filter(a => a.status == 'ABANDONED')) }} color="error" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="frown" width="20" height="20" />
 
@@ -278,12 +278,12 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar OfÃ­cio" onClick={() => { HandleEditService(service) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Editar Ofício" onClick={() => { HandleEditService(service) }} color="primary" size="medium" variant="contained"
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir OfÃ­cio" onClick={() => { HandleInactiveService(service) }} color="error" size="medium" variant="contained"
+                                                <Button title="Excluir Ofício" onClick={() => { HandleInactiveService(service) }} color="error" size="medium" variant="contained"
                                                     // disabled={service.id_user == user || profile == "admin" ? allServices.length - index !== allServices.length : true}>
                                                     disabled={profile != "admin" && service.id_user != user}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />

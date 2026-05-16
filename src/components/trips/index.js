@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Typography,
   Box,
@@ -17,7 +17,7 @@ import {
   Switch,
 } from "@mui/material";
 
-import { useTheme } from "@mui/material/styles"; // â¬…ï¸ Importa o tema
+import { useTheme } from "@mui/material/styles"; // ⬅️ Importa o tema
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import TripModal from "../modal/trips";
@@ -53,13 +53,13 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default () => {
-  const theme = useTheme(); // â¬…ï¸ Hook do tema
+  const theme = useTheme(); // ⬅️ Hook do tema
   const { user, profile } = useContext(AuthContext);
 
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
-    subTitle: "Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita",
+    subTitle: "Esta ação não poderá ser desfeita",
   });
 
   const dispatch = useDispatch();
@@ -166,7 +166,7 @@ export default () => {
     isOk ? theme.palette.primary.main : theme.palette.text.primary;
 
   return (
-    <BaseCard title={`VocÃª possui ${allTrips.length} Viagens Cadastrados`}>
+    <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastrados`}>
       <AlertModal />
       <Box
         sx={{
@@ -179,7 +179,7 @@ export default () => {
 
         <BasicDatePicker
           sx={{ mr: 2 }}
-          label="Data de InÃ­cio"
+          label="Data de Início"
           name="date_begin"
           value={dateBegin}
           setValue={setDateBegin}
@@ -277,7 +277,7 @@ export default () => {
             label={
               selectAllTrips
                 ? "Desmarcar todas as viagens!"
-                : "Marcar todas as viagens para impressÃ£o!"
+                : "Marcar todas as viagens para impressão!"
             }
           />
 
@@ -319,12 +319,12 @@ export default () => {
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  MOTORISTA / VEÃCULO
+                  MOTORISTA / VEÍCULO
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  ROTA / HORÃRIO
+                  ROTA / HORÁRIO
                 </Typography>
               </TableCell>
               <TableCell>
@@ -334,7 +334,7 @@ export default () => {
               </TableCell>
               <TableCell align="center">
                 <Typography color="textSecondary" variant="h6">
-                  AÃ§Ãµes
+                  Ações
                 </Typography>
               </TableCell>
             </TableRow>
@@ -398,7 +398,7 @@ export default () => {
                           <Typography variant="h6">
                             {trip?.vehicle
                               ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES `
-                              : "VEÃCULO NÃƒO ATRIBUIDO"}
+                              : "VEÍCULO NÃƒO ATRIBUIDO"}
                           </Typography>
                         </Box>
                       </Box>
