@@ -105,6 +105,7 @@ export default function ListaPedidos() {
                         </Select>
                     </FormControl>
                     <TextField
+                        className="lg-search-field"
                         size="small"
                         placeholder="Buscar por nome, CNS, CPF ou protocolo"
                         value={busca}

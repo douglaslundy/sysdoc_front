@@ -40,12 +40,12 @@ export default function MedicinesMonthlyPublicList() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+        <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
             <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
                 Mês de referência: {formatMonth(data.reference_month)} | Última atualização: {formatDateTime(data.last_update_at)}
             </Typography>
-            <TableContainer sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 2, bgcolor: 'background.paper' }}>
+            <TableContainer sx={{ background: 'var(--lg-glass-panel)', border: '0.5px solid var(--lg-border)', borderRadius: 2 }}>
                 <Table>
                     <TableHead>
                         <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>

@@ -47,7 +47,7 @@ export default function MedicinesManager() {
         <BaseCard title={`Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
-                <TextField label="Buscar medicamento" value={search} onChange={handleSearch} sx={{ minWidth: 280, flexGrow: 1 }} />
+                <TextField className="lg-search-field" placeholder="Buscar medicamento" value={search} onChange={handleSearch} sx={{ minWidth: 280, flexGrow: 1 }} />
                 <Fab color="primary" size="medium" onClick={() => { setEditing(null); setDialogOpen(true); }}>
                     <FeatherIcon icon="plus" />
                 </Fab>
@@ -97,4 +97,3 @@ export default function MedicinesManager() {
         </BaseCard>
     );
 }
-

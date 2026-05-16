@@ -46,6 +46,7 @@ export default function MedicosSolicitantes() {
                 <AlertModal />
                 <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
                     <TextField
+                        className="lg-search-field"
                         size="small"
                         placeholder="Buscar médico..."
                         value={busca}

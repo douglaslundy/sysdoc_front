@@ -70,7 +70,8 @@ export default function MonthlyAcquisitionsManager() {
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
-                    label="Mês de referência"
+                    className="lg-search-field"
+                    placeholder="Mês de referência"
                     value={referenceMonth}
                     onChange={(e) => setReferenceMonth(formatMonthMask(e.target.value))}
                     helperText="MM/AAAA"
@@ -110,5 +111,4 @@ export default function MonthlyAcquisitionsManager() {
         </BaseCard>
     );
 }
-
 

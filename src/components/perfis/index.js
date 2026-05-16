@@ -96,6 +96,7 @@ export default function Perfis() {
                 <AlertModal />
                 <Box display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="wrap" mb={2}>
                     <TextField
+                        className="lg-search-field"
                         size="small"
                         placeholder="Buscar por nome, slug ou descrição..."
                         value={busca}
@@ -189,6 +190,7 @@ export default function Perfis() {
                             <Grid container spacing={2}>
                                 <Grid item xs={12} md={6}>
                                     <TextField
+                                        className="lg-search-field"
                                         fullWidth
                                         label="Nome do Perfil"
                                         value={form.nome}
@@ -199,6 +201,7 @@ export default function Perfis() {
                                 </Grid>
                                 <Grid item xs={12} md={6}>
                                     <TextField
+                                        className="lg-search-field"
                                         fullWidth
                                         label="Slug (identificador)"
                                         value={form.slug}
@@ -210,6 +213,7 @@ export default function Perfis() {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField
+                                        className="lg-search-field"
                                         fullWidth
                                         label="Descrição"
                                         value={form.descricao}

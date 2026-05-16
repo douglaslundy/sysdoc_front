@@ -50,7 +50,8 @@ export default function DailyStatusManager() {
             <AlertModal />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
                 <TextField
-                    label="Data de referência"
+                    className="lg-search-field"
+                    placeholder="Data de referência"
                     type="date"
                     value={referenceDate}
                     onChange={(e) => setReferenceDate(e.target.value)}
@@ -90,4 +91,3 @@ export default function DailyStatusManager() {
         </BaseCard>
     );
 }
-

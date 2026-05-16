@@ -40,7 +40,7 @@ export default function MedicinesPanel() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+        <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
             <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Painel de Disponibilidade de Medicamentos</Typography>
             <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
                 Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
@@ -48,7 +48,7 @@ export default function MedicinesPanel() {
             <Grid container spacing={2}>
                 {data.items.length === 0 && (
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, bgcolor: 'background.paper', color: 'text.secondary', border: `1px solid ${theme.palette.divider}` }}>
+                        <Paper sx={{ p: 2, background: 'var(--lg-glass-panel)', color: 'var(--lg-text-secondary)', border: '0.5px solid var(--lg-border)' }}>
                             Nenhum registro disponível.
                         </Paper>
                     </Grid>
@@ -58,9 +58,9 @@ export default function MedicinesPanel() {
                         <Paper
                             sx={{
                                 p: 2,
-                                bgcolor: 'background.paper',
-                                color: 'text.primary',
-                                border: `1px solid ${theme.palette.divider}`,
+                                background: 'var(--lg-glass-panel)',
+                                color: 'var(--lg-text-primary)',
+                                border: '0.5px solid var(--lg-border)',
                                 borderLeft: item.availability_status === 'available'
                                     ? `6px solid ${theme.palette.success.main}`
                                     : `6px solid ${theme.palette.error.main}`,
