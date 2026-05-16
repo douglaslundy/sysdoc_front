@@ -192,6 +192,31 @@ body,
   border-radius: 10px;
 }
 
+.role-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+}
+
+.role-badge--user {
+  background: var(--lg-badge-user-bg);
+  color: var(--lg-badge-user-color);
+}
+
+.role-badge--driver {
+  background: var(--lg-badge-driver-bg);
+  color: var(--lg-badge-driver-color);
+}
+
+.role-badge--visa {
+  background: var(--lg-badge-visa-bg);
+  color: var(--lg-badge-visa-color);
+}
+
 @supports not (backdrop-filter: blur(1px)) {
   .lg-glass-panel {
     background: rgba(15, 25, 60, 0.92) !important;
