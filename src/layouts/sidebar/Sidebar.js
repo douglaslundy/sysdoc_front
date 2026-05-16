@@ -46,7 +46,10 @@ const normalizeCategory = (value) => {
 
 const normalizeIconName = (iconName, fallback = "circle") => {
   if (typeof iconName !== "string") return fallback;
-  const normalized = iconName.trim();
+  const normalized = iconName
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
   return normalized.length > 0 ? normalized : fallback;
 };
 
