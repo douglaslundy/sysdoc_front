@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import createEmotionCache from "../src/createEmotionCache";
 import FullLayout from "../src/layouts/FullLayout";
 import "../styles/style.css";
+import "../styles/theme-liquid-glass.css";
 import { Provider } from "react-redux";
 import store from "../src/store";
 import Messages from "../src/components/messages";
@@ -91,3 +92,4 @@ MyApp.propTypes = {
   emotionCache: PropTypes.object,
   pageProps: PropTypes.object.isRequired,
 };
+
