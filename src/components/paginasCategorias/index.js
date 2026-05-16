@@ -71,7 +71,6 @@ export default function PaginasCategorias() {
             <Stack spacing={2}>
                 <TextField
                     className="lg-search-field"
-                    size="small"
                     placeholder="Buscar por nome ou ícone..."
                     value={busca}
                     onChange={e => setBusca(e.target.value)}

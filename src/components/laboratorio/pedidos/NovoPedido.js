@@ -65,6 +65,7 @@ export default function NovoPedido() {
                     </FormControl>
 
                     <TextField
+                        className="lg-search-field"
                         label="Médico Solicitante"
                         name="medico_solicitante"
                         value={form.medico_solicitante}
@@ -73,15 +74,15 @@ export default function NovoPedido() {
                     />
 
                     <Box display="flex" gap={2}>
-                        <TextField label="Data do Pedido" type="date" name="data_pedido" value={form.data_pedido} onChange={change} required InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
-                        <TextField label="Data da Coleta" type="date" name="data_coleta" value={form.data_coleta} onChange={change} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                        <TextField className="lg-search-field" label="Data do Pedido" type="date" name="data_pedido" value={form.data_pedido} onChange={change} required InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                        <TextField className="lg-search-field" label="Data da Coleta" type="date" name="data_coleta" value={form.data_coleta} onChange={change} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
                     </Box>
 
-                    <TextField label="Observações" name="observacoes" value={form.observacoes} onChange={change} multiline rows={2} inputProps={{ maxLength: 500 }} />
+                    <TextField className="lg-search-field" label="Observações" name="observacoes" value={form.observacoes} onChange={change} multiline rows={2} inputProps={{ maxLength: 500 }} />
 
                     <Divider />
                     <Typography variant="h6">Selecionar Exames</Typography>
-                    <TextField size="small" placeholder="Filtrar exames" value={busca} onChange={e => setBusca(e.target.value)} />
+                    <TextField className="lg-search-field" placeholder="Filtrar exames" value={busca} onChange={e => setBusca(e.target.value)} />
 
                     <Box sx={{ maxHeight: 260, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
                         {examesFiltrados.map(exame => (

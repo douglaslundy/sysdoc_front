@@ -290,6 +290,7 @@ export default function TripClientsModal(props) {
                                         (
                                             cli?.id ? (
                                                 <TextField
+                                                    className="lg-search-field"
                                                     id={cli?.id_client}
                                                     value={cli?.name || ''}
                                                     name=""
@@ -333,6 +334,7 @@ export default function TripClientsModal(props) {
                                     </Box>
 
                                     <TextField
+                                        className="lg-search-field"
                                         id="departure_location"
                                         label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
                                         multiline
@@ -351,6 +353,7 @@ export default function TripClientsModal(props) {
 
 
                                     <TextField
+                                        className="lg-search-field"
                                         id="destination_location"
                                         label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
                                         multiline

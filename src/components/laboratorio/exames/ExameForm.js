@@ -49,6 +49,7 @@ export default function ExameForm() {
             <CardContent>
                 <Stack spacing={3} maxWidth={600}>
                     <TextField
+                        className="lg-search-field"
                         label="Nome do Exame"
                         name="nome"
                         value={form.nome}
@@ -58,6 +59,7 @@ export default function ExameForm() {
                     />
                     <Box display="flex" gap={2}>
                         <TextField
+                            className="lg-search-field"
                             label="Código"
                             name="codigo"
                             value={form.codigo}
@@ -67,6 +69,7 @@ export default function ExameForm() {
                             sx={{ flex: 1 }}
                         />
                         <TextField
+                            className="lg-search-field"
                             label="Categoria"
                             name="categoria"
                             value={form.categoria}
@@ -76,6 +79,7 @@ export default function ExameForm() {
                         />
                     </Box>
                     <TextField
+                        className="lg-search-field"
                         label="Descrição"
                         name="descricao"
                         value={form.descricao}
