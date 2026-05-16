@@ -10,8 +10,8 @@ const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card className="dashboard-stat-card" sx={{ height: '100%' }}>
-            <CardContent className="dashboard-stat-card__content">
+        <Card sx={{ height: '100%' }}>
+            <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
                         <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
@@ -239,4 +239,3 @@ export default function VigilanciaDashboard() {
         </Box>
     );
 }
-

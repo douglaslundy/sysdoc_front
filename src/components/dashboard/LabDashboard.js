@@ -16,8 +16,8 @@ const CORES_STATUS = {
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card className="dashboard-stat-card" sx={{ height: '100%' }}>
-            <CardContent className="dashboard-stat-card__content">
+        <Card sx={{ height: '100%' }}>
+            <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
                         <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
@@ -425,4 +425,3 @@ export default function LabDashboard() {
         </Box>
     );
 }
-

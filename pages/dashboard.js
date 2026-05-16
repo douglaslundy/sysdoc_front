@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
@@ -23,49 +23,15 @@ export default function DashboardPage() {
 
     return (
         <Box>
-            <Box
-                sx={{
-                    mb: 3,
-                    p: 0.8,
-                    borderRadius: '14px',
-                    background: 'var(--lg-glass-panel)',
-                    backdropFilter: 'var(--lg-blur-panel)',
-                    WebkitBackdropFilter: 'var(--lg-blur-panel)',
-                    border: '0.5px solid var(--lg-border)',
-                    borderTop: '1px solid var(--lg-border-strong)',
-                    boxShadow: 'var(--lg-shadow-panel)',
-                }}
-            >
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs
                     value={aba}
                     onChange={(_, novaAba) => setAba(novaAba)}
                     variant="scrollable"
                     scrollButtons="auto"
-                    sx={{
-                        minHeight: 44,
-                        '& .MuiTabs-indicator': {
-                            height: 2,
-                            borderRadius: 2,
-                            background: 'linear-gradient(90deg, var(--lg-accent), #7c3aed)',
-                        },
-                    }}
                 >
                     {ABAS.map((item, idx) => (
-                        <Tab
-                            key={idx}
-                            label={item.label}
-                            sx={{
-                                minHeight: 40,
-                                px: 1.5,
-                                borderRadius: '10px',
-                                textTransform: 'none',
-                                color: 'var(--lg-text-secondary)',
-                                '&.Mui-selected': {
-                                    color: 'var(--lg-text-primary)',
-                                    background: 'rgba(var(--lg-accent-rgb), 0.12)',
-                                },
-                            }}
-                        />
+                        <Tab key={idx} label={item.label} />
                     ))}
                 </Tabs>
             </Box>

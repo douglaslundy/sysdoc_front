@@ -8,8 +8,8 @@ import Chart from '../charts/ApexChartSafe';
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card className="dashboard-stat-card" sx={{ height: '100%' }}>
-            <CardContent className="dashboard-stat-card__content">
+        <Card sx={{ height: '100%' }}>
+            <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
                         <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
@@ -103,21 +103,6 @@ export default function TfdDashboard() {
 
     const chartFont = { fontFamily: "'DM Sans', sans-serif" };
     const toolbarOff = { toolbar: { show: false } };
-    const toggleGroupSx = {
-        background: 'var(--lg-glass-input)',
-        border: '0.5px solid var(--lg-border-input)',
-        borderRadius: '10px',
-        '& .MuiToggleButton-root': {
-            color: 'var(--lg-text-secondary)',
-            border: 'none',
-            textTransform: 'none',
-            px: 1.4,
-        },
-        '& .MuiToggleButton-root.Mui-selected': {
-            color: 'var(--lg-text-primary)',
-            background: 'rgba(var(--lg-accent-rgb), 0.14)',
-        },
-    };
 
     return (
         <Box>
@@ -222,7 +207,6 @@ export default function TfdDashboard() {
                             exclusive
                             onChange={(_, v) => v && setPeriodo(v)}
                             size="small"
-                            sx={toggleGroupSx}
                         >
                             <ToggleButton value="mes">Mês atual</ToggleButton>
                             <ToggleButton value="12meses">Últimos 12 meses</ToggleButton>
