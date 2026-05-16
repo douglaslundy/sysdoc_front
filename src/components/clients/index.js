@@ -160,7 +160,7 @@ export default () => {
                             </TableCell> */}
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    MÃƒE / CPF / CNS
+                                    MÃE / CPF / CNS
                                 </Typography>
                             </TableCell>
                             <TableCell>

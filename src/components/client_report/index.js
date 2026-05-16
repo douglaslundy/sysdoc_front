@@ -469,7 +469,7 @@ export default () => {
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="h6">
-                                                            {item?.done === '1' ? 'REALIZADO' : 'NÃƒO REALIZADO'}
+                                                            {item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>

@@ -153,7 +153,7 @@ export default () => {
 
                             <TableCell>
                                 <Typography color="textSecondary" variant="h6">
-                                    DISTÃ‚NCIA
+                                    DISTÂNCIA
                                 </Typography>
                             </TableCell>
 
