@@ -8,6 +8,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { parseCookies } from 'nookies';
@@ -66,30 +67,30 @@ export default function SignIn() {
 
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <AlertModal />
-                    <TextField
-                        required
-                        fullWidth
-                        id="CPF"
-                        label="CPF"
-                        name="cpf"
-                        value={cpf}
-                        onChange={changeItem}
-                        autoComplete="cpf"
-                        autoFocus
-                        sx={{ mt: 0, mb: 1.5 }}
-                    />
-                    <TextField
-                        required
-                        fullWidth
-                        name="password"
-                        label="Senha"
-                        type="password"
-                        value={password}
-                        onChange={changeItem}
-                        id="password"
-                        autoComplete="current-password"
-                        sx={{ mt: 0, mb: 1.5 }}
-                    />
+                    <Stack spacing={1.5}>
+                        <TextField
+                            required
+                            fullWidth
+                            id="CPF"
+                            label="CPF"
+                            name="cpf"
+                            value={cpf}
+                            onChange={changeItem}
+                            autoComplete="cpf"
+                            autoFocus
+                        />
+                        <TextField
+                            required
+                            fullWidth
+                            name="password"
+                            label="Senha"
+                            type="password"
+                            value={password}
+                            onChange={changeItem}
+                            id="password"
+                            autoComplete="current-password"
+                        />
+                    </Stack>
                     {/* <FormControlLabel
                         control={<Checkbox value="remember" color="primary" />}
                         label="Lembrar"

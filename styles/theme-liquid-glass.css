@@ -347,6 +347,57 @@ input[type="checkbox"],
   display: inline-flex;
 }
 
+.MuiTextField-root .MuiOutlinedInput-root,
+.MuiFormControl-root .MuiOutlinedInput-root {
+  background: var(--lg-glass-input);
+  border: 0.5px solid var(--lg-border-input);
+  border-radius: 11px;
+  color: var(--lg-text-primary);
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.06), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root fieldset,
+.MuiFormControl-root .MuiOutlinedInput-root fieldset {
+  border: none;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover,
+.MuiFormControl-root .MuiOutlinedInput-root:hover {
+  background: var(--lg-glass-input-focus);
+}
+
+.MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background: var(--lg-glass-input-focus);
+  box-shadow: var(--lg-focus-ring);
+}
+
+.MuiTextField-root .MuiInputBase-input,
+.MuiFormControl-root .MuiInputBase-input {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.MuiTextField-root .MuiInputBase-input::placeholder,
+.MuiFormControl-root .MuiInputBase-input::placeholder {
+  color: var(--lg-text-muted);
+  opacity: 1;
+}
+
+.MuiTextField-root .MuiInputLabel-root,
+.MuiFormControl-root .MuiInputLabel-root {
+  color: var(--lg-text-muted);
+}
+
+.MuiTextField-root .MuiFormHelperText-root,
+.MuiFormControl-root .MuiFormHelperText-root {
+  color: var(--lg-text-muted);
+  margin-left: 2px;
+  margin-top: 6px;
+}
+
 .lg-search-field {
   width: 100%;
 }
