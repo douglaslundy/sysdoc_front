@@ -1,7 +1,5 @@
 import React, { useContext } from "react";
 import FeatherIcon from "feather-icons-react";
-import Image from "next/image";
-import userimg from "../../../assets/images/users/user3.jpg";
 import {
   Box,
   Menu,
@@ -11,6 +9,8 @@ import {
   Divider,
   ListItemButton,
   ListItemText,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 
 import { useDispatch } from "react-redux";
@@ -19,16 +19,21 @@ import { logoutFetch } from "../../store/fetchActions/auth";
 import UserModal from "../../components/modal/user";
 import { turnUserModal } from "../../store/ducks/Layout";
 import { getUserFetch } from "../../store/fetchActions/user";
-
 import { ColorModeContext } from "../../contexts/ThemeContext";
-import { Tooltip, IconButton } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-// import { Moon, Sun } from "lucide-react"; // ou FeatherIcon se preferir
-
 
 function logout(dispatch) {
   dispatch(logoutFetch());
 }
+
+const getInitials = (name) => {
+  if (!name) return "US";
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+};
 
 const ProfileDD = () => {
   const [anchorEl4, setAnchorEl4] = React.useState(null);
@@ -43,82 +48,102 @@ const ProfileDD = () => {
 
   const dispatch = useDispatch();
 
-  const { username } = useContext(AuthContext);
-  const { user } = useContext(AuthContext);
+  const { username, user } = useContext(AuthContext);
 
-  const HandleEditUser = async user => {
-    dispatch(getUserFetch(user));
+  const handleEditUser = async (userId) => {
+    dispatch(getUserFetch(userId));
     dispatch(turnUserModal());
-  }
+  };
 
   const { toggleColorMode, mode } = useContext(ColorModeContext);
-
-  const theme = useTheme();
 
   return (
     <>
       <UserModal />
-      <Button
-        aria-label="menu"
-        color="inherit"
-        aria-controls="profile-menu"
-        aria-haspopup="true"
-        onClick={handleClick4}
-      >
-        <Box display="flex" alignItems="center">
-          <Image
-            src={userimg}
-            alt={userimg}
-            width="30"
-            height="30"
-            className="roundedCircle"
-          />
-          <Box
-            sx={{
-              display: {
-                xs: "none",
-                sm: "flex",
-              },
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              color="textSecondary"
-              variant="h5"
-              fontWeight="400"
-              sx={{ ml: 1 }}
-            >
-              Olá,
-            </Typography>
-            <Typography
-              variant="h5"
-              fontWeight="700"
-              sx={{
-                ml: 1,
-              }}
-            >
-              {username}
-            </Typography>
-            <FeatherIcon icon="chevron-down" width="20" height="20" />
-          </Box>
-        </Box>
-      </Button>
-      <Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Tooltip title={mode === "dark" ? "Modo claro" : "Modo escuro"}>
           <IconButton
             onClick={toggleColorMode}
-            sx={{ ml: 1 }}
-            color="inherit"
+            aria-label="Alternar tema"
             size="small"
+            className="theme-toggle-btn"
+            sx={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "9px",
+              border: "0.5px solid var(--lg-border-input)",
+              background: "var(--lg-glass-input)",
+              color: "var(--lg-text-secondary)",
+              backdropFilter: "blur(8px)",
+              transition: "all 0.14s ease",
+              "&:hover": {
+                background: "var(--lg-glass-input-focus)",
+                color: "var(--lg-text-primary)",
+                transform: "scale(1.07)",
+              },
+            }}
           >
-            <FeatherIcon
-              icon={mode === "dark" ? "sun" : "moon"}
-              width="18"
-              height="18"
-            />
+            <FeatherIcon icon={mode === "dark" ? "sun" : "moon"} width="18" height="18" />
           </IconButton>
         </Tooltip>
-      </Button>
+
+        <Button
+          aria-label="menu"
+          color="inherit"
+          aria-controls="profile-menu"
+          aria-haspopup="true"
+          onClick={handleClick4}
+          sx={{
+            textTransform: "none",
+            padding: "5px 12px 5px 5px",
+            background: "var(--lg-glass-chip)",
+            border: "0.5px solid var(--lg-border)",
+            borderRadius: "40px",
+            backdropFilter: "var(--lg-blur-input)",
+            WebkitBackdropFilter: "var(--lg-blur-input)",
+            color: "var(--lg-text-secondary)",
+            boxShadow: "0 1px 4px rgba(var(--lg-accent-rgb), 0.1), 0 1px 0 rgba(255,255,255,0.2) inset",
+            "&:hover": {
+              background: "var(--lg-glass-panel-hover)",
+            },
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1}>
+            <Box
+              sx={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: "10px",
+                fontWeight: 600,
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                flexShrink: 0,
+              }}
+            >
+              {getInitials(username)}
+            </Box>
+            <Box
+              sx={{
+                display: {
+                  xs: "none",
+                  sm: "flex",
+                },
+                alignItems: "center",
+              }}
+            >
+              <Typography sx={{ fontSize: "12px", color: "var(--lg-text-secondary)", mr: 0.5 }}>
+                {username}
+              </Typography>
+              <FeatherIcon icon="chevron-down" width="14" height="14" style={{ opacity: 0.4 }} />
+            </Box>
+          </Box>
+        </Button>
+      </Box>
+
       <Menu
         id="profile-menu"
         anchorEl={anchorEl4}
@@ -127,13 +152,13 @@ const ProfileDD = () => {
         onClose={handleClose4}
         sx={{
           "& .MuiMenu-paper": {
-            width: "385px",
+            width: "320px",
           },
         }}
       >
         <Box>
           <ListItemButton>
-            <ListItemText primary="Meus Dados" onClick={() => HandleEditUser(user)} />
+            <ListItemText primary="Meus Dados" onClick={() => handleEditUser(user)} />
           </ListItemButton>
 
           <Divider />
