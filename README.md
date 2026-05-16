@@ -1,26 +1,39 @@
+# SYSDOC Frontend (`sysdoc_front`)
 
-Name dev: 
-##### Dev Douglas Lundy Santos
+Aplicacao Next.js do SYSDOC com painis administrativos, laboratorio, vigilancia sanitaria, farmacia, auditoria e fluxos de anexos.
 
-Contact:
-##### douglaslundy@gmail.com
-##### Phone number and WhatsApp: (35) 984297193
-##### https://www.linkedin.com/in/douglaslundy/
+## Requisitos
+- Node.js 18+
+- npm (ou yarn)
 
-Esta aplicação é um projeto Back-End, de gestão de clientes, estoque e vendas, 
-em desenvolvimento para o cliente Jr ferragens, 
-neste projeto esta sendo utilizando NextJs, Redux, Yup, Axios e Material UI.
-Esta aplicação consumirá uma API em Laravel 9.0 no Backend Tb ainda em desenvolvimento.
+## Setup local
+```bash
+npm install
+npm run dev
+```
 
-Após a conclusão deste projeto, este README será alterado com as informações adicionais pertinentes,
-bem como o guia para instalação e produção. 
+## Build e execucao
+```bash
+npm run build
+npm run start
+```
 
+## Testes
+```bash
+npm run test
+```
 
-### Link do projeto consumindo uma api Laravel
+## Areas principais
+- Autenticacao e controle de acesso por permissao
+- Dashboards (fila, tfd, laboratorio, farmacia, vigilancia)
+- Laboratorio (exames, pedidos, resultados, consulta publica)
+- Vigilancia (estabelecimentos e alvaras)
+- Farmacia/transparencia
+- Auditoria e configuracoes administrativas
+- Upload/download/exclusao de anexos em modulos suportados
 
-https://sysvendas.vercel.app/
+## Variaveis de ambiente
+Configurar `.env` apontando para a API backend e parametros de autenticacao/cookies conforme ambiente.
 
-
-
-### Api Laravel consumida pelo projeto
-https://github.com/douglaslundy/sysvendas_api
+## Observacao
+README antigo foi substituido para refletir o estado atual do projeto.
