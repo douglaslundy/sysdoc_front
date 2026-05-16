@@ -1,19 +1,19 @@
 import React from "react";
 import NextLink from "next/link";
-import { Box, Link, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const LogoIcon = () => {
   return (
-    <Link
-      component={NextLink}
-      href="/dashboard"
-      underline="none"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1.25,
-      }}
-    >
+    <NextLink href="/dashboard" passHref legacyBehavior>
+      <Box
+        component="a"
+        sx={{
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+        }}
+      >
       <Box
         className="lg-logo-icon"
         sx={{
@@ -54,7 +54,8 @@ const LogoIcon = () => {
           Gestao Municipal
         </Typography>
       </Box>
-    </Link>
+      </Box>
+    </NextLink>
   );
 };
 
