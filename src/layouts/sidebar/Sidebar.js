@@ -44,6 +44,12 @@ const normalizeCategory = (value) => {
     .trim();
 };
 
+const normalizeIconName = (iconName, fallback = "circle") => {
+  if (typeof iconName !== "string") return fallback;
+  const normalized = iconName.trim();
+  return normalized.length > 0 ? normalized : fallback;
+};
+
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const { profile, myPermissions } = useContext(AuthContext);
   const { pathname } = useRouter();
@@ -82,7 +88,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
           acc[category].children.push({
             title: pg.titulo,
-            icon: pg.icone || "circle",
+            icon: normalizeIconName(pg.icone, "circle"),
             href: pg.path,
             order: Number(pg.ordem ?? 999),
           });
@@ -94,7 +100,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
             const normalized = normalizeCategory(category);
             return {
               title: category,
-              icon: groupData.icon || CATEGORY_ICONS[normalized] || groupData.children[0]?.icon || "grid",
+              icon: normalizeIconName(groupData.icon, CATEGORY_ICONS[normalized] || groupData.children[0]?.icon || "grid"),
               order: groupData.order ?? 999,
               group: true,
               children: groupData.children.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)),
@@ -192,7 +198,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       >
         <ListItemIcon sx={{ minWidth: 34 }}>
           <FeatherIcon
-            icon={item.icon}
+            icon={normalizeIconName(item.icon, "circle")}
             width="18"
             height="18"
             style={{
@@ -240,7 +246,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         >
           <ListItemIcon sx={{ minWidth: 34 }}>
             <FeatherIcon
-              icon={group.icon}
+              icon={normalizeIconName(group.icon, "grid")}
               width="20"
               height="20"
               style={{
