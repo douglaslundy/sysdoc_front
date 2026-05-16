@@ -78,6 +78,15 @@ export default function SignIn() {
                             onChange={changeItem}
                             autoComplete="cpf"
                             autoFocus
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    minHeight: '56px',
+                                },
+                                '& .MuiOutlinedInput-input': {
+                                    paddingTop: '16.5px',
+                                    paddingBottom: '16.5px',
+                                },
+                            }}
                         />
                         <TextField
                             required
@@ -89,6 +98,15 @@ export default function SignIn() {
                             onChange={changeItem}
                             id="password"
                             autoComplete="current-password"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    minHeight: '56px',
+                                },
+                                '& .MuiOutlinedInput-input': {
+                                    paddingTop: '16.5px',
+                                    paddingBottom: '16.5px',
+                                },
+                            }}
                         />
                     </Stack>
                     {/* <FormControlLabel
