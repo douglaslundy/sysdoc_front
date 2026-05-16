@@ -224,6 +224,7 @@ export default function GerenciarCampos() {
                     <BaseCard title={campoEditId ? 'Editar Campo' : 'Novo Campo do Exame'}>
                         <Stack spacing={3}>
                             <TextField
+                                className="lg-search-field"
                                 label="Nome do Campo"
                                 name="nome"
                                 value={campoForm.nome}
@@ -232,6 +233,7 @@ export default function GerenciarCampos() {
                                 inputProps={{ maxLength: 100 }}
                             />
                             <TextField
+                                className="lg-search-field"
                                 label="Descrição"
                                 name="descricao"
                                 value={campoForm.descricao}
@@ -246,7 +248,8 @@ export default function GerenciarCampos() {
                                     </Select>
                                 </FormControl>
                                 <TextField
-                                    label="Unidade"
+                                className="lg-search-field"
+                                label="Unidade"
                                     name="unidade"
                                     value={campoForm.unidade}
                                     onChange={changeCampo}
@@ -256,7 +259,8 @@ export default function GerenciarCampos() {
                             </Box>
                             {campoForm.tipo_valor === 'selecao' && (
                                 <TextField
-                                    label="Opções (separadas por vírgula)"
+                                className="lg-search-field"
+                                label="Opções (separadas por vírgula)"
                                     value={campoForm.opcoes_selecao?.join(', ') || ''}
                                     onChange={e => setCampoForm(f => ({ ...f, opcoes_selecao: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
                                 />
@@ -295,21 +299,24 @@ export default function GerenciarCampos() {
                                     </Select>
                                 </FormControl>
                                 <TextField
-                                    label="Valor Mín"
+                                className="lg-search-field"
+                                label="Valor Mín"
                                     type="number"
                                     value={refForm.valor_min}
                                     onChange={e => setRefForm(f => ({ ...f, valor_min: e.target.value }))}
                                     sx={{ width: 120 }}
                                 />
                                 <TextField
-                                    label="Valor Máx"
+                                className="lg-search-field"
+                                label="Valor Máx"
                                     type="number"
                                     value={refForm.valor_max}
                                     onChange={e => setRefForm(f => ({ ...f, valor_max: e.target.value }))}
                                     sx={{ width: 120 }}
                                 />
                                 <TextField
-                                    label="Valor Texto"
+                                className="lg-search-field"
+                                label="Valor Texto"
                                     value={refForm.valor_texto}
                                     onChange={e => setRefForm(f => ({ ...f, valor_texto: e.target.value }))}
                                     sx={{ flex: 1, minWidth: 140 }}
@@ -392,3 +399,6 @@ export default function GerenciarCampos() {
         </>
     );
 }
+
+
+

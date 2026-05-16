@@ -134,7 +134,8 @@ export default function PreencherResultado() {
 
                                             {campo.tipo_valor === 'numerico' && (
                                                 <TextField
-                                                    size="small"
+                                className="lg-search-field"
+                                size="small"
                                                     type="number"
                                                     value={val.valor_numerico ?? ''}
                                                     onChange={e => setCampoValor(campo.id, exame.id, 'valor_numerico', e.target.value)}
@@ -144,7 +145,8 @@ export default function PreencherResultado() {
                                             )}
                                             {campo.tipo_valor === 'texto' && (
                                                 <TextField
-                                                    size="small"
+                                className="lg-search-field"
+                                size="small"
                                                     value={val.valor_texto ?? ''}
                                                     onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
                                                     disabled={jaLiberado}
@@ -216,3 +218,6 @@ export default function PreencherResultado() {
         </Card>
     );
 }
+
+
+
