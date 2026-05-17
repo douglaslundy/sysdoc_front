@@ -5,14 +5,46 @@ import FeatherIcon from "feather-icons-react";
 import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 
+const ROUTE_TITLES_PT = {
+  "/": "Início",
+  "/dashboard": "Dashboard",
+  "/users": "Usuários",
+  "/clients": "Clientes",
+  "/client_report": "Relatório de Clientes",
+  "/trips": "Viagens",
+  "/routes": "Rotas",
+  "/queue": "Fila",
+  "/logs": "Logs",
+  "/errorlogs": "Erros",
+  "/qrcodelogs": "Logs QR Code",
+  "/auditoria": "Auditoria",
+  "/estabelecimentos": "Estabelecimentos",
+  "/alvaras": "Alvarás",
+  "/paginas-sistema": "Páginas do Sistema",
+  "/paginas-categorias": "Categorias de Páginas",
+  "/service_calls": "Serviços",
+  "/pharmacy/medicines": "Farmácia - Medicamentos",
+  "/pharmacy/daily-status": "Farmácia - Status Diário",
+  "/pharmacy/monthly-acquisitions": "Farmácia - Aquisições Mensais",
+  "/pharmacy/compliance": "Farmácia - Compliance",
+  "/laboratorio/agenda": "Laboratório - Agenda",
+  "/laboratorio/exames": "Laboratório - Exames",
+  "/laboratorio/pedidos": "Laboratório - Pedidos",
+  "/laboratorio/medicos": "Laboratório - Médicos",
+  "/laboratorio/categorias": "Laboratório - Categorias",
+};
+
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const router = useRouter();
 
-  const pageTitle = router.pathname
+  const normalizedPath = `/${router.pathname.replace(/^\/+/, "").replace(/\/\d+$/, "")}`;
+  const mappedTitle = ROUTE_TITLES_PT[normalizedPath];
+  const fallbackTitle = normalizedPath
     .split("/")
     .filter(Boolean)
     .pop()
-    ?.replace(/-/g, " ");
+    ?.replace(/[-_]/g, " ");
+  const pageTitle = mappedTitle || fallbackTitle || "Início";
 
   return (
     <AppBar
@@ -60,7 +92,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
             textTransform: "capitalize",
           }}
         >
-          {pageTitle || "dashboard"}
+          {pageTitle}
         </Typography>
 
         <Box flexGrow={1} />
