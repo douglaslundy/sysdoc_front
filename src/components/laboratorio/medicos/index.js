@@ -103,7 +103,7 @@ export default function MedicosSolicitantes() {
                                                 <Button
                                                     title="Editar médico"
                                                     onClick={() => handleEditar(medico)}
-                                                    color="success"
+                                                    color="primary"
                                                     size="medium"
                                                     variant="contained"
                                                 >

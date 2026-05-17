@@ -16,7 +16,10 @@ const modalStyle = {
     position: 'absolute', top: '50%', left: '50%',
     transform: 'translate(-50%, -50%)',
     width: '90%', height: '98%',
-    bgcolor: 'background.paper', border: '0px solid #000',
+    bgcolor: 'var(--lg-glass-modal)',
+    backdropFilter: 'var(--lg-blur-modal)',
+    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+    border: '0.5px solid var(--lg-border)',
     boxShadow: 24, p: 4, overflow: 'scroll',
 };
 
@@ -140,7 +143,7 @@ export default function Perfis() {
                                             <Button
                                                 title="Editar perfil"
                                                 onClick={() => handleEditar(profile)}
-                                                color="success"
+                                                color="primary"
                                                 size="medium"
                                                 variant="contained"
                                             >

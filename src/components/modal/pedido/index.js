@@ -20,20 +20,13 @@ import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
 import { api } from '../../../services/api';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    height: '98%',
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: 'scroll',
-};
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
 
 const FORM_INICIAL = {
     client_id: '',
@@ -169,8 +162,8 @@ export default function PedidoModal(props) {
             </Dialog>
 
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
-                <Box sx={style}>
+            <Modal keepMounted open={isOpenModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
@@ -185,8 +178,12 @@ export default function PedidoModal(props) {
                                                 value={cpfCns}
                                                 onChange={e => setCpfCns(e.target.value)}
                                                 onKeyDown={e => e.key === 'Enter' && buscarPaciente()}
-                                                size="small"
-                                                sx={{ flex: 1 }}
+                                                size="medium"
+                                                sx={{
+                                                    flex: 1,
+                                                    '& .MuiInputBase-root': { minHeight: 44 },
+                                                    '& .MuiInputBase-input': { paddingTop: '11px', paddingBottom: '11px' },
+                                                }}
                                                 inputProps={{ maxLength: 20, autoComplete: 'off' }}
                                                 InputProps={{
                                                     endAdornment: buscandoPaciente ? (
@@ -314,16 +311,16 @@ export default function PedidoModal(props) {
                                         </Box>
                                     )}
                                 </Stack>
-                                <br />
-                                <Box sx={{ '& button': { mx: 1 } }}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
                                     <Button
                                         variant="contained"
                                         onClick={handleSave}
                                         disabled={!form.client_id || form.exames.length === 0}
+                                        sx={modalPrimaryButtonSx}
                                     >
                                         Criar Pedido
                                     </Button>
-                                    <Button variant="outlined" onClick={cleanForm}>
+                                    <Button variant="outlined" onClick={cleanForm} sx={modalSecondaryButtonSx}>
                                         Cancelar
                                     </Button>
                                 </Box>

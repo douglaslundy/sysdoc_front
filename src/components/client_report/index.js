@@ -31,9 +31,9 @@ const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
 };
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     "&:nth-of-type(odd)": {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
     "&:last-child td, &:last-child th": {
         border: 0,
@@ -43,12 +43,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const InfoItem = ({ label, value }) => (
     <Box
         sx={{
-            border: "1px solid",
-            borderColor: "divider",
+            border: "1px solid var(--lg-border)",
             borderRadius: 2,
             p: 2,
             height: "100%",
-            backgroundColor: "background.paper",
+            bgcolor: "var(--lg-glass-panel)",
         }}
     >
         <Typography
@@ -179,7 +178,8 @@ export default () => {
                 sx={{
                     "& > :not(style)": { m: 2 },
                     display: "flex",
-                    justifyContent: "stretch",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                 }}
             >
                 <TextField
@@ -264,12 +264,11 @@ export default () => {
                             <Grid item xs={12} md={6} lg={4}>
                                 <Box
                                     sx={{
-                                        border: "1px solid",
-                                        borderColor: "divider",
+                                        border: "1px solid var(--lg-border)",
                                         borderRadius: 2,
                                         p: 2,
                                         height: "100%",
-                                        backgroundColor: "background.paper",
+                                        bgcolor: "var(--lg-glass-panel)",
                                     }}
                                 >
                                     <Typography

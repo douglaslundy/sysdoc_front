@@ -431,6 +431,120 @@ input[type="checkbox"],
   opacity: 1;
 }
 
+/* Padronizacao global para TODOS os modais do sistema */
+.MuiModal-root > .MuiBox-root {
+  background: var(--lg-glass-modal);
+  backdrop-filter: var(--lg-blur-modal);
+  -webkit-backdrop-filter: var(--lg-blur-modal);
+  border: 0.5px solid var(--lg-border);
+  border-top: 1px solid var(--lg-border-strong);
+  box-shadow: var(--lg-shadow-modal);
+  border-radius: 18px;
+  width: min(960px, 96vw) !important;
+  max-width: 96vw !important;
+  max-height: 92vh !important;
+}
+
+.MuiDialog-root .MuiDialog-paper {
+  width: min(960px, 96vw) !important;
+  max-width: 96vw !important;
+  max-height: 92vh !important;
+  background: var(--lg-glass-modal);
+  backdrop-filter: var(--lg-blur-modal);
+  -webkit-backdrop-filter: var(--lg-blur-modal);
+  border: 0.5px solid var(--lg-border);
+  border-top: 1px solid var(--lg-border-strong);
+  box-shadow: var(--lg-shadow-modal);
+  border-radius: 20px;
+}
+
+.MuiDialog-root .MuiBackdrop-root {
+  background: var(--lg-overlay-bg);
+  backdrop-filter: var(--lg-blur-overlay);
+  -webkit-backdrop-filter: var(--lg-blur-overlay);
+}
+
+.MuiDialog-root .MuiDialogTitle-root,
+.MuiDialog-root .MuiDialogContent-root,
+.MuiDialog-root .MuiDialogActions-root {
+  color: var(--lg-text-primary);
+}
+
+.MuiModal-root .MuiInputLabel-root,
+.MuiDialog-root .MuiInputLabel-root {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--lg-text-muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.MuiModal-root .MuiInputBase-root,
+.MuiDialog-root .MuiInputBase-root {
+  min-height: 44px;
+  background: var(--lg-glass-input);
+  border: 0.5px solid var(--lg-border-input);
+  border-radius: 10px;
+  color: var(--lg-text-primary);
+  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  align-items: center;
+}
+
+.MuiModal-root .MuiOutlinedInput-notchedOutline,
+.MuiDialog-root .MuiOutlinedInput-notchedOutline {
+  border: none;
+}
+
+.MuiModal-root .MuiInputBase-root.Mui-focused,
+.MuiDialog-root .MuiInputBase-root.Mui-focused {
+  background: var(--lg-glass-input-focus);
+  box-shadow: var(--lg-focus-ring);
+}
+
+.MuiModal-root .MuiInputBase-input,
+.MuiDialog-root .MuiInputBase-input {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.MuiModal-root .MuiInputBase-input::placeholder,
+.MuiDialog-root .MuiInputBase-input::placeholder {
+  color: var(--lg-text-muted);
+  opacity: 1;
+}
+
+.MuiModal-root .MuiButton-contained,
+.MuiDialog-root .MuiButton-contained {
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
+  box-shadow: var(--lg-shadow-btn);
+  text-transform: none;
+}
+
+.MuiModal-root .MuiButton-contained:hover,
+.MuiDialog-root .MuiButton-contained:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed);
+}
+
+.MuiModal-root .MuiButton-outlined,
+.MuiDialog-root .MuiButton-outlined {
+  border-radius: 10px;
+  background: var(--lg-glass-input);
+  border: 0.5px solid var(--lg-border-input);
+  color: var(--lg-text-secondary);
+  text-transform: none;
+}
+
+.MuiModal-root .MuiButton-outlined:hover,
+.MuiDialog-root .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus);
+  color: var(--lg-text-primary);
+  border: 0.5px solid var(--lg-border-input);
+}
+
 .form-group,
 .field-group,
 [class*="form-field"] {

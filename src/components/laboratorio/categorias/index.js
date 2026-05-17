@@ -85,7 +85,7 @@ export default function CategoriasExame() {
                                                 <Button
                                                     title="Editar categoria"
                                                     onClick={() => handleEditar(categoria)}
-                                                    color="success"
+                                                    color="primary"
                                                     size="medium"
                                                     variant="contained"
                                                 >

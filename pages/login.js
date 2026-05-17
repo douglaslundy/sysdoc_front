@@ -3,8 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import FeatherIcon from "feather-icons-react";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
@@ -41,7 +39,6 @@ export default function SignIn() {
         cpf: '',
         password: ''
     });
-    const [showPassword, setShowPassword] = useState(false);
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
@@ -82,8 +79,27 @@ export default function SignIn() {
                             autoComplete="cpf"
                             autoFocus
                             sx={{
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    color: 'var(--lg-text-muted)',
+                                    letterSpacing: '0.07em',
+                                    textTransform: 'uppercase',
+                                },
                                 '& .MuiOutlinedInput-root': {
                                     minHeight: '56px',
+                                    background: 'var(--lg-glass-input)',
+                                    border: '0.5px solid var(--lg-border-input)',
+                                    borderRadius: '10px',
+                                    color: 'var(--lg-text-primary)',
+                                    boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
+                                },
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                },
+                                '& .MuiOutlinedInput-root.Mui-focused': {
+                                    background: 'var(--lg-glass-input-focus)',
+                                    boxShadow: 'var(--lg-focus-ring)',
                                 },
                                 '& .MuiOutlinedInput-input': {
                                     paddingTop: '16.5px',
@@ -96,28 +112,33 @@ export default function SignIn() {
                             fullWidth
                             name="password"
                             label="Senha"
-                            type={showPassword ? 'text' : 'password'}
+                            type="password"
                             value={password}
                             onChange={changeItem}
                             id="password"
                             autoComplete="current-password"
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                                            onClick={() => setShowPassword((prev) => !prev)}
-                                            edge="end"
-                                            size="small"
-                                        >
-                                            <FeatherIcon icon={showPassword ? 'eye-off' : 'eye'} width="16" height="16" />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
                             sx={{
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    color: 'var(--lg-text-muted)',
+                                    letterSpacing: '0.07em',
+                                    textTransform: 'uppercase',
+                                },
                                 '& .MuiOutlinedInput-root': {
                                     minHeight: '56px',
+                                    background: 'var(--lg-glass-input)',
+                                    border: '0.5px solid var(--lg-border-input)',
+                                    borderRadius: '10px',
+                                    color: 'var(--lg-text-primary)',
+                                    boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
+                                },
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                },
+                                '& .MuiOutlinedInput-root.Mui-focused': {
+                                    background: 'var(--lg-glass-input-focus)',
+                                    boxShadow: 'var(--lg-focus-ring)',
                                 },
                                 '& .MuiOutlinedInput-input': {
                                     paddingTop: '16.5px',
@@ -134,7 +155,22 @@ export default function SignIn() {
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
+                        sx={{
+                            mt: 3,
+                            mb: 2,
+                            py: 1.2,
+                            borderRadius: '10px',
+                            background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
+                            boxShadow: 'var(--lg-shadow-btn)',
+                            textTransform: 'none',
+                            fontSize: '14px',
+                            '&:hover': {
+                                opacity: 0.92,
+                                transform: 'translateY(-1px)',
+                                boxShadow: 'var(--lg-shadow-btn-hover)',
+                                background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
+                            },
+                        }}
                     >
                         Entrar
                     </Button>

@@ -13,20 +13,13 @@ import { showExame } from '../../../store/ducks/exames';
 import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addExameFetch, editExameFetch } from '../../../store/fetchActions/exames';
 import { getAllCategorias } from '../../../store/fetchActions/categoriasExame';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    height: '98%',
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: 'scroll',
-};
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
 
 const FORM_INICIAL = { nome: '', codigo: '', categoria_exame_id: '', descricao: '', ativo: true };
 
@@ -86,8 +79,13 @@ export default function ExameModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
-                <Box sx={style}>
+            <Modal
+                keepMounted
+                open={isOpenModal}
+                onClose={cleanForm}
+                slotProps={{ backdrop: { sx: modalBackdropSx } }}
+            >
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
@@ -145,12 +143,11 @@ export default function ExameModal(props) {
                                         label="Exame ativo"
                                     />
                                 </Stack>
-                                <br />
-                                <Box sx={{ '& button': { mx: 1 } }}>
-                                    <Button variant="contained" onClick={handleSave}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                                    <Button variant="contained" onClick={handleSave} sx={modalPrimaryButtonSx}>
                                         {isEdit ? 'Salvar' : 'Criar e gerenciar campos'}
                                     </Button>
-                                    <Button variant="outlined" onClick={cleanForm}>
+                                    <Button variant="outlined" onClick={cleanForm} sx={modalSecondaryButtonSx}>
                                         Cancelar
                                     </Button>
                                 </Box>

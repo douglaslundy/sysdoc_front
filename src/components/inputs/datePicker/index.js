@@ -28,11 +28,13 @@ export default function BasicDatePicker(props) {
           <TextField
             {...params}
             className={className}
-            size="small"
+            size="medium"
             sx={{
               minWidth: 180,
               "& .MuiInputBase-input": {
                 paddingLeft: "12px",
+                paddingTop: "11px",
+                paddingBottom: "11px",
               },
               ...sx,
             }}

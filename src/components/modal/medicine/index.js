@@ -64,7 +64,24 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} PaperProps={{ sx: { width: '90%', maxWidth: '900px' } }}>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            PaperProps={{
+                sx: {
+                    width: '900px',
+                    maxWidth: '96vw',
+                    maxHeight: '92vh',
+                    background: 'var(--lg-glass-modal)',
+                    backdropFilter: 'var(--lg-blur-modal)',
+                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+                    border: '0.5px solid var(--lg-border)',
+                    borderTop: '1px solid var(--lg-border-strong)',
+                    boxShadow: 'var(--lg-shadow-modal)',
+                    borderRadius: '20px',
+                },
+            }}
+        >
             <DialogTitle>{medicine?.id ? 'Editar Medicamento' : 'Novo Medicamento'}</DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 1 }}>

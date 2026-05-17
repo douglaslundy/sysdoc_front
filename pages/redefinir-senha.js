@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
     Box, Button, TextField, Typography, Paper, Alert, CircularProgress, Link,
-    InputAdornment, IconButton,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import NextLink from 'next/link';
@@ -13,7 +12,6 @@ export default function RedefinirSenha() {
     const { token, email } = router.query;
 
     const [form, setForm] = useState({ password: '', password_confirmation: '' });
-    const [showPass, setShowPass] = useState(false);
     const [loading, setLoading] = useState(false);
     const [sucesso, setSucesso] = useState(false);
     const [erro, setErro] = useState('');
@@ -84,26 +82,17 @@ export default function RedefinirSenha() {
                             fullWidth
                             label="Nova senha"
                             name="password"
-                            type={showPass ? 'text' : 'password'}
+                            type="password"
                             value={form.password}
                             onChange={handleChange}
                             required
                             sx={{ mb: 2 }}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={() => setShowPass(v => !v)} size="small">
-                                            <FeatherIcon icon={showPass ? 'eye-off' : 'eye'} width="18" height="18" />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
                         />
                         <TextField
                             fullWidth
                             label="Confirmar nova senha"
                             name="password_confirmation"
-                            type={showPass ? 'text' : 'password'}
+                            type="password"
                             value={form.password_confirmation}
                             onChange={handleChange}
                             required

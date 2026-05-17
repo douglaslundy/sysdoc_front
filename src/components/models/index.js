@@ -30,11 +30,10 @@ import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
-    // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
     },
@@ -102,8 +101,9 @@ export default () => {
 
             <Box sx={{
                 '& > :not(style)': { m: 2 },
-                'display': 'flex',
-                'justify-content': 'stretch'
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
             }}>
 
                 <TextField
@@ -248,7 +248,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="success" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="primary" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 

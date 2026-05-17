@@ -21,11 +21,10 @@ import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
-    // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
     },
@@ -283,10 +282,13 @@ export default () => {
 
                         :
 
-                        <TableCell align="center">
-                            Nenhum registro encontrado!
-
-                        </TableCell>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell align="center" colSpan={5}>
+                                    Nenhum registro encontrado!
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
 
                     }
 

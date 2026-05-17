@@ -64,6 +64,7 @@ export default function AgendaColeta() {
                         label="Data de coleta"
                         setValue={setDataSelecionada}
                         value={dataSelecionada}
+                        sx={{ minWidth: 220 }}
                     />
                     <Button
                         variant="contained"
@@ -73,6 +74,21 @@ export default function AgendaColeta() {
                             ? <CircularProgress size={16} color="inherit" />
                             : <FeatherIcon icon="calendar" size={16} />
                         }
+                        sx={{
+                            py: 1.2,
+                            px: 2.2,
+                            borderRadius: '10px',
+                            background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
+                            boxShadow: 'var(--lg-shadow-btn)',
+                            textTransform: 'none',
+                            fontSize: '14px',
+                            '&:hover': {
+                                opacity: 0.92,
+                                transform: 'translateY(-1px)',
+                                boxShadow: 'var(--lg-shadow-btn-hover)',
+                                background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
+                            },
+                        }}
                     >
                         Consultar
                     </Button>

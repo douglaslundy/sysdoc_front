@@ -15,8 +15,8 @@ import { changeTitleAlert } from '../../store/ducks/Layout';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': { backgroundColor: theme.palette.action.hover },
+const StyledTableRow = styled(TableRow)(() => ({
+    '&:nth-of-type(odd)': { backgroundColor: 'var(--lg-glass-row-hover)' },
     '&:last-child td, &:last-child th': { border: 0 },
 }));
 

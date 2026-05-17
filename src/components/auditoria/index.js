@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, Collapse, FormControl, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableContainer, TableHead,
-    TablePagination, TableRow, Typography,
+    TablePagination, TableRow, TextField, Typography,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -176,24 +176,24 @@ export default function Auditoria() {
                     </Select>
                 </FormControl>
 
-                <FormControl size="small">
-                    <input
-                        type="date"
-                        value={filters.date_from}
-                        onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
-                        style={{ padding: '8px', borderRadius: 4, border: '1px solid #ccc', fontSize: 14 }}
-                        title="De"
-                    />
-                </FormControl>
-                <FormControl size="small">
-                    <input
-                        type="date"
-                        value={filters.date_to}
-                        onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
-                        style={{ padding: '8px', borderRadius: 4, border: '1px solid #ccc', fontSize: 14 }}
-                        title="Até"
-                    />
-                </FormControl>
+                <TextField
+                    className="lg-search-field"
+                    size="small"
+                    type="date"
+                    value={filters.date_from}
+                    onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
+                    title="De"
+                    InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                    className="lg-search-field"
+                    size="small"
+                    type="date"
+                    value={filters.date_to}
+                    onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
+                    title="Até"
+                    InputLabelProps={{ shrink: true }}
+                />
 
                 <Button variant="contained" onClick={handleFilter}>
                     <FeatherIcon icon="search" width="20" height="20" />

@@ -19,20 +19,13 @@ import { editRouteFetch, addRouteFetch } from '../../../store/fetchActions/route
 import { getAllStates } from '../../../store/fetchActions/states';
 import AlertModal from '../../messagesModal';
 import BasicSelect from '../../inputs/selects';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
 
 export default function RouteModal(props) {
 
@@ -124,8 +117,9 @@ export default function RouteModal(props) {
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
+                slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
@@ -138,10 +132,7 @@ export default function RouteModal(props) {
                                     </Alert>
                                 }
 
-                                <br />
-
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
+                                <Stack spacing={2.2}>
 
                                     <Box
                                         sx={{
@@ -177,10 +168,6 @@ export default function RouteModal(props) {
 
                                     </Box>
 
-                                </Stack>
-
-                                <Stack spacing={3}>
-
                                     <Box
                                         sx={{
                                             display: 'grid',
@@ -214,10 +201,6 @@ export default function RouteModal(props) {
                                         />
                                     </Box>
 
-                                </Stack>
-
-                                <Stack spacing={3}>
-
                                     <Box
                                         sx={{
                                             display: 'grid',
@@ -241,14 +224,12 @@ export default function RouteModal(props) {
                                     </Box>
 
                                 </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" mt={2}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Cancelar
                                     </Button>
                                 </Box>

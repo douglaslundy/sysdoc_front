@@ -15,20 +15,13 @@ import { turnResultadoModal } from '../../../store/ducks/Layout';
 import { clearResultado } from '../../../store/ducks/resultadoExames';
 import { salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
 import { getAllPedidos } from '../../../store/fetchActions/pedidosExame';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    height: '98%',
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: 'scroll',
-};
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
 
 const STATUS_COR = {
     normal: 'success', baixo: 'info', alto: 'error',
@@ -123,8 +116,8 @@ export default function ResultadoModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenResultadoModal} onClose={handleClose}>
-                <Box sx={style}>
+            <Modal keepMounted open={isOpenResultadoModal} onClose={handleClose} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
@@ -253,11 +246,12 @@ export default function ResultadoModal(props) {
 
                                 {!jaLiberado && (
                                     <Box mt={2}>
-                                        <Box sx={{ '& button': { mx: 1 } }}>
+                                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                                             <Button
                                                 variant="outlined"
                                                 onClick={handleSalvar}
                                                 disabled={!temCampoPreenchido}
+                                                sx={modalSecondaryButtonSx}
                                             >
                                                 Salvar Rascunho
                                             </Button>
@@ -267,10 +261,11 @@ export default function ResultadoModal(props) {
                                                 onClick={() => setOpenConfirm(true)}
                                                 disabled={!temCampoSalvo}
                                                 title={!temCampoSalvo ? 'Salve o rascunho antes de liberar' : ''}
+                                                sx={modalPrimaryButtonSx}
                                             >
                                                 Liberar Resultado
                                             </Button>
-                                            <Button variant="text" onClick={handleClose}>
+                                            <Button variant="outlined" onClick={handleClose} sx={modalSecondaryButtonSx}>
                                                 Fechar
                                             </Button>
                                         </Box>
@@ -283,7 +278,7 @@ export default function ResultadoModal(props) {
                                 )}
                                 {jaLiberado && (
                                     <Box mt={2}>
-                                        <Button variant="outlined" onClick={handleClose}>
+                                        <Button variant="outlined" onClick={handleClose} sx={modalSecondaryButtonSx}>
                                             Fechar
                                         </Button>
                                     </Box>

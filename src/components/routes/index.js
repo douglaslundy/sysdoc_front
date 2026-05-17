@@ -29,11 +29,10 @@ import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
 
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
-    // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
     },
@@ -98,8 +97,9 @@ export default () => {
             <AlertModal />
             <Box sx={{
                 '& > :not(style)': { m: 2 },
-                'display': 'flex',
-                'justify-content': 'stretch'
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
             }}>
 
                 <TextField
@@ -122,7 +122,7 @@ export default () => {
 
                 <RouteModal>
                     <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
+                        <FeatherIcon icon="plus" />
                     </Fab>
                 </RouteModal>
             </Box>

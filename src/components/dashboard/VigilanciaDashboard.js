@@ -15,7 +15,7 @@ function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
             <CardContent sx={{ px: 2.5, py: 2 }}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
                     <Box sx={{ minWidth: 0 }}>
-                        <Typography color="textSecondary" variant="subtitle2" noWrap>{titulo}</Typography>
+                        <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600, lineHeight: 1.25 }}>{titulo}</Typography>
                         <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
                     </Box>
                     <Box

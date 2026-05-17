@@ -38,7 +38,24 @@ export default function MedicinePublicationDialog({ open, onClose, onSuccess }) 
     };
 
     return (
-        <Dialog open={open} onClose={onClose} PaperProps={{ sx: { width: '90%', maxWidth: '600px' } }}>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            PaperProps={{
+                sx: {
+                    width: '600px',
+                    maxWidth: '96vw',
+                    maxHeight: '92vh',
+                    background: 'var(--lg-glass-modal)',
+                    backdropFilter: 'var(--lg-blur-modal)',
+                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+                    border: '0.5px solid var(--lg-border)',
+                    borderTop: '1px solid var(--lg-border-strong)',
+                    boxShadow: 'var(--lg-shadow-modal)',
+                    borderRadius: '20px',
+                },
+            }}
+        >
             <DialogTitle>Register Publication Evidence</DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
@@ -80,4 +97,3 @@ export default function MedicinePublicationDialog({ open, onClose, onSuccess }) 
         </Dialog>
     );
 }
-

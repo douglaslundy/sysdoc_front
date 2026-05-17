@@ -56,7 +56,21 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
         <Dialog
             open={open}
             onClose={onClose}
-            PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
+            PaperProps={{
+                sx: {
+                    width: '960px',
+                    maxWidth: '96vw',
+                    maxHeight: '92vh',
+                    overflowY: 'auto',
+                    background: 'var(--lg-glass-modal)',
+                    backdropFilter: 'var(--lg-blur-modal)',
+                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+                    border: '0.5px solid var(--lg-border)',
+                    borderTop: '1px solid var(--lg-border-strong)',
+                    boxShadow: 'var(--lg-shadow-modal)',
+                    borderRadius: '20px',
+                },
+            }}
         >
             <DialogTitle>
                 {estabelecimento?.id ? 'Editar Estabelecimento' : 'Novo Estabelecimento'}
