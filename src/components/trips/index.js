@@ -16,6 +16,8 @@ import {
   FormControlLabel,
   Switch,
   Stack,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 
 import { useTheme } from "@mui/material/styles";
@@ -61,6 +63,7 @@ export default function Trips() {
 
   const dispatch = useDispatch();
   const { trips } = useSelector((state) => state.trips);
+  const { isOpenLoading } = useSelector((state) => state.layout);
   const [searchValue, setSearchValue] = useState("");
   const [allTrips, setAllTrips] = useState(trips);
   const [option, setOption] = useState("add");
@@ -171,6 +174,25 @@ export default function Trips() {
 
   return (
     <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastradas`}>
+      <Backdrop
+        open={isOpenLoading}
+        sx={{
+          position: 'absolute',
+          zIndex: 20,
+          color: '#fff',
+          background: 'var(--lg-overlay-bg)',
+          backdropFilter: 'var(--lg-blur-overlay)',
+          WebkitBackdropFilter: 'var(--lg-blur-overlay)',
+          borderRadius: '16px',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <CircularProgress color="inherit" size={34} />
+        <Typography variant="body2" sx={{ color: 'var(--lg-text-primary)' }}>
+          Carregando viagens...
+        </Typography>
+      </Backdrop>
       <AlertModal />
       <Stack sx={{ gap: 1.5, mb: 2 }}>
         <SwitchModal option={option} />

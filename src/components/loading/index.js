@@ -1,49 +1,56 @@
-import { Dialog } from '@mui/material';
-import {makeStyles} from "@material-ui/core/styles";
-
-import Load from "../../../assets/images/logos/loading1.gif";
-import Image from "next/image";
+import { Backdrop, CircularProgress, Typography } from '@mui/material';
+import { useRouter } from 'next/router';
 
 import { useSelector, useDispatch } from 'react-redux';
 
 import React from 'react';
 
-const useStyles = makeStyles(
-    theme => (
-        {
-            dialog: {
-                padding: theme.spacing(5),
-                display: 'flex',
-                justifyContent: 'space-around',
-            },
-            dialogTitle: {
-                padding: theme.spacing(2),
-                display: 'flex',
-                justifyContent: 'space-around',
-            },
-            dialogContent: {
-                textAlign: 'center',
-                alignContent: 'center',
-            },
-            dialogAction: {
-                justifyContent: 'space-evenly',
-            }
-        }
-    ));
-
 export default function Loading() {
-    const classes = useStyles();
+    const router = useRouter();
 
-    const { isOpenLoading } = useSelector(state => state.layout);
+    const {
+        isOpenLoading,
+        isOpenModal,
+        isOpenUserModal,
+        isOpenModelModal,
+        isOpenLetterModal,
+        isOpenModalGetSales,
+        isOpenModalGetSale,
+        isOpenResultadoModal,
+    } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
+    // Em /trips usamos loading local (Backdrop na página) para evitar modal grande.
+    if (router.pathname === '/trips') {
+        return null;
+    }
+
+    const hasAnyModalOpen =
+        isOpenModal ||
+        isOpenUserModal ||
+        isOpenModelModal ||
+        isOpenLetterModal ||
+        isOpenModalGetSales ||
+        isOpenModalGetSale ||
+        isOpenResultadoModal;
+
     return (
-
-        <Dialog open={isOpenLoading}
-            classes={{ paper: classes.dialog }}
+        <Backdrop
+            open={isOpenLoading}
+            sx={{
+                zIndex: (theme) => theme.zIndex.modal + 200,
+                color: '#fff',
+                background: 'var(--lg-overlay-bg)',
+                backdropFilter: 'var(--lg-blur-overlay)',
+                WebkitBackdropFilter: 'var(--lg-blur-overlay)',
+                flexDirection: 'column',
+                gap: 1.2,
+            }}
         >
-            <Image width={100} height={100} src={Load} alt={Load} />
-
-        </Dialog>
-    )
+            <CircularProgress color="inherit" size={34} />
+            <Typography variant="body2" sx={{ color: 'var(--lg-text-primary)' }}>
+                {hasAnyModalOpen ? 'Salvando registro...' : 'Carregando...'}
+            </Typography>
+        </Backdrop>
+    );
 }
