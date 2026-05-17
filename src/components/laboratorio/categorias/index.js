@@ -11,6 +11,7 @@ import { turnModal } from '../../../store/ducks/Layout';
 import CategoriaExameModal from '../../modal/categoriaExame';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 export default function CategoriasExame() {
     const dispatch = useDispatch();
@@ -39,10 +40,11 @@ export default function CategoriasExame() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <CategoriaExameModal>
             <BaseCard title={`Você possui ${categorias.length} Categorias Cadastradas`}>
                 <AlertModal />
-                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap={{ xs: 'wrap', md: 'nowrap' }} gap={1} mb={2}>
                     <TextField
                         className="lg-search-field"
                         size="small"
@@ -50,7 +52,7 @@ export default function CategoriasExame() {
                         value={busca}
                         onChange={e => setBusca(e.target.value)}
                         inputProps={{ maxLength: 80 }}
-                        sx={{ minWidth: 280 }}
+                        sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}
                     />
                     <Fab color="primary" title="Nova Categoria" onClick={handleNova}>
                         <FeatherIcon icon="plus" />
@@ -126,5 +128,6 @@ export default function CategoriasExame() {
                 </TableContainer>
             </BaseCard>
         </CategoriaExameModal>
+        </Box>
     );
 }

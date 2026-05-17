@@ -7,6 +7,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../src/components/baseCard/BaseCard';
 import AlertModal from '../../src/components/messagesModal';
+import { modalFormRootSx } from '../../src/components/modal/_shared/modalFormStyles';
 import { getLabConfig, updateLabConfig } from '../../src/store/fetchActions/labConfig';
 
 const emptyForm = {
@@ -90,7 +91,7 @@ export default function ConfiguracoesLaboratorio() {
     }
 
     return (
-        <Box>
+        <Box sx={modalFormRootSx}>
             <AlertModal />
             <BaseCard title="Configurações do Laboratório">
 

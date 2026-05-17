@@ -243,7 +243,7 @@ export default function OrdinanceModal(props) {
                                 )}
 
                                 <Stack spacing={3}>
-                                    <FormControl fullWidth>
+                                    <FormControl className="lg-search-field" fullWidth>
                                         <InputLabel id="type-label">Tipo de Portaria</InputLabel>
                                         <Select labelId="type-label" name="type" value={type} label="Tipo de Portaria" onChange={changeItem}>
                                             {ordinanceTypes.map((item) => (<MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>))}

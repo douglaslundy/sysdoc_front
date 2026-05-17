@@ -16,6 +16,7 @@ import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
 import EditarPedidoDialog from '../../modal/editarPedido';
 import ConfirmDialog from '../../confirmDialog';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -91,13 +92,35 @@ export default function ListaPedidos() {
     };
 
     return (
-        <>
+        <Box sx={modalFormRootSx}>
         <ResultadoModal>
         <PedidoModal>
             <BaseCard title={`Você possui ${pedidos.length} Pedidos Cadastrados`}>
                 <AlertModal />
-                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
-                    <FormControl size="small" sx={{ minWidth: 160 }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', md: '160px minmax(0,1fr) auto' },
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 2,
+                    }}
+                >
+                    <FormControl
+                        className="lg-search-field"
+                        size="small"
+                        sx={{
+                            minWidth: 160,
+                            '& .MuiSelect-select, & .MuiSelect-select.MuiSelect-outlined': {
+                                display: 'flex',
+                                alignItems: 'center',
+                                minHeight: '22px',
+                                lineHeight: 1.2,
+                                paddingTop: '10px !important',
+                                paddingBottom: '10px !important',
+                            },
+                        }}
+                    >
                         <InputLabel>Status</InputLabel>
                         <Select value={filtroStatus} label="Status" onChange={e => setFiltroStatus(e.target.value)}>
                             <MenuItem value="">Todos</MenuItem>
@@ -109,10 +132,7 @@ export default function ListaPedidos() {
                         placeholder="Buscar por nome, CNS, CPF ou protocolo"
                         value={busca}
                         onChange={e => handleBusca(e.target.value)}
-                        sx={{ minWidth: 410 }}
-                        InputProps={{
-                            startAdornment: <FeatherIcon icon="search" width={16} height={16} style={{ marginRight: 8, opacity: 0.5 }} />,
-                        }}
+                        sx={{ minWidth: 0, width: '100%' }}
                     />
                     <Fab color="primary" title="Novo Pedido" onClick={() => dispatch(turnModal())}>
                         <FeatherIcon icon="plus" />
@@ -234,6 +254,6 @@ export default function ListaPedidos() {
             pedido={editarPedido}
         />
         <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-        </>
+        </Box>
     );
 }

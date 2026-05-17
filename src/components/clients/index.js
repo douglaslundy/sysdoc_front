@@ -18,6 +18,7 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllClients, inactiveClientFetch, viewClientFetch } from "../../store/fetchActions/clients";
@@ -113,6 +114,7 @@ export default () => {
 
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allClients.length} Clientes Cadastrados`}>
             <AlertModal />
             <Box sx={{
@@ -298,6 +300,7 @@ export default () => {
             />
 
         </BaseCard >
+        </Box>
     );
 };
 

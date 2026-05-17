@@ -23,6 +23,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
 import tripPDF from "../../reports/trip";
@@ -42,9 +43,9 @@ import { parseISO, format } from "date-fns";
 import BasicDatePicker from "../inputs/datePicker";
 import { AuthContext } from "../../contexts/AuthContext";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
   "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+    backgroundColor: "var(--lg-glass-row-hover)",
   },
   "&:last-child td, &:last-child th": {
     border: 0,
@@ -173,6 +174,7 @@ export default function Trips() {
   };
 
   return (
+    <Box sx={modalFormRootSx}>
     <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastradas`}>
       <Backdrop
         open={isOpenLoading}
@@ -505,5 +507,6 @@ export default function Trips() {
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
     </BaseCard>
+    </Box>
   );
 }

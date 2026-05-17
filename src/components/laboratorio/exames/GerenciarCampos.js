@@ -241,7 +241,7 @@ export default function GerenciarCampos() {
                                 inputProps={{ maxLength: 200 }}
                             />
                             <Box display="flex" gap={2}>
-                                <FormControl fullWidth>
+                                <FormControl className="lg-search-field" fullWidth>
                                     <InputLabel>Tipo de Valor</InputLabel>
                                     <Select name="tipo_valor" value={campoForm.tipo_valor} label="Tipo de Valor" onChange={changeCampo}>
                                         {TIPOS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
@@ -292,7 +292,7 @@ export default function GerenciarCampos() {
                     <BaseCard title="Valores de Referência do Campo">
                         <Stack spacing={3}>
                             <Box display="flex" gap={2} flexWrap="wrap" alignItems="flex-end">
-                                <FormControl sx={{ minWidth: 140 }}>
+                                <FormControl className="lg-search-field" sx={{ minWidth: 140 }}>
                                     <InputLabel>Perfil</InputLabel>
                                     <Select value={refForm.perfil} label="Perfil" onChange={e => setRefForm(f => ({ ...f, perfil: e.target.value }))}>
                                         {PERFIS.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}

@@ -12,6 +12,7 @@ import ConfirmDialog from '../confirmDialog';
 import EstabelecimentoDialog from '../modal/estabelecimento';
 import { getAllEstabelecimentos, removeEstabelecimentoFetch } from '../../store/fetchActions/estabelecimentos';
 import { changeTitleAlert } from '../../store/ducks/Layout';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -107,18 +108,28 @@ export default function ListaEstabelecimentos() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Estabelecimentos${pagination ? ` — ${pagination.total} registros` : ''}`}>
             <AlertModal />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr auto', md: 'minmax(260px, 1fr) auto' },
+                    alignItems: 'center',
+                    gap: 1.5,
+                    mb: 2,
+                    mt: 1,
+                }}
+            >
                 <TextField
                     className="lg-search-field"
-                    sx={{ flexGrow: 1 }}
+                    sx={{ minWidth: 0, width: '100%' }}
                     placeholder="Pesquisar por nome, responsável ou CNAE"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
-                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo estabelecimento">
+                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo estabelecimento" sx={{ justifySelf: { xs: 'flex-end', sm: 'center' } }}>
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -177,7 +188,7 @@ export default function ListaEstabelecimentos() {
 
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-                    <FormControl size="small" sx={{ minWidth: 110 }}>
+                    <FormControl className="lg-search-field" size="small" sx={{ minWidth: 110 }}>
                         <InputLabel>Por página</InputLabel>
                         <Select value={perPage} label="Por página" onChange={handlePerPage}>
                             {PER_PAGE_OPTIONS.map(n => (
@@ -202,6 +213,8 @@ export default function ListaEstabelecimentos() {
 
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </BaseCard>
+        </Box>
     );
 }
+
 

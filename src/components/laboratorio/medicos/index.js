@@ -11,6 +11,7 @@ import { turnModal } from '../../../store/ducks/Layout';
 import MedicoSolicitanteModal from '../../modal/medicoSolicitante';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 export default function MedicosSolicitantes() {
     const dispatch = useDispatch();
@@ -41,10 +42,11 @@ export default function MedicosSolicitantes() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <MedicoSolicitanteModal>
             <BaseCard title={`Você possui ${medicos.length} Médicos Cadastrados`}>
                 <AlertModal />
-                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap={{ xs: 'wrap', md: 'nowrap' }} gap={1} mb={2}>
                     <TextField
                         className="lg-search-field"
                         size="small"
@@ -52,7 +54,7 @@ export default function MedicosSolicitantes() {
                         value={busca}
                         onChange={e => setBusca(e.target.value)}
                         inputProps={{ maxLength: 80 }}
-                        sx={{ minWidth: 280 }}
+                        sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}
                     />
                     <Fab color="primary" title="Novo Médico" onClick={handleNovo}>
                         <FeatherIcon icon="plus" />
@@ -144,5 +146,6 @@ export default function MedicosSolicitantes() {
                 </TableContainer>
             </BaseCard>
         </MedicoSolicitanteModal>
+        </Box>
     );
 }

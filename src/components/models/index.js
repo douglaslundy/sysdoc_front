@@ -28,6 +28,7 @@ import Router from "next/router";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 
 const StyledTableRow = styled(TableRow)(() => ({
@@ -96,19 +97,22 @@ export default () => {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
             <ViewModelModal />
 
             <Box sx={{
-                '& > :not(style)': { m: 2 },
+                '& > :not(style)': { m: 1 },
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: 1,
+                flexWrap: 'nowrap',
             }}>
 
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "85%" }}
+                    sx={{ flex: 1, minWidth: 260 }}
                     placeholder="Pesquisar um modelo criado"
                     name="search"
                     value={searchValue}
@@ -270,7 +274,12 @@ export default () => {
                 />
             </TableContainer>
         </BaseCard >
+        </Box>
     );
 };
+
+
+
+
 
 

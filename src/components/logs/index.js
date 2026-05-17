@@ -14,6 +14,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import { AuthContext } from "../../contexts/AuthContext";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllLogs } from "../../store/fetchActions/logs";
@@ -24,9 +25,9 @@ import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
     '&:last-child td, &:last-child th': {
         border: 0,
@@ -74,10 +75,11 @@ export default () => {
     const displayedLogs = use ? logs.filter(log => log.user?.id === use) : logs;
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`${total} Logs Cadastrados`}>
             <AlertModal />
 
-            <Box sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
                 <Select
                     label="Usuario"
                     name="user"
@@ -166,5 +168,6 @@ export default () => {
             </TableContainer>
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </BaseCard>
+        </Box>
     );
 };

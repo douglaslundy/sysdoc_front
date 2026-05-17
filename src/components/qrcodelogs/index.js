@@ -19,6 +19,7 @@ import { getAllQrCodeLogs } from "../../store/fetchActions/qrcodelogs";
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 
 const StyledTableRow = styled(TableRow)(() => ({
@@ -60,6 +61,7 @@ export default () => {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allQrLogs?.length} Logs Cadastrados`}>
             <AlertModal />
 
@@ -303,5 +305,8 @@ export default () => {
                 />
             </TableContainer>
         </BaseCard >
+        </Box>
     );
 };
+
+

@@ -26,6 +26,7 @@ import { detailed_client_report } from "../../store/fetchActions/clients";
 import { clearClientReport } from "../../store/ducks/clients";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from "date-fns";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -165,6 +166,7 @@ export default () => {
     }, [dispatch]);
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard
             title={
                 hasClientData && reportData?.name
@@ -176,15 +178,17 @@ export default () => {
 
             <Box
                 sx={{
-                    "& > :not(style)": { m: 2 },
-                    display: "flex",
-                    justifyContent: "space-between",
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr auto", md: "minmax(280px, 1fr) auto" },
                     alignItems: "center",
+                    gap: 1.5,
+                    mb: 2,
+                    mt: 1,
                 }}
             >
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "100%" }}
+                    sx={{ minWidth: 0, width: "100%" }}
                     placeholder="Pesquisar cliente: Informe o CPF ou CNS"
                     name="search"
                     autoComplete="off"
@@ -202,6 +206,7 @@ export default () => {
                         onClick={() => HandleSearchClient(searchValue)}
                         color="primary"
                         aria-label="search"
+                        sx={{ justifySelf: { xs: "flex-end", sm: "center" } }}
                     >
                         <FeatherIcon icon="search" />
                     </Fab>
@@ -591,6 +596,6 @@ export default () => {
                 </Box>
             ) : null}
         </BaseCard>
+        </Box>
     );
 };
-

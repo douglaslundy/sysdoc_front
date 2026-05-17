@@ -11,6 +11,7 @@ import { turnModal } from '../../../store/ducks/Layout';
 import ExameModal from '../../modal/exame';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 const STATUS_CORES = { true: 'success', false: 'error' };
 
@@ -46,17 +47,18 @@ export default function ExameCatalogo() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <ExameModal>
             <BaseCard title={`Você possui ${exames.length} Exames Cadastrados`}>
                 <AlertModal />
-                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap={{ xs: 'wrap', md: 'nowrap' }} gap={1} mb={2}>
                     <TextField
                         className="lg-search-field"
                         placeholder="Buscar por nome ou código"
                         value={busca}
                         onChange={e => setBusca(e.target.value)}
                         inputProps={{ maxLength: 60 }}
-                        sx={{ minWidth: 280 }}
+                        sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}
                     />
                     <Fab color="primary" title="Novo Exame" onClick={handleNovoExame}>
                         <FeatherIcon icon="plus" />
@@ -145,6 +147,7 @@ export default function ExameCatalogo() {
                 </TableContainer>
             </BaseCard>
         </ExameModal>
+        </Box>
     );
 }
 

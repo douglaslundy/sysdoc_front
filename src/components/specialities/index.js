@@ -18,6 +18,7 @@ import {
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import SpecialityModal from "../modal/specialities";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -97,18 +98,21 @@ export default () => {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allSpecialities.length} Especialidades Cadastradas`}>
             <AlertModal />
             <Box sx={{
-                '& > :not(style)': { m: 2 },
+                '& > :not(style)': { m: 1 },
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
             }}>
 
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "85%" }}
+                    sx={{ flex: 1, minWidth: 260 }}
                     placeholder="Pesquisar Especialidade"
                     name="search"
                     value={searchValue}
@@ -304,6 +308,7 @@ export default () => {
                 setConfirmDialog={setConfirmDialog} />
 
         </BaseCard >
+        </Box>
     );
 };
 

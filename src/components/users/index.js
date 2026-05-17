@@ -24,6 +24,8 @@ import { getAllUsers, inactiveUserFetch } from "../../store/fetchActions/user";
 import { showUser } from "../../store/ducks/users";
 import { changeTitleAlert, turnUserModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
+import AlertModal from "../messagesModal";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 import Router from "next/router";
 
@@ -144,7 +146,9 @@ export default function Users() {
   }, [profile]);
 
   return (
+    <Box sx={modalFormRootSx}>
     <BaseCard title="Usuários">
+      <AlertModal />
       <Box
         sx={{
           display: "flex",
@@ -155,28 +159,7 @@ export default function Users() {
       >
         <TextField
           className="search-input user-search lg-search-field"
-          sx={{
-            width: "100%",
-            "& .MuiOutlinedInput-root": {
-              background: "var(--lg-glass-input)",
-              border: "0.5px solid var(--lg-border-input)",
-              borderRadius: "11px",
-              color: "var(--lg-text-primary)",
-              backdropFilter: "var(--lg-blur-input)",
-              WebkitBackdropFilter: "var(--lg-blur-input)",
-              boxShadow: "0 1px 3px rgba(var(--lg-accent-rgb), 0.06), 0 1px 0 rgba(255,255,255,0.12) inset",
-              "& fieldset": { border: "none" },
-              "&:hover": { background: "var(--lg-glass-input-focus)" },
-              "&.Mui-focused": {
-                boxShadow: "var(--lg-focus-ring)",
-                background: "var(--lg-glass-input-focus)",
-              },
-            },
-            "& .MuiInputBase-input::placeholder": {
-              color: "var(--lg-text-muted)",
-              opacity: 1,
-            },
-          }}
+          sx={{ width: "100%" }}
           placeholder="Pesquisar usuários"
           name="search"
           value={searchValue}
@@ -395,5 +378,6 @@ export default function Users() {
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
     </BaseCard>
+    </Box>
   );
 }

@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { getAuditLogs } from '../../store/fetchActions/auditLogs';
 import BaseCard from '../baseCard/BaseCard';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
 
 const ACTION_COLORS = {
@@ -146,6 +147,7 @@ export default function Auditoria() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Auditoria — ${total} registros`}>
             <Grid container spacing={2} mb={2}>
                 <Grid item xs={12} sm={6} md={3}>
@@ -305,5 +307,6 @@ export default function Auditoria() {
                 />
             </TableContainer>
         </BaseCard>
+        </Box>
     );
 }

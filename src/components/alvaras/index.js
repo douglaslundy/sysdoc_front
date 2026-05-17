@@ -12,6 +12,7 @@ import ConfirmDialog from '../confirmDialog';
 import AlvaraDialog from '../modal/alvara';
 import { getAllAlvaras, removeAlvaraFetch, downloadAlvaraPdf } from '../../store/fetchActions/alvaras';
 import { changeTitleAlert } from '../../store/ducks/Layout';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'default' };
 
@@ -129,18 +130,28 @@ export default function ListaAlvaras() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Alvarás${pagination ? ` — ${pagination.total} registros` : ''}`}>
             <AlertModal />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, mt: 1, flexWrap: 'wrap' }}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'minmax(260px, 1fr) 160px 200px auto' },
+                    alignItems: 'center',
+                    gap: 1.5,
+                    mb: 2,
+                    mt: 1,
+                }}
+            >
                 <TextField
                     className="lg-search-field"
-                    sx={{ flexGrow: 1, minWidth: 200 }}
+                    sx={{ minWidth: 0, width: '100%' }}
                     placeholder="Pesquisar por número ou estabelecimento"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
-                <FormControl sx={{ minWidth: 140 }}>
+                <FormControl className="lg-search-field" sx={{ minWidth: 0, width: '100%' }}>
                     <InputLabel>Nível de Risco</InputLabel>
                     <Select value={nivelRisco} label="Nível de Risco" onChange={handleNivelRisco}>
                         <MenuItem value="">Todos</MenuItem>
@@ -150,7 +161,7 @@ export default function ListaAlvaras() {
                         <MenuItem value="N/A">N/A</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl sx={{ minWidth: 170 }}>
+                <FormControl className="lg-search-field" sx={{ minWidth: 0, width: '100%' }}>
                     <InputLabel>Status</InputLabel>
                     <Select value={statusFiltro} label="Status" onChange={handleStatusFiltro}>
                         <MenuItem value="">Todos</MenuItem>
@@ -159,7 +170,7 @@ export default function ListaAlvaras() {
                         ))}
                     </Select>
                 </FormControl>
-                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará">
+                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ justifySelf: { xs: 'flex-end', md: 'center' } }}>
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -239,7 +250,7 @@ export default function ListaAlvaras() {
 
             {pagination && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-                    <FormControl size="small" sx={{ minWidth: 110 }}>
+                    <FormControl className="lg-search-field" size="small" sx={{ minWidth: 110 }}>
                         <InputLabel>Por página</InputLabel>
                         <Select value={perPage} label="Por página" onChange={handlePerPage}>
                             {PER_PAGE_OPTIONS.map(n => (
@@ -264,6 +275,8 @@ export default function ListaAlvaras() {
 
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </BaseCard>
+        </Box>
     );
 }
+
 

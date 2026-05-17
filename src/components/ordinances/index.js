@@ -19,6 +19,7 @@ import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import OrdinanceModal from "../modal/ordinance";
 import ViewOrdinanceModal from "../modal/ordinance/view";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -31,9 +32,9 @@ import Select from '../inputs/selects';
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
     '&:last-child td, &:last-child th': {
         border: 0,
@@ -156,6 +157,7 @@ export default () => {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allOrdinances.length} portarias cadastradas`}>
             <AlertModal />
             <ViewOrdinanceModal />
@@ -164,12 +166,14 @@ export default () => {
                 sx={{
                     '& > :not(style)': { mb: 0, mt: 2 },
                     display: 'flex',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    flexWrap: 'wrap',
                 }}
             >
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "65%" }}
+                    sx={{ flex: 1, minWidth: 260 }}
                     placeholder="Pesquisar portaria"
                     name="search"
                     value={searchValue}
@@ -394,6 +398,7 @@ export default () => {
                 setConfirmDialog={setConfirmDialog}
             />
         </BaseCard>
+        </Box>
     );
 };
 

@@ -73,6 +73,31 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
                     borderTop: '1px solid var(--lg-border-strong)',
                     boxShadow: 'var(--lg-shadow-modal)',
                     borderRadius: '20px',
+                    '& .MuiInputLabel-root': {
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: 'var(--lg-text-muted)',
+                        letterSpacing: '0.07em',
+                        textTransform: 'uppercase',
+                    },
+                    '& .MuiInputBase-root': {
+                        background: 'var(--lg-glass-input)',
+                        border: '0.5px solid var(--lg-border-input)',
+                        borderRadius: '10px',
+                        color: 'var(--lg-text-primary)',
+                        boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                    },
+                    '& .MuiInputBase-root.Mui-focused': {
+                        background: 'var(--lg-glass-input-focus)',
+                        boxShadow: 'var(--lg-focus-ring)',
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                        color: 'var(--lg-text-muted)',
+                        opacity: 1,
+                    },
                 },
             }}
         >
@@ -111,9 +136,47 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
                     </Stack>
                 </Box>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} variant="outlined">Cancelar</Button>
-                <Button onClick={save} variant="contained">Salvar</Button>
+            <DialogActions sx={{ px: 3, pb: 2.6, gap: 1 }}>
+                <Button
+                    onClick={onClose}
+                    variant="outlined"
+                    sx={{
+                        py: 1.1,
+                        px: 2.2,
+                        borderRadius: '10px',
+                        background: 'var(--lg-glass-input)',
+                        border: '0.5px solid var(--lg-border-input)',
+                        color: 'var(--lg-text-secondary)',
+                        textTransform: 'none',
+                        '&:hover': {
+                            background: 'var(--lg-glass-input-focus)',
+                            color: 'var(--lg-text-primary)',
+                            border: '0.5px solid var(--lg-border-input)',
+                        },
+                    }}
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    onClick={save}
+                    variant="contained"
+                    sx={{
+                        py: 1.1,
+                        px: 2.2,
+                        borderRadius: '10px',
+                        background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
+                        boxShadow: 'var(--lg-shadow-btn)',
+                        textTransform: 'none',
+                        '&:hover': {
+                            opacity: 0.92,
+                            transform: 'translateY(-1px)',
+                            boxShadow: 'var(--lg-shadow-btn-hover)',
+                            background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
+                        },
+                    }}
+                >
+                    Salvar
+                </Button>
             </DialogActions>
         </Dialog>
     );

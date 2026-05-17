@@ -19,6 +19,7 @@ import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import LetterModal from "../modal/letter";
 import ViewLetterModal from "../modal/letter/view";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -32,9 +33,9 @@ import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
     // hide last border
     '&:last-child td, &:last-child th': {
@@ -128,6 +129,7 @@ export default () => {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
             <AlertModal />
             <ViewLetterModal />
@@ -135,13 +137,15 @@ export default () => {
             <Box sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
                 'display': 'flex',
-                'justify-content': 'space-between'
+                'justify-content': 'space-between',
+                gap: 1,
+                flexWrap: 'wrap',
             }}
             >
 
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "65%" }}
+                    sx={{ flex: 1, minWidth: 260 }}
                     placeholder="Pesquisar ofício"
                     name="search"
                     value={searchValue}
@@ -354,6 +358,7 @@ export default () => {
                 setConfirmDialog={setConfirmDialog} />
 
         </BaseCard >
+        </Box>
     );
 };
 

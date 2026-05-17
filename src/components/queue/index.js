@@ -25,6 +25,7 @@ import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import QueueModal from "../modal/queue";
 import QueueOutcomeModal from "../modal/outcomequeue";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -49,9 +50,9 @@ import protocolPDF from "../../reports/protocol"
 import generateQueuePDF from "../../reports/queues"
 import { addAlertMessage, addMessage } from "../../store/ducks/Layout";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'var(--lg-glass-row-hover)',
     },
     // hide last border
     '&:last-child td, &:last-child th': {
@@ -318,6 +319,7 @@ export default () => {
 
     return (
         <>
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
             <AlertModal />
             {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
@@ -325,13 +327,15 @@ export default () => {
             <Box sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
                 'display': 'flex',
-                'justify-content': 'space-between'
+                'justify-content': 'space-between',
+                gap: 1,
+                flexWrap: 'wrap',
             }}
             >
 
                 <TextField
                     className="lg-search-field"
-                    sx={{ width: "46%" }}
+                    sx={{ flex: 1, minWidth: 280 }}
                     placeholder="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
@@ -670,6 +674,7 @@ export default () => {
                 setConfirmDialog={setConfirmDialog} />
 
         </BaseCard >
+        </Box>
 
         {/* Dialog de visualização do registro de fila */}
         <Dialog

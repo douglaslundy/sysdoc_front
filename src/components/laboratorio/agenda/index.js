@@ -7,6 +7,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BasicDatePicker from '../../inputs/datePicker';
 import { api } from '../../../services/api';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 const STATUS_COLORS = {
     solicitado: 'warning',
@@ -56,6 +57,7 @@ export default function AgendaColeta() {
     };
 
     return (
+        <Box sx={modalFormRootSx}>
         <Card>
             <Box p={2} display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2}>
                 <Typography variant="h4">Agenda de Coleta</Typography>
@@ -76,7 +78,7 @@ export default function AgendaColeta() {
                         }
                         sx={{
                             py: 1.2,
-                            px: 2.2,
+                            px: 3.2,
                             borderRadius: '10px',
                             background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
                             boxShadow: 'var(--lg-shadow-btn)',
@@ -192,5 +194,6 @@ export default function AgendaColeta() {
                 )}
             </CardContent>
         </Card>
+        </Box>
     );
 }

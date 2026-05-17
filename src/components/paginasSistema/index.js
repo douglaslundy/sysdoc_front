@@ -35,6 +35,7 @@ import {
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const modalStyle = {
   position: 'absolute',
@@ -82,7 +83,7 @@ export default function PaginasSistema() {
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: 'Deseja realmente excluir?',
-    subTitle: 'Esta ação não poderá ser desfeita.',
+    subTitle: 'Esta acao nao podera ser desfeita.',
   });
 
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function PaginasSistema() {
     setForm({
       titulo: pg.titulo,
       path: pg.path,
-      icone: pg.icone || '',
+      icone: pg.icone || '-',
       categoria: pg.categoria || '',
       category_id: pg.category_id || pg.category?.id || '',
       ordem: Number(pg.ordem ?? 1),
@@ -175,47 +176,47 @@ export default function PaginasSistema() {
       .sort((a, b) => Number(a.ordem ?? 999) - Number(b.ordem ?? 999));
 
     if (sameCategoryPages.length === 0) {
-      return `A página será posicionada como ${targetOrder}ª nesta categoria.`;
+      return `A pagina sera posicionada como ${targetOrder}a nesta categoria.`;
     }
 
     const conflict = sameCategoryPages.find((p) => Number(p.ordem) === targetOrder);
     if (conflict) {
-      return `Ao salvar, "${conflict.titulo}" e as próximas serão deslocadas automaticamente.`;
+      return `Ao salvar, "${conflict.titulo}" e as proximas serao deslocadas automaticamente.`;
     }
 
     const maxOrder = Number(sameCategoryPages[sameCategoryPages.length - 1].ordem ?? 0);
     if (targetOrder > maxOrder + 1) {
-      return 'A ordem informada é maior que a sequência atual; ela será posicionada ao final da categoria.';
+      return 'A ordem informada e maior que a sequencia atual; ela sera posicionada ao final da categoria.';
     }
 
-    return `A página será posicionada como ${targetOrder}ª nesta categoria.`;
+    return `A pagina sera posicionada como ${targetOrder}a nesta categoria.`;
   };
 
   const handleRemove = (pg) => {
     setConfirmDialog({
       isOpen: true,
-      title: `Deseja remover a página ${pg.titulo}?`,
-      subTitle: 'Esta ação não poderá ser desfeita.',
+      title: `Deseja remover a pagina ${pg.titulo}?`,
+      subTitle: 'Esta acao nao podera ser desfeita.',
       confirm: () => dispatch(removePageFetch(pg.id)),
     });
   };
 
   return (
-    <>
-      <BaseCard title={`Você possui ${pages.length} Páginas Cadastradas no Sistema`}>
+    <Box sx={modalFormRootSx}>
+      <BaseCard title={`Voce possui ${pages.length} Paginas Cadastradas no Sistema`}>
         <AlertModal />
-        <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} mb={2}>
-          <Box display="flex" gap={1} flexWrap="wrap">
+        <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="nowrap" gap={1} mb={2} sx={{ overflowX: 'auto' }}>
+          <Box display="flex" gap={1} flexWrap="nowrap" sx={{ minWidth: 0, flex: 1 }}>
             <TextField
               className="lg-search-field"
               size="small"
-              placeholder="Buscar por título, path ou categoria..."
+              placeholder="Buscar por titulo, path ou categoria..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               inputProps={{ maxLength: 80 }}
-              sx={{ minWidth: 320 }}
+              sx={{ minWidth: 260, flex: 1 }}
             />
-            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 240 }}>
+            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 220, width: 220, flexShrink: 0 }}>
               <InputLabel>Filtrar categoria</InputLabel>
               <Select
                 value={filtroCategoria}
@@ -233,7 +234,7 @@ export default function PaginasSistema() {
               </Select>
             </FormControl>
           </Box>
-          <Fab color="primary" title="Nova Página" onClick={handleNova}>
+          <Fab color="primary" title="Nova Pagina" onClick={handleNova}>
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
@@ -242,13 +243,13 @@ export default function PaginasSistema() {
           <Table aria-label="paginas" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography color="textSecondary" variant="h6">Título</Typography></TableCell>
+                <TableCell><Typography color="textSecondary" variant="h6">Titulo</Typography></TableCell>
                 <TableCell><Typography color="textSecondary" variant="h6">Path</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Ícone</Typography></TableCell>
+                <TableCell><Typography color="textSecondary" variant="h6">icone</Typography></TableCell>
                 <TableCell><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
                 <TableCell><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
                 <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
+                <TableCell align="center"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -265,16 +266,16 @@ export default function PaginasSistema() {
                       {pg.path}
                     </Typography>
                   </TableCell>
-                  <TableCell><Typography color="textSecondary" sx={{ fontSize: '12px' }}>{pg.icone || '—'}</Typography></TableCell>
-                  <TableCell>{pg.categoria ? <Chip label={pg.categoria} size="small" variant="outlined" /> : <Typography color="textSecondary" sx={{ fontSize: '12px' }}>—</Typography>}</TableCell>
+                  <TableCell><Typography color="textSecondary" sx={{ fontSize: '12px' }}>{pg.icone || '-'}</Typography></TableCell>
+                  <TableCell>{pg.categoria ? <Chip label={pg.categoria} size="small" variant="outlined" /> : <Typography color="textSecondary" sx={{ fontSize: '12px' }}>-</Typography>}</TableCell>
                   <TableCell><Typography>{Number(pg.ordem ?? 999)}</Typography></TableCell>
                   <TableCell align="center"><Chip label={pg.ativo ? 'Ativa' : 'Inativa'} color={pg.ativo ? 'success' : 'error'} size="small" /></TableCell>
                   <TableCell align="center">
                     <Box sx={{ '& button': { mx: 1 } }}>
-                      <Button title="Editar página" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
+                      <Button title="Editar pagina" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
                         <FeatherIcon icon="edit" width="20" height="20" />
                       </Button>
-                      <Button title="Remover página" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
+                      <Button title="Remover pagina" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
                         <FeatherIcon icon="trash" width="20" height="20" />
                       </Button>
                     </Box>
@@ -283,7 +284,7 @@ export default function PaginasSistema() {
               ))}
               {filtradas.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center"><Typography color="text.secondary">Nenhuma página encontrada</Typography></TableCell>
+                  <TableCell colSpan={7} align="center"><Typography color="text.secondary">Nenhuma pagina encontrada</Typography></TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -299,7 +300,7 @@ export default function PaginasSistema() {
               setPage(0);
             }}
             rowsPerPageOptions={[10, 15, 25]}
-            labelRowsPerPage="Por página:"
+            labelRowsPerPage="Por pagina:"
           />
         </TableContainer>
       </BaseCard>
@@ -307,12 +308,12 @@ export default function PaginasSistema() {
       <Modal keepMounted open={openModal} onClose={() => setOpenModal(false)}>
         <Box sx={modalStyle}>
           <AlertModal />
-          <BaseCard title={editId ? 'Editar Página do Sistema' : 'Nova Página do Sistema'}>
+          <BaseCard title={editId ? 'Editar Pagina do Sistema' : 'Nova Pagina do Sistema'}>
             <Stack spacing={3}>
               <TextField
                 className="lg-search-field"
                 fullWidth
-                label="Título da Página"
+                label="Titulo da Pagina"
                 name="titulo"
                 value={form.titulo}
                 onChange={handleChange}
@@ -329,7 +330,7 @@ export default function PaginasSistema() {
                 onChange={handleChange}
                 required
                 inputProps={{ maxLength: 120 }}
-                helperText="Caminho da página, ex: /laboratorio/exames"
+                helperText="Caminho da pagina, ex: /laboratorio/exames"
               />
 
               <FormControl fullWidth>
@@ -355,11 +356,11 @@ export default function PaginasSistema() {
               />
 
               <FormControl fullWidth>
-                <InputLabel>Ícone</InputLabel>
+                <InputLabel>icone</InputLabel>
                 <Select
                   name="icone"
                   value={form.icone}
-                  label="Ícone"
+                  label="icone"
                   onChange={handleChange}
                   renderValue={(val) =>
                     val ? (
@@ -368,11 +369,11 @@ export default function PaginasSistema() {
                         <span>{val}</span>
                       </Box>
                     ) : (
-                      <em>Sem ícone</em>
+                      <em>Sem icone</em>
                     )
                   }
                 >
-                  <MenuItem value=""><em>Sem ícone</em></MenuItem>
+                  <MenuItem value=""><em>Sem icone</em></MenuItem>
                   {ICONES.map((ic) => (
                     <MenuItem key={ic} value={ic}>
                       <Box display="flex" alignItems="center" gap={1}>
@@ -386,7 +387,7 @@ export default function PaginasSistema() {
 
               <FormControlLabel
                 control={<Switch checked={form.ativo} onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))} />}
-                label="Página ativa"
+                label="Pagina ativa"
               />
             </Stack>
             <br />
@@ -399,6 +400,13 @@ export default function PaginasSistema() {
       </Modal>
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-    </>
+    </Box>
   );
 }
+
+
+
+
+
+
+

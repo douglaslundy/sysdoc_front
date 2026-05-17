@@ -57,7 +57,7 @@ export default function NovoPedido() {
             <Box p={2}><Typography variant="h4">Novo Pedido de Exame</Typography></Box>
             <CardContent>
                 <Stack spacing={3} maxWidth={700}>
-                    <FormControl required fullWidth>
+                    <FormControl className="lg-search-field" required fullWidth>
                         <InputLabel>Paciente</InputLabel>
                         <Select name="client_id" value={form.client_id} label="Paciente" onChange={change}>
                             {clients.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}

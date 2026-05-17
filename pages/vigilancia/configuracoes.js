@@ -7,6 +7,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../src/components/baseCard/BaseCard';
 import AlertModal from '../../src/components/messagesModal';
+import { modalFormRootSx } from '../../src/components/modal/_shared/modalFormStyles';
 import { getVigilanciaConfig, updateVigilanciaConfig } from '../../src/store/fetchActions/vigilanciaConfig';
 
 const emptyForm = {
@@ -91,7 +92,7 @@ export default function ConfiguracoesVigilancia() {
     }
 
     return (
-        <Box>
+        <Box sx={modalFormRootSx}>
             <AlertModal />
             <BaseCard title="Configurações da Vigilância Sanitária">
 

@@ -14,6 +14,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import Select from '../inputs/selects';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllErrorLogs } from "../../store/fetchActions/errorlogs";
 import { parseISO, format } from 'date-fns';
@@ -115,6 +116,7 @@ export default () => {
     const displayedLogs = use ? errorlogs.filter(log => log.user?.id === use) : errorlogs;
 
     return (
+        <Box sx={modalFormRootSx}>
         <BaseCard title={`${total} Logs de erro Cadastrados`}>
             <AlertModal />
 
@@ -220,5 +222,6 @@ export default () => {
                 />
             </TableContainer>
         </BaseCard>
+        </Box>
     );
 };
