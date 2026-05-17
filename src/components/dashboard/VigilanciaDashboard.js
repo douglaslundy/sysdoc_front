@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
+import { normalizeIconName } from '../../utils/iconResolver';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
@@ -8,24 +9,27 @@ import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607d8b' };
 
-function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 56 }) {
+function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
     return (
         <Card sx={{ height: '100%' }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
+            <CardContent sx={{ px: 2.5, py: 2 }}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography color="textSecondary" variant="subtitle2" noWrap>{titulo}</Typography>
                         <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
                     </Box>
                     <Box
                         sx={{
-                            width: iconBoxWidth, height: 56,
+                            minWidth: iconBoxWidth,
+                            width: iconBoxWidth,
+                            height: iconBoxWidth,
                             borderRadius: '50%',
                             bgcolor: cor + '22',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
                         }}
                     >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
+                        <FeatherIcon icon={normalizeIconName(icon, 'circle')} color={cor} width="26" height="26" />
                     </Box>
                 </Box>
             </CardContent>
@@ -104,19 +108,19 @@ export default function VigilanciaDashboard() {
         <Box>
             <Grid container spacing={3} mb={3}>
                 <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" iconBoxWidth={68} />
+                    <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
                 </Grid>
                 <Grid item xs={6} sm={4} md={2}>
                     <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
                 </Grid>
-                <Grid item xs={6} sm={4} md={3}>
-                    <CardTotal icon="check-circle" titulo="Vigentes (por data)" valor={totais.vigentes} cor="#4caf50" />
+                <Grid item xs={6} sm={4} md={2}>
+                    <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3}>
-                    <CardTotal icon="x-circle" titulo="Vencidos (por data)" valor={totais.vencidos} cor="#f44336" />
+                    <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
                 </Grid>
-                <Grid item xs={12} sm={4} md={2}>
-                    <CardTotal icon="clock" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
+                <Grid item xs={12} sm={4} md={3}>
+                    <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
                 </Grid>
             </Grid>
 

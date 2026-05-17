@@ -930,8 +930,8 @@ input[type="checkbox"],
 }
 
 .alert,
-[class*="alert"],
-[class*="toast"] {
+[class*="alert"]:not(svg):not(g),
+[class*="toast"]:not(svg):not(g) {
   background: var(--lg-glass-modal);
   backdrop-filter: var(--lg-blur-input);
   -webkit-backdrop-filter: var(--lg-blur-input);

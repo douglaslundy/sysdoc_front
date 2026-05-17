@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
 import PropTypes from "prop-types";
 import {
@@ -17,8 +17,10 @@ import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
 import Menuitems, { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
-import { api } from "../../services/api";
+import { getAllPages } from "../../store/fetchActions/accessProfiles";
+import { normalizeIconName } from "../../utils/iconResolver";
 
 const CATEGORY_ICONS = {
   Administracao: "shield",
@@ -44,116 +46,90 @@ const normalizeCategory = (value) => {
     .trim();
 };
 
-const normalizeIconName = (iconName, fallback = "circle") => {
-  if (typeof iconName !== "string") return fallback;
-  const normalized = iconName
-    .trim()
-    .toLowerCase()
-    .replace(/[_\s]+/g, "-");
-  return normalized.length > 0 ? normalized : fallback;
-};
-
-const getForcedIconByPath = (href) => {
-  if (href === "/errorlogs") return "alert-circle";
-  if (href === "/qrcodelogs") return "maximize";
-  return null;
-};
-
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
+  const dispatch = useDispatch();
+  const reduxPages = useSelector((state) => state.accessProfiles.pages);
   const { profile, myPermissions } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
-  const [dynamicMenu, setDynamicMenu] = useState([]);
+
+  // Recarrega páginas do backend sempre que perfil ou permissões mudam.
+  // A resposta atualiza Redux (addPages), e o useMemo abaixo reage automaticamente.
+  useEffect(() => {
+    dispatch(getAllPages());
+  }, [dispatch, profile, myPermissions]);
+
+  const dynamicMenu = useMemo(() => {
+    const pages = Array.isArray(reduxPages) ? reduxPages : [];
+
+    const visiblePages = pages.filter((pg) => {
+      if (!pg?.ativo) return false;
+      if (pg.path === DashboardItem.href) return false;
+      if (profile === "admin") return true;
+      return myPermissions.includes(pg.path);
+    });
+
+    if (visiblePages.length === 0) return [];
+
+    const grouped = visiblePages.reduce((acc, pg) => {
+      const category = pg.category?.nome || pg.categoria || "Outros";
+      if (!acc[category]) {
+        acc[category] = { children: [], icon: pg.category?.icone, order: pg.category?.ordem ?? 999 };
+      }
+      if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
+      acc[category].children.push({
+        title: pg.titulo,
+        icon: normalizeIconName(pg.icone, "circle"),
+        href: pg.path,
+        order: Number(pg.ordem ?? 999),
+      });
+      return acc;
+    }, {});
+
+    const groups = Object.entries(grouped)
+      .map(([category, groupData]) => {
+        const normalized = normalizeCategory(category);
+        return {
+          title: category,
+          icon: normalizeIconName(groupData.icon, CATEGORY_ICONS[normalized] || groupData.children[0]?.icon || "grid"),
+          order: groupData.order ?? 999,
+          group: true,
+          children: groupData.children.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)),
+        };
+      })
+      .sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
+
+    const existingPaths = new Set(groups.flatMap((g) => g.children.map((c) => c.href)));
+    const fallbackGroups = Menuitems.map((g) => ({ ...g, children: [...g.children] }));
+    fallbackGroups.forEach((g) => {
+      const missingChildren = g.children.filter((c) => {
+        if (existingPaths.has(c.href)) return false;
+        if (profile === "admin") return true;
+        return myPermissions.includes(c.href);
+      });
+      if (missingChildren.length === 0) return;
+
+      const group = groups.find((x) => x.title === g.title);
+      if (group) {
+        group.children = [...group.children, ...missingChildren]
+          .sort((a, b) => ((a.order ?? 999) - (b.order ?? 999)) || a.title.localeCompare(b.title));
+      } else {
+        groups.push({
+          title: g.title,
+          icon: g.icon,
+          order: 999,
+          group: true,
+          children: missingChildren.sort((a, b) => a.title.localeCompare(b.title)),
+        });
+      }
+    });
+
+    return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
+  }, [reduxPages, profile, myPermissions]);
 
   const menuGroups = dynamicMenu.length > 0 ? dynamicMenu : Menuitems;
-
-  useEffect(() => {
-    let mounted = true;
-
-    const buildDynamicMenu = async () => {
-      try {
-        const res = await api.get("/system-pages");
-        const pages = Array.isArray(res.data) ? res.data : [];
-
-        const visiblePages = pages.filter((pg) => {
-          if (!pg?.ativo) return false;
-          if (pg.path === DashboardItem.href) return false;
-          if (profile === "admin") return true;
-          return myPermissions.includes(pg.path);
-        });
-
-        if (visiblePages.length === 0) {
-          if (mounted) setDynamicMenu([]);
-          return;
-        }
-
-        const grouped = visiblePages.reduce((acc, pg) => {
-          const category = pg.category?.nome || pg.categoria || "Outros";
-          if (!acc[category]) {
-            acc[category] = { children: [], icon: pg.category?.icone, order: pg.category?.ordem ?? 999 };
-          }
-          if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
-          acc[category].children.push({
-            title: pg.titulo,
-            icon: getForcedIconByPath(pg.path) || normalizeIconName(pg.icone, "circle"),
-            href: pg.path,
-            order: Number(pg.ordem ?? 999),
-          });
-          return acc;
-        }, {});
-
-        const groups = Object.entries(grouped)
-          .map(([category, groupData]) => {
-            const normalized = normalizeCategory(category);
-            return {
-              title: category,
-              icon: normalizeIconName(groupData.icon, CATEGORY_ICONS[normalized] || groupData.children[0]?.icon || "grid"),
-              order: groupData.order ?? 999,
-              group: true,
-              children: groupData.children.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)),
-            };
-          })
-          .sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
-
-        const existingPaths = new Set(groups.flatMap((g) => g.children.map((c) => c.href)));
-        const fallbackGroups = Menuitems.map((g) => ({ ...g, children: [...g.children] }));
-        fallbackGroups.forEach((g) => {
-          const missingChildren = g.children.filter((c) => {
-            if (existingPaths.has(c.href)) return false;
-            if (profile === "admin") return true;
-            return myPermissions.includes(c.href);
-          });
-          if (missingChildren.length === 0) return;
-
-          const group = groups.find((x) => x.title === g.title);
-          if (group) {
-            group.children = [...group.children, ...missingChildren]
-              .sort((a, b) => ((a.order ?? 999) - (b.order ?? 999)) || a.title.localeCompare(b.title));
-          } else {
-            groups.push({
-              title: g.title,
-              icon: g.icon,
-              order: 999,
-              group: true,
-              children: missingChildren.sort((a, b) => a.title.localeCompare(b.title)),
-            });
-          }
-        });
-
-        if (mounted) setDynamicMenu(groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title)));
-      } catch (_) {
-        if (mounted) setDynamicMenu([]);
-      }
-    };
-
-    buildDynamicMenu();
-
-    return () => {
-      mounted = false;
-    };
-  }, [profile, myPermissions]);
 
   useEffect(() => {
     menuGroups.forEach((group) => {

@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
+import { normalizeIconName } from '../../utils/iconResolver';
 import {
   getAllPages,
   addPageFetch,
@@ -240,7 +241,7 @@ export default function PaginasSistema() {
                 <TableRow key={pg.id} hover>
                   <TableCell>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {pg.icone && <FeatherIcon icon={pg.icone} width="16" height="16" />}
+                      {pg.icone && <FeatherIcon icon={normalizeIconName(pg.icone, 'circle')} width="16" height="16" />}
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>{pg.titulo}</Typography>
                     </Box>
                   </TableCell>
@@ -348,7 +349,7 @@ export default function PaginasSistema() {
                   renderValue={(val) =>
                     val ? (
                       <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={val} width="16" height="16" />
+                        <FeatherIcon icon={normalizeIconName(val, 'circle')} width="16" height="16" />
                         <span>{val}</span>
                       </Box>
                     ) : (
@@ -360,7 +361,7 @@ export default function PaginasSistema() {
                   {ICONES.map((ic) => (
                     <MenuItem key={ic} value={ic}>
                       <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={ic} width="16" height="16" />
+                        <FeatherIcon icon={normalizeIconName(ic, 'circle')} width="16" height="16" />
                         <span>{ic}</span>
                       </Box>
                     </MenuItem>

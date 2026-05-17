@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
+import { normalizeIconName } from '../../utils/iconResolver';
 import {
     getAllPageCategories, addPageCategoryFetch, editPageCategoryFetch, removePageCategoryFetch,
 } from '../../store/fetchActions/accessProfiles';
@@ -88,7 +89,7 @@ export default function PaginasCategorias() {
                             onChange={e => setForm(f => ({ ...f, icone: e.target.value }))}
                             renderValue={val => val ? (
                                 <Box display="flex" alignItems="center" gap={1}>
-                                    <FeatherIcon icon={val} width="16" height="16" />
+                                    <FeatherIcon icon={normalizeIconName(val, 'circle')} width="16" height="16" />
                                     <span>{val}</span>
                                 </Box>
                             ) : <em>Sem ícone</em>}
@@ -97,7 +98,7 @@ export default function PaginasCategorias() {
                             {ICONES.map(ic => (
                                 <MenuItem key={ic} value={ic}>
                                     <Box display="flex" alignItems="center" gap={1}>
-                                        <FeatherIcon icon={ic} width="16" height="16" />
+                                        <FeatherIcon icon={normalizeIconName(ic, 'circle')} width="16" height="16" />
                                         <span>{ic}</span>
                                     </Box>
                                 </MenuItem>
