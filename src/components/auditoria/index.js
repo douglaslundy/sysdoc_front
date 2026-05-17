@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, Collapse, FormControl, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableContainer, TableHead,
-    TablePagination, TableRow, TextField, Typography,
+    TablePagination, TableRow, TextField, Typography, Grid,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -147,16 +147,19 @@ export default function Auditoria() {
 
     return (
         <BaseCard title={`Auditoria — ${total} registros`}>
-            <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
-                <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Grid container spacing={2} mb={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Ação</InputLabel>
                     <Select value={filters.action} label="Ação" onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
                         <MenuItem value=""><em>Todas</em></MenuItem>
                         {ACOES.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                     </Select>
                 </FormControl>
+                </Grid>
 
-                <FormControl size="small" sx={{ minWidth: 180 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Recurso</InputLabel>
                     <Select value={filters.model_type} label="Recurso" onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -165,8 +168,10 @@ export default function Auditoria() {
                         ))}
                     </Select>
                 </FormControl>
+                </Grid>
 
-                <FormControl size="small" sx={{ minWidth: 200 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Usuário</InputLabel>
                     <Select value={filters.user_name} label="Usuário" onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -175,9 +180,12 @@ export default function Auditoria() {
                         ))}
                     </Select>
                 </FormControl>
+                </Grid>
 
+                <Grid item xs={12} sm={6} md={3}>
                 <TextField
                     className="lg-search-field"
+                    fullWidth
                     size="small"
                     type="date"
                     value={filters.date_from}
@@ -185,8 +193,11 @@ export default function Auditoria() {
                     title="De"
                     InputLabelProps={{ shrink: true }}
                 />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
                 <TextField
                     className="lg-search-field"
+                    fullWidth
                     size="small"
                     type="date"
                     value={filters.date_to}
@@ -194,14 +205,19 @@ export default function Auditoria() {
                     title="Até"
                     InputLabelProps={{ shrink: true }}
                 />
+                </Grid>
 
+                <Grid item xs={6} sm={3} md={1}>
                 <Button variant="contained" onClick={handleFilter}>
                     <FeatherIcon icon="search" width="20" height="20" />
                 </Button>
+                </Grid>
+                <Grid item xs={6} sm={3} md={1}>
                 <Button variant="outlined" onClick={handleReset}>
                     <FeatherIcon icon="x" width="20" height="20" />
                 </Button>
-            </Box>
+                </Grid>
+            </Grid>
 
             <TableContainer>
                 <Table size="small" sx={{ whiteSpace: 'nowrap' }}>

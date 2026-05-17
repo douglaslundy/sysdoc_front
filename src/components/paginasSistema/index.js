@@ -34,6 +34,7 @@ import {
 } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
+import ConfirmDialog from '../confirmDialog';
 
 const modalStyle = {
   position: 'absolute',
@@ -78,6 +79,11 @@ export default function PaginasSistema() {
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: 'Deseja realmente excluir?',
+    subTitle: 'Esta ação não poderá ser desfeita.',
+  });
 
   useEffect(() => {
     dispatch(getAllPages());
@@ -185,6 +191,15 @@ export default function PaginasSistema() {
     return `A página será posicionada como ${targetOrder}ª nesta categoria.`;
   };
 
+  const handleRemove = (pg) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: `Deseja remover a página ${pg.titulo}?`,
+      subTitle: 'Esta ação não poderá ser desfeita.',
+      confirm: () => dispatch(removePageFetch(pg.id)),
+    });
+  };
+
   return (
     <>
       <BaseCard title={`Você possui ${pages.length} Páginas Cadastradas no Sistema`}>
@@ -200,7 +215,7 @@ export default function PaginasSistema() {
               inputProps={{ maxLength: 80 }}
               sx={{ minWidth: 320 }}
             />
-            <FormControl size="small" sx={{ minWidth: 240 }}>
+            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 240 }}>
               <InputLabel>Filtrar categoria</InputLabel>
               <Select
                 value={filtroCategoria}
@@ -259,7 +274,7 @@ export default function PaginasSistema() {
                       <Button title="Editar página" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
                         <FeatherIcon icon="edit" width="20" height="20" />
                       </Button>
-                      <Button title="Remover página" onClick={() => dispatch(removePageFetch(pg.id))} color="error" size="medium" variant="contained">
+                      <Button title="Remover página" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
                         <FeatherIcon icon="trash" width="20" height="20" />
                       </Button>
                     </Box>
@@ -382,6 +397,8 @@ export default function PaginasSistema() {
           </BaseCard>
         </Box>
       </Modal>
+
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
     </>
   );
 }
