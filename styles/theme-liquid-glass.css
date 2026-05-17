@@ -431,6 +431,88 @@ input[type="checkbox"],
   opacity: 1;
 }
 
+.lg-search-field .MuiInputBase-input {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+/* Padrao visual de listagens (mesmo estilo do modal de clientes) */
+.MuiCard-root .MuiButton-contained,
+.MuiCard-root .MuiFab-primary,
+.MuiCard-root .MuiFab-success,
+.MuiCard-root .MuiFab-error {
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
+  box-shadow: var(--lg-shadow-btn);
+  text-transform: none;
+}
+
+.MuiCard-root .MuiButton-contained:hover,
+.MuiCard-root .MuiFab-primary:hover,
+.MuiCard-root .MuiFab-success:hover,
+.MuiCard-root .MuiFab-error:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed);
+}
+
+.MuiCard-root .MuiButton-outlined {
+  border-radius: 10px;
+  background: var(--lg-glass-input);
+  border: 0.5px solid var(--lg-border-input);
+  color: var(--lg-text-secondary);
+  text-transform: none;
+}
+
+.MuiCard-root .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus);
+  color: var(--lg-text-primary);
+  border: 0.5px solid var(--lg-border-input);
+}
+
+/* Inputs e selects em telas de listagem (cards) seguindo o modal de clientes */
+.MuiCard-root .MuiTextField-root .MuiOutlinedInput-root,
+.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-root,
+.MuiCard-root .MuiSelect-select {
+  background: var(--lg-glass-input);
+  border: 0.5px solid var(--lg-border-input);
+  border-radius: 11px;
+  color: var(--lg-text-primary);
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.06), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.MuiCard-root .MuiTextField-root .MuiOutlinedInput-notchedOutline,
+.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-notchedOutline {
+  border: none;
+}
+
+.MuiCard-root .MuiTextField-root .MuiOutlinedInput-root:hover,
+.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-root:hover {
+  background: var(--lg-glass-input-focus);
+}
+
+.MuiCard-root .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background: var(--lg-glass-input-focus);
+  box-shadow: var(--lg-focus-ring);
+}
+
+.MuiCard-root .MuiTextField-root .MuiInputBase-input,
+.MuiCard-root .MuiFormControl-root .MuiInputBase-input,
+.MuiCard-root .MuiSelect-select {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.MuiCard-root .MuiTextField-root .MuiInputBase-input::placeholder,
+.MuiCard-root .MuiFormControl-root .MuiInputBase-input::placeholder {
+  color: var(--lg-text-muted);
+  opacity: 1;
+}
+
 /* Padronizacao global para TODOS os modais do sistema */
 .MuiModal-root > .MuiBox-root {
   background: var(--lg-glass-modal);
