@@ -149,8 +149,8 @@ export default function Auditoria() {
     return (
         <Box sx={modalFormRootSx}>
         <BaseCard title={`Auditoria — ${total} registros`}>
-            <Grid container spacing={2} mb={2}>
-                <Grid item xs={12} sm={6} md={3}>
+            <Grid container spacing={2} mb={2} alignItems="stretch">
+                <Grid item xs={12} sm={6} md={2}>
                 <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Ação</InputLabel>
                     <Select value={filters.action} label="Ação" onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
@@ -160,7 +160,7 @@ export default function Auditoria() {
                 </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={2}>
                 <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Recurso</InputLabel>
                     <Select value={filters.model_type} label="Recurso" onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
@@ -172,7 +172,7 @@ export default function Auditoria() {
                 </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={2}>
                 <FormControl className="lg-search-field" fullWidth size="small">
                     <InputLabel>Usuário</InputLabel>
                     <Select value={filters.user_name} label="Usuário" onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
@@ -184,7 +184,7 @@ export default function Auditoria() {
                 </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={2}>
                 <TextField
                     className="lg-search-field"
                     fullWidth
@@ -196,7 +196,7 @@ export default function Auditoria() {
                     InputLabelProps={{ shrink: true }}
                 />
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={2}>
                 <TextField
                     className="lg-search-field"
                     fullWidth
@@ -210,12 +210,22 @@ export default function Auditoria() {
                 </Grid>
 
                 <Grid item xs={6} sm={3} md={1}>
-                <Button variant="contained" onClick={handleFilter}>
+                <Button
+                    variant="contained"
+                    onClick={handleFilter}
+                    fullWidth
+                    sx={{ height: 40, minWidth: 0 }}
+                >
                     <FeatherIcon icon="search" width="20" height="20" />
                 </Button>
                 </Grid>
                 <Grid item xs={6} sm={3} md={1}>
-                <Button variant="outlined" onClick={handleReset}>
+                <Button
+                    variant="outlined"
+                    onClick={handleReset}
+                    fullWidth
+                    sx={{ height: 40, minWidth: 0 }}
+                >
                     <FeatherIcon icon="x" width="20" height="20" />
                 </Button>
                 </Grid>
