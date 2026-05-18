@@ -27,6 +27,8 @@ export const clearAlertMessages = createAction('CLEAR_ALERT_MESSAGES');
 
 export const turnLoading = createAction('IS_OPEN_LOADING');
 export const turnModal = createAction('IS_OPEN_MODAL');
+export const openModal = createAction('OPEN_MODAL');
+export const closeModal = createAction('CLOSE_MODAL');
 export const turnUserModal = createAction('IS_OPEN_USER_MODAL');
 export const turnModalViewModel = createAction('IS_OPEN_MODEL_MODAL');
 export const turnModalViewLetter = createAction('IS_OPEN_LETTER_MODAL');
@@ -64,6 +66,12 @@ const uiReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(turnModal, (state) => {
       state.isOpenModal = !state.isOpenModal;
+    })
+    .addCase(openModal, (state) => {
+      state.isOpenModal = true;
+    })
+    .addCase(closeModal, (state) => {
+      state.isOpenModal = false;
     })
     .addCase(turnUserModal, (state) => {
       state.isOpenUserModal = !state.isOpenUserModal;

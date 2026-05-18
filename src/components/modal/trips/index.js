@@ -14,7 +14,7 @@ import {
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showTrip } from '../../../store/ducks/trips';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
 import { editTripFetch, addTripFetch } from '../../../store/fetchActions/trips';
 import AlertModal from '../../messagesModal';
@@ -76,7 +76,7 @@ export default function TripModal(props) {
             obs: ""
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showTrip({}));
     }
 
@@ -132,19 +132,17 @@ export default function TripModal(props) {
     }, [trip]);
 
     useEffect(() => {
-        if (isOpenModal === true) {
+        if (isOpenModal) {
             dispatch(getAllUsers());
             dispatch(getAllRoutes());
             dispatch(getAllVehicles());
         }
-
     }, [isOpenModal]);
 
     return (
         <div>
             {props.children}
             <Modal
-                keepMounted
                 open={isOpenModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
@@ -176,28 +174,23 @@ export default function TripModal(props) {
                                         }}
                                     >
 
-                                        {isOpenModal &&
-                                            <>
-                                                <BasicDatePicker
-                                                    id="departure_date"
-                                                    label="Data da Viagem"
-                                                    name="departure_date, "
-                                                    value={departure_date}
-                                                    setValue={handleSetDepartureDate}
-                                                    className=""
-                                                    required
-                                                />
+                                        <BasicDatePicker
+                                            id="departure_date"
+                                            label="Data da Viagem"
+                                            name="departure_date, "
+                                            value={departure_date}
+                                            setValue={handleSetDepartureDate}
+                                            className=""
+                                            required
+                                        />
 
-                                                <DateTime
-                                                    id="departure_time"
-                                                    label="Horário de saída"
-                                                    name="departure_time"
-                                                    value={departure_time}
-                                                    onChange={changeItem}
-                                                />
-                                            </>
-
-                                        }
+                                        <DateTime
+                                            id="departure_time"
+                                            label="Horário de saída"
+                                            name="departure_time"
+                                            value={departure_time}
+                                            onChange={changeItem}
+                                        />
 
 
 

@@ -35,7 +35,7 @@ import loteTxt from "../../reports/loteTxt";
 import { useSelector, useDispatch } from "react-redux";
 import { excludeTripFetch, getAllTripsPerDate } from "../../store/fetchActions/trips";
 import { showTrip } from "../../store/ducks/trips";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
@@ -51,6 +51,17 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     border: 0,
   },
 }));
+
+const SwitchModal = ({ option }) => {
+  switch (option) {
+    case "addCli":
+      return <TripClientsModal />;
+    case "addTrip":
+      return <TripModal />;
+    default:
+      return <></>;
+  }
+};
 
 export default function Trips() {
   const { profile } = useContext(AuthContext);
@@ -110,7 +121,7 @@ export default function Trips() {
   const handleGoAddClients = (trip) => {
     setOption("addCli");
     dispatch(showTrip(trip));
-    dispatch(turnModal());
+    dispatch(openModal());
   };
 
   const handleGoTrip = (trip) => {
@@ -118,7 +129,7 @@ export default function Trips() {
     if (trip) {
       dispatch(showTrip(trip));
     }
-    dispatch(turnModal());
+    dispatch(openModal());
   };
 
   const handleChangePage = (_, newPage) => {
@@ -149,17 +160,6 @@ export default function Trips() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const SwitchModal = ({ option }) => {
-    switch (option) {
-      case "addCli":
-        return <TripClientsModal />;
-      case "addTrip":
-        return <TripModal />;
-      default:
-        return <></>;
-    }
   };
 
   const actionFabSx = {

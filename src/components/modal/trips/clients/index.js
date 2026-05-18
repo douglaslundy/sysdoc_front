@@ -28,7 +28,7 @@ import {
 import BaseCard from "../../../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 
-import { turnModal, changeTitleAlert } from '../../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../../store/ducks/Layout';
 import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
@@ -117,7 +117,7 @@ export default function TripClientsModal(props) {
         });
         setClient([]);
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showTrip({}));
     }
 
@@ -192,7 +192,7 @@ export default function TripClientsModal(props) {
     };
 
     const handleClose = () => {
-        cleanForm();
+        cleanFormCancel();
     };
 
     // Carregar os dados do trip ao iniciar
@@ -224,23 +224,18 @@ export default function TripClientsModal(props) {
         }
     ]
 
-    // Carrega os clientes quando o modal é aberto
+    // Carrega os clientes ao montar (o modal só monta quando open=true)
     useEffect(() => {
-        if (isOpenModal) {
-            if (clients.length <= 0) {
-                dispatch(getAllClients());
-            }
-        } else {
-            setClient({});
+        if (clients.length <= 0) {
+            dispatch(getAllClients());
         }
-    }, [isOpenModal]);
+    }, []);
 
 
     return (
         <div>
             {props.children}
             <Modal
-                keepMounted
                 open={isOpenModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
@@ -285,29 +280,24 @@ export default function TripClientsModal(props) {
                                         onChange={changeItem}
                                     />
 
-                                    {
-                                        isOpenModal &&
-                                        (
-                                            cli?.id ? (
-                                                <TextField
-                                                    className="lg-search-field"
-                                                    id={cli?.id_client}
-                                                    value={cli?.name || ''}
-                                                    name=""
-                                                    disabled
-                                                />
-                                            ) : (
-                                                <InputSelectClient
-                                                    id="client_id"
-                                                    label="SELECIONE O CLIENTE"
-                                                    value=""
-                                                    name="client_id"
-                                                    clients={clients}
-                                                    setClient={setClient}
-                                                />
-                                            )
-                                        )
-                                    }
+                                    {cli?.id ? (
+                                        <TextField
+                                            className="lg-search-field"
+                                            id={cli?.id_client}
+                                            value={cli?.name || ''}
+                                            name=""
+                                            disabled
+                                        />
+                                    ) : (
+                                        <InputSelectClient
+                                            id="client_id"
+                                            label="SELECIONE O CLIENTE"
+                                            value=""
+                                            name="client_id"
+                                            clients={clients}
+                                            setClient={setClient}
+                                        />
+                                    )}
 
                                     <Box
                                         sx={{
