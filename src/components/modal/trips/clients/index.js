@@ -55,12 +55,12 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '90%',
-    height: "98%",
+    width: '98%',
+    height: '98%',
     bgcolor: 'background.paper',
     border: '0px solid #000',
     boxShadow: 24,
-    padding: '8px',
+    padding: '24px',
     overflow: "scroll",
     '& .MuiCard-root': {
         margin: '0 !important',
@@ -368,6 +368,12 @@ export default function TripClientsModal(props) {
                                         sx={{
                                             mt: 3,
                                             whiteSpace: "nowrap",
+                                            '& .MuiTableCell-root': {
+                                                fontSize: '14px',
+                                            },
+                                            '& .MuiTypography-root': {
+                                                fontSize: '14px',
+                                            },
                                         }}
                                     >
                                         <TableHead>
@@ -439,7 +445,7 @@ export default function TripClientsModal(props) {
                                                                         <Typography variant="h6"
                                                                             sx={{
                                                                                 fontWeight: "600",
-                                                                                fontSize: "18px",
+                                                                                fontSize: "14px",
                                                                             }}
                                                                         >
                                                                             {cli?.name && cli?.name.substring(0, 22).toUpperCase()}
