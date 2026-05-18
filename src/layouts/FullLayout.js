@@ -33,13 +33,8 @@ const FullLayout = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(isDesktop);
   const router = useRouter();
 
-  // Esconde sidebar na rota "/panel"
   useEffect(() => {
-    if (router.pathname === "/panel") {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(isDesktop);
-    }
+    setSidebarOpen(isDesktop);
   }, [router.pathname, isDesktop]);
 
   const toggleSidebar = () => {

@@ -22,7 +22,6 @@ const ROUTE_TITLES_PT = {
   "/alvaras": "Alvarás",
   "/paginas-sistema": "Páginas do Sistema",
   "/paginas-categorias": "Categorias de Páginas",
-  "/service_calls": "Serviços",
   "/pharmacy/medicines": "Farmácia - Medicamentos",
   "/pharmacy/daily-status": "Farmácia - Status Diário",
   "/pharmacy/monthly-acquisitions": "Farmácia - Aquisições Mensais",

@@ -57,12 +57,6 @@ const Menuitems = [
     group: true,
     children: [
       { title: "Fila", icon: "layers", href: "/queue" },
-      { title: "Salas", icon: "grid", href: "/rooms" },
-      { title: "Minha Sala", icon: "monitor", href: "/listing_calls" },
-      { title: "Em Atendimento", icon: "activity", href: "/attending" },
-      { title: "Novo Atendimento", icon: "plus-circle", href: "/call" },
-      { title: "Painel", icon: "layout", href: "/panel" },
-      { title: "Servicos", icon: "tool", href: "/service_calls" },
     ],
   },
   {
@@ -109,4 +103,3 @@ const Menuitems = [
 ];
 
 export default Menuitems;
-
