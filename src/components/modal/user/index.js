@@ -111,7 +111,7 @@ export default function UserModal(props) {
   const handleIsDriver = (isDriver) => {
     setForm({
       ...form,
-      is_driver: !isDriver,
+      is_driver: isDriver,
     });
   };
 
@@ -120,7 +120,15 @@ export default function UserModal(props) {
   };
 
   useEffect(() => {
-    if (user && user.id) setForm(user);
+    if (user && user.id) {
+      setForm({
+        ...user,
+        is_driver:
+          user.is_driver === true ||
+          user.is_driver === 1 ||
+          user.is_driver === '1',
+      });
+    }
   }, [user]);
 
   useEffect(() => {
@@ -282,7 +290,12 @@ export default function UserModal(props) {
                   />
 
                   <FormControlLabel
-                    control={<Switch checked={is_driver} onClick={() => handleIsDriver(is_driver)} />}
+                    control={
+                      <Switch
+                        checked={Boolean(is_driver)}
+                        onChange={(event) => handleIsDriver(event.target.checked)}
+                      />
+                    }
                     label={is_driver ? 'DIRIGE VEICULO OFICIAL' : 'NAO DIRIGE VEICULO OFICIAL'}
                   />
 
