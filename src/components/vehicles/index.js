@@ -254,7 +254,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar Veículo" onClick={() => { HandleEditVehicle(vehicle) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Editar Veículo" onClick={() => { HandleEditVehicle(vehicle) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && vehicle.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>

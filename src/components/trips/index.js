@@ -22,6 +22,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from "../actions";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
@@ -275,17 +276,14 @@ export default function Trips() {
             <FeatherIcon icon="printer" width="16" height="16" />
           </Fab>
 
-          <Fab
+          <ActionCreateFab
             title="Cadastrar viagem"
             onClick={() => {
               handleGoTrip();
             }}
-            color="primary"
-            aria-label="cadastrar-viagem"
+            icon="user-plus"
             sx={actionFabSx}
-          >
-            <FeatherIcon icon="user-plus" width="16" height="16" />
-          </Fab>
+          />
         </Stack>
       </Stack>
 
@@ -427,7 +425,7 @@ export default function Trips() {
                       onClick={() => {
                         handleGoAddClients(trip);
                       }}
-                      color="success"
+                      color="primary"
                       size="medium"
                       variant="contained"
                       sx={{ minHeight: 36, whiteSpace: "nowrap" }}
@@ -451,29 +449,19 @@ export default function Trips() {
                         <FeatherIcon icon="printer" width="20" height="20" />
                       </Button>
 
-                      <Button
+                      <ActionEditButton
                         title="Editar Viagem"
                         onClick={() => {
                           handleGoTrip(trip);
                         }}
-                        color="success"
-                        size="medium"
-                        variant="contained"
-                      >
-                        <FeatherIcon icon="edit" width="20" height="20" />
-                      </Button>
+                      />
 
-                      <Button
+                      <ActionDeleteButton
                         title="Excluir Viagem"
                         onClick={() => {
                           handleInactiveTrip(trip);
                         }}
-                        color="error"
-                        size="medium"
-                        variant="contained"
-                      >
-                        <FeatherIcon icon="trash" width="20" height="20" />
-                      </Button>
+                      />
                     </Box>
                   </TableCell>
                 </StyledTableRow>

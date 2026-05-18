@@ -253,7 +253,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Editar Rota" onClick={() => { HandleEditRoute(route) }} color="primary" size="medium" variant="contained"
+                                                <Button title="Editar Rota" onClick={() => { HandleEditRoute(route) }} color="success" size="medium" variant="contained"
                                                     disabled={profile != "admin" && route.id_user != user}>
                                                     <FeatherIcon icon="edit" width="20" height="20" />
                                                 </Button>

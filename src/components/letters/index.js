@@ -7,7 +7,6 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Fab,
     Button,
     styled,
     TableContainer,
@@ -17,6 +16,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton, ActionViewButton } from "../actions";
 import LetterModal from "../modal/letter";
 import ViewLetterModal from "../modal/letter/view";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
@@ -163,9 +163,7 @@ export default () => {
                 />
 
                 <LetterModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="plus" />
-                    </Fab>
+                    <ActionCreateFab onClick={() => { dispatch(turnModal()) }} />
                 </LetterModal>
             </Box>
 
@@ -300,9 +298,7 @@ export default () => {
                                             <TableCell align="center">
                                                 <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                    <Button title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} color="success" size="medium" variant="contained">
-                                                        <FeatherIcon icon="eye" width="20" height="20" />
-                                                    </Button>
+                                                    <ActionViewButton title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} />
 
                                                     {Number(letter?.attachments_count || 0) > 0 && (
                                                         <Button
@@ -316,15 +312,13 @@ export default () => {
                                                         </Button>
                                                     )}
 
-                                                    <Button title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }} color="primary" size="medium" variant="contained"
+                                                    <ActionEditButton title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }}
                                                         disabled={profile != "admin" && letter.id_user != user}>
-                                                        <FeatherIcon icon="edit" width="20" height="20" />
-                                                    </Button>
+                                                    </ActionEditButton>
 
-                                                    <Button title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }} color="error" size="medium" variant="contained"
+                                                    <ActionDeleteButton title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }}
                                                         disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
-                                                        <FeatherIcon icon="trash" width="20" height="20" />
-                                                    </Button>
+                                                    </ActionDeleteButton>
 
                                                 </Box>
                                             </TableCell>

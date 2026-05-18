@@ -349,7 +349,7 @@ export default () => {
                                                 <Button
                                                     title="Editar Portaria"
                                                     onClick={() => { HandleEditOrdinance(ordinance) }}
-                                                    color="primary"
+                                                    color="success"
                                                     size="medium"
                                                     variant="contained"
                                                     disabled={profile != "admin" && ordinance.user_id != user}

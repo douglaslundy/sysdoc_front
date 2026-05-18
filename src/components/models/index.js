@@ -252,7 +252,7 @@ export default () => {
                                         <TableCell align="center">
                                             <Box sx={{ "& button": { mx: 1 } }}>
 
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="primary" size="medium" variant="contained">
+                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="info" size="medium" variant="contained">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 

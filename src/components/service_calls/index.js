@@ -190,7 +190,7 @@ export default function ServiceCalls() {
                         <Button
                           title="Atendimentos em progresso"
                           onClick={() => handleGoCalls(service.calls.filter((a) => a.status === "IN_PROGRESS"))}
-                          color="primary"
+                          color="success"
                           size="small"
                           variant="contained"
                           disabled={profile !== "admin" && service.id_user !== user}
@@ -277,4 +277,3 @@ export default function ServiceCalls() {
     </Box>
   );
 }
-

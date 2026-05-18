@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
 import { getAllProfiles, getAllPages, addProfileFetch, editProfileFetch, removeProfileFetch } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
@@ -106,9 +107,7 @@ export default function Perfis() {
                         inputProps={{ maxLength: 80 }}
                         sx={{ minWidth: 260, flex: 1 }}
                     />
-                    <Fab color="primary" title="Novo Perfil" onClick={handleNovo}>
-                        <FeatherIcon icon="plus" />
-                    </Fab>
+                    <ActionCreateFab title="Novo Perfil" onClick={handleNovo} />
                 </Box>
                 <TableContainer>
                     <Table aria-label="perfis" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
@@ -139,24 +138,14 @@ export default function Perfis() {
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box sx={{ '& button': { mx: 1 } }}>
-                                            <Button
+                                            <ActionEditButton
                                                 title="Editar perfil"
                                                 onClick={() => handleEditar(profile)}
-                                                color="primary"
-                                                size="medium"
-                                                variant="contained"
-                                            >
-                                                <FeatherIcon icon="edit" width="20" height="20" />
-                                            </Button>
-                                            <Button
+                                            />
+                                            <ActionDeleteButton
                                                 title="Remover perfil"
                                                 onClick={() => dispatch(removeProfileFetch(profile.id))}
-                                                color="error"
-                                                size="medium"
-                                                variant="contained"
-                                            >
-                                                <FeatherIcon icon="trash" width="20" height="20" />
-                                            </Button>
+                                            />
                                         </Box>
                                     </TableCell>
                                 </TableRow>

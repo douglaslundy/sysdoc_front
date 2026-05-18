@@ -17,6 +17,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from "../actions";
 
 import { useSelector, useDispatch } from "react-redux";
 import { getAllUsers, inactiveUserFetch } from "../../store/fetchActions/user";
@@ -126,15 +127,12 @@ export default function Users() {
             onChange={handleSearchUsers}
           />
 
-          <Fab
+          <ActionCreateFab
+            icon="user-plus"
             onClick={() => {
               dispatch(turnUserModal());
             }}
-            color="primary"
-            aria-label="add"
-          >
-            <FeatherIcon icon="user-plus" />
-          </Fab>
+          />
         </Box>
 
         <TableContainer>
@@ -215,29 +213,19 @@ export default function Users() {
 
                       <TableCell align="center">
                         <Box sx={{ "& button": { mx: 1 } }}>
-                          <Button
+                          <ActionEditButton
                             title="Editar usuario"
                             onClick={() => {
                               handleEditUser(user);
                             }}
-                            color="success"
-                            size="medium"
-                            variant="contained"
-                          >
-                            <FeatherIcon icon="edit" width="20" height="20" />
-                          </Button>
+                          />
 
-                          <Button
+                          <ActionDeleteButton
                             title="Inativar usuario"
                             onClick={() => {
                               handleInactiveUser(user);
                             }}
-                            color="error"
-                            size="medium"
-                            variant="contained"
-                          >
-                            <FeatherIcon icon="trash" width="20" height="20" />
-                          </Button>
+                          />
                         </Box>
                       </TableCell>
                     </StyledTableRow>

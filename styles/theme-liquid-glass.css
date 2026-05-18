@@ -442,19 +442,47 @@ input[type="checkbox"],
 .MuiCard-root .MuiFab-success,
 .MuiCard-root .MuiFab-error {
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
   box-shadow: var(--lg-shadow-btn);
   text-transform: none;
 }
 
-.MuiCard-root .MuiButton-contained:hover,
-.MuiCard-root .MuiFab-primary:hover,
-.MuiCard-root .MuiFab-success:hover,
-.MuiCard-root .MuiFab-error:hover {
+.MuiCard-root .MuiButton-containedPrimary,
+.MuiCard-root .MuiFab-primary {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
+}
+
+.MuiCard-root .MuiButton-containedSuccess,
+.MuiCard-root .MuiFab-success {
+  background: linear-gradient(135deg, #00c292, #00964b);
+}
+
+.MuiCard-root .MuiButton-containedError,
+.MuiCard-root .MuiFab-error {
+  background: linear-gradient(135deg, #e46a76, #c93f4d);
+}
+
+.MuiCard-root .MuiButton-containedPrimary:hover,
+.MuiCard-root .MuiFab-primary:hover {
   opacity: 0.92;
   transform: translateY(-1px);
   box-shadow: var(--lg-shadow-btn-hover);
   background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed);
+}
+
+.MuiCard-root .MuiButton-containedSuccess:hover,
+.MuiCard-root .MuiFab-success:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, #00ad83, #008a45);
+}
+
+.MuiCard-root .MuiButton-containedError:hover,
+.MuiCard-root .MuiFab-error:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, #d95b66, #b93644);
 }
 
 .MuiCard-root .MuiButton-outlined {
@@ -598,17 +626,47 @@ input[type="checkbox"],
 .MuiModal-root .MuiButton-contained,
 .MuiDialog-root .MuiButton-contained {
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
   box-shadow: var(--lg-shadow-btn);
   text-transform: none;
 }
 
-.MuiModal-root .MuiButton-contained:hover,
-.MuiDialog-root .MuiButton-contained:hover {
+.MuiModal-root .MuiButton-containedPrimary,
+.MuiDialog-root .MuiButton-containedPrimary {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9);
+}
+
+.MuiModal-root .MuiButton-containedSuccess,
+.MuiDialog-root .MuiButton-containedSuccess {
+  background: linear-gradient(135deg, #00c292, #00964b);
+}
+
+.MuiModal-root .MuiButton-containedError,
+.MuiDialog-root .MuiButton-containedError {
+  background: linear-gradient(135deg, #e46a76, #c93f4d);
+}
+
+.MuiModal-root .MuiButton-containedPrimary:hover,
+.MuiDialog-root .MuiButton-containedPrimary:hover {
   opacity: 0.92;
   transform: translateY(-1px);
   box-shadow: var(--lg-shadow-btn-hover);
   background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed);
+}
+
+.MuiModal-root .MuiButton-containedSuccess:hover,
+.MuiDialog-root .MuiButton-containedSuccess:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, #00ad83, #008a45);
+}
+
+.MuiModal-root .MuiButton-containedError:hover,
+.MuiDialog-root .MuiButton-containedError:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: var(--lg-shadow-btn-hover);
+  background: linear-gradient(135deg, #d95b66, #b93644);
 }
 
 .MuiModal-root .MuiButton-outlined,

@@ -223,7 +223,7 @@ export default function ListaAlvaras() {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box sx={{ '& button': { mx: 0.5 } }}>
-                                        <Button onClick={() => handleEditar(alv)} color="primary" variant="contained" size="small" title="Editar">
+                                        <Button onClick={() => handleEditar(alv)} color="success" variant="contained" size="small" title="Editar">
                                             <FeatherIcon icon="edit" width="18" height="18" />
                                         </Button>
                                         {alv.status === 'Vigente' && (

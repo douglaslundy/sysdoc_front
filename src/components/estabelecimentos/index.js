@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
 import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
@@ -130,9 +131,7 @@ export default function ListaEstabelecimentos() {
                         onChange={handleBusca}
                         inputProps={{ autoComplete: 'off' }}
                     />
-                    <Fab color="primary" onClick={handleNovo} aria-label="add" title="Novo estabelecimento">
-                        <FeatherIcon icon="plus" />
-                    </Fab>
+                    <ActionCreateFab onClick={handleNovo} title="Novo estabelecimento" />
                 </Box>
 
                 <TableContainer>
@@ -201,12 +200,8 @@ export default function ListaEstabelecimentos() {
                                                 '& button': { mx: 0.5, minWidth: 40 },
                                             }}
                                         >
-                                            <Button onClick={() => handleEditar(est)} color="success" variant="contained" size="medium" title="Editar">
-                                                <FeatherIcon icon="edit" width="20" height="20" />
-                                            </Button>
-                                            <Button onClick={() => handleExcluir(est)} color="error" variant="contained" size="medium" title="Excluir">
-                                                <FeatherIcon icon="trash" width="20" height="20" />
-                                            </Button>
+                                            <ActionEditButton onClick={() => handleEditar(est)} title="Editar" />
+                                            <ActionDeleteButton onClick={() => handleExcluir(est)} title="Excluir" />
                                         </Box>
                                     </TableCell>
                                 </StyledTableRow>
