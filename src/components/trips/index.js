@@ -318,6 +318,7 @@ export default function Trips() {
           aria-label="simple table"
           sx={{
             mt: 3,
+            whiteSpace: "nowrap",
           }}
         >
           <TableHead>
@@ -377,7 +378,7 @@ export default function Trips() {
                       variant="h6"
                       sx={{
                         fontWeight: "600",
-                        fontSize: "20px",
+                        fontSize: "17px",
                       }}
                     >
                       {trip?.id}
@@ -392,10 +393,10 @@ export default function Trips() {
                       }}
                     >
                       <Box>
-                        <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "18px" }}>
+                        <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "15px" }}>
                           {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO"}
                         </Typography>
-                        <Typography variant="h6">
+                        <Typography variant="h6" sx={{ fontSize: "11px" }}>
                           {trip?.vehicle
                             ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES`
                             : "VEÍCULO NÃO ATRIBUÍDO"}
@@ -409,15 +410,13 @@ export default function Trips() {
                       variant="h6"
                       sx={{
                         fontWeight: "600",
-                        fontSize: "18px",
+                        fontSize: "15px",
                       }}
                     >
                       {trip?.route?.origin.toUpperCase()} X {trip?.route?.destination.toUpperCase()}
                     </Typography>
 
-                    <Typography
-                      variant="h6"
-                    >
+                    <Typography variant="h6" sx={{ fontSize: "11px" }}>
                       {trip?.departure_date && format(parseISO(trip?.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
                     </Typography>
                   </TableCell>
@@ -431,15 +430,15 @@ export default function Trips() {
                       color="success"
                       size="medium"
                       variant="contained"
-                      sx={{ minHeight: 36 }}
+                      sx={{ minHeight: 36, whiteSpace: "nowrap" }}
                     >
                       <FeatherIcon icon="users" width="16" height="16" />
                       <Box sx={{ ml: 0.8 }}>{trip?.clients?.length}</Box>
                     </Button>
                   </TableCell>
 
-                  <TableCell align="center">
-                    <Box sx={{ "& button": { mx: 1 } }}>
+                  <TableCell align="center" sx={{ minWidth: 210 }}>
+                    <Box sx={{ display: "inline-flex", flexWrap: "nowrap", "& button": { mx: 0.5 } }}>
                       <Button
                         title="Imprimir Viagem"
                         onClick={() => {
