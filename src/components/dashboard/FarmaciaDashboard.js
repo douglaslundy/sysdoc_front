@@ -82,7 +82,7 @@ export default function FarmaciaDashboard() {
         const indisponiveisDia = statusPorDia.map((s) => Number(s.indisponiveis || 0));
 
         const top = dados.top_indisponiveis || [];
-        const topNomes = top.map((m) => `${m.active_ingredient || 'Sem nome'} (${m.internal_code || '-'})`).reverse();
+        const topNomes = top.map((m) => `${m.active_ingredient || 'Sem nome'}${m.concentration ? ' ' + m.concentration : ''}`).reverse();
         const topDias = top.map((m) => Number(m.dias_indisponivel || 0)).reverse();
 
         const fontes = dados.fontes_aquisicao_mes || [];

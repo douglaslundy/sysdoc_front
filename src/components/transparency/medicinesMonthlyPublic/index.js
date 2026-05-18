@@ -64,7 +64,7 @@ export default function MedicinesMonthlyPublicList() {
                         )}
                         {data.items.map((item, idx) => (
                             <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: alpha(theme.palette.primary.main, 0.04) } }}>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} {item.concentration}</TableCell>
                                 <TableCell sx={{ color: 'text.primary' }}>{item.acquired_quantity}</TableCell>
                                 <TableCell sx={{ color: 'text.primary' }}>{formatUnit(item.unit_measure)}</TableCell>
                                 <TableCell sx={{ color: 'text.primary' }}>{item.source_document || '-'}</TableCell>

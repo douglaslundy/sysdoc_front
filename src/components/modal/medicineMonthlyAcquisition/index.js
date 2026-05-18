@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
+import InputMask from 'react-input-mask';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -17,6 +18,7 @@ import {
 import { api } from '../../../services/api';
 import { addAlertMessage } from '../../../store/ducks/Layout';
 import { upsertMonthlyAcquisitionFetch } from '../../../store/fetchActions/medicineMonthlyAcquisitions';
+import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -34,9 +36,18 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
     const [units, setUnits] = useState([]);
     const [sources, setSources] = useState([]);
 
+    const toApiMonth = (masked) => {
+        const parts = (masked || '').replace(/_/g, '').split('/');
+        if (parts.length !== 2 || parts[0].length !== 2 || parts[1].length !== 4) return '';
+        return `${parts[1]}-${parts[0]}`;
+    };
+
     useEffect(() => {
         if (open) {
-            setForm({ ...EMPTY, reference_month: new Date().toISOString().slice(0, 7) });
+            dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
+            const now = new Date();
+            const maskedDefault = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            setForm({ ...EMPTY, reference_month: maskedDefault });
             api.get('/pharmacy/catalogs')
                 .then((res) => {
                     setUnits(res.data?.units || []);
@@ -51,6 +62,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
     const save = () => {
         dispatch(upsertMonthlyAcquisitionFetch({
             ...form,
+            reference_month: toApiMonth(form.reference_month),
             acquired_quantity: Number(form.acquired_quantity || 0),
             source_document: form.source_document || null,
             note: form.note || null,
@@ -109,11 +121,23 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
                             <InputLabel>Medicamento</InputLabel>
                             <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>
                                 {medicines.map((m) => (
-                                    <MenuItem key={m.id} value={m.id}>{m.active_ingredient} ({m.internal_code})</MenuItem>
+                                    <MenuItem key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
-                        <TextField name="reference_month" label="Mês de Referência (AAAA-MM)" value={form.reference_month} onChange={change} fullWidth required />
+                        <InputMask mask="99/9999" value={form.reference_month} onChange={change}>
+                            {(inputProps) => (
+                                <TextField
+                                    {...inputProps}
+                                    name="reference_month"
+                                    label="Mês de Referência"
+                                    placeholder="MM/AAAA"
+                                    fullWidth
+                                    required
+                                    inputProps={{ ...inputProps.inputProps, inputMode: 'numeric' }}
+                                />
+                            )}
+                        </InputMask>
                         <TextField name="acquired_quantity" type="number" label="Quantidade Adquirida" value={form.acquired_quantity} onChange={change} fullWidth required />
                         <FormControl fullWidth required>
                             <InputLabel>Unidade de Medida</InputLabel>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import InputMask from 'react-input-mask';
 import { Box, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -46,11 +47,6 @@ export default function MonthlyAcquisitionsManager() {
     return `${year}-${month}`;
   };
 
-  const formatMonthMask = (value) => {
-    const cleaned = String(value || '').replace(/\D/g, '').slice(0, 6);
-    if (cleaned.length <= 2) return cleaned;
-    return `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
-  };
 
   useEffect(() => {
     dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
@@ -89,14 +85,21 @@ export default function MonthlyAcquisitionsManager() {
             mt: 1,
           }}
         >
-          <TextField
-            className="lg-search-field"
-            placeholder="Mês de referência"
+          <InputMask
+            mask="99/9999"
             value={referenceMonth}
-            onChange={(e) => setReferenceMonth(formatMonthMask(e.target.value))}
-            inputProps={{ maxLength: 7, inputMode: 'numeric', placeholder: 'MM/AAAA' }}
-            sx={{ minWidth: 0, width: '100%' }}
-          />
+            onChange={(e) => setReferenceMonth(e.target.value)}
+          >
+            {(inputProps) => (
+              <TextField
+                {...inputProps}
+                className="lg-search-field"
+                placeholder="MM/AAAA"
+                inputProps={{ ...inputProps.inputProps, inputMode: 'numeric' }}
+                sx={{ minWidth: 0, width: '100%' }}
+              />
+            )}
+          </InputMask>
           <Fab
             color="primary"
             size="medium"
@@ -121,7 +124,7 @@ export default function MonthlyAcquisitionsManager() {
             <TableBody>
               {monthlyAcquisitions.map((s) => (
                 <StyledTableRow key={s.id} hover>
-                  <TableCell>{s.medicine_item?.active_ingredient} ({s.medicine_item?.internal_code})</TableCell>
+                  <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
                   <TableCell>{s.acquired_quantity}</TableCell>
                   <TableCell>{formatUnit(s.unit_measure)}</TableCell>
                   <TableCell>{s.source_document || '-'}</TableCell>

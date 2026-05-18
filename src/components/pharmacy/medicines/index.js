@@ -83,8 +83,8 @@ export default function MedicinesManager() {
           <Table sx={{ whiteSpace: 'nowrap' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography variant="h6">Código</Typography></TableCell>
                 <TableCell><Typography variant="h6">Princípio Ativo</Typography></TableCell>
+                <TableCell><Typography variant="h6">Concentração</Typography></TableCell>
                 <TableCell><Typography variant="h6">Forma</Typography></TableCell>
                 <TableCell><Typography variant="h6">Gratuito</Typography></TableCell>
                 <TableCell><Typography variant="h6">Ativo</Typography></TableCell>
@@ -94,8 +94,8 @@ export default function MedicinesManager() {
             <TableBody>
               {medicines.map((m) => (
                 <StyledTableRow key={m.id} hover>
-                  <TableCell>{m.internal_code}</TableCell>
                   <TableCell>{m.active_ingredient}</TableCell>
+                  <TableCell>{m.concentration}</TableCell>
                   <TableCell>{m.pharmaceutical_form}</TableCell>
                   <TableCell>{m.is_free_distribution ? 'Sim' : 'Não'}</TableCell>
                   <TableCell>{m.active ? 'Sim' : 'Não'}</TableCell>

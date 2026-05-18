@@ -55,13 +55,16 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: "90%",
+    width: '90%',
     height: "98%",
     bgcolor: 'background.paper',
     border: '0px solid #000',
     boxShadow: 24,
-    p: 4,
+    padding: '8px',
     overflow: "scroll",
+    '& .MuiCard-root': {
+        margin: '0 !important',
+    },
 };
 
 export default function TripClientsModal(props) {
@@ -241,7 +244,7 @@ export default function TripClientsModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={style} className="trip-clients-modal-box">
 
                     <AlertModal />
 
@@ -278,34 +281,29 @@ export default function TripClientsModal(props) {
                                         name="time"
                                         value={time ? time : ''}
                                         onChange={changeItem}
+                                        wd="200px"
                                     />
 
-                                    {cli?.id ? (
-                                        <TextField
-                                            className="lg-search-field"
-                                            id={cli?.id_client}
-                                            value={cli?.name || ''}
-                                            name=""
-                                            disabled
-                                        />
-                                    ) : (
-                                        <InputSelectClient
-                                            id="client_id"
-                                            label="SELECIONE O CLIENTE"
-                                            value=""
-                                            name="client_id"
-                                            clients={clients}
-                                            setClient={setClient}
-                                        />
-                                    )}
-
-                                    <Box
-                                        sx={{
-                                            display: 'grid',
-                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                                            gap: 2,
-                                        }}
-                                    >
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 300px 300px' }, gap: 2 }}>
+                                        {cli?.id ? (
+                                            <TextField
+                                                className="lg-search-field"
+                                                id={cli?.id_client}
+                                                value={cli?.name || ''}
+                                                name=""
+                                                disabled
+                                            />
+                                        ) : (
+                                            <InputSelectClient
+                                                id="client_id"
+                                                label="SELECIONE O CLIENTE"
+                                                value=""
+                                                name="client_id"
+                                                clients={clients}
+                                                setClient={setClient}
+                                                wd="100%"
+                                            />
+                                        )}
 
                                         <Select
                                             value={person_type ? person_type : ''}
@@ -315,7 +313,6 @@ export default function TripClientsModal(props) {
                                             changeItem={changeItem}
                                         />
 
-
                                         <Phone value={phone ? phone : ''}
                                             label={'Telefone'}
                                             name={'phone'}
@@ -323,42 +320,33 @@ export default function TripClientsModal(props) {
                                         />
                                     </Box>
 
-                                    <TextField
-                                        className="lg-search-field"
-                                        id="departure_location"
-                                        label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
-                                        multiline
-                                        rows={2}
-                                        value={departure_location ? departure_location : ''}
-                                        name="departure_location"
-                                        // disabled={queue?.id ? true : false}
-                                        onChange={changeItem}
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase"
-                                            },
-                                            maxLength: 50
-                                        }}
-                                    />
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                                        <TextField
+                                            className="lg-search-field"
+                                            id="departure_location"
+                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
+                                            value={departure_location ? departure_location : ''}
+                                            name="departure_location"
+                                            onChange={changeItem}
+                                            inputProps={{
+                                                style: { textTransform: "uppercase" },
+                                                maxLength: 50
+                                            }}
+                                        />
 
-
-                                    <TextField
-                                        className="lg-search-field"
-                                        id="destination_location"
-                                        label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
-                                        multiline
-                                        rows={2}
-                                        value={destination_location ? destination_location : ''}
-                                        name="destination_location"
-                                        // disabled={queue?.id ? true : false}
-                                        onChange={changeItem}
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase"
-                                            },
-                                            maxLength: 50
-                                        }}
-                                    />
+                                        <TextField
+                                            className="lg-search-field"
+                                            id="destination_location"
+                                            label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
+                                            value={destination_location ? destination_location : ''}
+                                            name="destination_location"
+                                            onChange={changeItem}
+                                            inputProps={{
+                                                style: { textTransform: "uppercase" },
+                                                maxLength: 50
+                                            }}
+                                        />
+                                    </Box>
 
                                 </Stack>
                                 {/* </FormGroup> */}

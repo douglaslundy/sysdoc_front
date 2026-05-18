@@ -37,6 +37,7 @@ const getInitials = (name) => {
 
 const ProfileDD = () => {
   const [anchorEl4, setAnchorEl4] = React.useState(null);
+  const [mounted, setMounted] = React.useState(false);
 
   const handleClick4 = (event) => {
     setAnchorEl4(event.currentTarget);
@@ -49,6 +50,8 @@ const ProfileDD = () => {
   const dispatch = useDispatch();
 
   const { username, user } = useContext(AuthContext);
+
+  React.useEffect(() => { setMounted(true); }, []);
 
   const handleEditUser = async (userId) => {
     dispatch(getUserFetch(userId));
@@ -124,7 +127,7 @@ const ProfileDD = () => {
                 flexShrink: 0,
               }}
             >
-              {getInitials(username)}
+              {mounted ? getInitials(username) : ""}
             </Box>
             <Box
               sx={{
@@ -136,7 +139,7 @@ const ProfileDD = () => {
               }}
             >
               <Typography sx={{ fontSize: "12px", color: "var(--lg-text-secondary)", mr: 0.5 }}>
-                {username}
+                {mounted ? username : ""}
               </Typography>
               <FeatherIcon icon="chevron-down" width="14" height="14" style={{ opacity: 0.4 }} />
             </Box>

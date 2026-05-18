@@ -102,7 +102,7 @@ export default function DailyStatusManager() {
             <TableBody>
               {dailyStatuses.map((s) => (
                 <StyledTableRow key={s.id} hover>
-                  <TableCell>{s.medicine_item?.active_ingredient} ({s.medicine_item?.internal_code})</TableCell>
+                  <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
                   <TableCell>{statusLabel(s.availability_status)}</TableCell>
                   <TableCell>{s.available_quantity ?? '-'}</TableCell>
                   <TableCell>{formatDate(s.restock_forecast_date)}</TableCell>

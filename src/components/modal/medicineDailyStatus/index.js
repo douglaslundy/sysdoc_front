@@ -15,6 +15,7 @@ import {
     TextField,
 } from '@mui/material';
 import { upsertDailyStatusFetch } from '../../../store/fetchActions/medicineDailyStatuses';
+import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -32,6 +33,7 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
 
     useEffect(() => {
         if (open) {
+            dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
             setForm({ ...EMPTY, reference_date: new Date().toISOString().slice(0, 10) });
         }
     }, [open]);
@@ -99,7 +101,7 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
                             <InputLabel>Medicamento</InputLabel>
                             <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>
                                 {medicines.map((m) => (
-                                    <MenuItem key={m.id} value={m.id}>{m.active_ingredient} ({m.internal_code})</MenuItem>
+                                    <MenuItem key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>

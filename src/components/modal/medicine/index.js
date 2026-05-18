@@ -140,7 +140,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
                             </Select>
                         </FormControl>
                         <TextField name="ean_code" label="Código EAN" value={form.ean_code || ''} onChange={change} fullWidth />
-                        <TextField name="technical_notes" label="Observações Técnicas" value={form.technical_notes || ''} onChange={change} fullWidth multiline minRows={2} />
+                        <TextField name="technical_notes" label="Observações Técnicas" value={form.technical_notes || ''} onChange={change} fullWidth />
                         <FormControlLabel control={<Checkbox name="is_free_distribution" checked={!!form.is_free_distribution} onChange={change} />} label="Distribuição Gratuita" />
                         <FormControlLabel control={<Checkbox name="is_controlled" checked={!!form.is_controlled} onChange={change} />} label="Medicamento Controlado" />
                         <FormControlLabel control={<Checkbox name="active" checked={!!form.active} onChange={change} />} label="Ativo" />

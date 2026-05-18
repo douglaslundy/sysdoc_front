@@ -66,7 +66,7 @@ export default function MedicinesPanel() {
                                     : `6px solid ${theme.palette.error.main}`,
                             }}
                         >
-                            <Typography variant="h5" sx={{ color: 'text.primary' }}>{item.active_ingredient}</Typography>
+                            <Typography variant="h5" sx={{ color: 'text.primary' }}>{item.active_ingredient} {item.concentration}</Typography>
                             <Typography variant="body2" sx={{ color: 'text.secondary' }}>{item.pharmaceutical_form} - {item.presentation}</Typography>
                             <Typography
                                 variant="body1"

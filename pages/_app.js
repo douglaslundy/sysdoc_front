@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
 import { CacheProvider } from "@emotion/react";
@@ -13,7 +13,7 @@ import Messages from "../src/components/messages";
 import AlertDialog from "../src/components/alertDialog";
 import Loading from "../src/components/loading";
 import { parseCookies } from "nookies";
-import { AuthProvider } from "../src/contexts/AuthContext";
+import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
 import Router, { useRouter } from "next/router";
 import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 import { api } from "../src/services/api";
@@ -22,6 +22,22 @@ const clientSideEmotionCache = createEmotionCache();
 
 const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/esqueci-senha", "/redefinir-senha", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
 
+function AuditPageView() {
+  const { permissionsLoaded } = useContext(AuthContext);
+  const router = useRouter();
+  const lastRef = useRef(null);
+
+  useEffect(() => {
+    if (!permissionsLoaded) return;
+    if (isPublicRoute(router.pathname)) return;
+    if (lastRef.current === router.pathname) return;
+    lastRef.current = router.pathname;
+    api.post("/audit/page-view", { path: router.pathname }).catch(() => {});
+  }, [router.pathname, permissionsLoaded]);
+
+  return null;
+}
+
 function isPublicRoute(pathname) {
   return PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/showqueue");
 }
@@ -29,7 +45,6 @@ function isPublicRoute(pathname) {
 export default function MyApp(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
-  const lastAuditedPathRef = useRef(null);
 
   // showLayout based on route (not cookies) so SSR and client agree — prevents hydration mismatch.
   // Auth redirect (missing cookies) handled by useEffect; token handling by AuthContext.
@@ -47,17 +62,6 @@ export default function MyApp(props) {
     }
   }, [router.pathname]);
 
-  useEffect(() => {
-    if (isPublicRoute(router.pathname)) return;
-    if (lastAuditedPathRef.current === router.pathname) return;
-
-    const { "sysvendas.id": id, "sysvendas.profile": prof } = parseCookies();
-    if (!id || !prof) return;
-
-    lastAuditedPathRef.current = router.pathname;
-    api.post("/audit/page-view", { path: router.pathname }).catch(() => {});
-  }, [router.pathname]);
-
   return (
     <CacheProvider value={emotionCache}>
       <Head>
@@ -71,6 +75,7 @@ export default function MyApp(props) {
       </Head>
       <Provider store={store}>
         <AuthProvider>
+          <AuditPageView />
           <CustomThemeProvider>
             {showLayout ? (
               <>

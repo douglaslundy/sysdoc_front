@@ -541,6 +541,13 @@ input[type="checkbox"],
   opacity: 1;
 }
 
+.MuiModal-root > .MuiBox-root.trip-clients-modal-box {
+  width: 86% !important;
+  max-width: 86% !important;
+  max-height: 98% !important;
+  border-radius: 12px;
+}
+
 /* Padronizacao global para TODOS os modais do sistema */
 .MuiModal-root > .MuiBox-root {
   background: var(--lg-glass-modal);

@@ -57,7 +57,7 @@ export default function MedicinesPublicList() {
                         )}
                         {data.items.map((item, idx) => (
                             <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: alpha(theme.palette.primary.main, 0.04) } }}>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} ({item.internal_code})</TableCell>
+                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} {item.concentration}</TableCell>
                                 <TableCell>
                                     <Chip
                                         label={item.availability_status === 'available' ? 'Disponível' : 'Indisponível'}

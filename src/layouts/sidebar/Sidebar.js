@@ -49,17 +49,17 @@ const normalizeCategory = (value) => {
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const dispatch = useDispatch();
   const reduxPages = useSelector((state) => state.accessProfiles.pages);
-  const { profile, myPermissions } = useContext(AuthContext);
+  const { profile, myPermissions, permissionsLoaded } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
 
-  // Recarrega páginas do backend sempre que perfil ou permissões mudam.
-  // A resposta atualiza Redux (addPages), e o useMemo abaixo reage automaticamente.
+  // Aguarda o token estar disponível antes de buscar as páginas, evitando 401 na corrida de inicialização.
   useEffect(() => {
+    if (!permissionsLoaded) return;
     dispatch(getAllPages());
-  }, [dispatch, profile, myPermissions]);
+  }, [dispatch, profile, myPermissions, permissionsLoaded]);
 
   const dynamicMenu = useMemo(() => {
     const pages = Array.isArray(reduxPages) ? reduxPages : [];
