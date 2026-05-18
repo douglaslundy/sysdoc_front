@@ -83,7 +83,7 @@ export default function MonthlyAcquisitionsManager() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: '1fr auto', md: 'minmax(240px, 1fr) auto' },
-            alignItems: 'center',
+            alignItems: 'start',
             gap: 1.5,
             mb: 2,
             mt: 1,
@@ -97,7 +97,12 @@ export default function MonthlyAcquisitionsManager() {
             inputProps={{ maxLength: 7, inputMode: 'numeric', placeholder: 'MM/AAAA' }}
             sx={{ minWidth: 0, width: '100%' }}
           />
-          <Fab color="primary" size="medium" onClick={() => setDialogOpen(true)} sx={{ justifySelf: { xs: 'flex-end', sm: 'center' } }}>
+          <Fab
+            color="primary"
+            size="medium"
+            onClick={() => setDialogOpen(true)}
+            sx={{ justifySelf: { xs: 'flex-end', sm: 'center' }, mt: '2px' }}
+          >
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>

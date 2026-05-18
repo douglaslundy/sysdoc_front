@@ -20,7 +20,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { useTheme } from "@mui/material/styles";
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
@@ -43,9 +42,9 @@ import { parseISO, format } from "date-fns";
 import BasicDatePicker from "../inputs/datePicker";
 import { AuthContext } from "../../contexts/AuthContext";
 
-const StyledTableRow = styled(TableRow)(() => ({
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
-    backgroundColor: "var(--lg-glass-row-hover)",
+    backgroundColor: theme.palette.action.hover,
   },
   "&:last-child td, &:last-child th": {
     border: 0,
@@ -53,7 +52,6 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default function Trips() {
-  const theme = useTheme();
   const { profile } = useContext(AuthContext);
 
   const [confirmDialog, setConfirmDialog] = useState({
@@ -163,9 +161,6 @@ export default function Trips() {
     }
   };
 
-  const getColorByStatus = (isOk) =>
-    isOk ? theme.palette.primary.main : theme.palette.text.primary;
-
   const actionFabSx = {
     width: 40,
     height: 40,
@@ -182,10 +177,8 @@ export default function Trips() {
           position: 'absolute',
           zIndex: 20,
           color: '#fff',
-          background: 'var(--lg-overlay-bg)',
-          backdropFilter: 'var(--lg-blur-overlay)',
-          WebkitBackdropFilter: 'var(--lg-blur-overlay)',
-          borderRadius: '16px',
+          background: 'rgba(0, 0, 0, 0.45)',
+          borderRadius: '8px',
           flexDirection: 'column',
           gap: 1,
         }}
@@ -224,7 +217,7 @@ export default function Trips() {
             title="Buscar"
             onClick={getTripsPerDate}
             disabled={!dateBegin}
-            color="success"
+            color="primary"
             variant="contained"
             sx={{ minWidth: 44, height: 40, px: 1.2 }}
           >
@@ -325,7 +318,6 @@ export default function Trips() {
           aria-label="simple table"
           sx={{
             mt: 3,
-            whiteSpace: "nowrap",
           }}
         >
           <TableHead>
@@ -386,7 +378,6 @@ export default function Trips() {
                       sx={{
                         fontWeight: "600",
                         fontSize: "20px",
-                        color: getColorByStatus(trip?.is_ok),
                       }}
                     >
                       {trip?.id}
@@ -398,7 +389,6 @@ export default function Trips() {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        color: getColorByStatus(trip?.is_ok),
                       }}
                     >
                       <Box>
@@ -420,7 +410,6 @@ export default function Trips() {
                       sx={{
                         fontWeight: "600",
                         fontSize: "18px",
-                        color: getColorByStatus(trip?.is_ok),
                       }}
                     >
                       {trip?.route?.origin.toUpperCase()} X {trip?.route?.destination.toUpperCase()}
@@ -428,9 +417,6 @@ export default function Trips() {
 
                     <Typography
                       variant="h6"
-                      sx={{
-                        color: getColorByStatus(trip?.is_ok),
-                      }}
                     >
                       {trip?.departure_date && format(parseISO(trip?.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
                     </Typography>
@@ -453,7 +439,7 @@ export default function Trips() {
                   </TableCell>
 
                   <TableCell align="center">
-                    <Box sx={{ "& button": { mx: 0.5, minWidth: 36, minHeight: 36 } }}>
+                    <Box sx={{ "& button": { mx: 1 } }}>
                       <Button
                         title="Imprimir Viagem"
                         onClick={() => {
@@ -463,7 +449,7 @@ export default function Trips() {
                         size="medium"
                         variant="contained"
                       >
-                        <FeatherIcon icon="printer" width="16" height="16" />
+                        <FeatherIcon icon="printer" width="20" height="20" />
                       </Button>
 
                       <Button
@@ -471,11 +457,11 @@ export default function Trips() {
                         onClick={() => {
                           handleGoTrip(trip);
                         }}
-                        color="primary"
+                        color="success"
                         size="medium"
                         variant="contained"
                       >
-                        <FeatherIcon icon="edit" width="16" height="16" />
+                        <FeatherIcon icon="edit" width="20" height="20" />
                       </Button>
 
                       <Button
@@ -487,7 +473,7 @@ export default function Trips() {
                         size="medium"
                         variant="contained"
                       >
-                        <FeatherIcon icon="trash" width="16" height="16" />
+                        <FeatherIcon icon="trash" width="20" height="20" />
                       </Button>
                     </Box>
                   </TableCell>
