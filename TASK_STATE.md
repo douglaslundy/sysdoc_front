@@ -1,7 +1,7 @@
 # TASK_STATE.md - Estado Atual da Implementacao
 
-**Ultima atualizacao:** 2026-05-16  
-**Fase ativa:** Operacao/estabilizacao pos-implementacao
+**Ultima atualizacao:** 2026-05-18  
+**Fase ativa:** Estabilizacao visual + padronizacao de UX + saneamento de charset
 
 ## Resumo Executivo
 - Backend e frontend estao com evolucao alem do checkpoint antigo (A-O).
@@ -18,18 +18,22 @@
 - Estado local: existe arquivo nao rastreado `prompt.md` (nao funcional para runtime)
 
 ## Frontend (`sysdoc_front`)
-- Ultimos blocos confirmados via historico local:
-  - Confirmacao para exclusao de anexos
-  - Ajustes de encoding UTF-8 e componentes de transparencia
-  - Melhorias de UX em forgot-password e error logs
-  - Correcoes em fluxo de anexos e filtros de perfis/categorias
-- Estado local: sem alteracoes pendentes no repo no momento da analise
+- Entregas recentes desta sessao:
+  - Correcao de loop infinito e ajuste de fechamento dos modais de viagem
+  - Ajuste de layout do modal de lotacao de viagens com menu aberto
+  - Melhorias visuais e de consistencia nos componentes/modais de farmacia (medicines, daily status, monthly acquisitions)
+  - Padronizacao de layout e responsividade de cabecalho (inputs + botoes inline responsivos) em telas de farmacia, vigilancia e relatorios
+  - Padronizacao de modais no estilo visual adotado (glass + foco + botoes consistentes)
+  - Correcao de charset/UTF-8 em paginas criticas (compliance, monthly acquisitions, medicines, daily status)
+  - Correcao de alinhamento na pagina de auditoria
+  - Ajuste do titulo do header global para nome amigavel em portugues por rota
+- Estado local: mudancas publicadas em `origin/main` durante a sessao
 
 ## Riscos Abertos
 - Dependencia de migracoes/seeders em ambiente produtivo para refletir todo o schema/permissoes.
 - Divergencia potencial entre contexto historico (docs antigos) e estado real do codigo.
 
 ## Proxima Acao Recomendada
-1. Deploy backend + migrate + seed em ordem controlada.
-2. Smoke test funcional completo com foco em RBAC, dashboards, laboratorio, vigilancia, farmacia e anexos.
-3. Fechar gaps de testes automatizados em anexos e rotas sensiveis.
+1. Rodar smoke test visual/funcional nas telas alteradas (header, farmacia, vigilancia, auditoria, relatorios).
+2. Validar em navegador real os breakpoints principais (mobile/tablet/desktop) para evitar regressao de alinhamento.
+3. Fechar checklist operacional de producao (env, auth, anexos, dashboards, auditoria).

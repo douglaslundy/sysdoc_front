@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  esus-db-dev:
+    image: postgres:15-alpine
+    container_name: esus_pec_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: esus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - esus_dev_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d   # scripts executados na criação
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d esus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: esus_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@sms.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      esus-db-dev:
+        condition: service_healthy
+    profiles:
+      - tools   # só sobe com: docker compose --profile tools up
+
+volumes:
+  esus_dev_data:

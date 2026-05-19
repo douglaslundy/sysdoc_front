@@ -17,6 +17,8 @@
 - [x] Padronizacao visual de cabecalhos (inputs/botoes inline responsivos) nas paginas alteradas
 - [x] Saneamento de charset UTF-8 em paginas com textos corrompidos
 - [x] Padronizacao semantica de botoes (visualizar/info, editar/success, excluir/error) em paginas-chave
+- [x] Correcao de loop infinito e fechamento de modais de viagens (trip/trip clients)
+- [x] Ajustes de layout e consistencia visual nos modais e listas da farmacia
 - [x] Remocao dos modulos legados de atendimento no frontend (Em Atendimento, Minha Sala, Novo Atendimento, Salas, Painel, Servicos)
 
 ## Pendencias Operacionais

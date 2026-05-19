@@ -1,7 +1,7 @@
 # TASK_TODO.md - Backlog Atualizado
 
-**Data:** 2026-05-16  
-**Status:** Em estabilizacao pos-entregas
+**Data:** 2026-05-17  
+**Status:** Em estabilizacao visual/funcional pos-padronizacao
 
 ## P0 - Obrigatorio para producao
 - [x] Executar `php artisan migrate --force` no backend publicado
@@ -10,6 +10,9 @@
 - [ ] Rodar smoke test de autenticacao e autorizacao (login, logout, refresh, rotas admin)
 
 ## P1 - Alta prioridade funcional
+- [x] Padronizar layout responsivo de cabecalhos (inputs/botoes) nas telas criticas alteradas
+- [x] Corrigir titulo amigavel em portugues no header global por rota
+- [x] Corrigir charset UTF-8 em paginas com texto corrompido
 - [ ] Validar ponta a ponta modulo de anexos (queue/letter/ordinance): upload, download, delete, permissoes
 - [ ] Validar dashboards com base real de dados (fila, tfd, laboratorio, farmacia, vigilancia)
 - [ ] Revisar logs de erro para garantir baixa de ruido e captura de falhas reais
