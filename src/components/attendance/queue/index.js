@@ -30,6 +30,9 @@ export default function AttendanceQueue() {
     setError("");
     try {
       const { data } = await attendanceApi.callNext({ roomId: Number(roomId) });
+      if (typeof window !== "undefined" && data?.id) {
+        localStorage.setItem("attendance.currentTicketId", String(data.id));
+      }
       await loadQueue();
       router.push(`/attendance/service/${data.id}`);
     } catch (e) {
@@ -45,6 +48,9 @@ export default function AttendanceQueue() {
     setError("");
     try {
       const { data } = await attendanceApi.callSpecific(ticketId, { roomId: Number(roomId) });
+      if (typeof window !== "undefined" && data?.id) {
+        localStorage.setItem("attendance.currentTicketId", String(data.id));
+      }
       await loadQueue();
       router.push(`/attendance/service/${data.id}`);
     } catch (e) {
