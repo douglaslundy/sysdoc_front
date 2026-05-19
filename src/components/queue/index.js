@@ -350,8 +350,7 @@ export default () => {
                     changeItem={changeSpeci}
                     wd={"18%"}
                     size="small"
-                    labelSx={{ fontSize: "10px" }}
-                    selectSx={{ fontSize: "10px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
                     menuItemSx={{ fontSize: "10px" }}
                 />
 
@@ -363,8 +362,7 @@ export default () => {
                     changeItem={changeUrgency}
                     wd={"10%"}
                     size="small"
-                    labelSx={{ fontSize: "10px" }}
-                    selectSx={{ fontSize: "10px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
                     menuItemSx={{ fontSize: "10px" }}
                 />
                 <Select
@@ -375,8 +373,7 @@ export default () => {
                     changeItem={changeDone}
                     wd={"10%"}
                     size="small"
-                    labelSx={{ fontSize: "10px" }}
-                    selectSx={{ fontSize: "10px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
                     menuItemSx={{ fontSize: "10px" }}
                 />
 
