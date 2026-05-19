@@ -39,12 +39,10 @@ export default function SpecialityModal(props) {
         name: ""
     });
 
-    const { name, description, status, call_service_id } = form;
+    const { name } = form;
     const { speciality } = useSelector(state => state.specialities);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
-    const { services } = useSelector(state => state.services);
-
     const [texto, setTexto] = useState();
 
     const changeItem = ({ target }) => {
