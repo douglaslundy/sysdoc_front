@@ -97,6 +97,18 @@ const Menuitems = [
     ],
   },
   {
+    title: "Monitor APS",
+    icon: "activity",
+    group: true,
+    children: [
+      { title: "Dashboard",            icon: "bar-chart-2", href: "/monitor-aps" },
+      { title: "Vinculo Territorial",  icon: "map-pin",     href: "/monitor-aps/vinculo" },
+      { title: "Indicadores",          icon: "check-circle", href: "/monitor-aps/qualidade" },
+      { title: "Por Equipe",           icon: "users",       href: "/monitor-aps/equipe" },
+      { title: "Configuracoes APS",    icon: "settings",    href: "/monitor-aps/configuracoes", profile: ["admin"] },
+    ],
+  },
+  {
     title: "Sistema",
     icon: "settings",
     group: true,
