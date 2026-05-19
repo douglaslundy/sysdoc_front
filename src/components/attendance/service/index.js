@@ -125,7 +125,7 @@ export default function AttendanceService() {
         onChange={(e) => setNotes(e.target.value)}
         fullWidth
         multiline
-        minRows={6}
+        minRows={3}
         sx={{ mb: 2 }}
       />
 
