@@ -5,7 +5,7 @@ import { setAuthToken } from '../services/api';
 
 export const AuthContext = createContext({});
 
-const PUBLIC_PATHS = ['/login', '/consulta-exame', '/esqueci-senha', '/redefinir-senha', '/transparency/medicines', '/transparency/medicines-panel', '/transparency/medicines-monthly-acquisitions'];
+const PUBLIC_PATHS = ['/login', '/consulta-exame', '/esqueci-senha', '/redefinir-senha', '/attendance/panel', '/transparency/medicines', '/transparency/medicines-panel', '/transparency/medicines-monthly-acquisitions'];
 
 function isPublicPath(pathname) {
     return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/showqueue');
