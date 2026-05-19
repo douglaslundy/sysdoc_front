@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
@@ -7,6 +7,7 @@ import { attendanceApi } from "../../../services/attendanceApi";
 export default function AttendanceQueue() {
   const router = useRouter();
   const [roomId, setRoomId] = useState("");
+  const [rooms, setRooms] = useState([]);
   const [queue, setQueue] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,10 @@ export default function AttendanceQueue() {
   };
 
   useEffect(() => {
-    loadQueue().catch(() => setError("Não foi possível carregar a fila."));
+    Promise.all([
+      loadQueue(),
+      attendanceApi.listRooms().then((res) => setRooms(res.data || [])),
+    ]).catch(() => setError("Não foi possível carregar dados da fila."));
   }, []);
 
   const callNext = async () => {
@@ -53,7 +57,19 @@ export default function AttendanceQueue() {
   return (
     <BaseCard title="Fila de Atendimento">
       <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
-        <TextField label="Sala (ID)" value={roomId} onChange={(e) => setRoomId(e.target.value)} sx={{ width: 180 }} />
+        <TextField
+          select
+          label="Sala"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          sx={{ width: 260 }}
+        >
+          {rooms.map((room) => (
+            <MenuItem key={room.id} value={room.id}>
+              {room.name}
+            </MenuItem>
+          ))}
+        </TextField>
         <Button variant="contained" onClick={callNext} disabled={loading || !roomId}>
           Chamar próximo
         </Button>
@@ -76,4 +92,3 @@ export default function AttendanceQueue() {
     </BaseCard>
   );
 }
-

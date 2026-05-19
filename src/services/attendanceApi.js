@@ -1,6 +1,8 @@
 import { api } from "./api";
 
 export const attendanceApi = {
+  listRooms: () => api.get("/attendance/rooms"),
+  listClients: () => api.get("/clients"),
   createTicket: (payload) => api.post("/attendance/tickets", payload),
   listTickets: (params) => api.get("/attendance/tickets", { params }),
   listQueue: () => api.get("/attendance/queue"),
@@ -14,4 +16,3 @@ export const attendanceApi = {
   cancelTicket: (ticketId) => api.patch(`/attendance/tickets/${ticketId}/cancel`),
   getPanelState: () => api.get("/attendance/panel/state"),
 };
-

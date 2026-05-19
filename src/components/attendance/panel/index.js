@@ -26,16 +26,23 @@ export default function AttendancePanel() {
   }, []);
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h3" sx={{ mb: 3 }}>Painel de Atendimento</Typography>
+    <Box
+      sx={{
+        p: { xs: 2, md: 5 },
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #0f172a 0%, #1e293b 100%)",
+        color: "#f8fafc",
+      }}
+    >
+      <Typography variant="h3" sx={{ mb: 3, fontWeight: 700 }}>Painel de Atendimento</Typography>
       {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
 
-      <Box sx={{ p: 3, border: "2px solid #1f2937", borderRadius: 2, mb: 3 }}>
+      <Box sx={{ p: 4, border: "2px solid #93c5fd", borderRadius: 2, mb: 3, backgroundColor: "rgba(15,23,42,0.55)" }}>
         <Typography variant="h6">Senha chamada</Typography>
         {state?.currentCall ? (
           <>
-            <Typography variant="h2" sx={{ fontWeight: 700 }}>{state.currentCall.ticketCode}</Typography>
-            <Typography variant="h4">{state.currentCall.clientName}</Typography>
+            <Typography variant="h1" sx={{ fontWeight: 800, lineHeight: 1.1 }}>{state.currentCall.ticketCode}</Typography>
+            <Typography variant="h3">{state.currentCall.clientName}</Typography>
             <Typography variant="h5">Sala: {state.currentCall.roomName}</Typography>
             <Typography>Atendente: {state.currentCall.userName}</Typography>
           </>
@@ -44,7 +51,7 @@ export default function AttendancePanel() {
         )}
       </Box>
 
-      <Typography variant="h5" sx={{ mb: 1 }}>Em atendimento</Typography>
+      <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>Em atendimento</Typography>
       {(state?.currentInService || []).length === 0 ? (
         <Typography sx={{ mb: 2 }}>Nenhum cliente em atendimento.</Typography>
       ) : (
@@ -57,7 +64,7 @@ export default function AttendancePanel() {
         </Box>
       )}
 
-      <Typography variant="h5" sx={{ mb: 1 }}>Últimas chamadas</Typography>
+      <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>Últimas chamadas</Typography>
       {(state?.lastCalls || []).length === 0 ? (
         <Typography>Nenhuma chamada anterior.</Typography>
       ) : (
@@ -70,4 +77,3 @@ export default function AttendancePanel() {
     </Box>
   );
 }
-

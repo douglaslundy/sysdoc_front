@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
+import InputSelectClient from "../../inputs/inputSelectClient";
 
 export default function AttendanceTickets() {
-  const [clientId, setClientId] = useState("");
+  const [selectedClient, setSelectedClient] = useState({});
+  const [clients, setClients] = useState([]);
   const [prefix, setPrefix] = useState("A");
   const [created, setCreated] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -17,17 +19,18 @@ export default function AttendanceTickets() {
   };
 
   useEffect(() => {
-    loadTickets().catch(() => setError("Não foi possível carregar as senhas."));
+    Promise.all([loadTickets(), attendanceApi.listClients().then((res) => setClients(res.data || []))])
+      .catch(() => setError("Não foi possível carregar os dados iniciais."));
   }, []);
 
   const handleCreate = async () => {
-    if (!clientId) return;
+    if (!selectedClient?.id) return;
     setLoading(true);
     setError("");
     try {
-      const { data } = await attendanceApi.createTicket({ clientId: Number(clientId), prefix });
+      const { data } = await attendanceApi.createTicket({ clientId: Number(selectedClient.id), prefix });
       setCreated(data);
-      setClientId("");
+      setSelectedClient({});
       await loadTickets();
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao gerar senha.");
@@ -39,18 +42,20 @@ export default function AttendanceTickets() {
   return (
     <BaseCard title="Emissão de Senha">
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
-        <TextField
-          label="ID do cliente"
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          sx={{ minWidth: 220 }}
+        <InputSelectClient
+          label="Cliente"
+          name="client"
+          setClient={setSelectedClient}
+          clients={clients}
+          value={selectedClient?.id || ""}
+          wd={"50%"}
         />
         <TextField select label="Prefixo" value={prefix} onChange={(e) => setPrefix(e.target.value)} sx={{ width: 120 }}>
           <MenuItem value="A">A</MenuItem>
           <MenuItem value="G">G</MenuItem>
           <MenuItem value="P">P</MenuItem>
         </TextField>
-        <Button variant="contained" onClick={handleCreate} disabled={loading || !clientId}>
+        <Button variant="contained" onClick={handleCreate} disabled={loading || !selectedClient?.id}>
           {loading ? "Gerando..." : "Gerar senha"}
         </Button>
       </Box>
@@ -75,4 +80,3 @@ export default function AttendanceTickets() {
     </BaseCard>
   );
 }
-
