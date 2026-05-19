@@ -2,6 +2,7 @@ import { api } from "./api";
 
 export const attendanceApi = {
   listRooms: () => api.get("/attendance/rooms"),
+  listAttendants: () => api.get("/attendance/attendants"),
   listRoomsAdmin: () => api.get("/attendance/rooms-admin"),
   createRoom: (payload) => api.post("/attendance/rooms-admin", payload),
   updateRoom: (roomId, payload) => api.put(`/attendance/rooms-admin/${roomId}`, payload),
