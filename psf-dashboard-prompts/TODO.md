@@ -24,14 +24,14 @@ Atualizado em: 2026-05-19
 - [x] Task 2.6 — indicadores.routes.js + utils/cache.js
 
 ### FASE 3 — Frontend
-- [ ] Task 3.1 — Setup frontend do módulo (package.json, estrutura)
-- [ ] Task 3.2 — monitorApsApi.js (serviço de API)
-- [ ] Task 3.3 — Componentes reutilizáveis (Badge, Progress, Gauge, Alerta, Export)
-- [ ] Task 3.4 — Dashboard.jsx
-- [ ] Task 3.5 — VinculoTerritorial.jsx
-- [ ] Task 3.6 — IndicadoresQualidade.jsx
-- [ ] Task 3.7 — PorEquipe.jsx
-- [ ] Task 3.8 — Configuracoes.jsx
+- [x] Task 3.1 — Setup frontend (package.json, estrutura de dirs)
+- [x] Task 3.2 — monitorApsApi.js
+- [x] Task 3.3 — ClassificacaoBadge, ProgressIndicador, GaugeChart, AlertaBloqueio, ExportButton, IndicadorCard
+- [x] Task 3.4 — Dashboard.jsx (ScoreCards, HeatmapTable, PieChart, AlertaPanel, Repasse)
+- [x] Task 3.5 — VinculoTerritorial.jsx (cadastros, grupos prioritários, tabela equipes)
+- [x] Task 3.6 — IndicadoresQualidade.jsx (grid de cards, filtros, modal detalhes)
+- [x] Task 3.7 — PorEquipe.jsx (RadarChart, histórico, tabela)
+- [x] Task 3.8 — Configuracoes.jsx (conexão, município, equipes, SQL)
 
 ### FASE 4 — Integração
 - [ ] Task 4.1 — Integração rotas backend ao sistema existente
