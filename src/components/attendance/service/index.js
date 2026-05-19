@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
@@ -11,6 +11,7 @@ export default function AttendanceService() {
   const [data, setData] = useState(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
@@ -18,6 +19,7 @@ export default function AttendanceService() {
     if (!normalizedTicketId) return;
 
     setError("");
+    setSuccess("");
     try {
       const { data } = await attendanceApi.getServiceData(normalizedTicketId);
       setData(data);
@@ -38,9 +40,11 @@ export default function AttendanceService() {
   const doStart = async () => {
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       await attendanceApi.startService(normalizedTicketId);
       await load();
+      setSuccess("Atendimento iniciado com sucesso.");
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao iniciar atendimento.");
     } finally {
@@ -51,9 +55,11 @@ export default function AttendanceService() {
   const saveNotes = async () => {
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       await attendanceApi.saveNotes(normalizedTicketId, { notes });
       await load();
+      setSuccess("Observacoes salvas com sucesso.");
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao salvar observacoes.");
     } finally {
@@ -64,9 +70,16 @@ export default function AttendanceService() {
   const finish = async () => {
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
-      await attendanceApi.finishService(normalizedTicketId, { notes });
+      const response = await attendanceApi.finishService(normalizedTicketId, { notes });
       await load();
+      const savedNotes = response?.data?.record?.notes;
+      if ((savedNotes || "") !== (notes || "")) {
+        setError("Atendimento finalizado, mas as observacoes nao foram confirmadas.");
+        return;
+      }
+      setSuccess("Atendimento finalizado e observacoes salvas.");
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao finalizar atendimento.");
     } finally {
@@ -77,9 +90,11 @@ export default function AttendanceService() {
   const noShow = async () => {
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       await attendanceApi.noShowTicket(normalizedTicketId);
       await load();
+      setSuccess("Nao comparecimento registrado com sucesso.");
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao marcar nao comparecimento.");
     } finally {
@@ -136,7 +151,8 @@ export default function AttendanceService() {
         <Button variant="contained" color="warning" onClick={noShow} disabled={loading}>Nao compareceu</Button>
       </Box>
 
-      {error ? <Typography color="error" sx={{ mt: 2 }}>{error}</Typography> : null}
+      {success ? <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert> : null}
+      {error ? <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert> : null}
     </BaseCard>
   );
 }
