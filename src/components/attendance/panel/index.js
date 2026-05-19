@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { attendanceApi } from "../../../services/attendanceApi";
 
@@ -15,13 +15,74 @@ function getPollIntervalMs() {
 export default function AttendancePanel() {
   const [state, setState] = useState(null);
   const [error, setError] = useState("");
+  const lastAnnouncedRef = useRef("");
+
+  const playBell = async () => {
+    if (typeof window === "undefined") return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const context = new AudioContextClass();
+    if (context.state === "suspended") {
+      await context.resume().catch(() => null);
+    }
+
+    const now = context.currentTime;
+    const gain = context.createGain();
+    gain.gain.value = 0.0001;
+    gain.connect(context.destination);
+
+    const osc1 = context.createOscillator();
+    osc1.type = "sine";
+    osc1.frequency.value = 880;
+    osc1.connect(gain);
+    osc1.start(now);
+    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    osc1.stop(now + 0.36);
+
+    const osc2 = context.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = 1320;
+    osc2.connect(gain);
+    osc2.start(now + 0.38);
+    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.42);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
+    osc2.stop(now + 0.76);
+
+    setTimeout(() => {
+      context.close().catch(() => null);
+    }, 1000);
+  };
+
+  const speakCall = (call) => {
+    if (typeof window === "undefined" || !window.speechSynthesis || !call) return;
+
+    const text = `Senha ${call.ticketCode}, ${call.clientName}, dirija-se a sala ${call.roomName}.`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "pt-BR";
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
         const { data } = await attendanceApi.getPanelState();
-        if (mounted) setState(data);
+        if (mounted) {
+          const currentCall = data?.currentCall;
+          const callKey = currentCall ? `${currentCall.ticketCode || ""}-${currentCall.calledAt || ""}` : "";
+
+          if (callKey && callKey !== lastAnnouncedRef.current) {
+            lastAnnouncedRef.current = callKey;
+            playBell().finally(() => speakCall(currentCall));
+          }
+
+          setState(data);
+        }
       } catch (_) {
         if (mounted) setError("Falha ao carregar painel.");
       }
