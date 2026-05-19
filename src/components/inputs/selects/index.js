@@ -7,7 +7,21 @@ import Select from '@mui/material/Select';
 import { useDispatch } from 'react-redux';
 
 export default function BasicSelect(props) {
-  const { label, store, name, value, changeItem, getAllSelects, valueDefault, wd, disabled = false } = props;
+  const {
+    label,
+    store,
+    name,
+    value,
+    changeItem,
+    getAllSelects,
+    valueDefault,
+    wd,
+    disabled = false,
+    size = "medium",
+    labelSx = {},
+    selectSx = {},
+    menuItemSx = {},
+  } = props;
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -20,7 +34,7 @@ export default function BasicSelect(props) {
   return (
     <Box sx={{ minWidth: 120, width: wd }}>
       <FormControl fullWidth required>
-        <InputLabel>{label}</InputLabel>
+        <InputLabel sx={labelSx}>{label}</InputLabel>
         <Select
           id={name}
           value={value}
@@ -28,11 +42,13 @@ export default function BasicSelect(props) {
           name={name}
           label={label}
           onChange={changeItem}
+          size={size}
+          sx={selectSx}
         >
-          {valueDefault && <MenuItem key={0} value={0}>{valueDefault}</MenuItem>}
+          {valueDefault && <MenuItem key={0} value={0} sx={menuItemSx}>{valueDefault}</MenuItem>}
 
           {sortedStore.map((d) => (
-            <MenuItem key={d.id} value={d.id}>{d.name?.toString().toUpperCase()}</MenuItem>
+            <MenuItem key={d.id} value={d.id} sx={menuItemSx}>{d.name?.toString().toUpperCase()}</MenuItem>
           ))}
         </Select>
       </FormControl>

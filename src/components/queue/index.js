@@ -349,6 +349,10 @@ export default () => {
                     store={speciExits}
                     changeItem={changeSpeci}
                     wd={"18%"}
+                    size="small"
+                    labelSx={{ fontSize: "10px" }}
+                    selectSx={{ fontSize: "10px" }}
+                    menuItemSx={{ fontSize: "10px" }}
                 />
 
                 <Select
@@ -358,6 +362,10 @@ export default () => {
                     store={storeUrgency}
                     changeItem={changeUrgency}
                     wd={"10%"}
+                    size="small"
+                    labelSx={{ fontSize: "10px" }}
+                    selectSx={{ fontSize: "10px" }}
+                    menuItemSx={{ fontSize: "10px" }}
                 />
                 <Select
                     label="Realizado?"
@@ -366,6 +374,10 @@ export default () => {
                     store={storeDone}
                     changeItem={changeDone}
                     wd={"10%"}
+                    size="small"
+                    labelSx={{ fontSize: "10px" }}
+                    selectSx={{ fontSize: "10px" }}
+                    menuItemSx={{ fontSize: "10px" }}
                 />
 
                 {/* <Select
@@ -474,7 +486,8 @@ export default () => {
                                                     <Typography
                                                         variant="h4"
                                                         sx={{
-                                                            fontWeight: "600"
+                                                            fontWeight: "600",
+                                                            fontSize: "30px",
                                                         }}
                                                     >
                                                         {queue && queue.position}
@@ -483,7 +496,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "13px",
+                                                            fontSize: "9px",
                                                         }}
                                                     >
                                                         {queue.user && queue.user.name}
@@ -494,7 +507,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "13px",
+                                                            fontSize: "9px",
                                                         }}
                                                     >
                                                         <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'black' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
@@ -519,6 +532,7 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
+                                                            fontSize: "16px",
                                                         }}
                                                     >
                                                         {queue?.client && queue?.client?.name.substring(0, 30).toUpperCase()}
@@ -527,7 +541,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "12px",
+                                                            fontSize: "8px",
                                                         }}
                                                     >
                                                         {queue?.client?.mother && queue?.client?.mother.substring(0, 30).toUpperCase()}
@@ -537,7 +551,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "12px",
+                                                            fontSize: "8px",
                                                         }}
                                                     >
                                                         {queue?.client && queue?.client.cpf} / {queue?.client && queue?.client?.cns} / {queue?.client && queue?.client?.phone}
@@ -560,6 +574,7 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
+                                                            fontSize: "16px",
                                                         }}
                                                     >
                                                         {queue?.speciality && queue?.speciality?.name.substring(0, 30).toUpperCase()}
@@ -568,7 +583,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "12px",
+                                                            fontSize: "8px",
                                                         }}
                                                     >
                                                         {queue.obs && queue.obs.substring(0, 30).toUpperCase()}
@@ -592,6 +607,7 @@ export default () => {
                                                         variant="h6"
                                                         sx={{
                                                             fontWeight: "600",
+                                                            fontSize: "16px",
                                                         }}
                                                     >
                                                         {queue.done == 0 ? 'NÃO' : 'SIM'}
@@ -600,7 +616,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "12px",
+                                                            fontSize: "8px",
                                                         }}
                                                     >
                                                         {queue.date_of_realized && format(parseISO(queue.date_of_realized), 'dd/MM/yyyy')}
