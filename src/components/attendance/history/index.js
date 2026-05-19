@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -29,7 +29,6 @@ export default function AttendanceHistory() {
   const router = useRouter();
   const [tickets, setTickets] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [attendants, setAttendants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
@@ -41,12 +40,8 @@ export default function AttendanceHistory() {
   });
 
   const loadBaseData = async () => {
-    const [roomsRes, attendantsRes] = await Promise.all([
-      attendanceApi.listRoomsAdmin(),
-      attendanceApi.listAttendants(),
-    ]);
+    const roomsRes = await attendanceApi.listRoomsAdmin();
     setRooms(roomsRes.data || []);
-    setAttendants(attendantsRes.data || []);
   };
 
   const loadTickets = async (currentFilters = filters) => {
@@ -82,6 +77,35 @@ export default function AttendanceHistory() {
 
   const onSearch = async () => {
     await loadTickets(filters);
+  };
+
+  const attendantOptions = useMemo(() => {
+    const map = new Map();
+    tickets.forEach((ticket) => {
+      const user = ticket.assigned_user;
+      if (user?.id) {
+        map.set(String(user.id), { id: user.id, name: user.name || `Usuario #${user.id}` });
+      }
+    });
+
+    const options = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    if (filters.assignedUserId && !map.has(String(filters.assignedUserId))) {
+      options.unshift({ id: filters.assignedUserId, name: `Usuario #${filters.assignedUserId}` });
+    }
+    return options;
+  }, [tickets, filters.assignedUserId]);
+
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
   };
 
   return (
@@ -125,7 +149,7 @@ export default function AttendanceHistory() {
           sx={{ minWidth: 260 }}
         >
           <MenuItem value="">Todos</MenuItem>
-          {attendants.map((user) => (
+          {attendantOptions.map((user) => (
             <MenuItem key={user.id} value={user.id}>
               {user.name}
             </MenuItem>
@@ -174,7 +198,7 @@ export default function AttendanceHistory() {
                 <TableCell>{item.room?.name || "-"}</TableCell>
                 <TableCell>{item.assigned_user?.name || "-"}</TableCell>
                 <TableCell>{item.status}</TableCell>
-                <TableCell>{item.finished_at || item.started_at || item.called_at || item.issued_at || "-"}</TableCell>
+                <TableCell>{formatDateTime(item.finished_at || item.started_at || item.called_at || item.issued_at)}</TableCell>
                 <TableCell align="right">
                   <Button variant="outlined" onClick={() => router.push(`/attendance/service/${item.id}`)}>
                     Visualizar
