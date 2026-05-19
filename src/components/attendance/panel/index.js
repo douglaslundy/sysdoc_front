@@ -2,6 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { attendanceApi } from "../../../services/attendanceApi";
 
+const DEFAULT_POLL_MS = 10000;
+const MIN_POLL_MS = 5000;
+const MAX_POLL_MS = 60000;
+
+function getPollIntervalMs() {
+  const raw = Number(process.env.NEXT_PUBLIC_ATTENDANCE_PANEL_POLL_MS || DEFAULT_POLL_MS);
+  if (Number.isNaN(raw)) return DEFAULT_POLL_MS;
+  return Math.min(MAX_POLL_MS, Math.max(MIN_POLL_MS, raw));
+}
+
 export default function AttendancePanel() {
   const [state, setState] = useState(null);
   const [error, setError] = useState("");
@@ -18,7 +28,7 @@ export default function AttendancePanel() {
     };
 
     load();
-    const timer = setInterval(load, 10000);
+    const timer = setInterval(load, getPollIntervalMs());
     return () => {
       mounted = false;
       clearInterval(timer);
