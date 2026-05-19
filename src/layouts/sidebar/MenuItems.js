@@ -56,6 +56,9 @@ const Menuitems = [
     icon: "activity",
     group: true,
     children: [
+      { title: "Emissao de Senha", icon: "hash", href: "/attendance/tickets" },
+      { title: "Fila do Atendente", icon: "list", href: "/attendance/queue" },
+      { title: "Painel Publico", icon: "monitor", href: "/attendance/panel" },
       { title: "Fila", icon: "layers", href: "/queue" },
     ],
   },
