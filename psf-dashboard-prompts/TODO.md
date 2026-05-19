@@ -17,11 +17,11 @@ Atualizado em: 2026-05-19
 ## ⏳ Pendente
 
 ### FASE 2 — Serviços de Indicadores
-- [ ] Task 2.2 — vinculo.service.js
-- [ ] Task 2.3 — qualidade-esf.service.js (indicadores 1-10)
-- [ ] Task 2.4 — qualidade-esb.service.js (indicadores 13-15)
-- [ ] Task 2.5 — classificacao.service.js
-- [ ] Task 2.6 — indicadores.routes.js (todos os endpoints)
+- [x] Task 2.2 — vinculo.service.js
+- [x] Task 2.3 — qualidade-esf.service.js (indicadores 1-10)
+- [x] Task 2.4 — qualidade-esb.service.js (indicadores 13-15)
+- [x] Task 2.5 — classificacao.service.js (thresholds + repasse estimado)
+- [x] Task 2.6 — indicadores.routes.js + utils/cache.js
 
 ### FASE 3 — Frontend
 - [ ] Task 3.1 — Setup frontend do módulo (package.json, estrutura)
