@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import BaseCard from "../../baseCard/BaseCard";
@@ -7,27 +7,39 @@ import { attendanceApi } from "../../../services/attendanceApi";
 export default function AttendanceService() {
   const router = useRouter();
   const { ticketId } = router.query;
+  const normalizedTicketId = Array.isArray(ticketId) ? ticketId[0] : ticketId;
   const [data, setData] = useState(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   const load = async () => {
-    if (!ticketId) return;
-    const { data } = await attendanceApi.getServiceData(ticketId);
-    setData(data);
-    setNotes(data?.record?.notes || "");
+    if (!normalizedTicketId) return;
+
+    setError("");
+    try {
+      const { data } = await attendanceApi.getServiceData(normalizedTicketId);
+      setData(data);
+      setNotes(data?.record?.notes || "");
+    } catch (e) {
+      setData(null);
+      setError(e?.response?.data?.message || "Nao foi possivel carregar o atendimento.");
+    } finally {
+      setInitialLoadDone(true);
+    }
   };
 
   useEffect(() => {
-    load().catch(() => setError("Não foi possível carregar o atendimento."));
-  }, [ticketId]);
+    if (!normalizedTicketId) return;
+    load();
+  }, [normalizedTicketId]);
 
   const doStart = async () => {
     setLoading(true);
     setError("");
     try {
-      await attendanceApi.startService(ticketId);
+      await attendanceApi.startService(normalizedTicketId);
       await load();
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao iniciar atendimento.");
@@ -40,10 +52,10 @@ export default function AttendanceService() {
     setLoading(true);
     setError("");
     try {
-      await attendanceApi.saveNotes(ticketId, { notes });
+      await attendanceApi.saveNotes(normalizedTicketId, { notes });
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || "Erro ao salvar observações.");
+      setError(e?.response?.data?.message || "Erro ao salvar observacoes.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +65,7 @@ export default function AttendanceService() {
     setLoading(true);
     setError("");
     try {
-      await attendanceApi.finishService(ticketId, { notes });
+      await attendanceApi.finishService(normalizedTicketId, { notes });
       await load();
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao finalizar atendimento.");
@@ -66,17 +78,26 @@ export default function AttendanceService() {
     setLoading(true);
     setError("");
     try {
-      await attendanceApi.noShowTicket(ticketId);
+      await attendanceApi.noShowTicket(normalizedTicketId);
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || "Erro ao marcar não comparecimento.");
+      setError(e?.response?.data?.message || "Erro ao marcar nao comparecimento.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!data) {
+  if (!data && !initialLoadDone) {
     return <BaseCard title="Atendimento"><Typography>Carregando...</Typography></BaseCard>;
+  }
+
+  if (!data && initialLoadDone) {
+    return (
+      <BaseCard title="Atendimento">
+        <Typography color="error" sx={{ mb: 2 }}>{error || "Falha ao carregar atendimento."}</Typography>
+        <Button variant="outlined" onClick={load}>Tentar novamente</Button>
+      </BaseCard>
+    );
   }
 
   const ticket = data.ticket || {};
@@ -87,9 +108,9 @@ export default function AttendanceService() {
       <Typography sx={{ mb: 1 }}>Status: <strong>{ticket.status}</strong></Typography>
       <Typography sx={{ mb: 2 }}>Sala: <strong>{ticket.room?.name || "-"}</strong></Typography>
 
-      <Typography variant="h6" sx={{ mb: 1 }}>Pendências</Typography>
+      <Typography variant="h6" sx={{ mb: 1 }}>Pendencias</Typography>
       {(data.pendingSummary || []).length === 0 ? (
-        <Typography sx={{ mb: 2 }}>Nenhuma pendência encontrada.</Typography>
+        <Typography sx={{ mb: 2 }}>Nenhuma pendencia encontrada.</Typography>
       ) : (
         <Box sx={{ mb: 2 }}>
           {data.pendingSummary.map((p) => (
@@ -110,13 +131,12 @@ export default function AttendanceService() {
 
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         <Button variant="outlined" onClick={doStart} disabled={loading}>Iniciar</Button>
-        <Button variant="outlined" onClick={saveNotes} disabled={loading}>Salvar observações</Button>
+        <Button variant="outlined" onClick={saveNotes} disabled={loading}>Salvar observacoes</Button>
         <Button variant="contained" onClick={finish} disabled={loading}>Finalizar atendimento</Button>
-        <Button variant="contained" color="warning" onClick={noShow} disabled={loading}>Não compareceu</Button>
+        <Button variant="contained" color="warning" onClick={noShow} disabled={loading}>Nao compareceu</Button>
       </Box>
 
       {error ? <Typography color="error" sx={{ mt: 2 }}>{error}</Typography> : null}
     </BaseCard>
   );
 }
-
