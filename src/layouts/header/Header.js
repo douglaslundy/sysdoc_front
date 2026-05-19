@@ -6,31 +6,38 @@ import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 
 const ROUTE_TITLES_PT = {
-  "/": "Início",
+  "/": "Inicio",
   "/dashboard": "Dashboard",
-  "/users": "Usuários",
+  "/users": "Usuarios",
   "/clients": "Clientes",
-  "/client_report": "Relatório de Clientes",
+  "/client_report": "Relatorio de Clientes",
   "/trips": "Viagens",
   "/routes": "Rotas",
   "/queue": "Fila",
+  "/specialities": "Especialidades",
   "/logs": "Logs",
   "/errorlogs": "Erros",
   "/qrcodelogs": "Logs QR Code",
   "/auditoria": "Auditoria",
   "/estabelecimentos": "Estabelecimentos",
-  "/alvaras": "Alvarás",
-  "/paginas-sistema": "Páginas do Sistema",
-  "/paginas-categorias": "Categorias de Páginas",
-  "/pharmacy/medicines": "Farmácia - Medicamentos",
-  "/pharmacy/daily-status": "Farmácia - Status Diário",
-  "/pharmacy/monthly-acquisitions": "Farmácia - Aquisições Mensais",
-  "/pharmacy/compliance": "Farmácia - Compliance",
-  "/laboratorio/agenda": "Laboratório - Agenda",
-  "/laboratorio/exames": "Laboratório - Exames",
-  "/laboratorio/pedidos": "Laboratório - Pedidos",
-  "/laboratorio/medicos": "Laboratório - Médicos",
-  "/laboratorio/categorias": "Laboratório - Categorias",
+  "/alvaras": "Alvaras",
+  "/paginas-sistema": "Paginas do Sistema",
+  "/paginas-categorias": "Categorias de Paginas",
+  "/pharmacy/medicines": "Farmacia - Medicamentos",
+  "/pharmacy/daily-status": "Farmacia - Status Diario",
+  "/pharmacy/monthly-acquisitions": "Farmacia - Aquisicoes Mensais",
+  "/pharmacy/compliance": "Farmacia - Compliance",
+  "/laboratorio/agenda": "Laboratorio - Agenda",
+  "/laboratorio/exames": "Laboratorio - Exames",
+  "/laboratorio/pedidos": "Laboratorio - Pedidos",
+  "/laboratorio/medicos": "Laboratorio - Medicos",
+  "/laboratorio/categorias": "Laboratorio - Categorias",
+  "/attendance/tickets": "Atendimento - Emissao de Senha",
+  "/attendance/queue": "Atendimento - Fila do Atendente",
+  "/attendance/service": "Atendimento - Atendimento Atual",
+  "/attendance/rooms": "Atendimento - Salas de Atendimento",
+  "/attendance/panel": "Atendimento - Painel Publico",
+  "/attendance/history": "Atendimento - Atendimentos Realizados",
 };
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
@@ -43,7 +50,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
     .filter(Boolean)
     .pop()
     ?.replace(/[-_]/g, " ");
-  const pageTitle = mappedTitle || fallbackTitle || "Início";
+  const pageTitle = mappedTitle || fallbackTitle || "Inicio";
 
   return (
     <AppBar
