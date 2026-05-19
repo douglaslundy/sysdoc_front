@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
     '/consulta-exame',
     '/esqueci-senha',
     '/redefinir-senha',
+    '/attendance/panel',
     '/transparency/medicines',
     '/transparency/medicines-panel',
     '/transparency/medicines-monthly-acquisitions',
