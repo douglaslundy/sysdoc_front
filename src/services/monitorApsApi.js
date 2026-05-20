@@ -1,19 +1,15 @@
-const BASE = '/api/monitor-aps';
+import { api } from './api';
+
+const BASE = '/monitor-aps';
 
 const get = async (path) => {
-  const res = await fetch(BASE + path);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+    const res = await api.get(BASE + path);
+    return res.data;
 };
 
 const post = async (path, body) => {
-  const res = await fetch(BASE + path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+    const res = await api.post(BASE + path, body);
+    return res.data;
 };
 
 export const monitorApsApi = { get, post };
