@@ -32,6 +32,7 @@ export default function ConfiguracoesAPS() {
     const [testResult, setTestResult] = useState(null);
     const [equipes, setEquipes]   = useState([]);
     const [municipio, setMunicipio] = useState({ ibge: '', nome: '', estrato: 4 });
+    const [hasPassword, setHasPassword] = useState(false);
     const [testando, setTestando] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [sqlCopiado, setSqlCopiado] = useState(false);
@@ -51,6 +52,7 @@ export default function ConfiguracoesAPS() {
                 nome:    c.municipio_nome  || prev.nome,
                 estrato: c.estrato_ied     ?? prev.estrato,
             }));
+            setHasPassword(!!c.has_password);
         }).catch(() => {});
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
     }, []);
@@ -81,6 +83,7 @@ export default function ConfiguracoesAPS() {
                 estrato_ied:    municipio.estrato,
             });
             setStatus(s => ({ ...s, configured: true, host: config.host, database: config.database }));
+            if (config.password) setHasPassword(true);
             dispatch(addMessage('Configuração salva com sucesso!'));
             dispatch(turnAlert());
         } catch (e) {
@@ -137,8 +140,12 @@ export default function ConfiguracoesAPS() {
                             value={config.user} onChange={change} />
                     </Grid>
                     <Grid item xs={12}>
-                        <TextField className="lg-search-field" fullWidth label="Senha" name="password" type="password"
-                            value={config.password} onChange={change} />
+                        <TextField
+                            className="lg-search-field" fullWidth label="Senha" name="password" type="password"
+                            value={config.password} onChange={change}
+                            placeholder={hasPassword ? '••••••••' : ''}
+                            helperText={hasPassword && !config.password ? 'Senha já configurada — deixe em branco para manter a atual' : ''}
+                        />
                     </Grid>
                 </Grid>
 
