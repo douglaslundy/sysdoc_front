@@ -129,8 +129,8 @@ function _resultado(id, nome, ine, ano, quadrimestre, numerador, denominador, pe
   };
 }
 
-function _semDados(id, nome, ine, ano, quadrimestre) {
-  return _resultado(id, nome, ine, ano, quadrimestre, 0, 0, 0, { suficiente: 0, bom: 0, otimo: 0 }, []);
+function _semDados(_id, _nome, _ine, _ano, _quadrimestre) {
+  return null;
 }
 
 module.exports = { calcularIndicador13, calcularIndicador14, calcularIndicador15, calcularTodosIndicadoresESB };

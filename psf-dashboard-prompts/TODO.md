@@ -41,3 +41,15 @@ Atualizado em: 2026-05-19 (Fases 4 e 5 concluídas)
 
 ### FASE 5 — Documentação
 - [x] Task 5.3 — docs/INDICADORES.md com todos os 15 indicadores
+
+## 🔧 Correções aplicadas (2026-05-19)
+
+- [x] Fix segurança: server.js agora faz bind em `127.0.0.1` (não mais `0.0.0.0`)
+- [x] Fix bug ESB: `_semDados` retorna `null` em vez de classificação 'otimo' falsa
+- [x] Fix env: `MONITOR_APS_BACKEND_URL` adicionado ao `sysdoc_front/.env`
+- [x] Fix README: removidas referências a recharts e Vite (frontend é sysdoc_front)
+
+## ⏳ Pendente (manual)
+
+- [ ] Task 5.1 — Teste end-to-end: subir Docker dev + backend + sysdoc_front e navegar em todas as rotas `/monitor-aps/*`
+- [ ] Task 5.2 — Verificar thresholds em `classificacao.service.js` contra fichas técnicas oficiais do MS (Portaria 6.907/2025)

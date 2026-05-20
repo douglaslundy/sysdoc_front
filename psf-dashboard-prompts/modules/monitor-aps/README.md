@@ -9,7 +9,7 @@ Dashboard de monitoramento de metas e indicadores do Componente de Qualidade e V
 - Node.js 18+
 - Docker Desktop (para ambiente de desenvolvimento)
 - PostgreSQL do eSUS PEC (produção)
-- npm install recharts — executar em `sysdoc_front/` antes de usar o módulo
+- sysdoc_front rodando (Next.js 12 — o proxy `/api/monitor-aps/*` já está configurado em `next.config.js`)
 
 ---
 
@@ -44,10 +44,13 @@ Credenciais do banco de dev:
 
 ### 3. Frontend (integrado ao sysdoc_front)
 
+Os componentes do módulo estão em `sysdoc_front/src/components/monitor-aps/` e as páginas em `sysdoc_front/pages/monitor-aps/`. Nenhuma dependência adicional é necessária — o módulo usa MUI v5 e ApexCharts, já presentes no projeto.
+
 ```bash
 cd sysdoc_front
-npm install recharts   # adicionar dependência
-npm run dev            # porta 3000 — inclui proxy para o backend Monitor APS
+# Adicionar ao .env (se ainda não existir):
+# MONITOR_APS_BACKEND_URL=http://localhost:3001
+npm run dev   # porta 3000 — proxy /api/monitor-aps/* já configurado no next.config.js
 ```
 
 As rotas do módulo ficam acessíveis em:

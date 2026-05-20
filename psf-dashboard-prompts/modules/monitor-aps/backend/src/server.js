@@ -15,7 +15,7 @@ app.get('/api/monitor-aps/health', (_req, res) => {
 app.use('/api/monitor-aps', routes);
 
 const PORT = process.env.MONITOR_APS_API_PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log(`Monitor APS API rodando na porta ${PORT}`);
 });
 
