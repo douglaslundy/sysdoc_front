@@ -31,20 +31,27 @@ export default function ConfiguracoesAPS() {
     const [status, setStatus]     = useState(null);
     const [testResult, setTestResult] = useState(null);
     const [equipes, setEquipes]   = useState([]);
-    const [municipio, setMunicipio] = useState({ ibge: '3131703', nome: 'Ilicínea', estrato: 4 });
+    const [municipio, setMunicipio] = useState({ ibge: '', nome: '', estrato: 4 });
     const [testando, setTestando] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [sqlCopiado, setSqlCopiado] = useState(false);
 
     useEffect(() => {
         monitorApsApi.get('/config/status').then(setStatus).catch(() => {});
-        monitorApsApi.get('/config/load').then(c => setConfig(prev => ({
-            ...prev,
-            host:     c.host     || prev.host,
-            port:     c.port     || prev.port,
-            database: c.database || prev.database,
-            user:     c.user     || prev.user,
-        }))).catch(() => {});
+        monitorApsApi.get('/config/load').then(c => {
+            setConfig(prev => ({
+                ...prev,
+                host:     c.host     || prev.host,
+                port:     c.port     || prev.port,
+                database: c.database || prev.database,
+                user:     c.user     || prev.user,
+            }));
+            setMunicipio(prev => ({
+                ibge:    c.municipio_ibge  || prev.ibge,
+                nome:    c.municipio_nome  || prev.nome,
+                estrato: c.estrato_ied     ?? prev.estrato,
+            }));
+        }).catch(() => {});
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
     }, []);
 
@@ -67,7 +74,12 @@ export default function ConfiguracoesAPS() {
     async function salvar() {
         setSalvando(true);
         try {
-            await monitorApsApi.post('/config/save', config);
+            await monitorApsApi.post('/config/save', {
+                ...config,
+                municipio_ibge: municipio.ibge,
+                municipio_nome: municipio.nome,
+                estrato_ied:    municipio.estrato,
+            });
             const s = await monitorApsApi.get('/config/status');
             setStatus(s);
             dispatch(addMessage('Configuração salva com sucesso!'));
