@@ -145,9 +145,16 @@ export default function ConfiguracoesAPS() {
                         <TextField
                             className="lg-search-field" fullWidth label="Senha" name="password" type="password"
                             value={config.password} onChange={change}
-                            placeholder={hasPassword ? '••••••••' : ''}
-                            helperText={hasPassword && !config.password ? 'Senha já configurada — deixe em branco para manter a atual' : ''}
+                            placeholder={hasPassword && !config.password ? '••••••••' : ''}
                         />
+                        {hasPassword && !config.password && (
+                            <Box display="flex" alignItems="center" gap={0.5} mt={0.5} ml={0.5}>
+                                <FeatherIcon icon="lock" width="13" height="13" color="#168821" />
+                                <Typography variant="caption" sx={{ color: '#168821' }}>
+                                    Senha já configurada — deixe em branco para manter a atual
+                                </Typography>
+                            </Box>
+                        )}
                     </Grid>
                 </Grid>
 
@@ -156,8 +163,8 @@ export default function ConfiguracoesAPS() {
                         sx={{ bgcolor: testResult.success ? '#f0fff4' : '#fff0f0', border: `1px solid ${testResult.success ? '#168821' : '#E52207'}` }}>
                         <Typography variant="body2" sx={{ color: testResult.success ? '#168821' : '#E52207' }}>
                             {testResult.success
-                                ? `✅ Conectado — ${testResult.database} (PostgreSQL ${testResult.version?.split(' ')[1] ?? ''})`
-                                : `❌ Erro: ${testResult.error}`}
+                                ? `✅ Conectado — ${testResult.total_equipes} equipe(s) ativa(s) encontrada(s)`
+                                : `❌ ${testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor'}`}
                         </Typography>
                     </Box>
                 )}
