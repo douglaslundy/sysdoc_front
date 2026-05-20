@@ -84,14 +84,16 @@ export default function MonitorApsDashboard() {
     return (
         <Box>
             {/* Filtros */}
-            <Box display="flex" gap={1} mb={3} alignItems="center">
-                <Typography variant="h5" fontWeight={700} sx={{ flex: 1 }}>Monitor APS — Cofinanciamento Federal</Typography>
-                <select value={ano} onChange={e => setAno(Number(e.target.value))} style={selSx}>
-                    {[2023, 2024, 2025].map(a => <option key={a}>{a}</option>)}
-                </select>
-                <select value={quad} onChange={e => setQuad(Number(e.target.value))} style={selSx}>
-                    {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quadrimestre</option>)}
-                </select>
+            <Box mb={3} mt="20px">
+                <Typography variant="h5" fontWeight={700} mb={1.5}>Monitor APS — Cofinanciamento Federal</Typography>
+                <Box display="flex" gap={1} alignItems="center">
+                    <select value={ano} onChange={e => setAno(Number(e.target.value))} style={selSx}>
+                        {[2023, 2024, 2025].map(a => <option key={a}>{a}</option>)}
+                    </select>
+                    <select value={quad} onChange={e => setQuad(Number(e.target.value))} style={selSx}>
+                        {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quadrimestre</option>)}
+                    </select>
+                </Box>
             </Box>
 
             {/* Métricas */}

@@ -85,7 +85,7 @@ export default function ConfiguracoesAPS() {
         <Box sx={modalFormRootSx}>
             <AlertModal />
 
-            <Typography variant="h5" fontWeight={700} mb={3}>Configurações do Monitor APS</Typography>
+            <Typography variant="h5" fontWeight={700} mt="20px" mb={3}>Configurações do Monitor APS</Typography>
 
             {/* Status */}
             <Box display="flex" alignItems="center" gap={1.5} mb={3} p={2}
@@ -189,7 +189,7 @@ export default function ConfiguracoesAPS() {
                     Execute este script <strong>uma vez</strong> no banco do eSUS PEC como superusuário (postgres) antes de usar em produção.
                 </Typography>
                 <TextField
-                    fullWidth multiline rows={10} value={SQL_SETUP}
+                    fullWidth multiline minRows={3} maxRows={8} value={SQL_SETUP}
                     InputProps={{ readOnly: true, sx: { fontFamily: 'monospace', fontSize: 12 } }}
                     className="lg-search-field"
                 />

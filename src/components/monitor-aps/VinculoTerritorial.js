@@ -94,7 +94,7 @@ export default function VinculoTerritorial() {
 
     return (
         <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={1}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={1}>
                 <Typography variant="h5" fontWeight={700}>Vínculo e Acompanhamento Territorial</Typography>
                 <Box display="flex" gap={1} alignItems="center">
                     <select value={ano} onChange={e => setAno(Number(e.target.value))} style={selSx}>
@@ -103,7 +103,8 @@ export default function VinculoTerritorial() {
                     <select value={quad} onChange={e => setQuad(Number(e.target.value))} style={selSx}>
                         {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}
                     </select>
-                    <Button variant="outlined" size="small" startIcon={<FeatherIcon icon="download" width="16" height="16" />}
+                    <Button variant="outlined" size="small" sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                        startIcon={<FeatherIcon icon="download" width="16" height="16" />}
                         onClick={() => exportarCSV(csvData, `vinculo-${ano}-q${quad}`)}>
                         Exportar CSV
                     </Button>

@@ -87,7 +87,7 @@ export default function PorEquipe() {
     return (
         <Box>
             {/* Seletores */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={2}>
                 <Typography variant="h5" fontWeight={700}>Desempenho por Equipe</Typography>
                 <Box display="flex" gap={1.5} flexWrap="wrap">
                     <FormControl size="small" sx={{ minWidth: 200 }}>
