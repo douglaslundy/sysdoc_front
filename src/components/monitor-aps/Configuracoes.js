@@ -80,8 +80,7 @@ export default function ConfiguracoesAPS() {
                 municipio_nome: municipio.nome,
                 estrato_ied:    municipio.estrato,
             });
-            const s = await monitorApsApi.get('/config/status');
-            setStatus(s);
+            setStatus(s => ({ ...s, configured: true, host: config.host, database: config.database }));
             dispatch(addMessage('Configuração salva com sucesso!'));
             dispatch(turnAlert());
         } catch (e) {
