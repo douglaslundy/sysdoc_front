@@ -1,7 +1,12 @@
-import dynamic from 'next/dynamic';
+import { Grid } from '@mui/material';
+import IndicadoresQualidade from '../../src/components/monitor-aps/IndicadoresQualidade';
 
-const IndicadoresQualidade = dynamic(() => import('@monitor-aps/pages/IndicadoresQualidade'), { ssr: false });
-
-export default function MonitorApsQualidade() {
-  return <IndicadoresQualidade />;
+export default function MonitorApsQualidadePage() {
+    return (
+        <Grid container spacing={0}>
+            <Grid item xs={12}>
+                <IndicadoresQualidade />
+            </Grid>
+        </Grid>
+    );
 }

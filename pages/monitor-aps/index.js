@@ -1,7 +1,12 @@
-import dynamic from 'next/dynamic';
+import { Grid } from '@mui/material';
+import MonitorApsDashboard from '../../src/components/monitor-aps/Dashboard';
 
-const Dashboard = dynamic(() => import('@monitor-aps/pages/Dashboard'), { ssr: false });
-
-export default function MonitorApsDashboard() {
-  return <Dashboard />;
+export default function MonitorApsDashboardPage() {
+    return (
+        <Grid container spacing={0}>
+            <Grid item xs={12}>
+                <MonitorApsDashboard />
+            </Grid>
+        </Grid>
+    );
 }

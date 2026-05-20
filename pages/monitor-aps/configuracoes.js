@@ -1,7 +1,12 @@
-import dynamic from 'next/dynamic';
+import { Grid } from '@mui/material';
+import ConfiguracoesAPS from '../../src/components/monitor-aps/Configuracoes';
 
-const Configuracoes = dynamic(() => import('@monitor-aps/pages/Configuracoes'), { ssr: false });
-
-export default function MonitorApsConfiguracoes() {
-  return <Configuracoes />;
+export default function MonitorApsConfiguracoesPage() {
+    return (
+        <Grid container spacing={0}>
+            <Grid item xs={12}>
+                <ConfiguracoesAPS />
+            </Grid>
+        </Grid>
+    );
 }

@@ -1,7 +1,12 @@
-import dynamic from 'next/dynamic';
+import { Grid } from '@mui/material';
+import PorEquipe from '../../src/components/monitor-aps/PorEquipe';
 
-const PorEquipe = dynamic(() => import('@monitor-aps/pages/PorEquipe'), { ssr: false });
-
-export default function MonitorApsEquipe() {
-  return <PorEquipe />;
+export default function MonitorApsEquipePage() {
+    return (
+        <Grid container spacing={0}>
+            <Grid item xs={12}>
+                <PorEquipe />
+            </Grid>
+        </Grid>
+    );
 }

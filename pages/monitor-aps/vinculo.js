@@ -1,7 +1,12 @@
-import dynamic from 'next/dynamic';
+import { Grid } from '@mui/material';
+import VinculoTerritorial from '../../src/components/monitor-aps/VinculoTerritorial';
 
-const VinculoTerritorial = dynamic(() => import('@monitor-aps/pages/VinculoTerritorial'), { ssr: false });
-
-export default function MonitorApsVinculo() {
-  return <VinculoTerritorial />;
+export default function MonitorApsVinculoPage() {
+    return (
+        <Grid container spacing={0}>
+            <Grid item xs={12}>
+                <VinculoTerritorial />
+            </Grid>
+        </Grid>
+    );
 }
