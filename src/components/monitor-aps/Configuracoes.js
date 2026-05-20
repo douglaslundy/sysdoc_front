@@ -161,29 +161,48 @@ export default function ConfiguracoesAPS() {
                             </Typography>
                         </Box>
 
-                        {tabelas.length > 0 && (
-                            <Box mt={1.5} p={1.5} borderRadius={1}
-                                sx={{ bgcolor: 'var(--lg-glass-input)', border: '0.5px solid var(--lg-border-input)' }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--lg-text-muted)', letterSpacing: 0.5 }}>
-                                    Tabelas encontradas ({tabelas.length})
-                                </Typography>
-                                <Box mt={1} sx={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0.3 }}>
-                                    {tabelas.map((t, i) => (
-                                        <Box key={i} display="flex" alignItems="center" gap={1}>
-                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'var(--lg-text-muted)', minWidth: 60 }}>
-                                                {t.schema}
-                                            </Typography>
-                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'var(--lg-text-primary)' }}>
-                                                {t.tabela}
-                                            </Typography>
-                                            {t.tipo === 'VIEW' && (
-                                                <Chip label="view" size="small" sx={{ height: 16, fontSize: 10 }} />
-                                            )}
-                                        </Box>
-                                    ))}
+                        {tabelas.length > 0 && (() => {
+                            const porSchema = tabelas.reduce((acc, t) => {
+                                if (!acc[t.schema]) acc[t.schema] = [];
+                                acc[t.schema].push(t);
+                                return acc;
+                            }, {});
+                            return (
+                                <Box mt={1.5} p={1.5} borderRadius={1}
+                                    sx={{ bgcolor: 'var(--lg-glass-input)', border: '0.5px solid var(--lg-border-input)' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--lg-text-muted)', letterSpacing: 0.5 }}>
+                                        {tabelas.length} tabela(s) em {Object.keys(porSchema).length} schema(s)
+                                    </Typography>
+                                    <Box mt={1} sx={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                        {Object.entries(porSchema).map(([schema, itens]) => (
+                                            <Box key={schema}>
+                                                <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                                                    <FeatherIcon icon="database" width="13" height="13" color="var(--lg-text-muted)" />
+                                                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'var(--lg-text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                                        {schema} ({itens.length})
+                                                    </Typography>
+                                                    {testResult?.schema_dw === schema && (
+                                                        <Chip label="DW eSUS" size="small" color="primary" sx={{ height: 16, fontSize: 10 }} />
+                                                    )}
+                                                </Box>
+                                                <Box display="flex" flexDirection="column" gap={0.2} pl={2}>
+                                                    {itens.map((t, i) => (
+                                                        <Box key={i} display="flex" alignItems="center" gap={0.8}>
+                                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'var(--lg-text-primary)', fontSize: 11 }}>
+                                                                {t.tabela}
+                                                            </Typography>
+                                                            {t.tipo === 'VIEW' && (
+                                                                <Chip label="view" size="small" sx={{ height: 14, fontSize: 10 }} />
+                                                            )}
+                                                        </Box>
+                                                    ))}
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
                                 </Box>
-                            </Box>
-                        )}
+                            );
+                        })()}
                     </Box>
                 )}
 
