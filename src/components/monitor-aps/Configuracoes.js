@@ -163,7 +163,7 @@ export default function ConfiguracoesAPS() {
                         sx={{ bgcolor: testResult.success ? '#f0fff4' : '#fff0f0', border: `1px solid ${testResult.success ? '#168821' : '#E52207'}` }}>
                         <Typography variant="body2" sx={{ color: testResult.success ? '#168821' : '#E52207' }}>
                             {testResult.success
-                                ? `✅ Conectado — ${testResult.total_equipes} equipe(s) ativa(s) encontrada(s)`
+                                ? `✅ ${testResult.mensagem}`
                                 : `❌ ${testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor'}`}
                         </Typography>
                     </Box>
