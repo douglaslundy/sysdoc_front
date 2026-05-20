@@ -32,7 +32,7 @@ export default function ConfiguracoesAPS() {
     const [testResult, setTestResult] = useState(null);
     const [equipes, setEquipes]   = useState([]);
     const [municipio, setMunicipio] = useState({ ibge: '', nome: '', estrato: 4 });
-    const [hasPassword, setHasPassword] = useState(false);
+    const [tabelas, setTabelas] = useState([]);
     const [testando, setTestando] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [sqlCopiado, setSqlCopiado] = useState(false);
@@ -46,13 +46,13 @@ export default function ConfiguracoesAPS() {
                 port:     c.port     || prev.port,
                 database: c.database || prev.database,
                 user:     c.user     || prev.user,
+                password: c.password || prev.password,
             }));
             setMunicipio(prev => ({
                 ibge:    c.municipio_ibge  || prev.ibge,
                 nome:    c.municipio_nome  || prev.nome,
                 estrato: c.estrato_ied     ?? prev.estrato,
             }));
-            setHasPassword(!!c.has_password);
         }).catch(e => {
             dispatch(addAlertMessage(`Erro ao carregar configuração: ${e.response?.status ?? ''} ${e.message}`));
         });
@@ -67,6 +67,7 @@ export default function ConfiguracoesAPS() {
             const r = await monitorApsApi.post('/config/test', config);
             setTestResult(r);
             if (r.success) {
+                setTabelas(r.tabelas ?? []);
                 const eq = await monitorApsApi.get('/config/equipes');
                 setEquipes(eq.equipes ?? []);
             }
@@ -145,27 +146,44 @@ export default function ConfiguracoesAPS() {
                         <TextField
                             className="lg-search-field" fullWidth label="Senha" name="password" type="password"
                             value={config.password} onChange={change}
-                            placeholder={hasPassword && !config.password ? '••••••••' : ''}
                         />
-                        {hasPassword && !config.password && (
-                            <Box display="flex" alignItems="center" gap={0.5} mt={0.5} ml={0.5}>
-                                <FeatherIcon icon="lock" width="13" height="13" color="#168821" />
-                                <Typography variant="caption" sx={{ color: '#168821' }}>
-                                    Senha já configurada — deixe em branco para manter a atual
-                                </Typography>
-                            </Box>
-                        )}
                     </Grid>
                 </Grid>
 
                 {testResult && (
-                    <Box mt={2} p={1.5} borderRadius={1}
-                        sx={{ bgcolor: testResult.success ? '#f0fff4' : '#fff0f0', border: `1px solid ${testResult.success ? '#168821' : '#E52207'}` }}>
-                        <Typography variant="body2" sx={{ color: testResult.success ? '#168821' : '#E52207' }}>
-                            {testResult.success
-                                ? `✅ ${testResult.mensagem}`
-                                : `❌ ${testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor'}`}
-                        </Typography>
+                    <Box mt={2}>
+                        <Box p={1.5} borderRadius={1}
+                            sx={{ bgcolor: testResult.success ? '#f0fff4' : '#fff0f0', border: `1px solid ${testResult.success ? '#168821' : '#E52207'}` }}>
+                            <Typography variant="body2" sx={{ color: testResult.success ? '#168821' : '#E52207' }}>
+                                {testResult.success
+                                    ? `✅ ${testResult.mensagem}`
+                                    : `❌ ${testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor'}`}
+                            </Typography>
+                        </Box>
+
+                        {tabelas.length > 0 && (
+                            <Box mt={1.5} p={1.5} borderRadius={1}
+                                sx={{ bgcolor: 'var(--lg-glass-input)', border: '0.5px solid var(--lg-border-input)' }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--lg-text-muted)', letterSpacing: 0.5 }}>
+                                    Tabelas encontradas ({tabelas.length})
+                                </Typography>
+                                <Box mt={1} sx={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+                                    {tabelas.map((t, i) => (
+                                        <Box key={i} display="flex" alignItems="center" gap={1}>
+                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'var(--lg-text-muted)', minWidth: 60 }}>
+                                                {t.schema}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'var(--lg-text-primary)' }}>
+                                                {t.tabela}
+                                            </Typography>
+                                            {t.tipo === 'VIEW' && (
+                                                <Chip label="view" size="small" sx={{ height: 16, fontSize: 10 }} />
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Box>
+                        )}
                     </Box>
                 )}
 
