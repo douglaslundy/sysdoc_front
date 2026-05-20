@@ -53,7 +53,9 @@ export default function ConfiguracoesAPS() {
                 estrato: c.estrato_ied     ?? prev.estrato,
             }));
             setHasPassword(!!c.has_password);
-        }).catch(() => {});
+        }).catch(e => {
+            dispatch(addAlertMessage(`Erro ao carregar configuração: ${e.response?.status ?? ''} ${e.message}`));
+        });
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
     }, []);
 
