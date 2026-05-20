@@ -37,16 +37,14 @@ export default function ConfiguracoesAPS() {
     const [sqlCopiado, setSqlCopiado] = useState(false);
 
     useEffect(() => {
-        monitorApsApi.get('/config/status').then(s => {
-            setStatus(s);
-            if (s.host) setConfig(c => ({
-                ...c,
-                host:     s.host     ?? c.host,
-                port:     s.port     ?? c.port,
-                database: s.database ?? c.database,
-                user:     s.user     ?? c.user,
-            }));
-        }).catch(() => {});
+        monitorApsApi.get('/config/status').then(setStatus).catch(() => {});
+        monitorApsApi.get('/config/load').then(c => setConfig(prev => ({
+            ...prev,
+            host:     c.host     || prev.host,
+            port:     c.port     || prev.port,
+            database: c.database || prev.database,
+            user:     c.user     || prev.user,
+        }))).catch(() => {});
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
     }, []);
 
