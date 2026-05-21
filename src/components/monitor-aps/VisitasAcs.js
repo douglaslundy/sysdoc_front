@@ -306,6 +306,7 @@ export default function VisitasAcs() {
                                                 },
                                             }}>
                                                 <TableCell>Data / Hora</TableCell>
+                                                <TableCell>Cidadão</TableCell>
                                                 <TableCell>Agente</TableCell>
                                                 <TableCell>Equipe</TableCell>
                                                 <TableCell>Instrumento</TableCell>
@@ -323,6 +324,11 @@ export default function VisitasAcs() {
                                                             const h = v.hora != null ? ` ${String(v.hora).padStart(2, '0')}:00` : '';
                                                             return d + h;
                                                         })() : '—'}
+                                                    </TableCell>
+                                                    <TableCell sx={{ maxWidth: 200 }}>
+                                                        <Typography variant="body2" noWrap title={v.cidadao ?? ''}>
+                                                            {v.cidadao ?? '—'}
+                                                        </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" fontWeight={600} noWrap>
