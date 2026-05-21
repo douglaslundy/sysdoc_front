@@ -14,7 +14,7 @@ import {
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showVehicle } from '../../../store/ducks/vehicles';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editVehicleFetch, addVehicleFetch } from '../../../store/fetchActions/vehicles';
 import AlertModal from '../../messagesModal';
 import {
@@ -62,7 +62,7 @@ export default function VehicleModal(props) {
             year: ""
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showVehicle({}));
     }
 

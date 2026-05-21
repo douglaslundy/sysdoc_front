@@ -6,7 +6,7 @@ import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/m
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showCategoria } from '../../../store/ducks/categoriasExame';
-import { turnModal } from '../../../store/ducks/Layout';
+import { closeModal } from '../../../store/ducks/Layout';
 import { addCategoriaFetch, editCategoriaFetch } from '../../../store/fetchActions/categoriasExame';
 import {
     modalBackdropSx,
@@ -29,7 +29,7 @@ export default function CategoriaExameModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showCategoria({}));
     };
 

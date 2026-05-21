@@ -14,7 +14,7 @@ import {
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showRoute } from '../../../store/ducks/routes';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editRouteFetch, addRouteFetch } from '../../../store/fetchActions/routes';
 import { getAllStates } from '../../../store/fetchActions/states';
 import AlertModal from '../../messagesModal';
@@ -61,7 +61,7 @@ export default function RouteModal(props) {
             distance: ""
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showRoute({}));
     }
 

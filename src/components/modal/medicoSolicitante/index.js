@@ -6,7 +6,7 @@ import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/m
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showMedico } from '../../../store/ducks/medicosSolicitantes';
-import { turnModal } from '../../../store/ducks/Layout';
+import { closeModal } from '../../../store/ducks/Layout';
 import { addMedicoFetch, editMedicoFetch } from '../../../store/fetchActions/medicosSolicitantes';
 import {
     modalBackdropSx,
@@ -29,7 +29,7 @@ export default function MedicoSolicitanteModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showMedico({}));
     };
 

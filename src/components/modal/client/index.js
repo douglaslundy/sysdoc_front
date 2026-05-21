@@ -24,7 +24,7 @@ import BaseCard from '../../baseCard/BaseCard';
 
 import { showClient } from '../../../store/ducks/clients';
 import { editClientFetch, addClientFetch } from '../../../store/fetchActions/clients';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 
 const style = {
   position: 'absolute',
@@ -110,7 +110,7 @@ export default function ClientModal(props) {
       complement: '',
     });
     setTexto('');
-    dispatch(turnModal());
+    dispatch(closeModal());
     dispatch(showClient({}));
   };
 

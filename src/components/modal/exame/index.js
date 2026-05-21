@@ -10,7 +10,7 @@ import {
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showExame } from '../../../store/ducks/exames';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addExameFetch, editExameFetch } from '../../../store/fetchActions/exames';
 import { getAllCategorias } from '../../../store/fetchActions/categoriasExame';
 import {
@@ -38,7 +38,7 @@ export default function ExameModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showExame({}));
     };
 
@@ -49,7 +49,7 @@ export default function ExameModal(props) {
         } else {
             dispatch(changeTitleAlert(`Exame ${form.nome} criado com sucesso!`));
             dispatch(addExameFetch(form, (saved) => {
-                dispatch(turnModal());
+                dispatch(closeModal());
                 dispatch(showExame({}));
                 router.push(`/laboratorio/exames/${saved.id}/campos`);
             }));

@@ -15,7 +15,7 @@ import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import BasicDatePicker from '../../inputs/datePicker';
-import { turnModal } from '../../../store/ducks/Layout';
+import { closeModal } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
@@ -103,7 +103,7 @@ export default function PedidoModal(props) {
         setCpfCns('');
         setPaciente(null);
         setErroPaciente('');
-        dispatch(turnModal());
+        dispatch(closeModal());
     };
 
     const handleSave = () => {

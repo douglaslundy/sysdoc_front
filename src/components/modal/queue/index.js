@@ -21,7 +21,7 @@ import Switch from '@mui/material/Switch';
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showQueue, editQueue } from '../../../store/ducks/queues';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editQueueFetch, addQueueFetch } from '../../../store/fetchActions/queues';
 import {
     listQueueAttachments,
@@ -125,7 +125,7 @@ export default function QueueModal(props) {
         });
         setAlertState({ visible: false, type: 'success', message: '' });
         setPendingFiles([]);
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showQueue({}));
     }
 

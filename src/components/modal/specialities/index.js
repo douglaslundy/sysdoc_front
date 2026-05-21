@@ -14,7 +14,7 @@ import {
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showSpeciality } from '../../../store/ducks/specialities';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
 import AlertModal from '../../messagesModal';
 
@@ -54,7 +54,7 @@ export default function SpecialityModal(props) {
             name: ""
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showSpeciality({}));
     }
 

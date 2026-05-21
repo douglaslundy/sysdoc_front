@@ -7,7 +7,7 @@ import { Grid, Stack, TextField, Alert, Button, Typography, Divider, Box as MuiB
 import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showLetter, editLetter } from '../../../store/ducks/letters';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
     editLetterFetch,
     addLetterFetch,
@@ -63,7 +63,7 @@ export default function LetterModal(props) {
         setPendingFiles([]);
         setIsSubmitting(false);
         dispatch(getTextOpenAi(""));
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showLetter({}));
     };
 

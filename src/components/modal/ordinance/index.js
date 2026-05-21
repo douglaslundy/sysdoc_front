@@ -7,7 +7,7 @@ import { Grid, Stack, TextField, Alert, Button, FormControl, InputLabel, Select,
 import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
     editOrdinanceFetch,
     addOrdinanceFetch,
@@ -91,7 +91,7 @@ export default function OrdinanceModal(props) {
         setAttachments([]);
         setIsSubmitting(false);
         dispatch(getTextOpenAi(""));
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showOrdinance({}));
     };
 
