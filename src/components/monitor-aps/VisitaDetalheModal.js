@@ -1,0 +1,263 @@
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+import {
+    Box, Button, Chip, CircularProgress, Dialog, DialogActions,
+    DialogContent, DialogTitle, Divider, Grid, Typography,
+} from '@mui/material';
+import FeatherIcon from 'feather-icons-react';
+
+const MapContainer  = dynamic(() => import('react-leaflet').then(m => m.MapContainer),  { ssr: false });
+const TileLayer     = dynamic(() => import('react-leaflet').then(m => m.TileLayer),     { ssr: false });
+const Marker        = dynamic(() => import('react-leaflet').then(m => m.Marker),        { ssr: false });
+
+const COR_DESFECHO = {
+    1: 'success',
+    2: 'error',
+    3: 'warning',
+    4: 'default',
+};
+
+function InfoRow({ label, value }) {
+    return (
+        <Grid item xs={12} sm={6}>
+            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                {label}
+            </Typography>
+            <Typography variant="body2" fontWeight={500}>
+                {value || '—'}
+            </Typography>
+        </Grid>
+    );
+}
+
+function StreetViewPanel({ lat, lng }) {
+    const [imgUrl, setImgUrl]     = useState(null);
+    const [loading, setLoading]   = useState(true);
+    const [noImage, setNoImage]   = useState(false);
+
+    useEffect(() => {
+        const token = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
+        if (!token) { setLoading(false); setNoImage(true); return; }
+
+        setLoading(true);
+        setImgUrl(null);
+        setNoImage(false);
+
+        fetch(
+            `https://graph.mapillary.com/images` +
+            `?access_token=${token}` +
+            `&fields=id,thumb_2048_url` +
+            `&closeto=${lng},${lat}&radius=50&limit=1`
+        )
+            .then(r => r.json())
+            .then(data => {
+                const img = data?.data?.[0];
+                img?.thumb_2048_url ? setImgUrl(img.thumb_2048_url) : setNoImage(true);
+            })
+            .catch(() => setNoImage(true))
+            .finally(() => setLoading(false));
+    }, [lat, lng]);
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                <CircularProgress size={28} />
+            </Box>
+        );
+    }
+
+    if (imgUrl) {
+        return (
+            <img
+                src={imgUrl}
+                alt="Street view Mapillary"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+        );
+    }
+
+    return (
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+            gap={1}
+            sx={{ color: 'var(--lg-text-muted)' }}
+        >
+            <FeatherIcon icon="camera-off" width="24" height="24" />
+            <Typography variant="caption" align="center">
+                {!process.env.NEXT_PUBLIC_MAPILLARY_TOKEN
+                    ? 'Configure NEXT_PUBLIC_MAPILLARY_TOKEN para ativar a visualização de rua.'
+                    : 'Visualização de rua não disponível para este local.'}
+            </Typography>
+        </Box>
+    );
+}
+
+export default function VisitaDetalheModal({ open, onClose, visita }) {
+    useEffect(() => {
+        if (open && !document.getElementById('leaflet-css')) {
+            const link = document.createElement('link');
+            link.id   = 'leaflet-css';
+            link.rel  = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1/dist/leaflet.css';
+            document.head.appendChild(link);
+        }
+    }, [open]);
+
+    if (!visita) return null;
+
+    const temGeo = visita.has_geolocation && visita.lat != null && visita.lng != null;
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+                sx: {
+                    background:     'var(--lg-glass-modal, #1e2027f0)',
+                    backdropFilter: 'var(--lg-blur-modal, blur(20px))',
+                    border:         '0.5px solid var(--lg-border, #ffffff22)',
+                    borderRadius:   '16px',
+                },
+            }}
+        >
+            <DialogTitle sx={{ fontWeight: 700, fontSize: 16 }}>
+                Detalhe da Visita
+            </DialogTitle>
+
+            <DialogContent dividers>
+                <Grid container spacing={2}>
+
+                    {/* ── Informações da visita ── */}
+                    <Grid item xs={12}>
+                        <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }}>
+                            Informações
+                        </Typography>
+                    </Grid>
+
+                    <InfoRow label="Agente" value={`${visita.agent_name} (${visita.cbo_label})`} />
+                    <InfoRow label="Equipe" value={visita.team_name} />
+                    <InfoRow label="Data / Hora" value={visita.visited_date ? new Date(visita.visited_date).toLocaleString('pt-BR') : null} />
+                    <InfoRow label="Instrumento" value={visita.instrument_label} />
+
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                            Desfecho
+                        </Typography>
+                        <Chip
+                            label={visita.outcome_label}
+                            color={COR_DESFECHO[visita.outcome_code] ?? 'default'}
+                            size="small"
+                            sx={{ mt: 0.3 }}
+                        />
+                    </Grid>
+
+                    {visita.motives?.length > 0 && (
+                        <Grid item xs={12} sm={6}>
+                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                                Motivos
+                            </Typography>
+                            <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
+                                {visita.motives.map((m, i) => (
+                                    <Chip key={i} label={m} size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
+                                ))}
+                            </Box>
+                        </Grid>
+                    )}
+
+                    {visita.accompaniments?.length > 0 && (
+                        <Grid item xs={12}>
+                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                                Acompanhamentos
+                            </Typography>
+                            <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
+                                {visita.accompaniments.map((a, i) => (
+                                    <Chip key={i} label={a} size="small" color="info" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
+                                ))}
+                            </Box>
+                        </Grid>
+                    )}
+
+                    {/* ── Relato ── */}
+                    <Grid item xs={12}><Divider /></Grid>
+                    <Grid item xs={12}>
+                        <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }} gutterBottom>
+                            Relato / Anotação
+                        </Typography>
+                        <Box
+                            sx={{
+                                p: 1.5,
+                                borderRadius: 1,
+                                bgcolor: 'action.hover',
+                                minHeight: 56,
+                                whiteSpace: 'pre-wrap',
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ color: visita.notes ? 'text.primary' : 'var(--lg-text-muted)' }}>
+                                {visita.notes || 'Nenhum relato registrado.'}
+                            </Typography>
+                        </Box>
+                    </Grid>
+
+                    {/* ── Geolocalização ── */}
+                    {temGeo && (
+                        <>
+                            <Grid item xs={12}><Divider /></Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }} gutterBottom>
+                                    Localização
+                                </Typography>
+                            </Grid>
+
+                            {/* Mini-mapa Leaflet */}
+                            <Grid item xs={12} md={6}>
+                                <Box sx={{ height: 260, borderRadius: 2, overflow: 'hidden' }}>
+                                    {typeof window !== 'undefined' && (
+                                        <MapContainer
+                                            center={[visita.lat, visita.lng]}
+                                            zoom={17}
+                                            style={{ height: '100%', width: '100%' }}
+                                            scrollWheelZoom={false}
+                                        >
+                                            <TileLayer
+                                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                            />
+                                            <Marker position={[visita.lat, visita.lng]} />
+                                        </MapContainer>
+                                    )}
+                                </Box>
+                            </Grid>
+
+                            {/* Street View Mapillary */}
+                            <Grid item xs={12} md={6}>
+                                <Box
+                                    sx={{
+                                        height: 260,
+                                        borderRadius: 2,
+                                        overflow: 'hidden',
+                                        bgcolor: 'action.hover',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <StreetViewPanel lat={visita.lat} lng={visita.lng} />
+                                </Box>
+                            </Grid>
+                        </>
+                    )}
+                </Grid>
+            </DialogContent>
+
+            <DialogActions>
+                <Button onClick={onClose} size="small">Fechar</Button>
+            </DialogActions>
+        </Dialog>
+    );
+}
