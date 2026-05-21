@@ -30,10 +30,14 @@ function InfoRow({ label, value }) {
     );
 }
 
+const GOOGLE_SV_URL = (lat, lng) =>
+    `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
+
 function StreetViewPanel({ lat, lng }) {
     const [imgUrl, setImgUrl]     = useState(null);
     const [loading, setLoading]   = useState(true);
     const [noImage, setNoImage]   = useState(false);
+    const [apiError, setApiError] = useState(false);
 
     useEffect(() => {
         const token = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
@@ -42,15 +46,20 @@ function StreetViewPanel({ lat, lng }) {
         setLoading(true);
         setImgUrl(null);
         setNoImage(false);
+        setApiError(false);
 
         fetch(
             `https://graph.mapillary.com/images` +
             `?access_token=${token}` +
             `&fields=id,thumb_2048_url` +
-            `&closeto=${lng},${lat}&radius=50&limit=1`
+            `&closeto=${lng},${lat}&radius=500&limit=1`
         )
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) { setApiError(true); return null; }
+                return r.json();
+            })
             .then(data => {
+                if (!data) return;
                 const img = data?.data?.[0];
                 img?.thumb_2048_url ? setImgUrl(img.thumb_2048_url) : setNoImage(true);
             })
@@ -68,11 +77,14 @@ function StreetViewPanel({ lat, lng }) {
 
     if (imgUrl) {
         return (
-            <img
-                src={imgUrl}
-                alt="Street view Mapillary"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <a href={GOOGLE_SV_URL(lat, lng)} target="_blank" rel="noopener noreferrer"
+               style={{ display: 'block', width: '100%', height: '100%' }}>
+                <img
+                    src={imgUrl}
+                    alt="Street view Mapillary"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+            </a>
         );
     }
 
@@ -83,15 +95,28 @@ function StreetViewPanel({ lat, lng }) {
             alignItems="center"
             justifyContent="center"
             height="100%"
-            gap={1}
+            gap={1.5}
             sx={{ color: 'var(--lg-text-muted)' }}
         >
             <FeatherIcon icon="camera-off" width="24" height="24" />
-            <Typography variant="caption" align="center">
+            <Typography variant="caption" align="center" sx={{ px: 2 }}>
                 {!process.env.NEXT_PUBLIC_MAPILLARY_TOKEN
                     ? 'Configure NEXT_PUBLIC_MAPILLARY_TOKEN para ativar a visualização de rua.'
-                    : 'Visualização de rua não disponível para este local.'}
+                    : apiError
+                        ? 'Erro ao acessar o serviço de imagens. Verifique o token Mapillary.'
+                        : 'Sem cobertura de imagens nesta área.'}
             </Typography>
+            <Button
+                size="small"
+                variant="outlined"
+                href={GOOGLE_SV_URL(lat, lng)}
+                target="_blank"
+                rel="noopener noreferrer"
+                startIcon={<FeatherIcon icon="map-pin" width="14" height="14" />}
+                sx={{ fontSize: 11, textTransform: 'none' }}
+            >
+                Ver no Google Maps
+            </Button>
         </Box>
     );
 }
