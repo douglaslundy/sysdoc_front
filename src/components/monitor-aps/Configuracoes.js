@@ -33,6 +33,8 @@ export default function ConfiguracoesAPS() {
     const [equipes, setEquipes]   = useState([]);
     const [municipio, setMunicipio] = useState({ ibge: '', nome: '', estrato: 4 });
     const [tabelas, setTabelas] = useState([]);
+    const [explorando, setExplorando] = useState(false);
+    const [exploracaoResult, setExploracaoResult] = useState(null);
     const [testando, setTestando] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [sqlCopiado, setSqlCopiado] = useState(false);
@@ -92,6 +94,16 @@ export default function ConfiguracoesAPS() {
         } catch (e) {
             dispatch(addAlertMessage(`Erro ao salvar: ${e.message}`));
         } finally { setSalvando(false); }
+    }
+
+    async function explorar() {
+        setExplorando(true); setExploracaoResult(null);
+        try {
+            const r = await monitorApsApi.get('/config/explorar');
+            setExploracaoResult(r);
+        } catch (e) {
+            dispatch(addAlertMessage(`Erro ao explorar banco: ${e.message}`));
+        } finally { setExplorando(false); }
     }
 
     function copiarSQL() {
@@ -254,8 +266,52 @@ export default function ConfiguracoesAPS() {
                 )}
             </BaseCard>
 
-            {/* Seção 3: SQL */}
-            <BaseCard title="3. Script SQL — Criar usuário somente-leitura">
+            {/* Seção 3: Explorar banco operacional */}
+            <BaseCard title="3. Explorar Banco Operacional eSUS PEC">
+                <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)', mb: 1.5 }}>
+                    Mapeia todas as tabelas <code>tb_*</code> disponíveis com suas colunas e quantidade de registros — somente leitura, sem alterar nada no servidor.
+                </Typography>
+                <Button variant="outlined" disabled={explorando} onClick={explorar}
+                    startIcon={explorando ? <CircularProgress size={16} /> : <FeatherIcon icon="search" width="16" height="16" />}>
+                    {explorando ? 'Explorando...' : 'Explorar Tabelas'}
+                </Button>
+
+                {exploracaoResult && (
+                    <Box mt={2}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: 'var(--lg-text-muted)', letterSpacing: 0.5 }}>
+                            {exploracaoResult.total} tabelas operacionais encontradas
+                        </Typography>
+                        <Box mt={1} sx={{ maxHeight: 480, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                            {exploracaoResult.tabelas?.map((t, i) => (
+                                <Box key={i} p={1.5} borderRadius={1}
+                                    sx={{ bgcolor: 'var(--lg-glass-input)', border: '0.5px solid var(--lg-border-input)' }}>
+                                    <Box display="flex" alignItems="center" gap={1} mb={0.8}>
+                                        <FeatherIcon icon="table" width="14" height="14" color="var(--lg-text-muted)" />
+                                        <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--lg-text-primary)' }}>
+                                            {t.tabela}
+                                        </Typography>
+                                        {t.total !== null && (
+                                            <Chip label={`${t.total.toLocaleString('pt-BR')} registros`} size="small"
+                                                sx={{ height: 18, fontSize: 10, bgcolor: 'var(--lg-glass-card)' }} />
+                                        )}
+                                    </Box>
+                                    <Box display="flex" flexWrap="wrap" gap={0.5}>
+                                        {t.colunas?.map((c, j) => (
+                                            <Chip key={j}
+                                                label={`${c.coluna} · ${c.tipo}`}
+                                                size="small" variant="outlined"
+                                                sx={{ height: 18, fontSize: 10, fontFamily: 'monospace' }} />
+                                        ))}
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+            </BaseCard>
+
+            {/* Seção 4: SQL */}
+            <BaseCard title="4. Script SQL — Criar usuário somente-leitura">
                 <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)', mb: 1.5 }}>
                     Execute este script <strong>uma vez</strong> no banco do eSUS PEC como superusuário (postgres) antes de usar em produção.
                 </Typography>
