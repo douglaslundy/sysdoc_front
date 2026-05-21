@@ -1,0 +1,825 @@
+﻿import React, { useState, useEffect, useContext } from "react";
+import {
+    Typography,
+    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Fab,
+    Button,
+    styled,
+    TableContainer,
+    TablePagination,
+    TextField,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Chip,
+    Divider,
+} from "@mui/material";
+
+import BaseCard from "../baseCard/BaseCard";
+import FeatherIcon from "feather-icons-react";
+import QueueModal from "../modal/queue";
+import QueueOutcomeModal from "../modal/outcomequeue";
+import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
+import { AuthContext } from "../../contexts/AuthContext";
+
+import { useSelector, useDispatch } from 'react-redux';
+import {
+    getAllQueues,
+    inactiveQueueFetch,
+    viewQueueFetch,
+    listQueueAttachments,
+    uploadQueueAttachment,
+    deleteQueueAttachment,
+    downloadQueueAttachment
+} from "../../store/fetchActions/queues";
+import { showQueue } from "../../store/ducks/queues";
+import { turnModal } from "../../store/ducks/Layout";
+import ConfirmDialog from "../confirmDialog";
+import Select from '../inputs/selects';
+
+import { parseISO, format } from 'date-fns';
+import AlertModal from "../messagesModal";
+
+import protocolPDF from "../../reports/protocol"
+import generateQueuePDF from "../../reports/queues"
+import { addAlertMessage, addMessage } from "../../store/ducks/Layout";
+
+const StyledTableRow = styled(TableRow)(() => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: 'var(--lg-glass-row-hover)',
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
+
+export default () => {
+    const [confirmDialog, setConfirmDialog] = useState({
+        isOpen: false,
+        title: 'Deseja realmente excluir',
+        subTitle: 'Esta ação não poderá ser desfeita',
+        confirm: null,
+        onConfirm: null,
+    });
+    const [viewQueue, setViewQueue] = useState(null);
+    const [attachments, setAttachments] = useState([]);
+    const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(false);
+    const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
+
+    const dispatch = useDispatch();
+    const { queues } = useSelector(state => state.queues);
+    const [searchValue, setSearchValue] = useState('');
+    const [allQueues, setAllQueues] = useState(queues);
+    const [option, setOption] = useState('add'); // Você já tem esse estado definido
+    const [speci, setSpeci] = useState('');
+    const [done, setDone] = useState(0);
+    const [urgency, setUrgency] = useState(2);
+    const { user, profile } = useContext(AuthContext);
+
+    const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
+
+    // Transforma a variável specialities em um array JSON
+    const speciExits = Object.values({ ...uniqueSpeci }).map(item => ({
+        id: item,
+        name: item,
+    }));
+
+    const changeSpeci = ({ target }) => {
+        setSpeci(target.value)
+    }
+
+    const dataDone = [
+        {
+            'id': 0,
+            'name': 'NÃO'
+        },
+        {
+            'id': 1,
+            'name': 'SIM'
+        },
+        {
+            'id': 2,
+            'name': 'TODOS'
+        }
+    ]
+
+    const dataUrgency = [
+        {
+            'id': 0,
+            'name': 'NÃO'
+        },
+        {
+            'id': 1,
+            'name': 'SIM'
+        },
+        {
+            'id': 2,
+            'name': 'TODOS'
+        }
+    ]
+
+    const storeDone = Object.values({ ...dataDone }).map(item => ({
+        id: item.id,
+        name: item.name,
+    }));
+
+    const changeDone = ({ target }) => {
+        setDone(target.value)
+    }
+
+    const storeUrgency = Object.values({ ...dataUrgency }).map(item => ({
+        id: item.id,
+        name: item.name,
+    }));
+
+    const changeUrgency = ({ target }) => {
+        setUrgency(target.value)
+    }
+
+
+    useEffect(() => {
+        dispatch(getAllQueues());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (queues.length > 0) {
+            let filteredQueues = speci
+                ? queues.filter(lett => lett.speciality?.name === speci)
+                : [...queues];
+
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
+        }
+    }, [speci, queues, done, urgency]);
+
+    useEffect(() => {
+        // Executado apenas quando a página é carregada pela primeira vez, ou quando é adicionado um registro
+        let filteredQueues = searchValue
+            ? queues.filter(lett => lett?.client?.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
+            : queues;
+
+        if (speci) {
+            filteredQueues = filteredQueues.filter(lett => lett.speciality.name === speci);
+        }
+
+        filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+        filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+        setAllQueues(filteredQueues);
+    }, [queues, searchValue, speci, done, urgency]);
+
+    useEffect(() => {
+        if (searchValue || speci || done !== undefined) {
+            const filterPerSearch = (lett) =>
+                (lett.client?.name && lett.client.name.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.cpf && lett.client.cpf.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.cns && lett.client.cns.toLowerCase().includes(searchValue.toLowerCase())) ||
+                (lett.client?.phone && lett.client.phone.toLowerCase().includes(searchValue.toLowerCase()));
+
+            let filteredQueues = speci
+                ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
+                : queues.filter(filterPerSearch);
+
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
+        } else {
+            let filteredQueues = [...queues];
+            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
+            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
+
+            setAllQueues(filteredQueues);
+        }
+    }, [searchValue, speci, queues, done]);
+
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const HandleDoneQueue = (queue) => {
+        dispatch(showQueue(queue));
+        setOption('outcome');
+        dispatch(turnModal());
+    };
+
+    const HandleAddQueue = () => {
+        setOption('add');
+        dispatch(turnModal());
+    };
+
+    const searchQueues = ({ target }) => {
+        setSearchValue(target.value);
+    };
+
+    const HandleInactiveQueue = (queue) => {
+        dispatch(inactiveQueueFetch(queue));
+    };
+
+    const loadQueueAttachments = async (queueId) => {
+        setIsAttachmentsLoading(true);
+        try {
+            const res = await listQueueAttachments(queueId);
+            setAttachments(res.data || []);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao carregar anexos da fila.'));
+        } finally {
+            setIsAttachmentsLoading(false);
+        }
+    };
+
+    const handleViewQueue = (queueId) => {
+        dispatch(viewQueueFetch(queueId, async (data) => {
+            setViewQueue(data);
+            await loadQueueAttachments(data.id);
+        }));
+    };
+
+    const handleUploadAttachment = async (event) => {
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+
+        if (!files.length || !viewQueue?.id) {
+            return;
+        }
+
+        setIsAttachmentUploading(true);
+        try {
+            await uploadQueueAttachment(viewQueue.id, files);
+            dispatch(addMessage(files.length > 1 ? 'Anexos enviados com sucesso.' : 'Anexo enviado com sucesso.'));
+            await loadQueueAttachments(viewQueue.id);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao enviar anexo.'));
+        } finally {
+            setIsAttachmentUploading(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId) => {
+        if (!viewQueue?.id) {
+            return;
+        }
+
+        try {
+            await deleteQueueAttachment(viewQueue.id, attachmentId);
+            dispatch(addMessage('Anexo removido com sucesso.'));
+            await loadQueueAttachments(viewQueue.id);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao remover anexo.'));
+        }
+    };
+
+    const confirmDeleteAttachment = (attachment) => {
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja realmente excluir o anexo "${attachment.original_name}"?`,
+            subTitle: 'Esta acao nao podera ser desfeita.',
+            onConfirm: () => handleDeleteAttachment(attachment.id),
+            confirm: null,
+        });
+    };
+
+    const handleDownloadAttachment = async (attachment) => {
+        if (!viewQueue?.id) {
+            return;
+        }
+
+        try {
+            await downloadQueueAttachment(viewQueue.id, attachment);
+        } catch (error) {
+            dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao baixar anexo.'));
+        }
+    };
+
+    const formatBytes = (bytes) => {
+        if (!bytes || bytes <= 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        const value = bytes / (1024 ** idx);
+        return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
+    };
+
+    return (
+        <>
+        <Box sx={modalFormRootSx}>
+        <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
+            <AlertModal />
+            {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
+
+            <Box sx={{
+                '& > :not(style)': { mb: 0, mt: 2 },
+                'display': 'flex',
+                'justify-content': 'space-between',
+                gap: 1,
+                flexWrap: 'wrap',
+            }}
+            >
+
+                <TextField
+                    className="lg-search-field"
+                    sx={{ flex: 1, minWidth: 280 }}
+                    placeholder="Pesquisar por Nome / CPF / CNS"
+                    name="search"
+                    value={searchValue}
+                    onChange={searchQueues}
+                />
+
+                <Select
+                    label="Especialidade"
+                    name="speci"
+                    value={speci}
+                    store={speciExits}
+                    changeItem={changeSpeci}
+                    wd={"18%"}
+                    size="small"
+                    labelSx={{ fontSize: "12px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    menuItemSx={{ fontSize: "10px" }}
+                />
+
+                <Select
+                    label="Urgente?"
+                    name="urgency"
+                    value={urgency}
+                    store={storeUrgency}
+                    changeItem={changeUrgency}
+                    wd={"10%"}
+                    size="small"
+                    labelSx={{ fontSize: "12px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    menuItemSx={{ fontSize: "10px" }}
+                />
+                <Select
+                    label="Realizado?"
+                    name="done"
+                    value={done}
+                    store={storeDone}
+                    changeItem={changeDone}
+                    wd={"10%"}
+                    size="small"
+                    labelSx={{ fontSize: "12px" }}
+                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    menuItemSx={{ fontSize: "10px" }}
+                />
+
+                {/* <Select
+                    label="Ano"
+                    name="year"
+                    value={year}
+                    store={transformedYears}
+                    changeItem={changeYear}
+                    wd={"20%"}
+                /> */}
+
+                {profile == "admin" &&
+                    <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista">
+                        <FeatherIcon icon="printer" />
+                    </Fab>
+                }
+
+                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila">
+                    <FeatherIcon icon="plus" />
+                </Fab>
+            </Box>
+
+            <TableContainer>
+
+                <Table
+                    aria-label="simple table"
+                    sx={{
+                        mt: 3,
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    <TableHead>
+
+                        <TableRow>
+
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    POSIÇÃO
+                                </Typography>
+
+                                <Typography color="textSecondary" variant="h6">
+                                    Cadastrador
+                                </Typography>
+
+                                <Typography color="textSecondary" variant="h6">
+                                    Data / URGENTE
+                                </Typography>
+                            </TableCell>
+
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    Cidadão
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Mãe
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    CPF / CNS / Telefone
+                                </Typography>
+                            </TableCell>
+
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    Especialidade
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Observação
+                                </Typography>
+                            </TableCell>
+
+                            <TableCell>
+                                <Typography color="textSecondary" variant="h6">
+                                    Realizado?
+                                </Typography>
+                                <Typography color="textSecondary" variant="h6">
+                                    Data
+                                </Typography>
+                            </TableCell>
+
+                            <TableCell align="center">
+                                <Typography color="textSecondary" variant="h6">
+                                    Ações
+                                </Typography>
+                            </TableCell>
+
+                        </TableRow>
+
+                    </TableHead>
+
+                    {allQueues.length >= 1 ?
+
+                        <TableBody>
+                            {allQueues
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((queue, index) => (
+
+                                    <StyledTableRow key={queue.id} hover>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h4"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "30px",
+                                                        }}
+                                                    >
+                                                        {queue && queue.position}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "9px",
+                                                        }}
+                                                    >
+                                                        {queue.user && queue.user.name}
+                                                        {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
+
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "9px",
+                                                        }}
+                                                    >
+                                                        <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'black' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
+                                                        {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
+
+                                                    </Typography>
+
+                                                </Box>
+                                            </Box>
+
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                        }}
+                                                    >
+                                                        {queue?.client && queue?.client?.name.substring(0, 30).toUpperCase()}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "8px",
+                                                        }}
+                                                    >
+                                                        {queue?.client?.mother && queue?.client?.mother.substring(0, 30).toUpperCase()}
+                                                    </Typography>
+
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "8px",
+                                                        }}
+                                                    >
+                                                        {queue?.client && queue?.client.cpf} / {queue?.client && queue?.client?.cns} / {queue?.client && queue?.client?.phone}
+                                                    </Typography>
+                                                </Box>
+
+                                            </Box>
+
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                        }}
+                                                    >
+                                                        {queue?.speciality && queue?.speciality?.name.substring(0, 30).toUpperCase()}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "8px",
+                                                        }}
+                                                    >
+                                                        {queue.obs && queue.obs.substring(0, 30).toUpperCase()}
+                                                    </Typography>
+
+                                                </Box>
+
+                                            </Box>
+
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "left"
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                        }}
+                                                    >
+                                                        {queue.done == 0 ? 'NÃO' : 'SIM'}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        color="textSecondary"
+                                                        sx={{
+                                                            fontSize: "8px",
+                                                        }}
+                                                    >
+                                                        {queue.date_of_realized && format(parseISO(queue.date_of_realized), 'dd/MM/yyyy')}
+                                                    </Typography>
+
+                                                </Box>
+
+                                            </Box>
+
+                                        </TableCell>
+
+                                        <TableCell align="center">
+                                            <Box sx={{ "& button": { mx: 1 } }}>
+
+                                                {Number(queue?.attachments_count || 0) > 0 && (
+                                                    <Button
+                                                        title={`${queue.attachments_count} anexo(s)`}
+                                                        color="secondary"
+                                                        size="medium"
+                                                        variant="contained"
+                                                        disabled
+                                                    >
+                                                        <FeatherIcon icon="paperclip" width="20" height="20" />
+                                                    </Button>
+                                                )}
+
+                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained">
+                                                    <FeatherIcon icon="eye" width="20" height="20" />
+                                                </Button>
+
+                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
+                                                    <FeatherIcon icon="printer" width="20" height="20" />
+                                                </Button>
+
+                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'}>
+                                                    <FeatherIcon icon="book-open" width="20" height="20" />
+                                                </Button>
+
+                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true}>
+                                                    <FeatherIcon icon="trash" width="20" height="20" />
+                                                </Button>
+
+                                            </Box>
+                                        </TableCell>
+
+                                    </StyledTableRow>
+                                ))}
+                        </TableBody>
+
+                        :
+
+                        <TableCell align="center">
+                            Nenhum registro encontrado!
+                        </TableCell>
+
+                    }
+
+                </Table>
+
+                <TablePagination
+                    component="div"
+                    count={allQueues.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </TableContainer>
+            <ConfirmDialog
+                confirmDialog={confirmDialog}
+                setConfirmDialog={setConfirmDialog} />
+
+        </BaseCard >
+        </Box>
+
+        {/* Dialog de visualização do registro de fila */}
+        <Dialog
+            open={!!viewQueue}
+            onClose={() => {
+                setViewQueue(null);
+                setAttachments([]);
+            }}
+            PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
+        >
+            <DialogTitle>
+                Registro de Fila — Posição {viewQueue?.position}
+                {viewQueue?.urgency == 1 && (
+                    <Chip label="URGENTE" color="error" size="small" sx={{ ml: 1 }} />
+                )}
+            </DialogTitle>
+            <DialogContent dividers>
+                {viewQueue && (
+                    <Box display="flex" flexDirection="column" gap={1.5}>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">CIDADÃO</Typography>
+                            <Typography variant="h6" fontWeight={600}>{viewQueue.client?.name?.toUpperCase() ?? '—'}</Typography>
+                        </Box>
+                        {viewQueue.client?.mother && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">MÃE</Typography>
+                                <Typography>{viewQueue.client.mother.toUpperCase()}</Typography>
+                            </Box>
+                        )}
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CPF</Typography>
+                                <Typography>{viewQueue.client?.cpf ?? '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CNS</Typography>
+                                <Typography>{viewQueue.client?.cns ?? '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">TELEFONE</Typography>
+                                <Typography>{viewQueue.client?.phone ?? '—'}</Typography>
+                            </Box>
+                        </Box>
+                        <Divider />
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">ESPECIALIDADE</Typography>
+                            <Typography fontWeight={600}>{viewQueue.speciality?.name?.toUpperCase() ?? '—'}</Typography>
+                        </Box>
+                        {viewQueue.obs && (
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">OBSERVAÇÃO</Typography>
+                                <Typography>{viewQueue.obs}</Typography>
+                            </Box>
+                        )}
+                        <Divider />
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">DATA DE ENTRADA</Typography>
+                                <Typography>{viewQueue.created_at ? format(parseISO(viewQueue.created_at), 'dd/MM/yyyy HH:mm') : '—'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">CADASTRADO POR</Typography>
+                                <Typography>{viewQueue.user?.name ?? '—'}</Typography>
+                            </Box>
+                        </Box>
+                        <Box display="flex" gap={4}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">REALIZADO</Typography>
+                                <Chip
+                                    label={viewQueue.done == 1 ? 'SIM' : 'NÃO'}
+                                    color={viewQueue.done == 1 ? 'success' : 'default'}
+                                    size="small"
+                                />
+                            </Box>
+                            {viewQueue.done == 1 && viewQueue.date_of_realized && (
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">DATA DE REALIZAÇÃO</Typography>
+                                    <Typography>{format(parseISO(viewQueue.date_of_realized), 'dd/MM/yyyy')}</Typography>
+                                </Box>
+                            )}
+                        </Box>
+                        <Divider />
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">ANEXOS DO PEDIDO</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                Cada registro da fila pode receber multiplos arquivos (PDF, JPG, JPEG e PNG).
+                            </Typography>
+                            <Box mt={1} mb={1}>
+                                <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading}>
+                                    {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s) (PDF/JPG/PNG)'}
+                                    <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
+                                </Button>
+                            </Box>
+                            {isAttachmentsLoading && (
+                                <Typography color="text.secondary">Carregando anexos...</Typography>
+                            )}
+                            {!isAttachmentsLoading && attachments.length === 0 && (
+                                <Typography color="text.secondary">Nenhum anexo enviado.</Typography>
+                            )}
+                            {!isAttachmentsLoading && attachments.length > 0 && attachments.map((attachment) => (
+                                <Box key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" py={0.8}>
+                                    <Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{attachment.original_name}</Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {attachment.mime_type} | {formatBytes(attachment.size_bytes)}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ "& button": { ml: 1 } }}>
+                                        <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
+                                            Baixar
+                                        </Button>
+                                        <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>
+                                            Remover
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setViewQueue(null)} variant="outlined">Fechar</Button>
+            </DialogActions>
+        </Dialog>
+        </>
+    );
+};
+
+
+
+
