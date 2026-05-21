@@ -548,17 +548,17 @@ export default function QueueModal(props) {
                                 </MuiBox>
 
                                 <Box sx={{ mt: 3, "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" mt={2} disabled={isSubmittingQueue || isAttachmentUploading}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }} disabled={isSubmittingQueue || isAttachmentUploading}>
                                         {isSubmittingQueue ? 'Salvando...' : 'Gravar'}
                                     </Button>
 
                                     {queue?.id && (
-                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" mt={2}>
+                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ mt: 2 }}>
                                             Gerar Recibo
                                         </Button>
                                     )}
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2} disabled={isSubmittingQueue}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }} disabled={isSubmittingQueue}>
                                         Cancelar
                                     </Button>
                                 </Box>

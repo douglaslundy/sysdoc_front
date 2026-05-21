@@ -80,6 +80,9 @@ export default function QueueModal(props) {
         setTexto('');
         dispatch(closeModal());
         dispatch(showQueue({}));
+        if (typeof props.onAfterClose === 'function') {
+            props.onAfterClose();
+        }
     }
 
 
@@ -181,11 +184,11 @@ export default function QueueModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" mt={2}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
                                         Cancelar
                                     </Button>
                                 </Box>

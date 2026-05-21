@@ -208,7 +208,7 @@ export default function ViewLetterModal(props) {
                                 </Stack>
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={() => { cleanLett() }} variant="outlined" mt={2}>
+                                    <Button onClick={() => { cleanLett() }} variant="outlined" sx={{ mt: 2 }}>
                                         Voltar
                                     </Button>
                                 </Box>

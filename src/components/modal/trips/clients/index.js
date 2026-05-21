@@ -352,11 +352,11 @@ export default function TripClientsModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" mt={2}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" mt={2}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
                                         Limpar dados
                                     </Button>
                                 </Box>
@@ -536,7 +536,7 @@ export default function TripClientsModal(props) {
                                     </Table>
                                     <br />
                                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
-                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" mt={2}>
+                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" sx={{ mt: 2 }}>
                                             Cancelar
                                         </Button>
                                     </Box>

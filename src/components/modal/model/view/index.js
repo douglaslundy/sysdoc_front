@@ -230,7 +230,7 @@ export default function ViewModelModal(props) {
                                 </Stack>
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={() => { cleanMod() }} variant="outlined" mt={2}>
+                                    <Button onClick={() => { cleanMod() }} variant="outlined" sx={{ mt: 2 }}>
                                         Voltar
                                     </Button>
                                 </Box>
