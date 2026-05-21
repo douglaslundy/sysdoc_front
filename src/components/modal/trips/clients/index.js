@@ -503,14 +503,14 @@ export default function TripClientsModal(props) {
 
                                                                 <TableCell>
                                                                     <FormGroup>
-                                                                        <FormControlLabel control={<Switch checked={cli?.pivot?.is_confirmed == 1}
-                                                                            onClick={() => handleIsConfirm(cli)} />} label={cli?.pivot?.is_confirmed == 1 ? "SIM" : "NÃO"} />
+                                                                        <FormControlLabel control={<Switch checked={Number(cli?.pivot?.is_confirmed) === 1}
+                                                                            onClick={() => handleIsConfirm(cli)} />} label={Number(cli?.pivot?.is_confirmed) === 1 ? "SIM" : "NÃO"} />
                                                                     </FormGroup>
 
                                                                     <Typography
                                                                         variant="h6"
                                                                     >
-                                                                        {cli?.pivot?.updated_at && cli?.pivot?.is_confirmed == 1 ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
+                                                                        {cli?.pivot?.updated_at && Number(cli?.pivot?.is_confirmed) === 1 ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
                                                                     </Typography>
 
                                                                 </TableCell>

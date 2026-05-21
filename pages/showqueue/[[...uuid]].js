@@ -153,7 +153,7 @@ export default function QueueDetails({ queue }) {
               <strong>POSIÇÃO:</strong> {queue.position}
             </p>
             <p>
-              <strong>FILA:</strong> {queue.urgency == 1 ? 'URGÊNCIA' : 'COMUM'}
+              <strong>FILA:</strong> {Number(queue.urgency) === 1 ? 'URGÊNCIA' : 'COMUM'}
             </p>
             <p>
               {/* <strong>Nome do Cliente:</strong> {queue.client?.name || 'Não informado'} */}

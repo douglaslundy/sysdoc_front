@@ -123,10 +123,7 @@ export default function UserModal(props) {
     if (user && user.id) {
       setForm({
         ...user,
-        is_driver:
-          user.is_driver === true ||
-          user.is_driver === 1 ||
-          user.is_driver === '1',
+        is_driver: user.is_driver === true || Number(user.is_driver) === 1,
       });
     }
   }, [user]);

@@ -353,7 +353,7 @@ export default () => {
                     wd={"20%"}
                 /> */}
 
-                {profile == "admin" &&
+                {profile === "admin" &&
                     <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista">
                         <FeatherIcon icon="printer" />
                     </Fab>
@@ -781,7 +781,6 @@ export default () => {
         </>
     );
 };
-
 
 
 
