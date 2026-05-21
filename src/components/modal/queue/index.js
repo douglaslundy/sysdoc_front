@@ -121,7 +121,6 @@ export default function QueueModal(props) {
             speciality: "",
             urgency: false,
             obs: "",
-            setClient: {}
         });
         setAlertState({ visible: false, type: 'success', message: '' });
         setPendingFiles([]);
@@ -573,4 +572,3 @@ export default function QueueModal(props) {
         </div>
     );
 }
-
