@@ -137,9 +137,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
         }
     }, [open]);
 
-    if (!visita) return null;
-
-    const temGeo = visita.has_geolocation && visita.lat != null && visita.lng != null;
+    const temGeo = visita?.has_geolocation && visita?.lat != null && visita?.lng != null;
 
     return (
         <Dialog
@@ -161,6 +159,11 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
             </DialogTitle>
 
             <DialogContent dividers>
+                {!visita ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
+                        <CircularProgress />
+                    </Box>
+                ) : (
                 <Grid container spacing={2}>
 
                     {/* ── Cidadão visitado ── */}
@@ -322,6 +325,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                         </>
                     )}
                 </Grid>
+                )}
             </DialogContent>
 
             <DialogActions>
