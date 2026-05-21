@@ -1,9 +1,11 @@
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Box, Card, CardContent, CircularProgress, FormControl,
-    InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup, Typography,
+    Box, Card, CardContent, CircularProgress, FormControl, IconButton,
+    InputAdornment, InputLabel, MenuItem, Select, TextField,
+    ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
+import FeatherIcon from 'feather-icons-react';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import VisitaDetalheModal from './VisitaDetalheModal';
 
@@ -18,11 +20,14 @@ export default function MapaVisitasPage() {
     const anoAtual = new Date().getFullYear();
     const mesAtual = new Date().getMonth() + 1;
 
-    const [filtroModo, setFiltroModo] = useState('todos'); // 'todos' | 'equipe'
-    const [equipeIne, setEquipeIne]   = useState('');
-    const [agenteNome, setAgenteNome] = useState('');
-    const [ano, setAno]               = useState(anoAtual);
-    const [mes, setMes]               = useState(mesAtual);
+    const [filtroModo, setFiltroModo]   = useState('todos'); // 'todos' | 'equipe'
+    const [equipeIne, setEquipeIne]     = useState('');
+    const [agenteNome, setAgenteNome]   = useState('');
+    const [filtroSearch, setFiltroSearch] = useState('');
+    const [searchAtivo, setSearchAtivo]   = useState(''); // debounced
+    const [ano, setAno]                 = useState(anoAtual);
+    const [mes, setMes]                 = useState(mesAtual);
+    const debounceRef = useRef(null);
 
     const [equipes, setEquipes]   = useState([]);
     const [agentes, setAgentes]   = useState([]);
@@ -59,18 +64,35 @@ export default function MapaVisitasPage() {
             .catch(() => setAgentes([]));
     }, [equipeIne, ano, mes]);
 
+    // Debounce do campo de busca: dispara após 400 ms sem digitação
+    function handleSearchChange(valor) {
+        setFiltroSearch(valor);
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            const v = valor.trim();
+            setSearchAtivo(v.length >= 3 ? v : '');
+        }, 400);
+    }
+
+    function limparSearch() {
+        setFiltroSearch('');
+        setSearchAtivo('');
+        clearTimeout(debounceRef.current);
+    }
+
     // Reload map points whenever any filter changes
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
-        if (equipeIne)  params.set('ine', equipeIne);
-        if (agenteNome) params.set('agente', agenteNome);
+        if (equipeIne)    params.set('ine', equipeIne);
+        if (agenteNome)   params.set('agente', agenteNome);
+        if (searchAtivo)  params.set('busca', searchAtivo);
 
         setLoading(true);
         monitorApsApi.get(`/visitas/mapa?${params}`)
             .then(d => setPontos(d.pontos ?? []))
             .catch(() => setPontos([]))
             .finally(() => setLoading(false));
-    }, [ano, mes, equipeIne, agenteNome]);
+    }, [ano, mes, equipeIne, agenteNome, searchAtivo]);
 
     const abrirDetalhe = useCallback(async (id) => {
         setLoadingDetalhe(true);
@@ -102,6 +124,9 @@ export default function MapaVisitasPage() {
         if (valor === 'todos') {
             setEquipeIne('');
             setAgenteNome('');
+        } else {
+            // ao mudar para Por Equipe, limpa a busca por cidadão
+            limparSearch();
         }
     }
 
@@ -132,6 +157,31 @@ export default function MapaVisitasPage() {
                             <ToggleButton value="todos">Todos</ToggleButton>
                             <ToggleButton value="equipe">Por Equipe</ToggleButton>
                         </ToggleButtonGroup>
+
+                        {/* Busca por cidadão — só no modo Todos */}
+                        {filtroModo === 'todos' && (
+                            <TextField
+                                size="small"
+                                placeholder="CPF, CNS ou nome (mín. 3 letras)"
+                                value={filtroSearch}
+                                onChange={e => handleSearchChange(e.target.value)}
+                                sx={{ minWidth: 280 }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <FeatherIcon icon="search" width={14} height={14} />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: filtroSearch ? (
+                                        <InputAdornment position="end">
+                                            <IconButton size="small" onClick={limparSearch} edge="end">
+                                                <FeatherIcon icon="x" width={14} height={14} />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ) : null,
+                                }}
+                            />
+                        )}
 
                         {/* Equipe — habilitado apenas quando modo equipe */}
                         {filtroModo === 'equipe' && (
