@@ -30,37 +30,38 @@ function InfoRow({ label, value }) {
     );
 }
 
+const GOOGLE_EMBED_SV = (lat, lng, key) =>
+    `https://www.google.com/maps/embed/v1/streetview?key=${key}&location=${lat},${lng}&fov=90`;
 const GOOGLE_SV_URL = (lat, lng) =>
     `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
 
 function StreetViewPanel({ lat, lng }) {
+    const googleKey   = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+    const mapillaryToken = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
+
     const [imgUrl, setImgUrl]     = useState(null);
-    const [loading, setLoading]   = useState(true);
-    const [noImage, setNoImage]   = useState(false);
+    const [loading, setLoading]   = useState(!!mapillaryToken);
+    const [noImage, setNoImage]   = useState(!mapillaryToken);
     const [apiError, setApiError] = useState(false);
 
     useEffect(() => {
-        const token = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
-        if (!token) { setLoading(false); setNoImage(true); return; }
+        if (!mapillaryToken) return;
 
         setLoading(true);
         setImgUrl(null);
         setNoImage(false);
         setApiError(false);
 
-        // bbox ~350 m ao redor do ponto (0.003° ≈ 333 m); evita o limite radius≤50 da API
+        // bbox ~350 m ao redor do ponto; evita o limite radius≤50 da API Mapillary
         const d = 0.003;
         const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
         fetch(
             `https://graph.mapillary.com/images` +
-            `?access_token=${token}` +
+            `?access_token=${mapillaryToken}` +
             `&fields=id,thumb_2048_url` +
             `&bbox=${bbox}&limit=1`
         )
-            .then(r => {
-                if (!r.ok) { setApiError(true); return null; }
-                return r.json();
-            })
+            .then(r => { if (!r.ok) { setApiError(true); return null; } return r.json(); })
             .then(data => {
                 if (!data) return;
                 const img = data?.data?.[0];
@@ -68,7 +69,7 @@ function StreetViewPanel({ lat, lng }) {
             })
             .catch(() => setNoImage(true))
             .finally(() => setLoading(false));
-    }, [lat, lng]);
+    }, [lat, lng, mapillaryToken]);
 
     if (loading) {
         return (
@@ -78,46 +79,47 @@ function StreetViewPanel({ lat, lng }) {
         );
     }
 
+    // Imagem Mapillary encontrada
     if (imgUrl) {
         return (
             <a href={GOOGLE_SV_URL(lat, lng)} target="_blank" rel="noopener noreferrer"
                style={{ display: 'block', width: '100%', height: '100%' }}>
-                <img
-                    src={imgUrl}
-                    alt="Street view Mapillary"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                <img src={imgUrl} alt="Street view"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </a>
         );
     }
 
+    // Fallback: Google Maps Embed Street View (requer NEXT_PUBLIC_GOOGLE_MAPS_KEY)
+    if (noImage && googleKey) {
+        return (
+            <iframe
+                title="Street View"
+                width="100%"
+                height="100%"
+                style={{ border: 0, display: 'block' }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={GOOGLE_EMBED_SV(lat, lng, googleKey)}
+            />
+        );
+    }
+
+    // Sem chave Google — botão de redirecionamento
     return (
-        <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            height="100%"
-            gap={1.5}
-            sx={{ color: 'var(--lg-text-muted)' }}
-        >
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center"
+            height="100%" gap={1.5} sx={{ color: 'var(--lg-text-muted)' }}>
             <FeatherIcon icon="camera-off" width="24" height="24" />
             <Typography variant="caption" align="center" sx={{ px: 2 }}>
-                {!process.env.NEXT_PUBLIC_MAPILLARY_TOKEN
-                    ? 'Configure NEXT_PUBLIC_MAPILLARY_TOKEN para ativar a visualização de rua.'
-                    : apiError
-                        ? 'Erro ao acessar o serviço de imagens. Verifique o token Mapillary.'
-                        : 'Sem cobertura de imagens nesta área.'}
+                {apiError
+                    ? 'Erro ao acessar o serviço de imagens.'
+                    : 'Sem cobertura de imagens nesta área.'}
             </Typography>
-            <Button
-                size="small"
-                variant="outlined"
-                href={GOOGLE_SV_URL(lat, lng)}
-                target="_blank"
-                rel="noopener noreferrer"
+            <Button size="small" variant="outlined"
+                href={GOOGLE_SV_URL(lat, lng)} target="_blank" rel="noopener noreferrer"
                 startIcon={<FeatherIcon icon="map-pin" width="14" height="14" />}
-                sx={{ fontSize: 11, textTransform: 'none' }}
-            >
+                sx={{ fontSize: 11, textTransform: 'none' }}>
                 Ver no Google Maps
             </Button>
         </Box>
