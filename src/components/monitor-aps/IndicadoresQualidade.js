@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
     Grid, IconButton, MenuItem, Select, Table, TableBody, TableCell,
@@ -78,8 +79,10 @@ function IndicadorCard({ indicador, onDetalhes }) {
 }
 
 export default function IndicadoresQualidade() {
-    const [ano, setAno]     = useState(2025);
-    const [quad, setQuad]   = useState(2);
+    const anoAtual  = new Date().getFullYear();
+    const quadAtual = Math.ceil((new Date().getMonth() + 1) / 4);
+    const [ano, setAno]     = useState(anoAtual);
+    const [quad, setQuad]   = useState(quadAtual);
     const [ine, setIne]     = useState('');
     const [bloco, setBloco] = useState('');
     const [equipes, setEquipes] = useState([]);
@@ -92,12 +95,15 @@ export default function IndicadoresQualidade() {
     }, []);
 
     useEffect(() => {
-        setLoading(true);
         const p = new URLSearchParams({ ano, quadrimestre: quad });
         if (ine)   p.set('ine', ine);
         if (bloco) p.set('bloco', bloco);
+        const key = `qualidade_${p}`;
+        const cached = getCached(key);
+        if (cached) { setData(cached); setLoading(false); return; }
+        setLoading(true);
         monitorApsApi.get(`/indicadores/qualidade?${p}`)
-            .then(d => setData(d.indicadores ?? []))
+            .then(d => { const ind = d.indicadores ?? []; setCached(key, ind); setData(ind); })
             .catch(() => setData([]))
             .finally(() => setLoading(false));
     }, [ano, quad, ine, bloco]);
@@ -119,7 +125,7 @@ export default function IndicadoresQualidade() {
                     <FormControl size="small" sx={selSx}>
                         <InputLabel>Ano</InputLabel>
                         <Select label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))}>
-                            {[2023, 2024, 2025].map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
+                            {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={selSx}>

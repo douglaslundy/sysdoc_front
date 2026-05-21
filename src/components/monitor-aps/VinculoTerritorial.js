@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, Button, Chip, CircularProgress, Grid, LinearProgress,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -55,16 +56,21 @@ function exportarCSV(data, filename) {
 }
 
 export default function VinculoTerritorial() {
-    const [ano, setAno]   = useState(2025);
-    const [quad, setQuad] = useState(2);
+    const anoAtual  = new Date().getFullYear();
+    const quadAtual = Math.ceil((new Date().getMonth() + 1) / 4);
+    const [ano, setAno]   = useState(anoAtual);
+    const [quad, setQuad] = useState(quadAtual);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(null);
 
     useEffect(() => {
+        const key = `vinculo_${ano}_${quad}`;
+        const cached = getCached(key);
+        if (cached) { setData(cached); setLoading(false); return; }
         setLoading(true); setErro(null);
         monitorApsApi.get(`/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}`)
-            .then(d => setData(d.equipes ?? []))
+            .then(d => { const eq = d.equipes ?? []; setCached(key, eq); setData(eq); })
             .catch(e => setErro(e.message))
             .finally(() => setLoading(false));
     }, [ano, quad]);
@@ -98,7 +104,7 @@ export default function VinculoTerritorial() {
                 <Typography variant="h5" fontWeight={700}>Vínculo e Acompanhamento Territorial</Typography>
                 <Box display="flex" gap={1} alignItems="center">
                     <select value={ano} onChange={e => setAno(Number(e.target.value))} style={selSx}>
-                        {[2023, 2024, 2025].map(a => <option key={a}>{a}</option>)}
+                        {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <option key={a}>{a}</option>)}
                     </select>
                     <select value={quad} onChange={e => setQuad(Number(e.target.value))} style={selSx}>
                         {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}

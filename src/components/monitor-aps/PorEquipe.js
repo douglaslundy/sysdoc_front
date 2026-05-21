@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, Card, CardContent, Chip, CircularProgress, FormControl, Grid,
     InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableHead,
@@ -29,8 +30,10 @@ function ClassCard({ titulo, classificacao, repasse }) {
 }
 
 export default function PorEquipe() {
-    const [ano, setAno]       = useState(2025);
-    const [quad, setQuad]     = useState(2);
+    const anoAtual  = new Date().getFullYear();
+    const quadAtual = Math.ceil((new Date().getMonth() + 1) / 4);
+    const [ano, setAno]       = useState(anoAtual);
+    const [quad, setQuad]     = useState(quadAtual);
     const [equipes, setEquipes] = useState([]);
     const [ine, setIne]       = useState('');
     const [vinculo, setVinculo]   = useState(null);
@@ -49,17 +52,32 @@ export default function PorEquipe() {
 
     useEffect(() => {
         if (!ine) return;
+        const key = `porequipe_${ine}_${ano}_${quad}`;
+        const cached = getCached(key);
+        if (cached) {
+            setVinculo(cached.vinculo);
+            setIndicadores(cached.indicadores);
+            setRepasse(cached.repasse);
+            setHistorico(cached.historico);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         Promise.all([
             monitorApsApi.get(`/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}&ine=${ine}`),
             monitorApsApi.get(`/indicadores/qualidade?ano=${ano}&quadrimestre=${quad}&ine=${ine}`),
             monitorApsApi.get(`/indicadores/repasse?ano=${ano}&quadrimestre=${quad}`),
-            monitorApsApi.get(`/indicadores/historico?ine=${ine}&indicador_id=8&anos=2025`),
+            monitorApsApi.get(`/indicadores/historico?ine=${ine}&indicador_id=8&anos=${ano}`),
         ]).then(([v, q, r, h]) => {
-            setVinculo(v.equipes?.[0] ?? null);
-            setIndicadores(q.indicadores ?? []);
-            setRepasse(r.repasse?.find(x => x.ine === ine) ?? null);
-            setHistorico(h.historico ?? []);
+            const vinculo     = v.equipes?.[0] ?? null;
+            const indicadores = q.indicadores ?? [];
+            const repasse     = r.repasse?.find(x => x.ine === ine) ?? null;
+            const historico   = h.historico ?? [];
+            setCached(key, { vinculo, indicadores, repasse, historico });
+            setVinculo(vinculo);
+            setIndicadores(indicadores);
+            setRepasse(repasse);
+            setHistorico(historico);
         }).catch(() => {}).finally(() => setLoading(false));
     }, [ine, ano, quad]);
 
@@ -99,7 +117,7 @@ export default function PorEquipe() {
                     <FormControl size="small" sx={{ minWidth: 100 }}>
                         <InputLabel>Ano</InputLabel>
                         <Select label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))}>
-                            {[2023, 2024, 2025].map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
+                            {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 130 }}>

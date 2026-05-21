@@ -88,8 +88,7 @@ export default function ConfiguracoesAPS() {
                 estrato_ied:    municipio.estrato,
             });
             setStatus(s => ({ ...s, configured: true, host: config.host, database: config.database }));
-            if (config.password) setHasPassword(true);
-            dispatch(addMessage('Configuração salva com sucesso!'));
+dispatch(addMessage('Configuração salva com sucesso!'));
             dispatch(turnAlert());
         } catch (e) {
             dispatch(addAlertMessage(`Erro ao salvar: ${e.message}`));
