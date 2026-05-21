@@ -18,7 +18,7 @@ import Switch from '@mui/material/Switch';
 import BaseCard from "../../baseCard/BaseCard";
 
 import { showQueue } from '../../../store/ducks/queues';
-import { turnModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues';
 import AlertModal from '../../messagesModal';
 import ConfirmDialog from "../../confirmDialog";
@@ -62,6 +62,7 @@ export default function QueueModal(props) {
     });
 
     const [texto, setTexto] = useState('');
+    const [localOpen, setLocalOpen] = useState(false);
 
 
     const changeItem = ({ target }) => {
@@ -73,11 +74,12 @@ export default function QueueModal(props) {
     }
 
     const cleanForm = () => {
+        setLocalOpen(false);
         setForm({
             date_of_realized: "",
         });
         setTexto('');
-        dispatch(turnModal());
+        dispatch(closeModal());
         dispatch(showQueue({}));
     }
 
@@ -101,13 +103,19 @@ export default function QueueModal(props) {
 
     }, [queue]);
 
+    useEffect(() => {
+        if (isOpenModal && queue?.id) {
+            setLocalOpen(true);
+        }
+    }, [isOpenModal, queue?.id]);
+
 
     return (
         <div>
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={localOpen}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
@@ -136,7 +144,7 @@ export default function QueueModal(props) {
                                         isOpenModal &&
                                         <BasicDatePicker
                                             label="Informe a data do desfecho"
-                                            name="date_of_realized, "
+                                            name="date_of_realized"
                                             value={date_of_realized}
                                             setValue={handleSetDn}
                                             required

@@ -39,7 +39,7 @@ import {
     downloadQueueAttachment
 } from "../../store/fetchActions/queues";
 import { showQueue } from "../../store/ducks/queues";
-import { turnModal } from "../../store/ducks/Layout";
+import { openModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
 
@@ -217,12 +217,12 @@ export default () => {
     const HandleDoneQueue = (queue) => {
         dispatch(showQueue(queue));
         setOption('outcome');
-        dispatch(turnModal());
+        dispatch(openModal());
     };
 
     const HandleAddQueue = () => {
         setOption('add');
-        dispatch(turnModal());
+        dispatch(openModal());
     };
 
     const searchQueues = ({ target }) => {
