@@ -319,7 +319,7 @@ export default function VisitasAcs() {
                                                 <TableRow key={v.id} hover>
                                                     <TableCell sx={{ whiteSpace: 'nowrap', fontSize: 12 }}>
                                                         {v.data
-                                                            ? new Date(v.data).toLocaleString('pt-BR')
+                                                            ? new Date(v.data.length === 10 ? v.data + 'T12:00:00' : v.data).toLocaleDateString('pt-BR')
                                                             : '—'}
                                                     </TableCell>
                                                     <TableCell>
