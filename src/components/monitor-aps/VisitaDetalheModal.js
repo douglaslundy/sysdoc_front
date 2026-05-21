@@ -48,11 +48,14 @@ function StreetViewPanel({ lat, lng }) {
         setNoImage(false);
         setApiError(false);
 
+        // bbox ~350 m ao redor do ponto (0.003° ≈ 333 m); evita o limite radius≤50 da API
+        const d = 0.003;
+        const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
         fetch(
             `https://graph.mapillary.com/images` +
             `?access_token=${token}` +
             `&fields=id,thumb_2048_url` +
-            `&closeto=${lng},${lat}&radius=500&limit=1`
+            `&bbox=${bbox}&limit=1`
         )
             .then(r => {
                 if (!r.ok) { setApiError(true); return null; }
