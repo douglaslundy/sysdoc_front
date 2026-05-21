@@ -8,7 +8,7 @@ export default function AlertModal() {
     const { alertMessages } = useSelector(state => state.layout);
     return (
         <div className='messages'>
-            {alertMessages.map((msg) => <MessageAlert key={Math.random()} message={msg} />)}
+            {alertMessages.map((msg, index) => <MessageAlert key={`${msg}-${index}`} message={msg} />)}
         </div>
     )
 }
