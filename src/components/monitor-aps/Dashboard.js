@@ -63,7 +63,8 @@ export default function MonitorApsDashboard() {
         if (!data) return null;
         const todos = [...(data.qualidade?.esf ?? []), ...(data.qualidade?.esb ?? [])];
         const cont = { otimo: 0, bom: 0, suficiente: 0, regular: 0 };
-        todos.forEach(i => { const c = i.indicador?.resultado?.classificacao; if (c) cont[c]++; });
+        // indicadores complementares (ind7-ind10) não entram na contagem do score oficial
+        todos.forEach(i => { if (i.indicador?.complementar) return; const c = i.indicador?.resultado?.classificacao; if (c) cont[c]++; });
         return { cont, todos };
     }, [data]);
 
