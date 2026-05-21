@@ -161,6 +161,41 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
             <DialogContent dividers>
                 <Grid container spacing={2}>
 
+                    {/* ── Cidadão visitado ── */}
+                    {visita.citizen_name && (
+                        <Grid item xs={12}>
+                            <Box sx={{
+                                px: 2, py: 1, borderRadius: 1,
+                                bgcolor: 'action.selected',
+                                borderLeft: '3px solid var(--lg-primary, #1976d2)',
+                            }}>
+                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                                    Cidadão visitado
+                                </Typography>
+                                <Typography variant="subtitle1" fontWeight={700}>
+                                    {visita.citizen_name}
+                                </Typography>
+                            </Box>
+                        </Grid>
+                    )}
+
+                    {/* ── Endereço ── */}
+                    {(visita.address?.logradouro || visita.address?.bairro) && (
+                        <Grid item xs={12}>
+                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                                Endereço
+                            </Typography>
+                            <Typography variant="body2">
+                                {[
+                                    visita.address.logradouro,
+                                    visita.address.numero,
+                                    visita.address.complemento,
+                                    visita.address.bairro,
+                                ].filter(Boolean).join(', ')}
+                            </Typography>
+                        </Grid>
+                    )}
+
                     {/* ── Informações da visita ── */}
                     <Grid item xs={12}>
                         <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }}>
@@ -170,7 +205,11 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
 
                     <InfoRow label="Agente" value={`${visita.agent_name} (${visita.cbo_label})`} />
                     <InfoRow label="Equipe" value={visita.team_name} />
-                    <InfoRow label="Data / Hora" value={visita.visited_date ? new Date(visita.visited_date).toLocaleString('pt-BR') : null} />
+                    <InfoRow label="Data" value={visita.visited_date
+                        ? new Date(visita.visited_date.length === 10
+                            ? visita.visited_date + 'T12:00:00'
+                            : visita.visited_date).toLocaleDateString('pt-BR')
+                        : null} />
                     <InfoRow label="Instrumento" value={visita.instrument_label} />
 
                     <Grid item xs={12} sm={6}>

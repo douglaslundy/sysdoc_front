@@ -77,14 +77,14 @@ export default function MapaVisitas({
     }, []);
 
     const colorMap = useMemo(() => {
-        if (modo === 'todos')  return buildColorMap(pontos.map(p => p.equipe_ine ?? p.equipe ?? ''));
+        if (modo === 'todos')  return buildColorMap(pontos.map(p => p.equipe ?? p.equipe_ine ?? ''));
         if (modo === 'equipe') return buildColorMap(pontos.map(p => p.agente ?? ''));
         return null;
     }, [pontos, modo]);
 
     function getColor(p) {
         if (modo === 'agente') return COR_DESFECHO[p.desfecho] ?? '#888';
-        const key = modo === 'todos' ? (p.equipe_ine ?? p.equipe ?? '') : (p.agente ?? '');
+        const key = modo === 'todos' ? (p.equipe ?? p.equipe_ine ?? '') : (p.agente ?? '');
         return colorMap?.[key] ?? '#888';
     }
 
@@ -149,12 +149,16 @@ export default function MapaVisitas({
                             eventHandlers={onPinClick ? { click: () => onPinClick(p.id) } : undefined}
                         >
                             <Tooltip>
-                                <div>
+                                <div style={{ lineHeight: 1.6 }}>
+                                    {p.cidadao && <><strong>{p.cidadao}</strong><br /></>}
                                     <strong>{LABEL_DESFECHO[p.desfecho] ?? '—'}</strong><br />
                                     {p.agente}<br />
                                     {p.equipe ? `Equipe: ${p.equipe}` : ''}<br />
                                     {p.micro_area ? `Microárea: ${p.micro_area}` : ''}<br />
-                                    {p.data ? new Date(p.data).toLocaleDateString('pt-BR') : ''}
+                                    {p.data
+                                        ? new Date(p.data.length === 10 ? p.data + 'T12:00:00' : p.data)
+                                            .toLocaleDateString('pt-BR')
+                                        : ''}
                                 </div>
                             </Tooltip>
                         </CircleMarker>
