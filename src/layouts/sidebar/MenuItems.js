@@ -106,6 +106,7 @@ const Menuitems = [
       { title: "Indicadores",          icon: "check-circle", href: "/monitor-aps/qualidade" },
       { title: "Por Equipe",           icon: "users",        href: "/monitor-aps/equipe" },
       { title: "Visitas ACS/TACS",     icon: "home",         href: "/monitor-aps/visitas" },
+      { title: "Mapa de Visitas",      icon: "map",          href: "/monitor-aps/visitas/mapa" },
       { title: "Configuracoes APS",    icon: "settings",     href: "/monitor-aps/configuracoes", profile: ["admin"] },
     ],
   },
