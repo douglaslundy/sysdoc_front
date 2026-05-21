@@ -318,9 +318,11 @@ export default function VisitasAcs() {
                                             {visitas.map(v => (
                                                 <TableRow key={v.id} hover>
                                                     <TableCell sx={{ whiteSpace: 'nowrap', fontSize: 12 }}>
-                                                        {v.data
-                                                            ? new Date(v.data.length === 10 ? v.data + 'T12:00:00' : v.data).toLocaleDateString('pt-BR')
-                                                            : '—'}
+                                                        {v.data ? (() => {
+                                                            const d = new Date(v.data.length === 10 ? v.data + 'T12:00:00' : v.data).toLocaleDateString('pt-BR');
+                                                            const h = v.hora != null ? ` ${String(v.hora).padStart(2, '0')}:00` : '';
+                                                            return d + h;
+                                                        })() : '—'}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" fontWeight={600} noWrap>

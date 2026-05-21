@@ -210,11 +210,14 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
 
                     <InfoRow label="Agente" value={`${visita.agent_name} (${visita.cbo_label})`} />
                     <InfoRow label="Equipe" value={visita.team_name} />
-                    <InfoRow label="Data" value={visita.visited_date
-                        ? new Date(visita.visited_date.length === 10
+                    <InfoRow label="Data" value={(() => {
+                        if (!visita.visited_date) return null;
+                        const d = new Date(visita.visited_date.length === 10
                             ? visita.visited_date + 'T12:00:00'
-                            : visita.visited_date).toLocaleDateString('pt-BR')
-                        : null} />
+                            : visita.visited_date).toLocaleDateString('pt-BR');
+                        const h = visita.hora != null ? ` ${String(visita.hora).padStart(2, '0')}:00` : '';
+                        return d + h;
+                    })()} />
                     <InfoRow label="Instrumento" value={visita.instrument_label} />
 
                     <Grid item xs={12} sm={6}>

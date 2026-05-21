@@ -155,10 +155,11 @@ export default function MapaVisitas({
                                     {p.agente}<br />
                                     {p.equipe ? `Equipe: ${p.equipe}` : ''}<br />
                                     {p.micro_area ? `Microárea: ${p.micro_area}` : ''}<br />
-                                    {p.data
-                                        ? new Date(p.data.length === 10 ? p.data + 'T12:00:00' : p.data)
-                                            .toLocaleDateString('pt-BR')
-                                        : ''}
+                                    {p.data ? (() => {
+                                        const d = new Date(p.data.length === 10 ? p.data + 'T12:00:00' : p.data).toLocaleDateString('pt-BR');
+                                        const h = p.hora != null ? ` ${String(p.hora).padStart(2, '0')}:00` : '';
+                                        return d + h;
+                                    })() : ''}
                                 </div>
                             </Tooltip>
                         </CircleMarker>
