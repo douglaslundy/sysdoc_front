@@ -8,7 +8,6 @@ import {
     TablePagination, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
-import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import VisitaDetalheModal from './VisitaDetalheModal';
 
@@ -392,7 +391,7 @@ export default function VisitasAcs() {
                                             ))}
                                             {visitas.length === 0 && (
                                                 <TableRow>
-                                                    <TableCell colSpan={7} align="center"
+                                                    <TableCell colSpan={8} align="center"
                                                         sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                         Nenhuma visita encontrada para os filtros selecionados.
                                                     </TableCell>
