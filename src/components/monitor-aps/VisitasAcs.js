@@ -97,9 +97,11 @@ export default function VisitasAcs() {
 
     // Carrega equipes uma única vez
     useEffect(() => {
-        monitorApsApi.get('/config/equipes')
+        const ctrl = new AbortController();
+        monitorApsApi.get('/config/equipes', { signal: ctrl.signal })
             .then(d => setEquipes(d.equipes ?? []))
             .catch(() => {});
+        return () => ctrl.abort();
     }, []);
 
     // Carrega resumo
@@ -110,9 +112,11 @@ export default function VisitasAcs() {
         const cached = getCached(key);
         if (cached) { setResumo(cached); return; }
 
-        monitorApsApi.get(`/visitas/resumo?${params}`)
+        const ctrl = new AbortController();
+        monitorApsApi.get(`/visitas/resumo?${params}`, { signal: ctrl.signal })
             .then(d => { setCached(key, d); setResumo(d); })
             .catch(() => {});
+        return () => ctrl.abort();
     }, [ano, mes, ine]);
 
     // Carrega estatísticas por agente
@@ -123,9 +127,11 @@ export default function VisitasAcs() {
         const cached = getCached(key);
         if (cached) { setAgentes(cached.agentes ?? []); return; }
 
-        monitorApsApi.get(`/visitas/agentes?${params}`)
+        const ctrl = new AbortController();
+        monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
             .then(d => { setCached(key, d); setAgentes(d.agentes ?? []); })
             .catch(() => {});
+        return () => ctrl.abort();
     }, [ano, mes, ine]);
 
     // Carrega lista de visitas
@@ -136,11 +142,13 @@ export default function VisitasAcs() {
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
 
+        const ctrl = new AbortController();
         setLoading(true);
-        monitorApsApi.get(`/visitas/lista?${params}`)
+        monitorApsApi.get(`/visitas/lista?${params}`, { signal: ctrl.signal })
             .then(d => { setVisitas(d.visitas ?? []); setTotalVisitas(d.total ?? 0); })
-            .catch(() => setVisitas([]))
+            .catch(e => { if (e?.code !== 'ERR_CANCELED') setVisitas([]); })
             .finally(() => setLoading(false));
+        return () => ctrl.abort();
     }, [ano, mes, ine, page, filtroAgente, filtroDesfecho, filtroGeo]);
 
     // Carrega pontos do mapa quando a aba muda para mapa
@@ -152,11 +160,13 @@ export default function VisitasAcs() {
         const cached = getCached(key);
         if (cached) { setPontosMapa(cached.pontos ?? []); return; }
 
+        const ctrl = new AbortController();
         setLoadingMapa(true);
-        monitorApsApi.get(`/visitas/mapa?${params}`)
+        monitorApsApi.get(`/visitas/mapa?${params}`, { signal: ctrl.signal })
             .then(d => { setCached(key, d); setPontosMapa(d.pontos ?? []); })
-            .catch(() => setPontosMapa([]))
+            .catch(e => { if (e?.code !== 'ERR_CANCELED') setPontosMapa([]); })
             .finally(() => setLoadingMapa(false));
+        return () => ctrl.abort();
     }, [aba, ano, mes, ine]);
 
     const abrirDetalhe = useCallback(async (id) => {
