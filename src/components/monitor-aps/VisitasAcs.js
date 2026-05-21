@@ -3,9 +3,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, Button, Card, CardContent, Chip, CircularProgress,
-    FormControl, Grid, InputAdornment, InputLabel, MenuItem,
+    FormControl, Grid, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableHead, TableRow,
-    TablePagination, TextField, Typography,
+    TablePagination, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import Chart from '../charts/ApexChartSafe';
@@ -83,8 +83,9 @@ export default function VisitasAcs() {
     const [totalVisitas, setTotalVisitas] = useState(0);
     const [page, setPage]             = useState(0);
     const [perPage]                   = useState(50);
-    const [filtroAgente, setFiltroAgente]   = useState('');
+    const [filtroAgente, setFiltroAgente]     = useState('');
     const [filtroDesfecho, setFiltroDesfecho] = useState('');
+    const [filtroGeo, setFiltroGeo]           = useState('');
     const [loading, setLoading]       = useState(false);
     const [loadingMapa, setLoadingMapa] = useState(false);
     const [aba, setAba]               = useState('tabela');
@@ -133,13 +134,14 @@ export default function VisitasAcs() {
         if (ine)            params.set('ine', ine);
         if (filtroAgente)   params.set('agente', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
+        if (filtroGeo)      params.set('has_geo', filtroGeo);
 
         setLoading(true);
         monitorApsApi.get(`/visitas/lista?${params}`)
             .then(d => { setVisitas(d.visitas ?? []); setTotalVisitas(d.total ?? 0); })
             .catch(() => setVisitas([]))
             .finally(() => setLoading(false));
-    }, [ano, mes, ine, page, filtroAgente, filtroDesfecho]);
+    }, [ano, mes, ine, page, filtroAgente, filtroDesfecho, filtroGeo]);
 
     // Carrega pontos do mapa quando a aba muda para mapa
     useEffect(() => {
@@ -261,18 +263,16 @@ export default function VisitasAcs() {
                             <CardContent>
                                 {/* Filtros inline da tabela */}
                                 <Box display="flex" gap={1.5} mb={2} flexWrap="wrap">
-                                    <TextField size="small" placeholder="Filtrar agente..."
-                                        value={filtroAgente}
-                                        onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}
-                                        sx={{ minWidth: 200 }}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <FeatherIcon icon="search" width="14" height="14" />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                    />
+                                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                                        <InputLabel>Agente</InputLabel>
+                                        <Select label="Agente" value={filtroAgente}
+                                            onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
+                                            <MenuItem value="">Todos os agentes</MenuItem>
+                                            {agentes.map((a, i) => (
+                                                <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                     <FormControl size="small" sx={{ minWidth: 150 }}>
                                         <InputLabel>Desfecho</InputLabel>
                                         <Select label="Desfecho" value={filtroDesfecho}
@@ -281,6 +281,15 @@ export default function VisitasAcs() {
                                             <MenuItem value="1">Realizada</MenuItem>
                                             <MenuItem value="2">Recusada</MenuItem>
                                             <MenuItem value="3">Ausente</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl size="small" sx={{ minWidth: 180 }}>
+                                        <InputLabel>Geolocalização</InputLabel>
+                                        <Select label="Geolocalização" value={filtroGeo}
+                                            onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}>
+                                            <MenuItem value="">Todas</MenuItem>
+                                            <MenuItem value="sim">Com geolocalização</MenuItem>
+                                            <MenuItem value="nao">Sem geolocalização</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Box>
