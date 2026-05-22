@@ -22,19 +22,6 @@ const GOOGLE_EMBED_SV = (lat, lng, key) =>
 const GOOGLE_SV_URL = (lat, lng) =>
     `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
 
-function InfoRow({ label, value }) {
-    return (
-        <Grid item xs={12} sm={6}>
-            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                {label}
-            </Typography>
-            <Typography variant="body2" fontWeight={500}>
-                {value || '\u2014'}
-            </Typography>
-        </Grid>
-    );
-}
-
 function StreetViewPanel({ lat, lng }) {
     const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
     const mapillaryToken = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
@@ -151,6 +138,13 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
         visita?.bairro,
         visita?.cep,
     ].filter(Boolean).join(', ');
+    const dataVisita = (() => {
+        if (!visita?.visited_date) return '\u2014';
+        const d = new Date(visita.visited_date.length === 10 ? `${visita.visited_date}T12:00:00` : visita.visited_date).toLocaleDateString('pt-BR');
+        const h = visita.hora != null ? ` ${String(visita.hora).padStart(2, '0')}:00` : '';
+        return d + h;
+    })();
+    const agente = visita?.agent_name ? `${visita.agent_name}${visita?.cbo_label ? ` (${visita.cbo_label})` : ''}` : '\u2014';
 
     return (
         <Dialog
@@ -177,7 +171,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                 },
             }}
         >
-            <DialogTitle sx={{ fontWeight: 700, fontSize: 16 }}>
+            <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pb: 0.5 }}>
                 Detalhe da Visita
             </DialogTitle>
 
@@ -190,11 +184,8 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <Box sx={{ px: 2, py: 1, borderRadius: 1, bgcolor: 'action.selected', borderLeft: '3px solid var(--lg-primary, #1976d2)' }}>
-                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                                    Cidadão visitado
-                                </Typography>
                                 <Typography variant="subtitle1" fontWeight={700}>
-                                    {visita.citizen_name || '\u2014'}
+                                    Cidadão visitado: {visita.citizen_name || '\u2014'}
                                 </Typography>
                             </Box>
                         </Grid>
@@ -208,64 +199,52 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                             </Typography>
                         </Grid>
 
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }}>
+                        <Grid item xs={12} md={7}>
+                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.8 }}>
                                 Informações
                             </Typography>
+                            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+                                <Typography variant="body2"><strong>Agente:</strong> {agente}</Typography>
+                                <Typography variant="body2"><strong>Equipe:</strong> {visita.team_name || '\u2014'}</Typography>
+                            </Box>
+                            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap" mt={0.6}>
+                                <Typography variant="body2"><strong>Data:</strong> {dataVisita}</Typography>
+                                <Typography variant="body2"><strong>Instrumento:</strong> {visita.instrument_label || '\u2014'}</Typography>
+                                <Box display="flex" alignItems="center" gap={0.6}>
+                                    <Typography variant="body2"><strong>Desfecho:</strong></Typography>
+                                    <Chip label={visita.outcome_label || '\u2014'} color={COR_DESFECHO[visita.outcome_code] ?? 'default'} size="small" />
+                                </Box>
+                                <Box display="flex" alignItems="center" gap={0.6} flexWrap="wrap">
+                                    <Typography variant="body2"><strong>Motivos:</strong></Typography>
+                                    {visita.motives?.length > 0 ? (
+                                        visita.motives.map((m, i) => (
+                                            <Chip key={i} label={m} size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
+                                        ))
+                                    ) : (
+                                        <Typography variant="body2">\u2014</Typography>
+                                    )}
+                                </Box>
+                            </Box>
+
+                            {visita.accompaniments?.length > 0 && (
+                                <Box mt={0.8}>
+                                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                                        Acompanhamentos
+                                    </Typography>
+                                    <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
+                                        {visita.accompaniments.map((a, i) => (
+                                            <Chip key={i} label={a} size="small" color="info" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
                         </Grid>
 
-                        <InfoRow label="Agente" value={`${visita.agent_name} (${visita.cbo_label})`} />
-                        <InfoRow label="Equipe" value={visita.team_name} />
-                        <InfoRow
-                            label="Data"
-                            value={(() => {
-                                if (!visita.visited_date) return null;
-                                const d = new Date(visita.visited_date.length === 10 ? `${visita.visited_date}T12:00:00` : visita.visited_date).toLocaleDateString('pt-BR');
-                                const h = visita.hora != null ? ` ${String(visita.hora).padStart(2, '0')}:00` : '';
-                                return d + h;
-                            })()}
-                        />
-                        <InfoRow label="Instrumento" value={visita.instrument_label} />
-
-                        <Grid item xs={12} sm={6}>
-                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                                Desfecho
-                            </Typography>
-                            <Chip label={visita.outcome_label} color={COR_DESFECHO[visita.outcome_code] ?? 'default'} size="small" sx={{ mt: 0.3 }} />
-                        </Grid>
-
-                        {visita.motives?.length > 0 && (
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                                    Motivos
-                                </Typography>
-                                <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
-                                    {visita.motives.map((m, i) => (
-                                        <Chip key={i} label={m} size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
-                                    ))}
-                                </Box>
-                            </Grid>
-                        )}
-
-                        {visita.accompaniments?.length > 0 && (
-                            <Grid item xs={12}>
-                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                                    Acompanhamentos
-                                </Typography>
-                                <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
-                                    {visita.accompaniments.map((a, i) => (
-                                        <Chip key={i} label={a} size="small" color="info" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
-                                    ))}
-                                </Box>
-                            </Grid>
-                        )}
-
-                        <Grid item xs={12}><Divider /></Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} md={5} sx={{ mt: '-40px', mb: '40px' }}>
                             <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }} gutterBottom>
                                 Relato / Anotação
                             </Typography>
-                            <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'action.hover', minHeight: 56, whiteSpace: 'pre-wrap' }}>
+                            <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'action.hover', minHeight: 56, whiteSpace: 'pre-wrap', height: '100%' }}>
                                 <Typography variant="body2" sx={{ color: visita.notes ? 'text.primary' : 'var(--lg-text-muted)' }}>
                                     {visita.notes || 'Nenhum relato registrado.'}
                                 </Typography>
@@ -282,7 +261,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                                 </Grid>
 
                                 <Grid item xs={12} md={6}>
-                                    <Box sx={{ height: 260, borderRadius: 2, overflow: 'hidden' }}>
+                                    <Box sx={{ height: 520, borderRadius: 2, overflow: 'hidden' }}>
                                         {typeof window !== 'undefined' && (
                                             <MapContainer center={[visita.lat, visita.lng]} zoom={17} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                                                 <TileLayer
@@ -296,7 +275,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                                 </Grid>
 
                                 <Grid item xs={12} md={6}>
-                                    <Box sx={{ height: 260, borderRadius: 2, overflow: 'hidden', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Box sx={{ height: 520, borderRadius: 2, overflow: 'hidden', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <StreetViewPanel lat={visita.lat} lng={visita.lng} />
                                     </Box>
                                 </Grid>
