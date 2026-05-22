@@ -1,4 +1,4 @@
-import dynamic from 'next/dynamic';
+﻿import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, CircularProgress, Dialog, DialogActions,
@@ -29,7 +29,7 @@ function InfoRow({ label, value }) {
                 {label}
             </Typography>
             <Typography variant="body2" fontWeight={500}>
-                {value || '—'}
+                {value || '\u2014'}
             </Typography>
         </Grid>
     );
@@ -145,10 +145,11 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
 
     const temGeo = visita?.has_geolocation && visita?.lat != null && visita?.lng != null;
     const endereco = [
-        visita?.address?.logradouro,
-        visita?.address?.numero,
-        visita?.address?.complemento,
-        visita?.address?.bairro,
+        visita?.logradouro,
+        visita?.num_endereco,
+        visita?.complemento,
+        visita?.bairro,
+        visita?.cep,
     ].filter(Boolean).join(', ');
 
     return (
@@ -193,7 +194,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                                     Cidadão visitado
                                 </Typography>
                                 <Typography variant="subtitle1" fontWeight={700}>
-                                    {visita.citizen_name || '—'}
+                                    {visita.citizen_name || '\u2014'}
                                 </Typography>
                             </Box>
                         </Grid>
@@ -203,7 +204,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                                 Endereço
                             </Typography>
                             <Typography variant="body2">
-                                {endereco || '—'}
+                                {endereco || '\u2014'}
                             </Typography>
                         </Grid>
 
