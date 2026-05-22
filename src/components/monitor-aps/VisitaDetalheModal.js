@@ -22,6 +22,11 @@ const GOOGLE_EMBED_SV = (lat, lng, key) =>
 const GOOGLE_SV_URL = (lat, lng) =>
     `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
 
+function cleanAddressPart(value) {
+    const text = value == null ? '' : String(value).trim();
+    return /^[a-f0-9]{12,}$/i.test(text) ? '' : text;
+}
+
 function StreetViewPanel({ lat, lng }) {
     const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
     const mapillaryToken = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
@@ -132,11 +137,11 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
 
     const temGeo = visita?.has_geolocation && visita?.lat != null && visita?.lng != null;
     const endereco = [
-        visita?.logradouro,
-        visita?.num_endereco,
-        visita?.complemento,
-        visita?.bairro,
-        visita?.cep,
+        cleanAddressPart(visita?.logradouro),
+        cleanAddressPart(visita?.num_endereco),
+        cleanAddressPart(visita?.complemento),
+        cleanAddressPart(visita?.bairro),
+        cleanAddressPart(visita?.cep),
     ].filter(Boolean).join(', ');
     const dataVisita = (() => {
         if (!visita?.visited_date) return '\u2014';
@@ -171,7 +176,7 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                 },
             }}
         >
-            <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pb: 0.5 }}>
+            <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pt: 2, pb: 0 }}>
                 Detalhe da Visita
             </DialogTitle>
 
@@ -181,33 +186,33 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                         <CircularProgress />
                     </Box>
                 ) : (
-                    <Grid container spacing={2}>
+                    <Grid container spacing={1}>
                         <Grid item xs={12}>
-                            <Box sx={{ px: 2, py: 1, borderRadius: 1, bgcolor: 'action.selected', borderLeft: '3px solid var(--lg-primary, #1976d2)' }}>
+                            <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1, bgcolor: 'action.selected', borderLeft: '3px solid var(--lg-primary, #1976d2)' }}>
                                 <Typography variant="subtitle1" fontWeight={700}>
                                     Cidadão visitado: {visita.citizen_name || '\u2014'}
                                 </Typography>
                             </Box>
                         </Grid>
 
-                        <Grid item xs={12}>
-                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
+                        <Grid item xs={12} sx={{ py: '2px !important' }}>
+                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block', lineHeight: 1.1 }}>
                                 Endereço
                             </Typography>
-                            <Typography variant="body2">
+                            <Typography variant="body2" sx={{ lineHeight: 1.25 }}>
                                 {endereco || '\u2014'}
                             </Typography>
                         </Grid>
 
-                        <Grid item xs={12} md={7}>
-                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.8 }}>
+                        <Grid item xs={12} md={7} sx={{ py: '4px !important' }}>
+                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.25, lineHeight: 1.2 }}>
                                 Informações
                             </Typography>
-                            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+                            <Box display="flex" alignItems="center" gap={1.25} flexWrap="wrap">
                                 <Typography variant="body2"><strong>Agente:</strong> {agente}</Typography>
                                 <Typography variant="body2"><strong>Equipe:</strong> {visita.team_name || '\u2014'}</Typography>
                             </Box>
-                            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap" mt={0.6}>
+                            <Box display="flex" alignItems="center" gap={1.25} flexWrap="wrap" mt={0.25}>
                                 <Typography variant="body2"><strong>Data:</strong> {dataVisita}</Typography>
                                 <Typography variant="body2"><strong>Instrumento:</strong> {visita.instrument_label || '\u2014'}</Typography>
                                 <Box display="flex" alignItems="center" gap={0.6}>
@@ -221,13 +226,13 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                                             <Chip key={i} label={m} size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
                                         ))
                                     ) : (
-                                        <Typography variant="body2">\u2014</Typography>
+                                        <Typography variant="body2">{'\u2014'}</Typography>
                                     )}
                                 </Box>
                             </Box>
 
                             {visita.accompaniments?.length > 0 && (
-                                <Box mt={0.8}>
+                                <Box mt={0.35}>
                                     <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
                                         Acompanhamentos
                                     </Typography>
@@ -240,11 +245,11 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                             )}
                         </Grid>
 
-                        <Grid item xs={12} md={5} sx={{ mt: '-40px', mb: '40px' }}>
-                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }} gutterBottom>
+                        <Grid item xs={12} md={5} sx={{ mt: '-35px', mb: '23px', py: '4px !important' }}>
+                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.25, lineHeight: 1.2 }}>
                                 Relato / Anotação
                             </Typography>
-                            <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'action.hover', minHeight: 56, whiteSpace: 'pre-wrap', height: '100%' }}>
+                            <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'action.hover', minHeight: 44, whiteSpace: 'pre-wrap', height: '100%' }}>
                                 <Typography variant="body2" sx={{ color: visita.notes ? 'text.primary' : 'var(--lg-text-muted)' }}>
                                     {visita.notes || 'Nenhum relato registrado.'}
                                 </Typography>
