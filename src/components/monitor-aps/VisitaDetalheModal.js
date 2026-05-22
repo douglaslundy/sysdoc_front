@@ -143,10 +143,20 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="md"
+            maxWidth={false}
             fullWidth
+            sx={{
+                '& .MuiDialog-paper': {
+                    margin: '0 !important',
+                    width: '98vw !important',
+                    maxWidth: '98vw !important',
+                },
+            }}
             PaperProps={{
                 sx: {
+                    width:          '98vw !important',
+                    maxWidth:       '98vw !important',
+                    margin:         '0 !important',
                     background:     'var(--lg-glass-modal, #1e2027f0)',
                     backdropFilter: 'var(--lg-blur-modal, blur(20px))',
                     border:         '0.5px solid var(--lg-border, #ffffff22)',
