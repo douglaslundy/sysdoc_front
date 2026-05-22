@@ -4,180 +4,161 @@
 `database-config-agent`
 
 ## Papel
-Responsável por criar o módulo de **configuração e conexão** ao banco de dados PostgreSQL do eSUS PEC. Este é o alicerce de todo o sistema — sem ele, nenhum dado pode ser recuperado.
+Responsável por criar o módulo de **configuração e conexão** ao banco PostgreSQL do eSUS PEC dentro do **sysdoc_back (Laravel)**. Este é o alicerce de todo o módulo — sem ele, nenhum indicador pode ser calculado.
 
 ## Escopo
 
 Este agente cria:
-1. Página de configuração da conexão (frontend)
-2. Serviço de conexão ao banco (backend)
-3. Endpoint de teste de conexão
-4. Armazenamento seguro das configurações
-5. Script SQL de criação do usuário somente-leitura
-6. Health check automático
+1. `MonitorApsBaseController.php` — conexão dinâmica ao PostgreSQL do eSUS PEC
+2. `MonitorApsConfigController.php` — endpoints de configuração (status, test, save, equipes)
+3. Página de configuração no frontend (`sysdoc_front/src/components/monitor-aps/Configuracoes.js`)
+4. Script SQL de criação do usuário somente-leitura
+
+---
 
 ## Tarefas
 
-### TAREFA 1: Criar o serviço de conexão backend
+### TAREFA 1: Criar o controller base de conexão (Laravel)
 
-Criar `modules/monitor-aps/backend/src/config/database.js` (ou `.py`):
+Arquivo: `sysdoc_back/app/Http/Controllers/MonitorApsBaseController.php`
 
-```javascript
-// Node.js / Express com pg (node-postgres)
-const { Pool } = require('pg');
-const fs = require('fs');
-const path = require('path');
+```php
+<?php
 
-const CONFIG_FILE = path.join(__dirname, '../../data/db-config.json');
+namespace App\Http\Controllers;
 
-function loadConfig() {
-  if (!fs.existsSync(CONFIG_FILE)) return null;
-  return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+use Illuminate\Support\Facades\DB;
+
+abstract class MonitorApsBaseController extends Controller
+{
+    protected function db(): \Illuminate\Database\ConnectionInterface
+    {
+        // Prioridade 1: configuração salva via UI (storage/app/monitor-aps-config.json)
+        $path = storage_path('app/monitor-aps-config.json');
+        if (file_exists($path)) {
+            $c = json_decode(file_get_contents($path), true);
+            config(['database.connections.pgsql_esus_runtime' => [
+                'driver'   => 'pgsql',
+                'host'     => $c['host'],
+                'port'     => $c['port'] ?? 5432,
+                'database' => $c['database'],
+                'username' => $c['user'],
+                'password' => $c['password'] ?? '',
+                'charset'  => 'utf8',
+                'prefix'   => '',
+                'schema'   => 'public',
+                'sslmode'  => 'prefer',
+            ]]);
+            return DB::connection('pgsql_esus_runtime');
+        }
+        // Prioridade 2: variáveis de ambiente (APS_DB_* no .env)
+        return DB::connection('pgsql_esus');
+    }
 }
-
-function saveConfig(config) {
-  const dir = path.dirname(CONFIG_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  // Nunca salvar senha em texto puro em produção — usar variáveis de ambiente
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify({
-    host: config.host,
-    port: config.port,
-    database: config.database,
-    user: config.user,
-    // Em produção: salvar apenas referência, senha via env var
-    password: config.password 
-  }, null, 2));
-}
-
-let pool = null;
-
-function getPool() {
-  if (!pool) {
-    const config = loadConfig();
-    if (!config) throw new Error('Banco de dados não configurado. Acesse Configurações.');
-    pool = new Pool({
-      ...config,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
-    });
-  }
-  return pool;
-}
-
-async function testConnection(config) {
-  const testPool = new Pool({ ...config, max: 1, connectionTimeoutMillis: 5000 });
-  try {
-    const result = await testPool.query('SELECT current_database(), version()');
-    await testPool.end();
-    return { 
-      success: true, 
-      database: result.rows[0].current_database,
-      version: result.rows[0].version
-    };
-  } catch (err) {
-    await testPool.end().catch(() => {});
-    throw err;
-  }
-}
-
-module.exports = { getPool, testConnection, saveConfig, loadConfig };
 ```
 
-### TAREFA 2: Criar endpoint de configuração (REST API)
+### TAREFA 2: Criar o controller de configuração (Laravel)
 
-Arquivo: `modules/monitor-aps/backend/src/routes/config.routes.js`
+Arquivo: `sysdoc_back/app/Http/Controllers/MonitorApsConfigController.php`
 
 Endpoints:
-- `GET  /api/monitor-aps/config/status` — retorna se o banco está configurado e conectado
-- `POST /api/monitor-aps/config/test`   — testa uma configuração sem salvar
-- `POST /api/monitor-aps/config/save`   — salva a configuração (requer permissão admin)
-- `GET  /api/monitor-aps/config/equipes` — lista equipes disponíveis no banco configurado
+- `GET  /api/monitor-aps/config/status`  — retorna se o banco está configurado e conectado
+- `GET  /api/monitor-aps/config/equipes` — lista equipes da `dim_equipe`
+- `POST /api/monitor-aps/config/test`    — testa credenciais sem salvar (admin)
+- `POST /api/monitor-aps/config/save`    — salva credenciais em `storage/app/monitor-aps-config.json` (admin)
 
-### TAREFA 3: Criar página de configuração (Frontend React)
+O arquivo JSON de configuração fica em `storage/app/monitor-aps-config.json` (fora do controle de versão).
 
-Arquivo: `modules/monitor-aps/frontend/src/pages/Configuracoes.jsx`
+### TAREFA 3: Registrar as rotas no Laravel
 
-A página deve ter:
+Arquivo: `sysdoc_back/routes/api.php`
 
-**Seção 1: Conexão com o Banco**
-- Campo: Host/IP do servidor PostgreSQL
-- Campo: Porta (default: 5432)
-- Campo: Nome do banco (default: esus)
-- Campo: Usuário (default: monitor_aps)
-- Campo: Senha (input type=password)
-- Botão: "Testar Conexão" → mostra resultado (sucesso com versão PEC ou erro)
-- Botão: "Salvar Configuração"
-- Badge de status: 🟢 Conectado / 🔴 Desconectado / 🟡 Não configurado
+```php
+// Monitor APS — protegido por auth:sanctum, throttle 60/min
+Route::prefix('monitor-aps')->middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    // Indicadores
+    Route::get('indicadores/resumo',        [MonitorApsController::class, 'resumo']);
+    Route::get('indicadores/vinculo',       [MonitorApsController::class, 'vinculo']);
+    Route::get('indicadores/qualidade',     [MonitorApsController::class, 'qualidade']);
+    Route::get('indicadores/qualidade/{id}',[MonitorApsController::class, 'qualidadeIndicador']);
+    Route::get('indicadores/repasse',       [MonitorApsController::class, 'repasse']);
+    Route::get('indicadores/historico',     [MonitorApsController::class, 'historico']);
+    // Configuração
+    Route::get('config/status',             [MonitorApsConfigController::class, 'status']);
+    Route::get('config/equipes',            [MonitorApsConfigController::class, 'equipes']);
+    Route::post('config/test',              [MonitorApsConfigController::class, 'testar']);
+    Route::post('config/save',              [MonitorApsConfigController::class, 'save']);
+});
+```
 
-**Seção 2: Configurações do Município**
-- Campo: IBGE do município
-- Campo: Nome do município
-- Campo: Estrato IED (1 a 4) — seletor
-- Lista de equipes ativas (carregada do banco após conexão): checkbox por INE/nome
+### TAREFA 4: Adicionar conexão pgsql_esus ao config do Laravel
 
-**Seção 3: Período de Avaliação**
-- Seletor: Ano
-- Seletor: Quadrimestre (1° Quad: jan-abr / 2° Quad: mai-ago / 3° Quad: set-dez)
+Arquivo: `sysdoc_back/config/database.php`
 
-**Seção 4: Script SQL (informativo)**
-- Caixa de texto somente leitura com o SQL para criar o usuário de leitura
-- Botão "Copiar SQL"
+```php
+'pgsql_esus' => [
+    'driver'   => 'pgsql',
+    'host'     => env('APS_DB_HOST', 'localhost'),
+    'port'     => env('APS_DB_PORT', '5432'),
+    'database' => env('APS_DB_DATABASE', 'esus'),
+    'username' => env('APS_DB_USERNAME', 'monitor_aps'),
+    'password' => env('APS_DB_PASSWORD', ''),
+    'charset'  => 'utf8',
+    'prefix'   => '',
+    'schema'   => 'public',
+    'sslmode'  => 'prefer',
+],
+```
 
-### TAREFA 4: Criar script SQL de setup
+### TAREFA 5: Criar script SQL de setup do usuário somente-leitura
 
-Arquivo: `modules/monitor-aps/docs/setup-readonly-user.sql`
+Arquivo: `sysdoc_back/docs/setup-readonly-user.sql` (ou `psf-dashboard-prompts/docs/`)
 
 ```sql
--- =================================================================
--- Monitor APS: Criação de usuário somente-leitura no banco eSUS PEC
--- Execute este script UMA VEZ como superusuário (postgres)
--- =================================================================
+-- Monitor APS: usuário somente-leitura no banco eSUS PEC
+-- Executar UMA VEZ como superusuário (postgres) no servidor da SMS
 
--- 1. Criar role de leitura
 CREATE ROLE monitor_aps_reader;
-
--- 2. Permissões de conexão e schema
 GRANT CONNECT ON DATABASE esus TO monitor_aps_reader;
 GRANT USAGE ON SCHEMA public TO monitor_aps_reader;
-
--- 3. Permissão de SELECT em todas as tabelas atuais e futuras
 GRANT SELECT ON ALL TABLES IN SCHEMA "public" TO monitor_aps_reader;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO monitor_aps_reader;
 
--- 4. Criar o usuário de aplicação
 CREATE USER monitor_aps WITH PASSWORD 'SenhaSegura123!';
 GRANT monitor_aps_reader TO monitor_aps;
 
--- 5. Verificação
-SELECT grantee, privilege_type 
-FROM information_schema.role_table_grants 
+-- Verificação
+SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
 WHERE grantee = 'monitor_aps_reader' LIMIT 5;
 ```
 
+---
+
+## Variáveis de Ambiente
+
+Arquivo: `sysdoc_back/.env` (e `.env.example`)
+
+```bash
+# Monitor APS — banco eSUS PEC (somente leitura)
+APS_DB_HOST=localhost
+APS_DB_PORT=5432
+APS_DB_DATABASE=esus
+APS_DB_USERNAME=monitor_aps
+APS_DB_PASSWORD=
+MONITOR_APS_MUNICIPIO_NOME=Ilicínea
+MONITOR_APS_MUNICIPIO_IBGE=3131703
+MONITOR_APS_ESTRATO_IED=4
+```
+
+---
+
 ## Critérios de Aceitação
 
-- [ ] Conexão ao PostgreSQL do eSUS PEC com somente-leitura funciona
-- [ ] Teste de conexão retorna a versão do PostgreSQL e banco conectado
-- [ ] Configurações são persistidas entre reinicializações
-- [ ] Listagem de equipes (dim_equipe) carrega corretamente
-- [ ] Usuário admin do sistema existente pode acessar a página de config
-- [ ] Usuários não-admin não conseguem alterar as configurações
-- [ ] Erro de conexão é mostrado de forma amigável ao usuário
-
-## Dependências
-
-Backend (Node.js):
-```json
-{
-  "pg": "^8.11.0",
-  "pg-pool": "incluído no pg"
-}
-```
-
-Backend (Python alternativo):
-```txt
-psycopg2-binary==2.9.9
-asyncpg==0.29.0
-```
+- [ ] `$this->db()` conecta ao PostgreSQL do eSUS PEC sem erros
+- [ ] `GET /api/monitor-aps/config/status` retorna `connected: true` quando banco está acessível
+- [ ] `POST /api/monitor-aps/config/test` valida credenciais e retorna total de equipes
+- [ ] `POST /api/monitor-aps/config/save` persiste em `storage/app/monitor-aps-config.json`
+- [ ] `GET /api/monitor-aps/config/equipes` lista equipes da `dim_equipe`
+- [ ] Acesso ao banco é somente leitura (apenas SELECT)
+- [ ] Usuários não-admin recebem 403 em `config/test` e `config/save`

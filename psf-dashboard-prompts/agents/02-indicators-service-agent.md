@@ -4,243 +4,172 @@
 `indicators-service-agent`
 
 ## Papel
-Responsável por criar todos os **serviços de cálculo dos indicadores** do Componente de Qualidade e do Componente de Vínculo e Acompanhamento Territorial. Este agente transforma queries SQL em dados estruturados prontos para o frontend.
+Responsável por criar o `MonitorApsController.php` no **sysdoc_back (Laravel)** com todos os cálculos dos 15 indicadores de qualidade, componente de vínculo e estimativa de repasse. Toda a lógica roda em PHP, acessando o PostgreSQL do eSUS PEC via `$this->db()` (herdado de `MonitorApsBaseController`).
 
 ## Dependências
-- `database-config-agent` deve estar completo (conexão ao banco funcionando)
-- Arquivos `context/esus-pec-database.md` lidos e compreendidos
+- `database-config-agent` completo (`MonitorApsBaseController` funcionando)
+- Docker com banco de dev ativo (`docker compose up -d` em `psf-dashboard-prompts/modules/monitor-aps/docker/`)
+
+---
 
 ## Estrutura de Saída Padrão
 
-Cada indicador deve retornar o seguinte formato JSON:
+Cada indicador retorna:
 ```json
 {
   "indicador": {
     "id": 2,
     "nome": "Cuidado Longitudinal da Criança",
     "bloco": "eSF_eAP",
-    "equipe": {
-      "ine": "0000123456",
-      "nome": "ESF Vila Nova"
-    },
-    "periodo": {
-      "ano": 2025,
-      "quadrimestre": 2,
-      "competencia_inicio": "2025-05",
-      "competencia_fim": "2025-08"
-    },
+    "equipe": { "ine": "0000000001", "nome": "ESF CENTRO" },
+    "periodo": { "ano": 2025, "quadrimestre": 2 },
     "resultado": {
       "numerador": 42,
       "denominador": 68,
       "percentual": 61.76,
       "classificacao": "bom",
-      "meta_suficiente": 40.0,
-      "meta_bom": 60.0,
-      "meta_otimo": 80.0
+      "meta_suficiente": 30,
+      "meta_bom": 60,
+      "meta_otimo": 80
     },
     "subindicadores": [
       { "nome": "≥9 consultas médico/enfermeiro", "valor": 42, "total": 68 },
-      { "nome": "≥9 registros peso/altura", "valor": 38, "total": 68 },
-      { "nome": "≥2 visitas ACS", "valor": 55, "total": 68 },
-      { "nome": "Vacinação completa", "valor": 60, "total": 68 }
+      { "nome": "≥9 registros peso/altura",       "valor": 38, "total": 68 }
     ]
   }
 }
 ```
 
+---
+
 ## Tarefas
 
-### TAREFA 1: Criar serviço de Componente de Vínculo
+### TAREFA 1: Criar `MonitorApsController.php`
 
-Arquivo: `modules/monitor-aps/backend/src/services/vinculo.service.js`
+Arquivo: `sysdoc_back/app/Http/Controllers/MonitorApsController.php`
 
-Calcular para cada equipe:
-1. **Pontuação de Cadastros**
-   - Cadastro individual isolado = 0,75 ponto
-   - Cadastro individual + domiciliar = 1,5 ponto
-   - Ponto de corte: parâmetro de referência vs. teto máximo
-   
-2. **Cobertura de Grupos Prioritários**
-   - Crianças < 5 anos acompanhadas / total cadastradas
-   - Idosos ≥ 60 anos acompanhados / total cadastrados
-   - Beneficiários BPC acompanhados / total cadastrados
-   - Beneficiários Bolsa Família acompanhados / total cadastrados
+Estende `MonitorApsBaseController`. Contém:
 
-3. **Classificação final** (ótimo/bom/suficiente/regular)
+**Constantes de thresholds** (definidas como `const THRESHOLDS`):
+```php
+private const THRESHOLDS = [
+    'ind1_acesso_aps'         => ['suficiente' => 20, 'bom' => 40, 'otimo' => 60],
+    'ind2_crianca'            => ['suficiente' => 30, 'bom' => 60, 'otimo' => 80],
+    'ind3_gestante'           => ['suficiente' => 40, 'bom' => 65, 'otimo' => 85],
+    'ind4_hipertensao'        => ['suficiente' => 35, 'bom' => 60, 'otimo' => 80],
+    'ind5_diabetes'           => ['suficiente' => 35, 'bom' => 60, 'otimo' => 80],
+    'ind6_idoso'              => ['suficiente' => 30, 'bom' => 55, 'otimo' => 75],
+    'ind7_saude_mental'       => ['suficiente' => 15, 'bom' => 30, 'otimo' => 50],
+    'ind8_visita_acs'         => ['suficiente' => 50, 'bom' => 70, 'otimo' => 85],
+    'ind9_vacinacao'          => ['suficiente' => 70, 'bom' => 85, 'otimo' => 95],
+    'ind10_interprofissional' => ['suficiente' => 20, 'bom' => 40, 'otimo' => 60],
+    'ind13_acesso_bucal'      => ['suficiente' => 20, 'bom' => 40, 'otimo' => 60],
+    'ind14_conclusao'         => ['suficiente' => 30, 'bom' => 50, 'otimo' => 70],
+    'ind15_coletivas'         => ['suficiente' => 10, 'bom' => 25, 'otimo' => 40],
+    'vinculo'                 => ['suficiente' => 40, 'bom' => 65, 'otimo' => 85],
+];
 
-Query base:
-```sql
-SELECT
-  de.nu_ine,
-  de.no_equipe,
-  COUNT(DISTINCT fci.co_cidadao) AS total_cadastros_ind,
-  COUNT(DISTINCT fcd.co_cidadao_responsavel) AS total_cadastros_dom,
-  COUNT(DISTINCT CASE WHEN fci.st_bolsa_familia THEN fci.co_cidadao END) AS bolsa_familia,
-  COUNT(DISTINCT CASE WHEN fci.st_bpc THEN fci.co_cidadao END) AS bpc,
-  COUNT(DISTINCT CASE 
-    WHEN EXTRACT(YEAR FROM AGE(fci.dt_nascimento)) < 5 THEN fci.co_cidadao 
-  END) AS criancas_0_5,
-  COUNT(DISTINCT CASE 
-    WHEN EXTRACT(YEAR FROM AGE(fci.dt_nascimento)) >= 60 THEN fci.co_cidadao 
-  END) AS idosos_60_mais
-FROM fat_cad_individual fci
-JOIN dim_equipe de ON fci.co_dim_equipe = de.co_seq_dim_equipe
-LEFT JOIN fat_cad_domiciliar fcd ON fci.co_cidadao = fcd.co_cidadao_responsavel
-WHERE de.st_ativo = true
-GROUP BY de.nu_ine, de.no_equipe;
+private const REPASSE_FIXO_IED = [1 => 18000, 2 => 16000, 3 => 14000, 4 => 12000];
+private const REPASSE_CLASS    = ['regular' => 2000, 'suficiente' => 4000, 'bom' => 6000, 'otimo' => 8000];
 ```
 
-### TAREFA 2: Criar serviço de Indicadores de Qualidade (Bloco A: eSF/eAP)
+**Endpoints públicos (protegidos por auth:sanctum):**
+- `resumo(Request)` — consolidado municipal: equipes, vínculo, repasse estimado
+- `vinculo(Request)` — detalhe do componente de vínculo por período/INE
+- `qualidade(Request)` — indicadores 1-15 com filtro de bloco (esf/esb) e INE
+- `qualidadeIndicador(Request, int $id)` — indicador específico por ID
+- `repasse(Request)` — estimativa de repasse por equipe
+- `historico(Request)` — histórico quadrimestral de um indicador por equipe
 
-Arquivo: `modules/monitor-aps/backend/src/services/qualidade-esf.service.js`
+**Métodos privados de cálculo:**
+- `calcularVinculo(int $ano, int $quad, ?string $ine)` — query em `fat_cad_individual` + `fat_cad_domiciliar`
+- `calcularRepasseEstimado(array $equipes, int $estrato)` — aplica tabela de valores por classificação
+- `calcularESF(string $ine, int $ano, int $quad)` — itera indicadores 1-10
+- `calcularESB(string $ine, int $ano, int $quad)` — itera indicadores 13-15
+- `calcularInd1` a `calcularInd10`, `calcularInd13` a `calcularInd15` — um método por indicador
 
-Implementar função para cada indicador:
+### TAREFA 2: Indicadores eSF/eAP (1-10) — queries principais
 
-**`calcularIndicador1_AcessoAPS(ine, ano, quadrimestre)`**
-- Numerador: atendimentos com tipos variados (programado + espontâneo + escuta + consulta dia + urgência)
-- Denominador: total de atendimentos da equipe no período
-- Meta bom: ≥ 3 tipos de demanda representando ≥ 10% cada
+**Ind 1 — Mais Acesso à APS**: `fat_atendimento_individual`, agrupa por `co_dim_tipo_atendimento` (1=programado, 2=espontâneo, 3=escuta, 4=consulta_dia, 5=urgência). Percentual = tipos com ≥10% do total / 5 tipos.
 
-**`calcularIndicador2_CriancaLongitudinal(ine, ano, quadrimestre)`**
-- Denominador: crianças com < 24 meses cadastradas na equipe
-- Para cada subindicador:
-  - ≥9 consultas médico/enfermeiro → JOIN fat_atendimento_individual + filtro CBO médico/enfermeiro
-  - ≥9 registros de antropometria → fat_atendimento_individual WHERE nu_peso IS NOT NULL
-  - ≥2 visitas ACS → fat_visita_domiciliar WHERE cbo = '516220'
-  - Vacinação completa → JOIN fat_procedimento_individual + códigos SIGTAP de vacinas
+**Ind 2 — Cuidado Longitudinal Criança**: 4 subindicadores em subqueries:
+- ≥9 consultas médico/enfermeiro (CBO: 225142, 225125, 223505) em `fat_atendimento_individual`
+- ≥9 registros peso (`nu_peso IS NOT NULL`) em `fat_atendimento_individual`
+- ≥2 visitas ACS (CBO: 516220) em `fat_visita_domiciliar`
+- Vacinação completa (≥6 vacinas SIGTAP) em `fat_vacinacao`
+- Denominador: crianças < 24 meses em `fat_cad_individual`
 
-**`calcularIndicador3_Gestante(ine, ano, quadrimestre)`**
-- Usar `vw_acompanhamento_pre_natal`
-- Numerador: gestantes com ≥6 consultas pré-natal
-- Denominador: gestantes cadastradas no período
+**Ind 3 — Gestante**: usa `vw_acompanhamento_pre_natal` com `st_pn_adequado = true`
 
-**`calcularIndicador4_Hipertensao(ine, ano, quadrimestre)`**
-- Usar `vw_acompanhamento_hipertensao`
-- Numerador: pacientes hipertensos com ≥2 atendimentos + PA registrada
-- Denominador: pacientes hipertensos cadastrados na equipe
+**Ind 4 — Hipertensão**: usa `vw_acompanhamento_hipertensao` com `st_acompanhado = true`
 
-**`calcularIndicador5_Diabetes(ine, ano, quadrimestre)`**
-- Usar `vw_acompanhamento_diabetes`
-- Numerador: diabéticos com ≥2 atendimentos + HbA1c ou glicemia registrada
-- Denominador: diabéticos cadastrados na equipe
+**Ind 5 — Diabetes**: usa `vw_acompanhamento_diabetes` com `st_acompanhado = true`
 
-**`calcularIndicador8_VisitaACS(ine, ano, quadrimestre)`**
-- Numerador: pessoas com ≥1 visita domiciliar no quadrimestre
-- Denominador: pessoas cadastradas na equipe no território
+**Ind 6 — Idoso**: idosos (> 60 anos) com ≥1 atendimento no quadrimestre em `fat_atendimento_individual`
 
-### TAREFA 3: Criar serviço de Indicadores eSB (Bloco C)
+**Ind 7 — Saúde Mental**: atendimentos com CIAP2 P76-P99 ou CID10 F* sobre total de atendimentos
 
-Arquivo: `modules/monitor-aps/backend/src/services/qualidade-esb.service.js`
+**Ind 8 — Visita ACS**: pessoas com ≥1 visita de ACS (CBO 516220) em `fat_visita_domiciliar`
 
-**`calcularIndicador13_AcessoBucal(ine, ano, quadrimestre)`**
-- fat_atendimento_odontologico WHERE st_primeira_consulta = true
-- Proporção sobre população cadastrada
+**Ind 9 — Vacinação**: crianças < 2 anos com ≥4 vacinas do calendário em `fat_vacinacao`
 
-**`calcularIndicador14_ConclusaoTratamento(ine, ano, quadrimestre)`**
-- fat_atendimento_odontologico WHERE st_conclusao_tratamento = true
-- Numerador / total tratamentos iniciados
+**Ind 10 — Ações Interprofissionais**: participantes em `fat_ativ_coletiva` / total cadastrados
 
-**`calcularIndicador15_AcoesColетivas(ine, ano, quadrimestre)`**
-- fat_ativ_coletiva WHERE equipe é eSB
-- Total de participantes em ações coletivas
+### TAREFA 3: Indicadores eSB (13-15)
 
-### TAREFA 4: Criar função de classificação de equipes
+**Ind 13 — Acesso Bucal**: `fat_atendimento_odontologico` com `st_primeira_consulta = true` / total cadastrados
 
-Arquivo: `modules/monitor-aps/backend/src/services/classificacao.service.js`
+**Ind 14 — Conclusão Tratamento**: `fat_atendimento_odontologico` com `st_conclusao_tratamento = true` / total atendimentos odontológicos
 
-```javascript
-/**
- * Classifica a equipe por componente baseado nos thresholds
- * @param {number} percentual - Valor obtido (0-100)
- * @param {object} thresholds - { regular, suficiente, bom, otimo }
- * @returns {string} 'regular' | 'suficiente' | 'bom' | 'otimo'
- */
-function classificar(percentual, thresholds) {
-  if (percentual >= thresholds.otimo) return 'otimo';
-  if (percentual >= thresholds.bom) return 'bom';
-  if (percentual >= thresholds.suficiente) return 'suficiente';
-  return 'regular';
+**Ind 15 — Ações Coletivas Bucal**: participantes em `fat_ativ_coletiva` (equipe eSB) / total cadastrados
+
+### TAREFA 4: Helper de classificação
+
+```php
+private function classificar(float $percentual, array $thresholds): string
+{
+    if ($percentual >= $thresholds['otimo'])      return 'otimo';
+    if ($percentual >= $thresholds['bom'])        return 'bom';
+    if ($percentual >= $thresholds['suficiente']) return 'suficiente';
+    return 'regular';
 }
+```
 
-/**
- * Tabela de thresholds por indicador (a ser completada com as fichas técnicas do MS)
- * Fonte: https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas
- */
-const THRESHOLDS = {
-  indicador_2_crianca: { regular: 0, suficiente: 30, bom: 60, otimo: 80 },
-  indicador_3_gestante: { regular: 0, suficiente: 40, bom: 65, otimo: 85 },
-  indicador_4_hipertensao: { regular: 0, suficiente: 35, bom: 60, otimo: 80 },
-  indicador_5_diabetes: { regular: 0, suficiente: 35, bom: 60, otimo: 80 },
-  indicador_8_visita_acs: { regular: 0, suficiente: 50, bom: 70, otimo: 85 },
-  indicador_13_acesso_bucal: { regular: 0, suficiente: 20, bom: 40, otimo: 60 },
-  indicador_14_conclusao_tratamento: { regular: 0, suficiente: 30, bom: 50, otimo: 70 },
-  // IMPORTANTE: Verificar os valores reais nas fichas técnicas do Ministério da Saúde
-  // URL: https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas
-};
+### TAREFA 5: Helper de resultado padronizado
 
-/**
- * Estima o valor do repasse com base nas classificações
- */
-function calcularRepasseEstimado(equipes, estrato_ied) {
-  const VALORES_FIXO = { 1: 18000, 2: 16000, 3: 14000, 4: 12000 };
-  const VALORES_COMPONENTE = { regular: 2000, suficiente: 4000, bom: 6000, otimo: 8000 };
-  
-  return equipes.map(equipe => ({
-    ine: equipe.ine,
-    nome: equipe.nome,
-    componente_fixo: VALORES_FIXO[estrato_ied] || 12000,
-    componente_vinculo: VALORES_COMPONENTE[equipe.classificacao_vinculo],
-    componente_qualidade: VALORES_COMPONENTE[equipe.classificacao_qualidade],
-    total_estimado: (VALORES_FIXO[estrato_ied] || 12000) 
-                  + VALORES_COMPONENTE[equipe.classificacao_vinculo]
-                  + VALORES_COMPONENTE[equipe.classificacao_qualidade]
-  }));
+```php
+private function resultado(int $id, string $nome, string $bloco, string $ine, string $nomeEquipe,
+    int $ano, int $quad, $numerador, $denominador, float $percentual,
+    string $thresholdKey, array $subindicadores): array
+{
+    $t = self::THRESHOLDS[$thresholdKey];
+    return ['indicador' => [
+        'id' => $id, 'nome' => $nome, 'bloco' => $bloco,
+        'equipe'  => ['ine' => $ine, 'nome' => $nomeEquipe],
+        'periodo' => ['ano' => $ano, 'quadrimestre' => $quad],
+        'resultado' => [
+            'numerador'       => $numerador,
+            'denominador'     => $denominador,
+            'percentual'      => $percentual,
+            'classificacao'   => $this->classificar($percentual, $t),
+            'meta_suficiente' => $t['suficiente'],
+            'meta_bom'        => $t['bom'],
+            'meta_otimo'      => $t['otimo'],
+        ],
+        'subindicadores' => $subindicadores,
+    ]];
 }
-
-module.exports = { classificar, THRESHOLDS, calcularRepasseEstimado };
 ```
 
-### TAREFA 5: Criar todas as rotas da API de indicadores
-
-Arquivo: `modules/monitor-aps/backend/src/routes/indicadores.routes.js`
-
-Endpoints:
-```
-GET /api/monitor-aps/indicadores/resumo
-  → Retorna resumo de todos os indicadores do município
-  → Query params: ano, quadrimestre
-
-GET /api/monitor-aps/indicadores/vinculo
-  → Componente de vínculo e acompanhamento territorial
-  → Query params: ano, quadrimestre, ine (opcional)
-
-GET /api/monitor-aps/indicadores/qualidade
-  → Todos os 15 indicadores de qualidade
-  → Query params: ano, quadrimestre, ine (opcional), bloco (esf|esb|emulti)
-
-GET /api/monitor-aps/indicadores/qualidade/:id
-  → Indicador específico com subindicadores detalhados
-  → Query params: ano, quadrimestre, ine
-
-GET /api/monitor-aps/indicadores/repasse
-  → Estimativa de repasse mensal por equipe
-  → Query params: ano, quadrimestre
-
-GET /api/monitor-aps/indicadores/equipes
-  → Lista equipes com classificação atual em todos os componentes
-  → Query params: ano, quadrimestre
-
-GET /api/monitor-aps/indicadores/historico
-  → Evolução dos indicadores ao longo dos quadrimestres
-  → Query params: ine, indicador_id, anos (ex: 2024,2025)
-```
+---
 
 ## Critérios de Aceitação
 
-- [ ] Todos os 15 indicadores retornam dados estruturados no formato padrão
-- [ ] Classificações (ótimo/bom/suficiente/regular) são calculadas corretamente
-- [ ] Estimativa de repasse é calculada por equipe e municipalmente
-- [ ] Filtros por INE, ano e quadrimestre funcionam
-- [ ] Queries não demoram mais de 10 segundos (adicionar índices se necessário)
-- [ ] Erros de SQL retornam mensagem amigável, não stack trace
-- [ ] Thresholds dos indicadores estão documentados com a fonte (fichas técnicas MS)
+- [ ] `GET /api/monitor-aps/indicadores/resumo` retorna equipes com classificação e repasse
+- [ ] `GET /api/monitor-aps/indicadores/qualidade` retorna os 15 indicadores no formato padrão
+- [ ] `GET /api/monitor-aps/indicadores/qualidade/{id}?ine=XXX` retorna indicador específico
+- [ ] `GET /api/monitor-aps/indicadores/historico?ine=XXX&indicador_id=2&anos=2025` retorna histórico
+- [ ] Classificações (ótimo/bom/suficiente/regular) calculadas corretamente por threshold
+- [ ] Erros de SQL retornam JSON com `error` e HTTP 500 (nunca stack trace exposto)
+- [ ] Acesso ao banco é somente leitura (sem INSERT/UPDATE/DELETE)
+- [ ] Thresholds documentados com fonte (fichas técnicas MS) nos comentários do código

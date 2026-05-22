@@ -2,59 +2,73 @@
 
 ## O que é este pacote de prompts
 
-Este diretório contém a estrutura completa de prompts, contextos e agentes para desenvolver o módulo **Monitor APS** usando o **Claude Code**. O módulo é um dashboard de acompanhamento de metas e indicadores do novo cofinanciamento federal da APS (Portaria GM/MS 3.493/2024).
+Este diretório contém a estrutura de prompts, contextos e agentes para desenvolver o módulo **Monitor APS** usando o **Claude Code**. O módulo é um dashboard de acompanhamento de metas e indicadores do novo cofinanciamento federal da APS (Portaria GM/MS 3.493/2024 + 6.907/2025).
+
+---
+
+## Arquitetura Real
+
+O módulo **não é um serviço separado**. Está integrado diretamente nos dois projetos existentes:
+
+```
+sysdoc_front (Next.js :3000)
+  └── pages/monitor-aps/*
+  └── src/components/monitor-aps/*
+  └── src/services/monitorApsApi.js  ← chama Laravel via Axios
+         ↓ HTTP Bearer token
+sysdoc_back (Laravel :8000)
+  └── routes/api.php  (prefix: monitor-aps, auth:sanctum)
+  └── MonitorApsController.php       ← 15 indicadores em PHP
+  └── MonitorApsConfigController.php ← config da conexão
+  └── MonitorApsBaseController.php   ← conexão ao PostgreSQL
+         ↓ PostgreSQL somente leitura
+eSUS APS PEC (:5432)
+  └── schema public (fat_, dim_, vw_)
+```
 
 ---
 
 ## Como usar no Claude Code
 
-### Passo 1: Copiar para o projeto
-Copie o conteúdo deste diretório para a raiz do projeto existente onde o módulo será acoplado.
-
-### Passo 2: Iniciar o Claude Code
-```bash
-cd /caminho/do/seu/projeto
-claude
-```
-
-### Passo 3: O CLAUDE.md é lido automaticamente
-O Claude Code lê automaticamente o arquivo `CLAUDE.md` na raiz do projeto. Este arquivo já contém todo o contexto normativo e as instruções do projeto.
-
-### Passo 4: Executar a Task 0 PRIMEIRO (Docker)
-```
-Leia o arquivo tasks/task-0-docker-setup.md e execute.
-```
-Isso sobe o PostgreSQL local com dados de teste. Confirme que o banco está com ~300 registros antes de continuar.
-
-### Passo 5: Executar as tasks em sequência
-No Claude Code, diga:
-
-```
-Leia o arquivo tasks/execution-plan.md e execute a Task 1.1.
-Confirme o que foi criado antes de continuar para a próxima task.
-```
-
-Depois:
-```
-Task 1.1 concluída. Execute a Task 1.2.
-```
-
-E assim por diante.
-
-### Comandos úteis no Claude Code
+### Passo 1: Subir o banco de desenvolvimento
 
 ```bash
-# Ver estrutura criada até agora
-ls -la modules/monitor-aps/
+cd psf-dashboard-prompts/modules/monitor-aps
+docker compose -f docker/docker-compose.yml up -d
+```
 
-# Testar conexão ao banco (após Task 1.2)
-node modules/monitor-aps/backend/src/scripts/test-connection.js
+Banco disponível em `localhost:5432` com ~300 registros fictícios de Ilicínea/MG.
 
-# Explorar schema do banco (Task 2.1)
-node modules/monitor-aps/backend/src/scripts/explore-schema.js
+### Passo 2: Configurar o sysdoc_back
 
-# Iniciar servidor do módulo em dev
-cd modules/monitor-aps/backend && npm run dev
+```bash
+# Em sysdoc_back/.env
+APS_DB_HOST=localhost
+APS_DB_PORT=5432
+APS_DB_DATABASE=esus
+APS_DB_USERNAME=monitor_aps
+APS_DB_PASSWORD=monitor123
+MONITOR_APS_MUNICIPIO_NOME=Ilicínea
+MONITOR_APS_MUNICIPIO_IBGE=3131703
+MONITOR_APS_ESTRATO_IED=4
+```
+
+### Passo 3: Iniciar os projetos
+
+```bash
+# Terminal 1 — Backend Laravel
+cd sysdoc_back && php artisan serve
+
+# Terminal 2 — Frontend Next.js
+cd sysdoc_front && npm run dev
+```
+
+### Passo 4: Consultar o plano de execução
+
+```
+Leia o arquivo tasks/execution-plan.md.
+As Fases 0-4 estão concluídas.
+Execute a Task 5.1 (teste end-to-end).
 ```
 
 ---
@@ -63,81 +77,79 @@ cd modules/monitor-aps/backend && npm run dev
 
 ```
 psf-dashboard-prompts/
-├── CLAUDE.md                    ← Lido automaticamente pelo Claude Code
-│                                  Contém: contexto normativo, indicadores, stack
+├── CLAUDE.md                    ← Contexto geral, stack, arquitetura, regras
+├── README.md                    ← Este arquivo
 │
 ├── context/
-│   ├── project.md               ← Detalhes do município, comportamento esperado
-│   └── esus-pec-database.md     ← Schema DW PEC, queries de exemplo
+│   └── project.md               ← Detalhes do município, banco eSUS PEC
 │
 ├── agents/
-│   ├── 01-database-config-agent.md   ← Conexão ao banco, página de config
-│   ├── 02-indicators-service-agent.md ← Cálculo dos 15 indicadores
-│   ├── 03-frontend-dashboard-agent.md ← Interface React, dashboards
-│   └── 04-integration-agent.md       ← Integração ao sistema existente
+│   ├── 01-database-config-agent.md   ← Conexão ao banco (Laravel PHP)
+│   ├── 02-indicators-service-agent.md ← MonitorApsController (15 indicadores PHP)
+│   ├── 03-frontend-dashboard-agent.md ← Components React + monitorApsApi.js
+│   ├── 04-integration-agent.md       ← Integração rotas Laravel + menu Next.js
+│   └── 05-docker-dev-agent.md        ← Docker PostgreSQL de desenvolvimento
 │
 ├── tasks/
-│   └── execution-plan.md        ← Plano sequencial de 20 tasks
+│   └── execution-plan.md        ← Plano sequencial (Fases 0-5, marcação de status)
 │
 ├── memory/
-│   └── project-state.md         ← Estado atual, decisões, progresso
+│   └── project-state.md         ← Estado atual, decisões, thresholds, progresso
 │
-└── README.md                    ← Este arquivo
+├── docs/
+│   └── INDICADORES.md           ← Tabela dos 15 indicadores com fórmulas (a completar)
+│
+└── modules/monitor-aps/
+    └── docker/                  ← Docker Compose + schema DW + seed de dados
 ```
 
 ---
 
-## Resumo do que será desenvolvido
+## Resumo do Módulo
 
-### Contexto Normativo
-O novo modelo de cofinanciamento federal da APS (**Portaria GM/MS 3.493/2024**) substituiu o Previne Brasil e o PMAQ. O município precisa acompanhar 3 componentes principais que impactam o repasse financeiro:
+### O que monitora
 
-1. **Componente de Vínculo e Acompanhamento Territorial** — qualidade dos cadastros e acompanhamento de grupos prioritários
-2. **Componente de Qualidade** — 15 indicadores de boas práticas clínicas
-3. **Componente Fixo** — baseado no estrato IED do município
+| Componente | O que mede |
+|---|---|
+| **Vínculo Territorial** | Cadastros individuais/domiciliares, grupos prioritários |
+| **15 Indicadores de Qualidade** | Boas práticas clínicas por equipe (eSF/eAP/eSB) |
+| **Repasse Estimado** | Valor financeiro federal por equipe e municipal |
 
-### Módulo que será criado
+### Páginas do módulo
 
-| Página | Conteúdo |
-|--------|----------|
-| Dashboard | Visão geral: repasse estimado, alertas, mapa de calor dos indicadores |
-| Vínculo Territorial | Cadastros, grupos prioritários, pontuação por equipe |
-| Indicadores de Qualidade | 15 indicadores com gauge, subindicadores, histórico |
-| Por Equipe | Radar chart + histórico por equipe específica |
-| Configurações | Conexão ao banco do eSUS PEC, seleção de equipes |
-
-### Fonte dos dados
-Acesso direto (somente leitura) ao **banco PostgreSQL do eSUS APS PEC** instalado localmente, usando o schema de Data Warehouse (tabelas `fat_`, `dim_`, `vw_`).
+| URL | Componente |
+|---|---|
+| `/monitor-aps` | Dashboard geral: scorecard + mapa de calor |
+| `/monitor-aps/vinculo` | Cadastros e grupos prioritários |
+| `/monitor-aps/qualidade` | Grid dos 15 indicadores com gauge |
+| `/monitor-aps/equipe` | Radar chart + histórico por equipe |
+| `/monitor-aps/configuracoes` | Configuração da conexão com o eSUS PEC |
 
 ---
 
-## Links de Referência Importantes
+## Adaptação para outro município
 
-Durante o desenvolvimento, o Claude Code deve consultar:
+Alterar em `sysdoc_back/.env`:
+- `MONITOR_APS_MUNICIPIO_NOME`
+- `MONITOR_APS_MUNICIPIO_IBGE`
+- `MONITOR_APS_ESTRATO_IED` (verificar no SISAB)
+- `APS_DB_*` com credenciais do servidor PostgreSQL local do eSUS PEC
+
+O código é genérico — não há IBGE ou CNES hardcoded nos controllers.
+
+---
+
+## Links de Referência
 
 | Recurso | URL |
-|---------|-----|
+|---|---|
 | DW PEC (schema banco) | https://integracao.esusaps.bridge.ufsc.tech/dw/ |
-| LEDI APS (integração) | https://integracao.esusaps.bridge.ufsc.tech/ledi/ |
 | Portaria 3.493/2024 | https://bvsms.saude.gov.br/bvs/saudelegis/gm/2024/prt3493_11_04_2024.html |
 | Portaria 6.907/2025 | https://bvsms.saude.gov.br/bvs/saudelegis/gm/2025/prt6907_08_05_2025.html |
-| FAQ Cofinanciamento MS | https://www.gov.br/saude/pt-br/composicao/saps/esf/faq-novo-modelo-de-cofinanciamento-federal-da-aps |
 | Fichas técnicas indicadores | https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas |
 
 ---
 
-## Aviso sobre Thresholds dos Indicadores
+## Aviso sobre Thresholds
 
-⚠️ **Os valores de meta (thresholds) para classificação ótimo/bom/suficiente/regular de cada indicador devem ser verificados nas fichas técnicas oficiais do Ministério da Saúde** (link acima). Os valores presentes nos arquivos de agente são estimativas baseadas em informações disponíveis até maio/2025, mas as fichas técnicas são a fonte oficial.
-
----
-
-## Adaptação para outros municípios
-
-Para usar este projeto em outro município, alterar em `context/project.md`:
-- Nome e IBGE do município
-- CNES da(s) UBS
-- Estrato IED (verificar no SISAB)
-- INEs das equipes
-
-O resto do código é genérico e reutilizável.
+Os valores de meta (suficiente/bom/ótimo) em `MonitorApsController::THRESHOLDS` são estimativas baseadas nas informações disponíveis até maio/2025. **Verificar sempre nas fichas técnicas oficiais do Ministério da Saúde** antes de usar em produção.

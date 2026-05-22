@@ -4,190 +4,141 @@
 `integration-agent`
 
 ## Papel
-Responsável por **integrar o módulo Monitor APS ao sistema já existente**, sem quebrar funcionalidades existentes. Trata da integração de rotas, autenticação, menu de navegação e build do frontend.
+Responsável por integrar o módulo Monitor APS ao sistema existente, garantindo que nada seja quebrado. O módulo é implementado **dentro** dos dois projetos existentes (`sysdoc_back` e `sysdoc_front`) — não como serviço separado.
 
-## Dependências
-- `database-config-agent` completo
-- `indicators-service-agent` completo
-- `frontend-dashboard-agent` completo
+## Arquitetura Real de Integração
+
+```
+sysdoc_front (Next.js :3000)
+  └── pages/monitor-aps/*          → componentes em src/components/monitor-aps/
+  └── src/services/monitorApsApi.js → chama api Axios (NEXT_PUBLIC_API_URL + /monitor-aps/*)
+         │
+         ▼ HTTP (Bearer token JWT/Sanctum)
+sysdoc_back (Laravel :8000)
+  └── routes/api.php (prefix: monitor-aps, middleware: auth:sanctum)
+  └── MonitorApsController.php     → cálculos dos 15 indicadores em PHP
+  └── MonitorApsConfigController.php → config de conexão
+  └── MonitorApsBaseController.php   → conexão ao PostgreSQL eSUS PEC
+         │
+         ▼ PostgreSQL (somente leitura)
+eSUS APS PEC (:5432)
+  └── schema public (tabelas fat_, dim_, vw_)
+```
+
+---
 
 ## Tarefas
 
-### TAREFA 1: Integração das Rotas Backend
+### TAREFA 1: Integração das Rotas no Laravel (já feita)
 
-O sistema existente deve incluir as rotas do Monitor APS. Encontrar o arquivo principal do servidor (app.js / index.js / server.py / main.py) e adicionar:
+Adicionar ao `sysdoc_back/routes/api.php`:
 
-**Node.js/Express**:
+```php
+use App\Http\Controllers\MonitorApsController;
+use App\Http\Controllers\MonitorApsConfigController;
+
+Route::prefix('monitor-aps')
+    ->middleware(['auth:sanctum', 'throttle:60,1'])
+    ->group(function () {
+        Route::get('indicadores/resumo',         [MonitorApsController::class, 'resumo']);
+        Route::get('indicadores/vinculo',        [MonitorApsController::class, 'vinculo']);
+        Route::get('indicadores/qualidade',      [MonitorApsController::class, 'qualidade']);
+        Route::get('indicadores/qualidade/{id}', [MonitorApsController::class, 'qualidadeIndicador']);
+        Route::get('indicadores/repasse',        [MonitorApsController::class, 'repasse']);
+        Route::get('indicadores/historico',      [MonitorApsController::class, 'historico']);
+        Route::get('config/status',              [MonitorApsConfigController::class, 'status']);
+        Route::get('config/equipes',             [MonitorApsConfigController::class, 'equipes']);
+        Route::post('config/test',               [MonitorApsConfigController::class, 'testar']);
+        Route::post('config/save',               [MonitorApsConfigController::class, 'save']);
+    });
+```
+
+**Importante**: O prefixo `/api/monitor-aps` é definido no `RouteServiceProvider` pelo grupo `api`, portanto as URLs finais ficam `/api/monitor-aps/indicadores/resumo` etc.
+
+### TAREFA 2: Adicionar entrada no menu lateral do sysdoc_front
+
+Localizar o arquivo do menu/sidebar existente e adicionar:
+
 ```javascript
-// No arquivo principal do servidor existente
-// ADICIONAR (não modificar o que já existe):
-const monitorApsRoutes = require('./modules/monitor-aps/backend/src/routes');
-
-// Montar sob prefixo /api/monitor-aps
-app.use('/api/monitor-aps', 
-  authMiddleware,            // reutilizar middleware de autenticação existente
-  monitorApsRoutes
-);
-```
-
-**Python/FastAPI**:
-```python
-# No arquivo principal
-from modules.monitor_aps.backend.src.routes import router as monitor_aps_router
-
-app.include_router(
-    monitor_aps_router,
-    prefix="/api/monitor-aps",
-    dependencies=[Depends(get_current_user)]  # reutilizar autenticação existente
-)
-```
-
-### TAREFA 2: Adicionar ao Menu de Navegação
-
-Localizar o arquivo do menu lateral (Sidebar/Navigation) do sistema existente e adicionar entrada:
-
-```jsx
-// Adicionar na lista de itens do menu existente:
+{ label: 'Monitor APS', path: '/monitor-aps', icon: <MonitorHeartIcon /> }
+// ou sub-itens:
 {
   label: 'Monitor APS',
-  icon: <ChartBarIcon />,  // ou ícone compatível com o sistema existente
-  path: '/monitor-aps',
-  badge: alertCount > 0 ? alertCount : null,  // badge com alertas ativos
+  icon: <MonitorHeartIcon />,
   submenu: [
-    { label: 'Dashboard', path: '/monitor-aps' },
-    { label: 'Vínculo Territorial', path: '/monitor-aps/vinculo' },
-    { label: 'Indicadores de Qualidade', path: '/monitor-aps/qualidade' },
-    { label: 'Por Equipe', path: '/monitor-aps/equipe' },
-    { label: 'Configurações', path: '/monitor-aps/configuracoes' },
+    { label: 'Dashboard',            path: '/monitor-aps' },
+    { label: 'Vínculo Territorial',  path: '/monitor-aps/vinculo' },
+    { label: 'Indicadores',          path: '/monitor-aps/qualidade' },
+    { label: 'Por Equipe',           path: '/monitor-aps/equipe' },
+    { label: 'Configurações',        path: '/monitor-aps/configuracoes' },
   ]
 }
 ```
 
-### TAREFA 3: Integração de Rotas Frontend (React Router)
+### TAREFA 3: Integração das rotas no Next.js (já feita)
 
-No arquivo de rotas principal do frontend existente:
-```jsx
-// Adicionar rotas do Monitor APS (lazy loading para não impactar bundle inicial):
-import { lazy, Suspense } from 'react';
-const MonitorApsDashboard = lazy(() => import('./modules/monitor-aps/frontend/src/pages/Dashboard'));
-const VinculoTerritorial = lazy(() => import('./modules/monitor-aps/frontend/src/pages/VinculoTerritorial'));
-const IndicadoresQualidade = lazy(() => import('./modules/monitor-aps/frontend/src/pages/IndicadoresQualidade'));
-const PorEquipe = lazy(() => import('./modules/monitor-aps/frontend/src/pages/PorEquipe'));
-const Configuracoes = lazy(() => import('./modules/monitor-aps/frontend/src/pages/Configuracoes'));
+As pages em `sysdoc_front/pages/monitor-aps/` são roteadas automaticamente pelo Next.js:
 
-// Nas rotas (dentro de um ProtectedRoute existente):
-<Route path="/monitor-aps" element={<Suspense fallback={<Loading />}><MonitorApsDashboard /></Suspense>} />
-<Route path="/monitor-aps/vinculo" element={<Suspense fallback={<Loading />}><VinculoTerritorial /></Suspense>} />
-<Route path="/monitor-aps/qualidade" element={<Suspense fallback={<Loading />}><IndicadoresQualidade /></Suspense>} />
-<Route path="/monitor-aps/equipe" element={<Suspense fallback={<Loading />}><PorEquipe /></Suspense>} />
-<Route path="/monitor-aps/configuracoes" element={
-  <Suspense fallback={<Loading />}>
-    <AdminRoute>  {/* Apenas administradores */}
-      <Configuracoes />
-    </AdminRoute>
-  </Suspense>
-} />
-```
+- `/monitor-aps` → `pages/monitor-aps/index.js`
+- `/monitor-aps/vinculo` → `pages/monitor-aps/vinculo.js`
+- `/monitor-aps/qualidade` → `pages/monitor-aps/qualidade.js`
+- `/monitor-aps/equipe` → `pages/monitor-aps/equipe.js`
+- `/monitor-aps/configuracoes` → `pages/monitor-aps/configuracoes.js`
+
+O middleware de autenticação existente (`middleware.js` + `AuthContext`) já protege todas as rotas.
 
 ### TAREFA 4: Controle de Acesso
 
-Definir níveis de acesso para o módulo:
+Aproveitar o sistema de permissões existente do sysdoc:
 
-```javascript
-// Permissões por perfil (adaptar ao sistema de permissões existente)
-const MONITOR_APS_PERMISSIONS = {
-  'admin':    ['config', 'dashboard', 'vinculo', 'qualidade', 'equipe', 'export'],
-  'gestor':   ['dashboard', 'vinculo', 'qualidade', 'equipe', 'export'],
-  'tecnico':  ['dashboard', 'vinculo', 'qualidade', 'equipe'],
-  'viewer':   ['dashboard'],
-};
-```
+- Endpoints `config/test` e `config/save` verificam se o usuário tem perfil admin no Laravel
+- Página `/monitor-aps/configuracoes` exibe aviso se o usuário não for admin
 
 ### TAREFA 5: Variáveis de Ambiente
 
-Criar/atualizar `.env.example`:
+`sysdoc_back/.env` (e `.env.example`):
 ```bash
-# Monitor APS — Banco de Dados e-SUS PEC
-ESUS_PEC_DB_HOST=localhost
-ESUS_PEC_DB_PORT=5432
-ESUS_PEC_DB_NAME=esus
-ESUS_PEC_DB_USER=monitor_aps
-ESUS_PEC_DB_PASSWORD=
-ESUS_PEC_DB_SSL=false
-
-# Monitor APS — Município
-MONITOR_APS_MUNICIPIO_IBGE=
+# Monitor APS — banco eSUS PEC (somente leitura)
+APS_DB_HOST=
+APS_DB_PORT=5432
+APS_DB_DATABASE=esus
+APS_DB_USERNAME=monitor_aps
+APS_DB_PASSWORD=
 MONITOR_APS_MUNICIPIO_NOME=
+MONITOR_APS_MUNICIPIO_IBGE=
 MONITOR_APS_ESTRATO_IED=4
-
-# Monitor APS — Cache (opcional)
-MONITOR_APS_CACHE_TTL_SECONDS=300
 ```
 
-### TAREFA 6: Cache de Queries (Performance)
-
-Para não sobrecarregar o banco do eSUS PEC com queries pesadas frequentes:
-
-```javascript
-// modules/monitor-aps/backend/src/utils/cache.js
-const cache = new Map();
-
-function withCache(key, ttlSeconds, fn) {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < ttlSeconds * 1000) {
-    return cached.data;
-  }
-  const data = fn();
-  cache.set(key, { data, timestamp: Date.now() });
-  return data;
-}
-
-// Uso nos serviços:
-// const resultado = await withCache(
-//   `vinculo_${ine}_${ano}_${quad}`, 
-//   300,  // 5 minutos
-//   () => calcularVinculo(ine, ano, quad)
-// );
-
-// Endpoint para invalidar cache manualmente:
-// POST /api/monitor-aps/cache/clear (apenas admin)
+`sysdoc_front/.env`:
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-### TAREFA 7: Logging e Monitoramento
+Sem variável `MONITOR_APS_BACKEND_URL` — o frontend chama diretamente o Laravel.
 
-```javascript
-// Logar todas as queries ao banco do eSUS PEC para auditoria
-// (importante pois é um sistema de saúde com dados sensíveis)
-const logger = require('./logger'); // usar logger existente do sistema
+### TAREFA 6: Configuração dinâmica do banco
 
-function logQuery(userId, query, params, duration) {
-  logger.info({
-    module: 'monitor-aps',
-    action: 'db_query',
-    user_id: userId,
-    query_name: query,
-    duration_ms: duration,
-    timestamp: new Date().toISOString()
-  });
-}
-```
+O banco eSUS PEC pode ser configurado de duas formas (prioridade nesta ordem):
+
+1. **Via UI**: `POST /api/monitor-aps/config/save` persiste em `sysdoc_back/storage/app/monitor-aps-config.json`
+2. **Via .env**: variáveis `APS_DB_*` usadas como fallback via conexão `pgsql_esus` no `config/database.php`
+
+---
+
+## O que NÃO fazer
+
+- ❌ Não criar serviço Node.js separado — tudo fica no Laravel
+- ❌ Não modificar migrações MySQL do sysdoc (o PEC usa PostgreSQL separado)
+- ❌ Não alterar componentes de autenticação/login existentes
+- ❌ Não fazer INSERT/UPDATE/DELETE no banco do eSUS PEC
+- ❌ Não expor credenciais do banco do PEC no frontend
+
+---
 
 ## Critérios de Aceitação
 
-- [ ] Rotas do Monitor APS são acessíveis após login no sistema existente
-- [ ] Menu lateral exibe "Monitor APS" com submenu correto
-- [ ] Usuários sem permissão recebem HTTP 403 nas rotas protegidas
-- [ ] Página de Configurações só é acessível para admin
-- [ ] Lazy loading está funcionando (bundle inicial não cresce mais que 10%)
-- [ ] Variáveis de ambiente estão documentadas em `.env.example`
-- [ ] Cache reduz queries repetidas ao banco do PEC
-- [ ] Logs de acesso ao banco são registrados
-- [ ] Sistema existente não apresenta regressões após integração
-
-## Importante: O que NÃO fazer
-
-❌ Não modificar migrações de banco do sistema existente
-❌ Não alterar componentes de autenticação/login existentes
-❌ Não adicionar dependências conflitantes ao `package.json` raiz
-❌ Não fazer queries de INSERT/UPDATE/DELETE no banco do eSUS PEC
-❌ Não expor credenciais do banco do PEC no frontend
+- [ ] Rotas do Monitor APS são acessíveis via `/api/monitor-aps/*` após login
+- [ ] Menu lateral exibe "Monitor APS" com navegação correta
+- [ ] Página de Configurações salva e testa conexão com o banco do PEC
+- [ ] Sistema existente (Lab, Farmácia, Atendimento etc.) não apresenta regressões
+- [ ] Variáveis de ambiente documentadas no `.env.example` do sysdoc_back
