@@ -5,6 +5,8 @@ import { api } from '../../../services/api';
 
 const HEADER_HEIGHT = 124;
 const COLUMN_HEADER_HEIGHT = 56;
+const PANEL_CONTENT_OFFSET = HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40;
+const SCROLL_DURATION_SECONDS = 240;
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -83,7 +85,7 @@ export default function MedicinesPanel() {
                 color: 'var(--lg-text-primary)',
                 '@keyframes medicinesPanelScroll': {
                     '0%': { transform: 'translateY(0)' },
-                    '100%': { transform: `translateY(calc(-100% + 100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px))` },
+                    '100%': { transform: `translateY(calc(-100% + 100vh - ${PANEL_CONTENT_OFFSET}px))` },
                 },
             }}
         >
@@ -93,7 +95,10 @@ export default function MedicinesPanel() {
                     height: `${HEADER_HEIGHT}px`,
                     px: 3,
                     pt: 3,
-                    pb: '10px',
+                    pb: '5px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
                     position: 'relative',
                     zIndex: 2,
                     background: 'var(--lg-glass-modal)',
@@ -105,7 +110,7 @@ export default function MedicinesPanel() {
                 <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>
                     Painel de Disponibilidade de Medicamentos
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                <Typography variant="body1" sx={{ color: 'text.secondary', m: 0, lineHeight: 1.2 }}>
                     Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
                 </Typography>
             </Box>
@@ -115,13 +120,14 @@ export default function MedicinesPanel() {
                     height: `calc(100vh - ${HEADER_HEIGHT}px)`,
                     overflow: 'hidden',
                     px: 3,
-                    pt: 2,
+                    pt: '5px',
                     pb: 3,
                 }}
             >
                 <Grid
                     container
-                    spacing={2}
+                    columnSpacing={2}
+                    rowSpacing={0}
                     sx={{
                         height: `${COLUMN_HEADER_HEIGHT}px`,
                         position: 'relative',
@@ -140,15 +146,15 @@ export default function MedicinesPanel() {
 
                 <Box
                     sx={{
-                        height: `calc(100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px)`,
+                        height: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)`,
                         overflow: 'hidden',
                     }}
                 >
                     <Box
                         sx={{
-                        minHeight: `calc(100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px)`,
+                        minHeight: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)`,
                         animation: data.items.length > 8
-                            ? 'medicinesPanelScroll 124s linear infinite alternate'
+                            ? `medicinesPanelScroll ${SCROLL_DURATION_SECONDS}s linear infinite alternate`
                             : 'none',
                         willChange: 'transform',
                         }}
