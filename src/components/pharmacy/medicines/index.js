@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, styled } from '@mui/material';
+import { Box, Button, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
@@ -10,6 +10,8 @@ import { getAllMedicines, removeMedicineFetch } from '../../../store/fetchAction
 import { clearMedicinesState } from '../../../store/ducks/medicines';
 import { clearAlertMessages, clearMessages } from '../../../store/ducks/Layout';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+
+const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 export default function MedicinesManager() {
   const StyledTableRow = styled(TableRow)(() => ({
@@ -24,13 +26,22 @@ export default function MedicinesManager() {
   const dispatch = useDispatch();
   const { medicines, pagination } = useSelector((state) => state.medicines);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(10);
   const searchRef = useRef(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
 
+  const buildParams = (overrides = {}) => ({
+    page: page + 1,
+    per_page: perPage,
+    search: search || undefined,
+    ...overrides,
+  });
+
   useEffect(() => {
-    dispatch(getAllMedicines());
+    dispatch(getAllMedicines({ page: 1, per_page: perPage }));
     return () => {
       if (searchRef.current) clearTimeout(searchRef.current);
       dispatch(clearMedicinesState());
@@ -39,18 +50,37 @@ export default function MedicinesManager() {
     };
   }, [dispatch]);
 
+  useEffect(() => {
+    if (pagination?.current_page) {
+      setPage(Math.max(0, pagination.current_page - 1));
+    }
+  }, [pagination?.current_page]);
+
   const handleSearch = ({ target }) => {
     const value = target.value;
     setSearch(value);
+    setPage(0);
     clearTimeout(searchRef.current);
     searchRef.current = setTimeout(() => {
-      dispatch(getAllMedicines({ search: value || undefined }));
+      dispatch(getAllMedicines(buildParams({ search: value || undefined, page: 1 })));
     }, 400);
+  };
+
+  const handlePerPage = (event) => {
+    const value = Number(event.target.value);
+    setPerPage(value);
+    setPage(0);
+    dispatch(getAllMedicines(buildParams({ per_page: value, page: 1 })));
+  };
+
+  const handlePage = (_, newPage) => {
+    setPage(newPage);
+    dispatch(getAllMedicines(buildParams({ page: newPage + 1 })));
   };
 
   const onSuccess = () => {
     setDialogOpen(false);
-    dispatch(getAllMedicines({ search: search || undefined }));
+    dispatch(getAllMedicines(buildParams()));
   };
 
   return (
@@ -121,6 +151,17 @@ export default function MedicinesManager() {
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            component="div"
+            count={pagination?.total || 0}
+            page={page}
+            onPageChange={handlePage}
+            rowsPerPage={perPage}
+            onRowsPerPageChange={handlePerPage}
+            rowsPerPageOptions={PER_PAGE_OPTIONS}
+            labelRowsPerPage="Itens por pagina"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+          />
         </TableContainer>
 
         <MedicineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} medicine={editing} onSuccess={onSuccess} />

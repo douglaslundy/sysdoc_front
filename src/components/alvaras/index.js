@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    TextField, Typography, styled,
+    TablePagination, TextField, Typography, styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -47,15 +47,15 @@ export default function ListaAlvaras() {
     const [busca, setBusca] = useState('');
     const [nivelRisco, setNivelRisco] = useState('');
     const [statusFiltro, setStatusFiltro] = useState('');
-    const [page, setPage] = useState(1);
-    const [perPage, setPerPage] = useState(15);
+    const [page, setPage] = useState(0);
+    const [perPage, setPerPage] = useState(10);
     const buscaRef = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editando, setEditando] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
 
     const buildParams = (overrides = {}) => ({
-        page,
+        page: page + 1,
         per_page: perPage,
         busca: busca || undefined,
         nivel_risco: nivelRisco || undefined,
@@ -67,10 +67,16 @@ export default function ListaAlvaras() {
         dispatch(getAllAlvaras({ page: 1, per_page: perPage }));
     }, []);
 
+    useEffect(() => {
+        if (pagination?.current_page) {
+            setPage(Math.max(0, pagination.current_page - 1));
+        }
+    }, [pagination?.current_page]);
+
     const handleBusca = ({ target }) => {
         const valor = target.value;
         setBusca(valor);
-        setPage(1);
+        setPage(0);
         clearTimeout(buscaRef.current);
         buscaRef.current = setTimeout(() => {
             dispatch(getAllAlvaras(buildParams({ busca: valor || undefined, page: 1 })));
@@ -80,28 +86,27 @@ export default function ListaAlvaras() {
     const handleNivelRisco = ({ target }) => {
         const valor = target.value;
         setNivelRisco(valor);
-        setPage(1);
+        setPage(0);
         dispatch(getAllAlvaras(buildParams({ nivel_risco: valor || undefined, page: 1 })));
     };
 
     const handleStatusFiltro = ({ target }) => {
         const valor = target.value;
         setStatusFiltro(valor);
-        setPage(1);
+        setPage(0);
         dispatch(getAllAlvaras(buildParams({ status: valor || undefined, page: 1 })));
     };
 
-    const handlePerPage = ({ target }) => {
-        const valor = Number(target.value);
+    const handlePerPage = (event) => {
+        const valor = Number(event.target.value);
         setPerPage(valor);
-        setPage(1);
+        setPage(0);
         dispatch(getAllAlvaras(buildParams({ per_page: valor, page: 1 })));
     };
 
-    const handlePage = (delta) => {
-        const novaPage = page + delta;
-        setPage(novaPage);
-        dispatch(getAllAlvaras(buildParams({ page: novaPage })));
+    const handlePage = (_, newPage) => {
+        setPage(newPage);
+        dispatch(getAllAlvaras(buildParams({ page: newPage + 1 })));
     };
 
     const handleNovo = () => {
@@ -246,25 +251,16 @@ export default function ListaAlvaras() {
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    component="div"
+                    count={pagination?.total || 0}
+                    page={page}
+                    onPageChange={handlePage}
+                    rowsPerPage={perPage}
+                    onRowsPerPageChange={handlePerPage}
+                    rowsPerPageOptions={PER_PAGE_OPTIONS}
+                />
             </TableContainer>
-
-            {pagination && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-                    <FormControl className="lg-search-field" size="small" sx={{ minWidth: 110 }}>
-                        <InputLabel>Por página</InputLabel>
-                        <Select value={perPage} label="Por página" onChange={handlePerPage}>
-                            {PER_PAGE_OPTIONS.map(n => (
-                                <MenuItem key={n} value={n}>{n}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <Typography variant="body2" color="textSecondary">
-                        Página {pagination.current_page} de {pagination.last_page}
-                    </Typography>
-                    <Button size="small" disabled={pagination.current_page <= 1} onClick={() => handlePage(-1)}>Anterior</Button>
-                    <Button size="small" disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePage(1)}>Próxima</Button>
-                </Box>
-            )}
 
             <AlvaraDialog
                 open={dialogOpen}
@@ -278,5 +274,3 @@ export default function ListaAlvaras() {
         </Box>
     );
 }
-
-
