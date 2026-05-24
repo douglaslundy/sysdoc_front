@@ -18,6 +18,10 @@ import {
   Stack,
   Backdrop,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
@@ -82,6 +86,12 @@ export default function Trips() {
   const [dateEnd, setDateEnd] = useState(new Date(new Date().setDate(new Date().getDate() + 1)));
   const [printTrips, setPrintTrips] = useState([]);
   const [selectAllTrips, setSelectAllTrips] = useState(false);
+  const [bpaModalOpen, setBpaModalOpen] = useState(false);
+  const [bpaForm, setBpaForm] = useState({
+    cnsProfissional: "",
+    cbo: "",
+  });
+  const [bpaErrors, setBpaErrors] = useState({});
 
   useEffect(() => {
     dispatch(getAllTripsPerDate(dateBegin, dateEnd));
@@ -160,6 +170,44 @@ export default function Trips() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  const openBpaModal = () => {
+    setBpaErrors({});
+    setBpaModalOpen(true);
+  };
+
+  const closeBpaModal = () => {
+    setBpaModalOpen(false);
+    setBpaErrors({});
+  };
+
+  const changeBpaForm = ({ target }) => {
+    const value = target.value.replace(/\D/g, "");
+    setBpaForm((prev) => ({ ...prev, [target.name]: value }));
+    setBpaErrors((prev) => ({ ...prev, [target.name]: "" }));
+  };
+
+  const handleGenerateBpa = () => {
+    const errors = {};
+    const cnsProfissional = bpaForm.cnsProfissional.replace(/\D/g, "");
+    const cbo = bpaForm.cbo.replace(/\D/g, "");
+
+    if (cnsProfissional.length !== 15) {
+      errors.cnsProfissional = "Informe o CNS com 15 digitos.";
+    }
+
+    if (cbo.length !== 6) {
+      errors.cbo = "Informe o CBO com 6 digitos.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setBpaErrors(errors);
+      return;
+    }
+
+    loteTxt(allTrips, { cnsProfissional, cbo });
+    closeBpaModal();
   };
 
   const actionFabSx = {
@@ -251,7 +299,7 @@ export default function Trips() {
               <Fab
                 title="Gerar BPA-I"
                 onClick={() => {
-                  loteTxt(allTrips);
+                  openBpaModal();
                 }}
                 color="success"
                 aria-label="gerar-bpa"
@@ -479,6 +527,43 @@ export default function Trips() {
       </TableContainer>
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+
+      <Dialog open={bpaModalOpen} onClose={closeBpaModal} maxWidth="xs" fullWidth>
+        <DialogTitle>Gerar BPA-I</DialogTitle>
+        <DialogContent>
+          <Stack sx={{ gap: 2, pt: 1 }}>
+            <TextField
+              label="CNS do medico"
+              name="cnsProfissional"
+              value={bpaForm.cnsProfissional}
+              onChange={changeBpaForm}
+              inputProps={{ maxLength: 15, inputMode: "numeric" }}
+              error={!!bpaErrors.cnsProfissional}
+              helperText={bpaErrors.cnsProfissional || "Obrigatorio para gerar o arquivo."}
+              fullWidth
+            />
+
+            <TextField
+              label="CBO"
+              name="cbo"
+              value={bpaForm.cbo}
+              onChange={changeBpaForm}
+              inputProps={{ maxLength: 6, inputMode: "numeric" }}
+              error={!!bpaErrors.cbo}
+              helperText={bpaErrors.cbo || "Obrigatorio para gerar o arquivo."}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeBpaModal} variant="outlined">
+            Cancelar
+          </Button>
+          <Button onClick={handleGenerateBpa} variant="contained" color="success">
+            Gerar arquivo
+          </Button>
+        </DialogActions>
+      </Dialog>
     </BaseCard>
     </Box>
   );

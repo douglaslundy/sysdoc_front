@@ -32,7 +32,7 @@ import { closeModal, changeTitleAlert } from '../../../../store/ducks/Layout';
 import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
-import { getAllClients } from '../../../../store/fetchActions/clients';
+import { getClientsSelect } from '../../../../store/fetchActions/clients';
 import Select from '../../../inputs/selects';
 import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
@@ -230,7 +230,7 @@ export default function TripClientsModal(props) {
     // Carrega os clientes ao montar (o modal só monta quando open=true)
     useEffect(() => {
         if (clients.length <= 0) {
-            dispatch(getAllClients());
+            dispatch(getClientsSelect({ limit: 50 }));
         }
     }, []);
 

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
+
+const HEADER_HEIGHT = 124;
+const COLUMN_HEADER_HEIGHT = 56;
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -69,38 +72,105 @@ export default function MedicinesPanel() {
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
                 {item.pharmaceutical_form} - {item.presentation}
             </Typography>
-            <Typography variant="caption" sx={{ color: alpha(color, 0.95), fontWeight: 700, display: 'block', lineHeight: 1.2 }}>
-                Estoque: {item.available_quantity ?? '-'}
-            </Typography>
         </Paper>
     );
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
-            <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>
-                Painel de Disponibilidade de Medicamentos
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-                Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
-            </Typography>
-            <Grid container spacing={2}>
-                {columns.map((column) => (
-                    <Grid item xs={12} md={6} key={column.title}>
-                        <Typography variant="h4" sx={{ mb: 1.5, color: column.color, fontWeight: 700 }}>
-                            {column.title} ({column.items.length})
-                        </Typography>
-                        <Box sx={{ display: 'grid', gap: 1 }}>
-                            {column.items.length === 0 ? (
-                                <Paper sx={{ p: 1.25, background: 'var(--lg-glass-panel)', color: 'var(--lg-text-secondary)', border: '0.5px solid var(--lg-border)' }}>
-                                    Nenhum registro.
-                                </Paper>
-                            ) : (
-                                column.items.map((item) => renderMedicineCard(item, column.color))
-                            )}
-                        </Box>
-                    </Grid>
-                ))}
-            </Grid>
+        <Box
+            sx={{
+                height: '100vh',
+                overflow: 'hidden',
+                color: 'var(--lg-text-primary)',
+                '@keyframes medicinesPanelScroll': {
+                    '0%': { transform: 'translateY(0)' },
+                    '100%': { transform: `translateY(calc(-100% + 100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px))` },
+                },
+            }}
+        >
+            <Box
+                component="header"
+                sx={{
+                    height: `${HEADER_HEIGHT}px`,
+                    px: 3,
+                    pt: 3,
+                    pb: '10px',
+                    position: 'relative',
+                    zIndex: 2,
+                    background: 'var(--lg-glass-modal)',
+                    backdropFilter: 'var(--lg-blur-modal)',
+                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+                    borderBottom: '0.5px solid var(--lg-border)',
+                }}
+            >
+                <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>
+                    Painel de Disponibilidade de Medicamentos
+                </Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                    Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
+                </Typography>
+            </Box>
+
+            <Box
+                sx={{
+                    height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+                    overflow: 'hidden',
+                    px: 3,
+                    pt: 2,
+                    pb: 3,
+                }}
+            >
+                <Grid
+                    container
+                    spacing={2}
+                    sx={{
+                        height: `${COLUMN_HEADER_HEIGHT}px`,
+                        position: 'relative',
+                        zIndex: 2,
+                        background: 'var(--lg-glass-bg)',
+                    }}
+                >
+                    {columns.map((column) => (
+                        <Grid item xs={12} md={6} key={column.title}>
+                            <Typography variant="h4" sx={{ color: column.color, fontWeight: 700 }}>
+                                {column.title} ({column.items.length})
+                            </Typography>
+                        </Grid>
+                    ))}
+                </Grid>
+
+                <Box
+                    sx={{
+                        height: `calc(100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px)`,
+                        overflow: 'hidden',
+                    }}
+                >
+                    <Box
+                        sx={{
+                        minHeight: `calc(100vh - ${HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40}px)`,
+                        animation: data.items.length > 8
+                            ? 'medicinesPanelScroll 124s linear infinite alternate'
+                            : 'none',
+                        willChange: 'transform',
+                        }}
+                    >
+                        <Grid container spacing={2}>
+                            {columns.map((column) => (
+                                <Grid item xs={12} md={6} key={column.title}>
+                                    <Box sx={{ display: 'grid', gap: 1 }}>
+                                        {column.items.length === 0 ? (
+                                            <Paper sx={{ p: 1.25, background: 'var(--lg-glass-panel)', color: 'var(--lg-text-secondary)', border: '0.5px solid var(--lg-border)' }}>
+                                                Nenhum registro.
+                                            </Paper>
+                                        ) : (
+                                            column.items.map((item) => renderMedicineCard(item, column.color))
+                                        )}
+                                    </Box>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                </Box>
+            </Box>
         </Box>
     );
 }

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Card, CardContent, Checkbox, Chip, Divider, FormControlLabel,
-    MenuItem, Select, Stack, TextField, Typography, FormControl, InputLabel,
+    Stack, TextField, Typography,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { getAllClients } from '../../../store/fetchActions/clients';
+import { getClientsSelect } from '../../../store/fetchActions/clients';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
+import InputSelectClient from '../../inputs/inputSelectClient';
 
 const FORM_INICIAL = {
     client_id: '',
@@ -28,7 +29,7 @@ export default function NovoPedido() {
     const [busca, setBusca]       = useState('');
 
     useEffect(() => {
-        dispatch(getAllClients());
+        dispatch(getClientsSelect({ limit: 50 }));
         dispatch(getAllExames({ ativo: true, per_page: 100 }));
     }, []);
 
@@ -57,12 +58,14 @@ export default function NovoPedido() {
             <Box p={2}><Typography variant="h4">Novo Pedido de Exame</Typography></Box>
             <CardContent>
                 <Stack spacing={3} maxWidth={700}>
-                    <FormControl className="lg-search-field" required fullWidth>
-                        <InputLabel>Paciente</InputLabel>
-                        <Select name="client_id" value={form.client_id} label="Paciente" onChange={change}>
-                            {clients.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
-                        </Select>
-                    </FormControl>
+                    <InputSelectClient
+                        label="Paciente"
+                        name="client_id"
+                        clients={clients}
+                        value={form.client_id}
+                        setClient={(client) => setForm(f => ({ ...f, client_id: client?.id || '' }))}
+                        wd="100%"
+                    />
 
                     <TextField
                         className="lg-search-field"

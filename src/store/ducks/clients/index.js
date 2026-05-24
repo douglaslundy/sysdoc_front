@@ -3,7 +3,8 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 const INITIAL_STATE = {
   clients: [],
   client: {},
-  clientReport: null
+  clientReport: null,
+  pagination: null
 };
 
 export const addClient = createAction('ADD_CLIENT');
@@ -13,6 +14,7 @@ export const editClient = createAction('EDIT_CLIENT');
 export const addClients = createAction('ADD_CLIENTS');
 export const showClient = createAction('SHOW_CLIENT');
 export const inactiveClient = createAction('INACTIVE_CLIENT');
+export const setClientsPagination = createAction('SET_CLIENTS_PAGINATION');
 
 const clientReducer = createReducer(INITIAL_STATE, (builder) => {
   builder
@@ -33,6 +35,10 @@ const clientReducer = createReducer(INITIAL_STATE, (builder) => {
 
     .addCase(addClients, (state, action) => {
       state.clients = [...action.payload];
+    })
+
+    .addCase(setClientsPagination, (state, action) => {
+      state.pagination = action.payload;
     })
 
     .addCase(showClient, (state, action) => {

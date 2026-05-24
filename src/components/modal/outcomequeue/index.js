@@ -23,7 +23,6 @@ import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues
 import AlertModal from '../../messagesModal';
 import ConfirmDialog from "../../confirmDialog";
 import InputSelectClient from '../../inputs/inputSelectClient';
-import { getAllClients } from '../../../store/fetchActions/clients';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
 import BasicDatePicker from '../../inputs/datePicker';

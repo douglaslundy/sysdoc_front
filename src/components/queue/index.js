@@ -38,6 +38,7 @@ import {
     deleteQueueAttachment,
     downloadQueueAttachment
 } from "../../store/fetchActions/queues";
+import { getAllSpecialities } from "../../store/fetchActions/specialities";
 import { showQueue } from "../../store/ducks/queues";
 import { openModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
@@ -74,25 +75,19 @@ export default () => {
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
 
     const dispatch = useDispatch();
-    const { queues } = useSelector(state => state.queues);
+    const { queues, pagination } = useSelector(state => state.queues);
+    const { specialities } = useSelector(state => state.specialities);
     const [searchValue, setSearchValue] = useState('');
-    const [allQueues, setAllQueues] = useState(queues);
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
     const [done, setDone] = useState(0);
     const [urgency, setUrgency] = useState(2);
     const { user, profile } = useContext(AuthContext);
 
-    const uniqueSpeci = Array.from(new Set(queues.map(item => item.speciality?.name)));
-
-    // Transforma a variável specialities em um array JSON
-    const speciExits = Object.values({ ...uniqueSpeci }).map(item => ({
-        id: item,
-        name: item,
-    }));
-
     const changeSpeci = ({ target }) => {
         setSpeci(target.value)
+        setPage(0)
     }
 
     const dataDone = [
@@ -132,6 +127,7 @@ export default () => {
 
     const changeDone = ({ target }) => {
         setDone(target.value)
+        setPage(0)
     }
 
     const storeUrgency = Object.values({ ...dataUrgency }).map(item => ({
@@ -141,69 +137,36 @@ export default () => {
 
     const changeUrgency = ({ target }) => {
         setUrgency(target.value)
+        setPage(0)
     }
 
 
     useEffect(() => {
-        dispatch(getAllQueues());
+        dispatch(getAllSpecialities());
     }, [dispatch]);
 
     useEffect(() => {
-        if (queues.length > 0) {
-            let filteredQueues = speci
-                ? queues.filter(lett => lett.speciality?.name === speci)
-                : [...queues];
+        const timeout = setTimeout(() => {
+            setDebouncedSearch(searchValue);
+            setPage(0);
+        }, 400);
 
-            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
-            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
-
-            setAllQueues(filteredQueues);
-        }
-    }, [speci, queues, done, urgency]);
-
-    useEffect(() => {
-        // Executado apenas quando a página é carregada pela primeira vez, ou quando é adicionado um registro
-        let filteredQueues = searchValue
-            ? queues.filter(lett => lett?.client?.name.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
-            : queues;
-
-        if (speci) {
-            filteredQueues = filteredQueues.filter(lett => lett.speciality.name === speci);
-        }
-
-        filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
-        filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
-
-        setAllQueues(filteredQueues);
-    }, [queues, searchValue, speci, done, urgency]);
-
-    useEffect(() => {
-        if (searchValue || speci || done !== undefined) {
-            const filterPerSearch = (lett) =>
-                (lett.client?.name && lett.client.name.toLowerCase().includes(searchValue.toLowerCase())) ||
-                (lett.client?.cpf && lett.client.cpf.toLowerCase().includes(searchValue.toLowerCase())) ||
-                (lett.client?.cns && lett.client.cns.toLowerCase().includes(searchValue.toLowerCase())) ||
-                (lett.client?.phone && lett.client.phone.toLowerCase().includes(searchValue.toLowerCase()));
-
-            let filteredQueues = speci
-                ? queues.filter(lett => lett.speciality?.name === speci).filter(filterPerSearch)
-                : queues.filter(filterPerSearch);
-
-            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
-            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
-
-            setAllQueues(filteredQueues);
-        } else {
-            let filteredQueues = [...queues];
-            filteredQueues = done > 1 ? filteredQueues : filteredQueues.filter(lett => lett.done == done);
-            filteredQueues = urgency > 1 ? filteredQueues : filteredQueues.filter(urg => urg.urgency == urgency);
-
-            setAllQueues(filteredQueues);
-        }
-    }, [searchValue, speci, queues, done]);
+        return () => clearTimeout(timeout);
+    }, [searchValue]);
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    useEffect(() => {
+        dispatch(getAllQueues({
+            page: page + 1,
+            per_page: rowsPerPage,
+            search: debouncedSearch || undefined,
+            speciality_id: speci || undefined,
+            done,
+            urgency,
+        }));
+    }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -320,7 +283,7 @@ export default () => {
     return (
         <>
         <Box sx={modalFormRootSx}>
-        <BaseCard title={`Você possui ${allQueues.length} especialidades Cadastradas`}>
+        <BaseCard title={`Você possui ${pagination?.total ?? queues.length} especialidades Cadastradas`}>
             <AlertModal />
             {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
 
@@ -346,8 +309,9 @@ export default () => {
                     label="Especialidade"
                     name="speci"
                     value={speci}
-                    store={speciExits}
+                    store={specialities}
                     changeItem={changeSpeci}
+                    valueDefault="TODAS"
                     wd={"18%"}
                     size="small"
                     labelSx={{ fontSize: "12px" }}
@@ -467,12 +431,10 @@ export default () => {
 
                     </TableHead>
 
-                    {allQueues.length >= 1 ?
+                    {queues.length >= 1 ?
 
                         <TableBody>
-                            {allQueues
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((queue, index) => (
+                            {queues.map((queue, index) => (
 
                                     <StyledTableRow key={queue.id} hover>
                                         <TableCell>
@@ -678,7 +640,7 @@ export default () => {
 
                 <TablePagination
                     component="div"
-                    count={allQueues.length}
+                    count={pagination?.total ?? queues.length}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}

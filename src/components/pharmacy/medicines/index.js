@@ -13,6 +13,12 @@ import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
+const truncate = (value, max = 30) => {
+  if (!value) return '-';
+  const text = String(value);
+  return text.length > max ? `${text.substring(0, max)}...` : text;
+};
+
 export default function MedicinesManager() {
   const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
@@ -125,7 +131,7 @@ export default function MedicinesManager() {
               {medicines.map((m) => (
                 <StyledTableRow key={m.id} hover>
                   <TableCell>{m.active_ingredient}</TableCell>
-                  <TableCell>{m.concentration}</TableCell>
+                  <TableCell title={m.concentration}>{truncate(m.concentration, 30)}</TableCell>
                   <TableCell>{m.pharmaceutical_form}</TableCell>
                   <TableCell>{m.is_free_distribution ? 'Sim' : 'Não'}</TableCell>
                   <TableCell>{m.active ? 'Sim' : 'Não'}</TableCell>

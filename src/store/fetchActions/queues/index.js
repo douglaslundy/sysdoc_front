@@ -1,17 +1,31 @@
 import { api } from "../../../services/api";
-import { inactiveQueue, addQueue, editQueue, addQueues } from "../../ducks/queues";
+import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination } from "../../ducks/queues";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 
-export const getAllQueues = () => {
+export const getAllQueues = (params = {}) => {
 
     return (dispatch) => {
         dispatch(turnLoading());
 
         api
-            .get('/queues')
+            .get('/queues', { params })
             .then((res) => {
-                dispatch(addQueues(res.data));
+                const data = res.data?.data || res.data;
+                dispatch(addQueues(data));
+                if (res.data?.meta) {
+                    dispatch(setQueuesPagination({
+                        current_page: res.data.meta.current_page,
+                        per_page: res.data.meta.per_page,
+                        total: res.data.meta.total,
+                    }));
+                } else {
+                    dispatch(setQueuesPagination({
+                        current_page: 1,
+                        per_page: data.length,
+                        total: data.length,
+                    }));
+                }
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
@@ -52,12 +66,12 @@ export const addQueueFetch = (queue, callbacks = {}) => {
         api.post('/queues', queue)
             .then((res) =>
             (
-                dispatch(addQueue(res.data)),
+                dispatch(addQueue(res.data?.data || res.data)),
                 showGlobalMessage && dispatch(addMessage(`A especialidade foi adicionada com sucesso!`)),
                 showGlobalAlert && dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 closeOnSuccess && cleanForm && cleanForm(),
-                onSuccess && onSuccess(res.data)
+                onSuccess && onSuccess(res.data?.data || res.data)
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
@@ -82,8 +96,8 @@ export const editDoneQueue = (queue, cleanForm) => {
         api.put(`/queues/${queue.id}`, queue)
             .then((res) =>
             (
-                dispatch(editQueue(res.data)),
-                dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
+                dispatch(editQueue(res.data?.data || res.data)),
+                dispatch(addMessage(`A Especialidade ${(res.data?.data || res.data).id} foi atualizada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm()
@@ -150,12 +164,12 @@ export const editQueueFetch = (queue, cleanForm) => {
 
             api.put(`/queues/${queue.id}`, payload)
                 .then((res) => (
-                    dispatch(editQueue(res.data)),
-                    showGlobalMessage && dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
+                    dispatch(editQueue(res.data?.data || res.data)),
+                    showGlobalMessage && dispatch(addMessage(`A Especialidade ${(res.data?.data || res.data).id} foi atualizada com sucesso!`)),
                     showGlobalAlert && dispatch(turnAlert()),
                     dispatch(turnLoading()),
                     closeOnSuccess && cleanFormCallback && cleanFormCallback(),
-                    onSuccess && onSuccess(res.data)
+                    onSuccess && onSuccess(res.data?.data || res.data)
                 ))
                 .catch((error) => {
                     dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
@@ -177,8 +191,8 @@ export const editQueueFetch = (queue, cleanForm) => {
 
         api.put(`/queues/${queue.id}`, payload)
             .then((res) => (
-                dispatch(editQueue(res.data)),
-                dispatch(addMessage(`A Especialidade ${res.data.id} foi atualizada com sucesso!`)),
+                dispatch(editQueue(res.data?.data || res.data)),
+                dispatch(addMessage(`A Especialidade ${(res.data?.data || res.data).id} foi atualizada com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
                 cleanForm && cleanForm()

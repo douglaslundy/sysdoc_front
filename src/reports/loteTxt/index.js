@@ -424,7 +424,7 @@ const CONFIG = {
 //   Nenhum disponível → cliente IGNORADO (sem geração de registro)
 // =============================================================================
 
-export default function generateBPAIFile(trips) {
+export default function generateBPAIFile(trips, professionalConfig = {}) {
   const linhasGeradas  = [];
   const resumoControle = [];
   let numeroFolha = 1;
@@ -452,7 +452,13 @@ export default function generateBPAIFile(trips) {
     : CONFIG.competencia;                            // fallback se array vazio
 
   // Sobrescreve CONFIG localmente — não altera o objeto global
-  const config = { ...CONFIG, competencia };
+  const config = {
+    ...CONFIG,
+    ...professionalConfig,
+    competencia,
+    cnsProfissional: String(professionalConfig.cnsProfissional ?? CONFIG.cnsProfissional).replace(/\D/g, ''),
+    cbo: String(professionalConfig.cbo ?? CONFIG.cbo).replace(/\D/g, ''),
+  };
 
   trips.forEach((trip) => {
     const dataAtendimento = trip.departure_date.replace(/-/g, '');

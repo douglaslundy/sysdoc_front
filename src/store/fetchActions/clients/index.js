@@ -1,7 +1,7 @@
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
-import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport, showClient } from "../../ducks/clients";
+import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport, showClient, setClientsPagination } from "../../ducks/clients";
 import { turnAlert, addMessage, addAlertMessage, turnLoading, turnModal } from "../../ducks/Layout";
 import { format, parse, parseISO } from 'date-fns';
 
@@ -21,15 +21,16 @@ const converterData = (dataString) => {
     return dataFormatada;
 };
 
-export const getAllClients = () => {
+export const getAllClients = (params = {}) => {
 
     return (dispatch) => {
         dispatch(turnLoading());
 
         api
-            .get('/clients')
+            .get('/clients', { params })
             .then((res) => {
-                dispatch(addClients(res.data));
+                dispatch(addClients(res.data.data || res.data));
+                dispatch(setClientsPagination(res.data.meta || null));
                 dispatch(turnLoading());
             })
             .catch((error) => {
@@ -37,6 +38,22 @@ export const getAllClients = () => {
             })
     }
 }
+
+export const getClientsSelect = (params = {}) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        api.get('/clients/select', { params })
+            .then((res) => {
+                dispatch(addClients(res.data || []));
+                dispatch(setClientsPagination(null));
+                dispatch(turnLoading());
+            })
+            .catch(() => {
+                dispatch(turnLoading());
+            });
+    };
+};
 
 
 

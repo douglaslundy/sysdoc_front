@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Typography,
     Box,
@@ -22,22 +22,28 @@ import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllClients, inactiveClientFetch, viewClientFetch } from "../../store/fetchActions/clients";
-import { changeTitleAlert, turnModal, turnModalGetPendingSales } from "../../store/ducks/Layout";
+import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
-import { parseISO, format, setDate } from 'date-fns';
+import { parseISO, format } from 'date-fns';
+
+const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
         backgroundColor: theme.palette.action.hover,
     },
-    // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
     },
 }));
 
-export default () => {
+const safeText = (value, max = 30) => {
+    if (!value) return '-';
+    return String(value).substring(0, max).toUpperCase();
+};
+
+export default function Clients() {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -45,262 +51,177 @@ export default () => {
     });
 
     const dispatch = useDispatch();
-    const { clients } = useSelector(state => state.clients);
+    const { clients, pagination } = useSelector(state => state.clients);
     const [searchValue, setSearchValue] = useState("");
-    const [allClients, setAllClients] = useState(clients);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const searchRef = useRef(null);
 
-    const HandleEditClient = async client => {
+    const buildParams = (overrides = {}) => ({
+        page: page + 1,
+        per_page: rowsPerPage,
+        search: searchValue || undefined,
+        ...overrides,
+    });
+
+    const handleEditClient = (client) => {
         setConfirmDialog({
             ...confirmDialog,
             isOpen: true,
             title: `Deseja Editar o cliente ${client.name}`,
             confirm: () => dispatch(viewClientFetch(client.id)),
         });
-    }
+    };
 
-    const HandleInactiveClient = async client => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente excluir o cliente ${client.name}`, confirm: inactiveClientFetch(client) })
-        dispatch(changeTitleAlert(`O cliente ${client.name} foi inativado com sucesso!`))
-    }
+    const handleInactiveClient = (client) => {
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja Realmente excluir o cliente ${client.name}`,
+            confirm: inactiveClientFetch(client),
+        });
+        dispatch(changeTitleAlert(`O cliente ${client.name} foi inativado com sucesso!`));
+    };
 
     const searchClients = ({ target }) => {
-        setSearchValue(target.value.toLowerCase());
-    }
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+        const value = target.value;
+        setSearchValue(value);
+        setPage(0);
+        clearTimeout(searchRef.current);
+        searchRef.current = setTimeout(() => {
+            dispatch(getAllClients(buildParams({ search: value || undefined, page: 1 })));
+        }, 400);
+    };
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+        dispatch(getAllClients(buildParams({ page: newPage + 1 })));
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        const value = parseInt(event.target.value, 10);
+        setRowsPerPage(value);
         setPage(0);
+        dispatch(getAllClients(buildParams({ per_page: value, page: 1 })));
     };
 
-
     useEffect(() => {
-        dispatch(getAllClients());
+        dispatch(getAllClients({ page: 1, per_page: rowsPerPage }));
+        return () => {
+            if (searchRef.current) clearTimeout(searchRef.current);
+        };
     }, []);
 
     useEffect(() => {
-        setAllClients(searchValue ? [...clients.filter(cli => cli.name.toString().includes(searchValue.toString()))] : clients);
-    }, [clients]);
-
-    useEffect(() => {
-        const removeAccents = str => {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        };
-
-        const filteredClients = clients.filter(cli => {
-            const search = removeAccents(searchValue.toString().trim().toLowerCase());
-
-            if (!search) {
-                return true; // Retorna todos os clientes se nenhum termo de pesquisa for fornecido
-            }
-
-            const name = removeAccents(cli.name.toString().trim().toLowerCase());
-            const cnsMatch = cli.cns && cli.cns.toString() === search;
-            const cpfMatch = cli.cpf && cli.cpf.toString() === search; // Nova condição para pesquisa por CPF
-            const phoneMatch = cli?.phone?.includes(search);
-            const nameMatch = name.includes(search);
-
-            return cnsMatch || cpfMatch || phoneMatch || nameMatch; // Inclui a pesquisa por CPF na condição de retorno
-        });
-
-        setAllClients(filteredClients);
-    }, [searchValue]);
-
+        if (pagination?.current_page) {
+            setPage(Math.max(0, pagination.current_page - 1));
+        }
+    }, [pagination?.current_page]);
 
     return (
         <Box sx={modalFormRootSx}>
-        <BaseCard title={`Você possui ${allClients.length} Clientes Cadastrados`}>
-            <AlertModal />
-            <Box sx={{
-                '& > :not(style)': { m: 2 },
-                'display': 'flex',
-                'justify-content': 'stretch'
-            }}>
-                <TextField
-                    className="lg-search-field"
-                    sx={{ width: "100%" }}
-                    placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
-                    name="search"
-                    autoComplete="off"
-                    value={searchValue}
-                    onChange={searchClients}
-                />
+            <BaseCard title={`Você possui ${pagination?.total || clients.length} Clientes Cadastrados`}>
+                <AlertModal />
+                <Box sx={{
+                    '& > :not(style)': { m: 2 },
+                    display: 'flex',
+                    justifyContent: 'stretch'
+                }}>
+                    <TextField
+                        className="lg-search-field"
+                        sx={{ width: "100%" }}
+                        placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
+                        name="search"
+                        autoComplete="off"
+                        value={searchValue}
+                        onChange={searchClients}
+                    />
 
-                <ClientModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="user-plus" />
-                    </Fab>
-                </ClientModal>
-            </Box>
+                    <ClientModal>
+                        <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
+                            <FeatherIcon icon="user-plus" />
+                        </Fab>
+                    </ClientModal>
+                </Box>
 
-            <TableContainer>
+                <TableContainer>
+                    <Table aria-label="simple table" sx={{ mt: 3, whiteSpace: "nowrap" }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><Typography color="textSecondary" variant="h6">Nome / DN</Typography></TableCell>
+                                <TableCell><Typography color="textSecondary" variant="h6">Mãe / CPF / CNS</Typography></TableCell>
+                                <TableCell><Typography color="textSecondary" variant="h6">Telefone / Endereço</Typography></TableCell>
+                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
+                            </TableRow>
+                        </TableHead>
 
-                <Table
-                    aria-label="simple table"
-                    sx={{
-                        mt: 3,
-                        whiteSpace: "nowrap",
-                    }}
-                >
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>
-                                <Typography color="textSecondary" variant="h6">
-                                    Nome / DN
-                                </Typography>
-                            </TableCell>
-                            {/* <TableCell>
-                                <Typography color="textSecondary" variant="h6">
-                                    Endereço
-                                </Typography>
-                            </TableCell> */}
-                            <TableCell>
-                                <Typography color="textSecondary" variant="h6">
-                                    MÃE / CPF / CNS
-                                </Typography>
-                            </TableCell>
-                            <TableCell>
-                                <Typography color="textSecondary" variant="h6">
-                                    Telefone / Endereço / Obs
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell align="center">
-                                <Typography color="textSecondary" variant="h6">
-                                    Ações
-                                </Typography>
-                            </TableCell>
-
-                        </TableRow>
-                    </TableHead>
-
-                    {allClients.length >= 1 ?
-                        <TableBody>
-                            {allClients
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((client, index) => (
+                        {clients.length >= 1 ? (
+                            <TableBody>
+                                {clients.map((client) => (
                                     <StyledTableRow key={client.id} hover>
-                                        <>
-                                            <TableCell>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <Box>
-                                                        <Typography
-                                                            variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
-                                                        >
-                                                            {client?.name.substring(0, 35).toUpperCase()}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: "13px",
-                                                            }}
-                                                        >
-                                                            {client?.born_date ? format(parseISO(client?.born_date), 'dd/MM/yyyy') : null}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
+                                        <TableCell>
+                                            <Typography variant="h6" sx={{ fontWeight: "600" }}>
+                                                {safeText(client?.name, 35)}
+                                            </Typography>
+                                            <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
+                                                {client?.born_date ? format(parseISO(client.born_date), 'dd/MM/yyyy') : null}
+                                            </Typography>
+                                        </TableCell>
 
-                                            <TableCell>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "left",
-                                                    }}
-                                                >
-                                                    <Box>
-                                                        <Typography
-                                                            variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
-                                                        >
-                                                            {client?.mother?.substring(0, 30).toUpperCase()}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: "12px",
-                                                            }}
-                                                        >
-                                                            {client?.cpf}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textPrimary"
-                                                            sx={{
-                                                                fontSize: "12px",
-                                                            }}
-                                                        >
-                                                            {client?.cns}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
+                                        <TableCell>
+                                            <Typography variant="h6" sx={{ fontWeight: "600" }}>
+                                                {safeText(client?.mother, 30)}
+                                            </Typography>
+                                            <Typography color="textSecondary" sx={{ fontSize: "12px" }}>{client?.cpf}</Typography>
+                                            <Typography color="textPrimary" sx={{ fontSize: "12px" }}>{client?.cns}</Typography>
+                                        </TableCell>
 
-                                            <TableCell>
-                                                <Typography variant="h6">{client?.phone}</Typography>
-                                                <Typography variant="h6">{client?.addresses?.street.substring(0, 30).toUpperCase()}, Nº {client?.addresses?.number}</Typography>
-                                                <Typography variant="h6">{client?.addresses?.district.substring(0, 30).toUpperCase()}</Typography>
-                                            </TableCell>
+                                        <TableCell>
+                                            <Typography variant="h6">{client?.phone || '-'}</Typography>
+                                            <Typography variant="h6">
+                                                {safeText(client?.addresses?.street, 30)}, Nº {client?.addresses?.number || '-'}
+                                            </Typography>
+                                            <Typography variant="h6">{safeText(client?.addresses?.district, 30)}</Typography>
+                                        </TableCell>
 
-                                            <TableCell align="center">
-                                                <Box sx={{ "& button": { mx: 1 } }}>
+                                        <TableCell align="center">
+                                            <Box sx={{ "& button": { mx: 1 } }}>
+                                                <Button title="Editar cliente" onClick={() => { handleEditClient(client) }} color="success" size="medium" variant="contained">
+                                                    <FeatherIcon icon="edit" width="20" height="20" />
+                                                </Button>
 
-                                                    <Button title="Editar cliente" onClick={() => { HandleEditClient(client) }} color="success" size="medium" variant="contained">
-                                                        <FeatherIcon icon="edit" width="20" height="20" />
-                                                    </Button>
-
-                                                    <Button title="Excluir cliente" onClick={() => { HandleInactiveClient(client) }} color="error" size="medium" variant="contained">
-                                                        <FeatherIcon icon="trash" width="20" height="20" />
-                                                    </Button>
-
-
-                                                </Box>
-                                            </TableCell>
-                                        </>
-
+                                                <Button title="Excluir cliente" onClick={() => { handleInactiveClient(client) }} color="error" size="medium" variant="contained">
+                                                    <FeatherIcon icon="trash" width="20" height="20" />
+                                                </Button>
+                                            </Box>
+                                        </TableCell>
                                     </StyledTableRow>
                                 ))}
-                        </TableBody>
-
-                        :
-
-                        <TableCell>
-                            Nenhum registro encontrado!
-                        </TableCell>
-                    }
-                </Table>
-                <TablePagination
-                    component="div"
-                    count={allClients ? allClients.length : 0}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
+                            </TableBody>
+                        ) : (
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell colSpan={4}>Nenhum registro encontrado!</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        )}
+                    </Table>
+                    <TablePagination
+                        component="div"
+                        count={pagination?.total || 0}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        rowsPerPage={rowsPerPage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        rowsPerPageOptions={PER_PAGE_OPTIONS}
+                    />
+                </TableContainer>
+                <ConfirmDialog
+                    confirmDialog={confirmDialog}
+                    setConfirmDialog={setConfirmDialog}
+                    isAuthenticated
                 />
-            </TableContainer>
-            <ConfirmDialog
-                confirmDialog={confirmDialog}
-                setConfirmDialog={setConfirmDialog}
-                isAuthenticated
-            />
-
-        </BaseCard >
+            </BaseCard>
         </Box>
     );
-};
-
+}

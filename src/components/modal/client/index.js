@@ -386,10 +386,27 @@ export default function ClientModal(props) {
                   </Box>
 
                   <TextField
+                    className="client-obs-field"
                     id="obs"
                     label={obs?.length > 0 ? `OBS: ${500 - obs.length} caracteres restantes` : 'OBS'}
                     multiline
-                    rows={4}
+                    rows={1}
+                    sx={{
+                      '& .MuiInputBase-root.MuiOutlinedInput-root': {
+                        minHeight: '66px !important',
+                        height: '66px',
+                        alignItems: 'flex-start',
+                        padding: '8px 12px !important',
+                      },
+                      '& textarea.MuiInputBase-input': {
+                        height: '42px !important',
+                        minHeight: '42px !important',
+                        paddingTop: '0 !important',
+                        paddingBottom: '0 !important',
+                        lineHeight: '14px !important',
+                        overflow: 'auto',
+                      },
+                    }}
                     value={obs || ''}
                     name="obs"
                     onChange={changeItem}

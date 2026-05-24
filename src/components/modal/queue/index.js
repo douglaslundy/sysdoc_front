@@ -31,7 +31,7 @@ import {
     getQueueById
 } from '../../../store/fetchActions/queues';
 import InputSelectClient from '../../inputs/inputSelectClient';
-import { getAllClients } from '../../../store/fetchActions/clients';
+import { getClientsSelect } from '../../../store/fetchActions/clients';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
 import protocolPDF from "../../../reports/protocol";
@@ -396,7 +396,7 @@ export default function QueueModal(props) {
     useEffect(() => {
         if (isOpenModal === true) {
             if (clients.length <= 0) {
-                dispatch(getAllClients());
+                dispatch(getClientsSelect({ limit: 50 }));
                 dispatch(getAllSpecialities());
             }
         }
@@ -573,5 +573,4 @@ export default function QueueModal(props) {
         </div>
     );
 }
-
 
