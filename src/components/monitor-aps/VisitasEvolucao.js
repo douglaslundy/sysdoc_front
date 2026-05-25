@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, CircularProgress, FormControl, InputLabel,
@@ -21,6 +22,8 @@ export function buildChartSeries(series, cores) {
 }
 
 export default function VisitasEvolucao() {
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const anoAtual = new Date().getFullYear();
     const mesAtual = new Date().getMonth() + 1;
 
@@ -75,17 +78,20 @@ export default function VisitasEvolucao() {
 
     const chartSeries = useMemo(() => buildChartSeries(series, CORES), [series]);
 
+    const labelColor = isDarkMode ? '#ffffff' : '#b0bec5';
+    const legendColor = isDarkMode ? '#ffffff' : '#546e7a';
+
     const chartOptions = useMemo(() => ({
         chart:   { ...FONT, toolbar: { show: false }, zoom: { enabled: false } },
-        xaxis:   { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily } } },
-        yaxis:   { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily } } },
+        xaxis:   { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
+        yaxis:   { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
         stroke:  { width: 2, curve: 'smooth' },
         markers: { size: 4 },
-        legend:  { position: 'bottom', fontFamily: FONT.fontFamily },
+        legend:  { position: 'bottom', fontFamily: FONT.fontFamily, labels: { colors: legendColor } },
         tooltip: { theme: 'dark', y: { formatter: v => v.toLocaleString('pt-BR') } },
         grid:    { borderColor: 'var(--lg-border)' },
         colors:  series.map((_, i) => CORES[i] ?? '#888'),
-    }), [series]);
+    }), [series, labelColor, legendColor]);
 
     const selSx = { minWidth: 140 };
 
