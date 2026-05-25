@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
+import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
@@ -49,6 +49,7 @@ export default function DailyStatusManager() {
   const [referenceDate, setReferenceDate] = useState(new Date().toISOString().slice(0, 10));
   const [search, setSearch] = useState('');
   const [includeAll, setIncludeAll] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const searchRef = useRef(null);
@@ -57,6 +58,7 @@ export default function DailyStatusManager() {
     reference_date: referenceDate,
     search: search || undefined,
     include_all: includeAll ? 1 : undefined,
+    availability_status: (includeAll && statusFilter) ? statusFilter : undefined,
     page: page + 1,
     per_page: perPage,
     ...overrides,
@@ -73,9 +75,20 @@ export default function DailyStatusManager() {
     };
   }, [dispatch]);
 
+  const handleStatusFilter = ({ target }) => {
+    const value = target.value;
+    setStatusFilter(value);
+    setPage(0);
+    dispatch(getDailyStatuses(buildParams({ availability_status: value || undefined, page: 1 })));
+  };
+
   useEffect(() => {
     dispatch(getDailyStatuses(buildParams({ page: 1 })));
   }, [referenceDate, includeAll, dispatch]);
+
+  useEffect(() => {
+    if (!includeAll) setStatusFilter('');
+  }, [includeAll]);
 
   useEffect(() => {
     if (pagination?.current_page) {
@@ -127,7 +140,9 @@ export default function DailyStatusManager() {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '180px minmax(260px, 1fr) auto auto' },
+            gridTemplateColumns: includeAll
+              ? { xs: '1fr', sm: '1fr 1fr', md: '180px minmax(200px, 1fr) 160px auto auto' }
+              : { xs: '1fr', sm: '1fr 1fr', md: '180px minmax(260px, 1fr) auto auto' },
             alignItems: 'center',
             gap: 1.5,
             mb: 2,
@@ -151,6 +166,16 @@ export default function DailyStatusManager() {
             inputProps={{ autoComplete: 'off' }}
             sx={{ minWidth: 0, width: '100%' }}
           />
+          {includeAll && (
+            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 0, width: '100%' }}>
+              <InputLabel>Status</InputLabel>
+              <Select value={statusFilter} label="Status" onChange={handleStatusFilter}>
+                <MenuItem value="">Todos</MenuItem>
+                <MenuItem value="available">Disponível</MenuItem>
+                <MenuItem value="unavailable">Indisponível</MenuItem>
+              </Select>
+            </FormControl>
+          )}
           <Button
             variant={includeAll ? 'contained' : 'outlined'}
             onClick={handleToggleIncludeAll}

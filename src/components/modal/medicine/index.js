@@ -20,6 +20,7 @@ const EMPTY = {
     ean_code: '',
     is_free_distribution: true,
     is_controlled: false,
+    is_judicial_order: false,
     active: true,
     technical_notes: '',
 };
@@ -143,6 +144,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
                         <TextField name="technical_notes" label="Observações Técnicas" value={form.technical_notes || ''} onChange={change} fullWidth />
                         <FormControlLabel control={<Checkbox name="is_free_distribution" checked={!!form.is_free_distribution} onChange={change} />} label="Distribuição Gratuita" />
                         <FormControlLabel control={<Checkbox name="is_controlled" checked={!!form.is_controlled} onChange={change} />} label="Medicamento Controlado" />
+                        <FormControlLabel control={<Checkbox name="is_judicial_order" checked={!!form.is_judicial_order} onChange={change} />} label="Ordem Judicial" />
                         <FormControlLabel control={<Checkbox name="active" checked={!!form.active} onChange={change} />} label="Ativo" />
                     </Stack>
                 </Box>
