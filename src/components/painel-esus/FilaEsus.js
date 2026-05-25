@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Box, Card, CardContent, CircularProgress, FormControl,
     Grid, InputLabel, MenuItem, Select, Table, TableBody,
@@ -43,33 +43,45 @@ export default function FilaEsus() {
     const [dados,         setDados]         = useState(null);
     const [loading,       setLoading]       = useState(false);
     const [erro,          setErro]          = useState(null);
+    const abortRef = useRef(null);
 
     // Carrega filtros quando CNES muda
     useEffect(() => {
         if (!cnes) return;
-        painelEsusApi.filtros(cnes)
+        const ac = new AbortController();
+        painelEsusApi.filtros(cnes, { signal: ac.signal })
             .then(d => {
                 setEquipes(d.equipes ?? []);
                 setProfissionais(d.profissionais ?? []);
             })
             .catch(() => {});
+        return () => ac.abort();
     }, [cnes]);
 
     const carregarFila = useCallback(() => {
         if (!cnes) return;
+        if (abortRef.current) abortRef.current.abort();
+        const ac = new AbortController();
+        abortRef.current = ac;
         setLoading(true);
         setErro(null);
         const params = { cnes };
         if (equipeId) params.equipe = equipeId;
         if (profId)   params.profissional = profId;
-        painelEsusApi.fila(params)
+        painelEsusApi.fila(params, { signal: ac.signal })
             .then(d => setDados(d))
-            .catch(e => setErro(e.message))
+            .catch(e => {
+                if (e.name === 'CanceledError' || e.name === 'AbortError') return;
+                setErro('Erro ao carregar a fila. Tente novamente.');
+            })
             .finally(() => setLoading(false));
     }, [cnes, equipeId, profId]);
 
     // Re-fetch quando qualquer filtro muda
-    useEffect(() => { carregarFila(); }, [carregarFila]);
+    useEffect(() => {
+        carregarFila();
+        return () => { if (abortRef.current) abortRef.current.abort(); };
+    }, [carregarFila]);
 
     const handleCnesSubmit = (e) => {
         e.preventDefault();
