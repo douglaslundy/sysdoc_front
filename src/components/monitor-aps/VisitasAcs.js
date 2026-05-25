@@ -480,6 +480,9 @@ export default function VisitasAcs() {
                                             <TableCell align="right">Ausentes</TableCell>
                                             <TableCell align="right">% Realiz.</TableCell>
                                             <TableCell align="right">Cidadãos</TableCell>
+                                            <TableCell align="right">Famílias</TableCell>
+                                            <TableCell align="right">Fam. Acomp.</TableCell>
+                                            <TableCell align="right">% Família</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -520,11 +523,32 @@ export default function VisitasAcs() {
                                                     />
                                                 </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
+                                                <TableCell align="right">
+                                                    {a.familias != null ? a.familias.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {a.familias_acompanhadas != null
+                                                        ? a.familias_acompanhadas.toLocaleString('pt-BR')
+                                                        : '—'}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {a.pct_familias != null ? (
+                                                        <Chip
+                                                            label={`${a.pct_familias}%`}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: a.pct_familias >= 70 ? '#16882122' : '#FF8C0022',
+                                                                color:   a.pct_familias >= 70 ? '#168821'   : '#FF8C00',
+                                                                fontWeight: 700,
+                                                            }}
+                                                        />
+                                                    ) : '—'}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                         {agentes.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={8} align="center"
+                                                <TableCell colSpan={11} align="center"
                                                     sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                     Nenhum agente encontrado para o período.
                                                 </TableCell>
