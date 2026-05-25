@@ -39,7 +39,7 @@ function AuditPageView() {
 }
 
 function isPublicRoute(pathname) {
-  return PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/showqueue");
+  return PUBLIC_ROUTES.includes(pathname) || pathname.startsWith("/showqueue") || pathname.startsWith("/painel-esus");
 }
 
 export default function MyApp(props) {
