@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import { normalizeIconName } from '../../utils/iconResolver';
 import { api } from '../../services/api';
@@ -57,6 +58,8 @@ function gerarMesesFromMap(mapa) {
 }
 
 export default function VigilanciaDashboard() {
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(null);
@@ -169,7 +172,7 @@ export default function VigilanciaDashboard() {
                                     chart: { ...chartFont },
                                     labels: chart.riscoLabels,
                                     colors: chart.riscoCores,
-                                    legend: { labels: { colors: '#b0bec5' } },
+                                    legend: { labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' } },
                                     dataLabels: { enabled: true },
                                     tooltip: { theme: 'dark' },
                                 }}

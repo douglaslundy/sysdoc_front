@@ -7,6 +7,11 @@ const HEADER_HEIGHT = 124;
 const COLUMN_HEADER_HEIGHT = 56;
 const PANEL_CONTENT_OFFSET = HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40;
 const SCROLL_DURATION_SECONDS = 240;
+const getColumnAnimation = (itemsCount) => {
+    if (itemsCount <= 8) return 'none';
+    const duration = Math.max(30, Math.round((SCROLL_DURATION_SECONDS * itemsCount) / 40));
+    return `medicinesPanelColumnScroll ${duration}s linear infinite`;
+};
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -58,7 +63,6 @@ export default function MedicinesPanel() {
 
     const renderMedicineCard = (item, color) => (
         <Paper
-            key={item.medicine_id}
             sx={{
                 px: 1.25,
                 py: 0.75,
@@ -83,9 +87,9 @@ export default function MedicinesPanel() {
                 height: '100vh',
                 overflow: 'hidden',
                 color: 'var(--lg-text-primary)',
-                '@keyframes medicinesPanelScroll': {
+                '@keyframes medicinesPanelColumnScroll': {
                     '0%': { transform: 'translateY(0)' },
-                    '100%': { transform: `translateY(calc(-100% + 100vh - ${PANEL_CONTENT_OFFSET}px))` },
+                    '100%': { transform: 'translateY(-50%)' },
                 },
             }}
         >
@@ -150,31 +154,39 @@ export default function MedicinesPanel() {
                         overflow: 'hidden',
                     }}
                 >
-                    <Box
-                        sx={{
-                        minHeight: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)`,
-                        animation: data.items.length > 8
-                            ? `medicinesPanelScroll ${SCROLL_DURATION_SECONDS}s linear infinite alternate`
-                            : 'none',
-                        willChange: 'transform',
-                        }}
-                    >
-                        <Grid container spacing={2}>
-                            {columns.map((column) => (
-                                <Grid item xs={12} md={6} key={column.title}>
-                                    <Box sx={{ display: 'grid', gap: 1 }}>
+                    <Grid container spacing={2} sx={{ height: '100%' }}>
+                        {columns.map((column) => {
+                            const shouldLoop = column.items.length > 8;
+                            const loopItems = shouldLoop ? [...column.items, ...column.items] : column.items;
+
+                            return (
+                                <Grid item xs={12} md={6} key={column.title} sx={{ height: '100%' }}>
+                                    <Box sx={{ height: '100%', overflow: 'hidden' }}>
                                         {column.items.length === 0 ? (
                                             <Paper sx={{ p: 1.25, background: 'var(--lg-glass-panel)', color: 'var(--lg-text-secondary)', border: '0.5px solid var(--lg-border)' }}>
                                                 Nenhum registro.
                                             </Paper>
                                         ) : (
-                                            column.items.map((item) => renderMedicineCard(item, column.color))
+                                            <Box
+                                                sx={{
+                                                    display: 'grid',
+                                                    gap: 1,
+                                                    animation: getColumnAnimation(column.items.length),
+                                                    willChange: shouldLoop ? 'transform' : 'auto',
+                                                }}
+                                            >
+                                                {loopItems.map((item, index) => (
+                                                    <Box key={`${item.medicine_id}-${index}`}>
+                                                        {renderMedicineCard(item, column.color)}
+                                                    </Box>
+                                                ))}
+                                            </Box>
                                         )}
                                     </Box>
                                 </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
+                            );
+                        })}
+                    </Grid>
                 </Box>
             </Box>
         </Box>

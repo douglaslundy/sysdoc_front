@@ -27,6 +27,12 @@ const formatDate = (value) => {
   return `${day}/${month}/${year}`;
 };
 
+const truncate = (value, max = 40) => {
+  const text = String(value || '');
+  if (text.length <= max) return text;
+  return `${text.slice(0, max)}...`;
+};
+
 export default function DailyStatusManager() {
   const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
@@ -168,6 +174,7 @@ export default function DailyStatusManager() {
             <TableHead>
               <TableRow>
                 <TableCell><Typography variant="h6">Medicamento</Typography></TableCell>
+                <TableCell><Typography variant="h6">Concentração</Typography></TableCell>
                 <TableCell><Typography variant="h6">Status</Typography></TableCell>
                 <TableCell><Typography variant="h6">Quantidade</Typography></TableCell>
                 <TableCell><Typography variant="h6">Reposição</Typography></TableCell>
@@ -177,7 +184,12 @@ export default function DailyStatusManager() {
             <TableBody>
               {dailyStatuses.map((s) => (
                 <StyledTableRow key={s.id || `medicine-${s.medicine_item_id}`} hover>
-                  <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
+                  <TableCell title={s.medicine_item?.active_ingredient || ''}>
+                    {truncate(s.medicine_item?.active_ingredient, 40)}
+                  </TableCell>
+                  <TableCell title={s.medicine_item?.concentration || ''}>
+                    {truncate(s.medicine_item?.concentration, 30) || '-'}
+                  </TableCell>
                   <TableCell>{statusLabel(s.availability_status)}</TableCell>
                   <TableCell>{s.available_quantity ?? '-'}</TableCell>
                   <TableCell>{formatDate(s.restock_forecast_date)}</TableCell>

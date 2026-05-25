@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
@@ -52,6 +53,8 @@ function normalizeMeses(aquisicoesPorMes = [], janelaMeses = 12) {
 }
 
 export default function FarmaciaDashboard() {
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === 'dark';
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(null);
@@ -165,7 +168,12 @@ export default function FarmaciaDashboard() {
                                 options={{
                                     chart: { ...chartFont, ...toolbarOff },
                                     colors: ['#43a047', '#e53935'],
-                                    xaxis: { categories: chart.statusLabels },
+                                    legend: { labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' } },
+                                    xaxis: {
+                                        categories: chart.statusLabels,
+                                        labels: { style: { colors: isDarkMode ? '#ffffff' : '#b0bec5' } },
+                                    },
+                                    yaxis: { labels: { style: { colors: isDarkMode ? '#ffffff' : '#b0bec5' } } },
                                     stroke: { curve: 'smooth', width: 3 },
                                     dataLabels: { enabled: false },
                                     tooltip: { theme: 'dark' },
@@ -188,6 +196,7 @@ export default function FarmaciaDashboard() {
                             options={{
                                 chart: { ...chartFont, ...toolbarOff },
                                 colors: ['#1e88e5', '#fb8c00'],
+                                legend: { labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' } },
                                 xaxis: {
                                     categories: chart.seriesMeses.labels,
                                     labels: { style: { colors: '#b0bec5', fontSize: '11px' } },
