@@ -32,6 +32,12 @@ const trunc = (s, n = 30) => {
     return s.length > n ? s.substring(0, n) + '...' : s;
 };
 
+const renderCnaes = (item) => {
+    if (Array.isArray(item?.cnaes) && item.cnaes.length > 0) return item.cnaes.join(', ');
+    if (item?.cnaes_texto) return item.cnaes_texto;
+    return '-';
+};
+
 export default function ListaEstabelecimentos() {
     const dispatch = useDispatch();
     const { estabelecimentos, pagination } = useSelector((state) => state.estabelecimentos);
@@ -185,7 +191,7 @@ export default function ListaEstabelecimentos() {
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="body2">{trunc(est.cnaes, 15)}</Typography>
+                                        <Typography variant="body2">{trunc(renderCnaes(est), 30)}</Typography>
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body2">{formatDate(est.created_at)}</Typography>
