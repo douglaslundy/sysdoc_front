@@ -134,7 +134,7 @@ export default function VigilanciaDashboard() {
 
             <Grid container spacing={3}>
                 {/* Alvarás por status */}
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={6}>
                     <BaseCard title="Alvarás por Status">
                         {chart.statusLabels.length > 0 ? (
                             <Chart
@@ -162,7 +162,7 @@ export default function VigilanciaDashboard() {
                 </Grid>
 
                 {/* Alvarás por nível de risco */}
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={6}>
                     <BaseCard title="Por Nível de Risco">
                         {chart.riscoLabels.length > 0 ? (
                             <Chart
@@ -183,7 +183,7 @@ export default function VigilanciaDashboard() {
                 </Grid>
 
                 {/* Emissões por mês */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Alvarás Emitidos por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
