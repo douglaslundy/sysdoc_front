@@ -290,6 +290,26 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
                 )}
             </DialogContent>
 
+            {visita && (
+                <Box sx={{ px: 2, pb: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block', mb: 0.5 }}>
+                        Debug — JSON da visita
+                    </Typography>
+                    <Box
+                        component="pre"
+                        sx={{
+                            fontSize: 11, lineHeight: 1.4, p: 1.5,
+                            borderRadius: 1, bgcolor: 'action.hover',
+                            overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+                            maxHeight: 300, overflowY: 'auto',
+                            color: 'text.secondary',
+                        }}
+                    >
+                        {JSON.stringify(visita, null, 2)}
+                    </Box>
+                </Box>
+            )}
+
             <DialogActions>
                 <Button onClick={onClose} size="small">Fechar</Button>
             </DialogActions>
