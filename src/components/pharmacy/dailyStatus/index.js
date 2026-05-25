@@ -173,6 +173,7 @@ export default function DailyStatusManager() {
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="available">Disponível</MenuItem>
                 <MenuItem value="unavailable">Indisponível</MenuItem>
+                <MenuItem value="no_record">Sem lançamento</MenuItem>
               </Select>
             </FormControl>
           )}
