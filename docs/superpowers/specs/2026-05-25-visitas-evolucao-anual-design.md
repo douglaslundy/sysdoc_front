@@ -27,7 +27,9 @@ Nova página no menu Monitor APS exibindo um gráfico de linhas com a evolução
 | `desfecho`| int     | 1=Realizada, 2=Recusada, 3=Ausente |
 | `has_geo` | string  | `sim` ou `nao`                     |
 
-**Lógica:** O backend calcula automaticamente os 3 anos: `ano_atual`, `ano_atual - 1`, `ano_atual - 2`. Executa uma única query com `t.nu_ano IN (?,?,?)`, agrupa por `nu_ano + nu_mes`, conta visitas. Reutiliza `buildWhere()` e `baseJoins()` já existentes em `VisitaAcsController`.
+**Lógica:** O backend calcula automaticamente os 3 anos: `ano_atual`, `ano_atual - 1`, `ano_atual - 2`. Executa uma única query com `t.nu_ano IN (?,?,?)`, agrupa por `nu_ano + nu_mes`, conta visitas.
+
+O método existente `buildWhere($ano, $mes, ...)` adiciona `t.nu_ano = ? AND t.nu_mes = ?` — incompatível com multi-ano. O método `evolucao()` usará um novo helper privado `buildWhereFilters($ine, $agente, $desfecho, $hasGeo)` que aplica apenas os filtros opcionais, sem fixar ano/mês. O filtro de anos (`t.nu_ano IN (?,?,?)`) é adicionado diretamente no método `evolucao()`. Reutiliza `baseJoins()` normalmente.
 
 **Resposta:**
 ```json
@@ -85,7 +87,7 @@ Novo item inserido após "Mapa de Visitas":
 
 **Filtros (mesma ordem e padrão do `MapaVisitasPage`):**
 - Equipe (`Select` com todas as equipes via `/config/equipes`)
-- Agente (`Select`, só visível quando equipe selecionada, via `/visitas/agentes?ano=&mes=&ine=`)
+- Agente (`Select`, só visível quando equipe selecionada, via `/visitas/agentes?ano={anoAtual}&mes={mesAtual}&ine=` — usa ano/mês correntes apenas para popular as opções)
 - Desfecho (`Select`: Todos / Realizada / Recusada / Ausente)
 - Geolocalização (`Select`: Todas / Com geolocalização / Sem geolocalização)
 
