@@ -155,7 +155,7 @@ export default function VisitasAcs() {
         if (aba !== 'mapa') return;
         const params = new URLSearchParams({ ano, mes });
         if (ine) params.set('ine', ine);
-        const key = `visitas_mapa_${params}`;
+        const key = `visitas_mapa_all_${params}`;
         const cached = getCached(key);
         if (cached) { setPontosMapa(cached.pontos ?? []); return; }
 
@@ -521,7 +521,7 @@ export default function VisitasAcs() {
 
                                 <Typography variant="caption"
                                     sx={{ color: 'var(--lg-text-muted)', display: 'block', mt: 1 }}>
-                                    Exibindo até 2.000 pontos georreferenciados.
+                                    Exibindo todos os pontos georreferenciados dos filtros selecionados.
                                     Visitas sem coordenadas não aparecem no mapa.
                                 </Typography>
                             </CardContent>

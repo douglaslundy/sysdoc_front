@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash *)",
+      "Bash(grep -o 'references/[^`]*\\\\.md' /c/Users/dougl/workspace/skills/novocofinanciamento/SKILL.md)",
+      "Read(//c/Users/dougl/workspace/.claude/skills//**)",
+      "Read(//c/Users/dougl/workspace/.claude/skills/cofinanciamento-especialista/**)",
+      "Bash(cp /c/Users/dougl/workspace/skills/novocofinanciamento/references/componentes_valores.md /c/Users/dougl/workspace/.claude/skills/novo-cofinanciamento/references/)",
+      "Bash(cp /c/Users/dougl/workspace/skills/novocofinanciamento/references/indicadores_grupo_c.md /c/Users/dougl/workspace/.claude/skills/novo-cofinanciamento/references/)",
+      "Bash(cp /c/Users/dougl/workspace/skills/novocofinanciamento/references/indicadores_grupo_b_a.md /c/Users/dougl/workspace/.claude/skills/novo-cofinanciamento/references/)",
+      "Bash(cp /c/Users/dougl/workspace/skills/novocofinanciamento/references/faq_operacional.md /c/Users/dougl/workspace/.claude/skills/novo-cofinanciamento/references/)",
+      "Bash(cp /c/Users/dougl/workspace/skills/novocofinanciamento/references/fontes_pesquisa.md /c/Users/dougl/workspace/.claude/skills/novo-cofinanciamento/references/)"
+    ]
+  }
+}

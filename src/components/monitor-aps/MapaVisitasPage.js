@@ -254,7 +254,7 @@ export default function MapaVisitasPage() {
                     )}
                     <Typography variant="caption"
                         sx={{ color: 'var(--lg-text-muted)', display: 'block', mt: 1 }}>
-                        Exibindo até 2.000 pontos georreferenciados.
+                        Exibindo todos os pontos georreferenciados dos filtros selecionados.
                         Visitas sem coordenadas não aparecem no mapa.
                     </Typography>
                 </CardContent>
