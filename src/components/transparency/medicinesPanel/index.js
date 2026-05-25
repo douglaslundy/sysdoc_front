@@ -13,6 +13,12 @@ const getColumnAnimation = (itemsCount) => {
     return `medicinesPanelColumnScroll ${duration}s linear infinite`;
 };
 
+const getColumnAnimation = (itemsCount) => {
+    if (itemsCount <= 8) return 'none';
+    const duration = Math.max(60, Math.round((SCROLL_DURATION_SECONDS * itemsCount) / 40));
+    return `medicinesPanelColumnScroll ${duration}s linear infinite`;
+};
+
 const formatDate = (value) => {
     if (!value) return '-';
     const [year, month, day] = value.split('-');

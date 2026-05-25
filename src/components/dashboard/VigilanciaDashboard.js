@@ -9,11 +9,14 @@ import Chart from '../charts/ApexChartSafe';
 import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607d8b' };
-const normalizeRisco = (v) => {
-    const s = String(v ?? '').trim();
-    if (!s || s.toLowerCase() === 'undefined' || s.toLowerCase() === 'null') return 'N/A';
-    return s;
-};
+const RISCO_ORDEM = ['1', '2', '3', 'N/A'];
+
+function normalizarRisco(valor) {
+    const v = String(valor ?? '').trim().toUpperCase();
+    if (v === '1' || v === '2' || v === '3') return v;
+    if (v === 'N/A' || v === 'NA') return 'N/A';
+    return 'N/A';
+}
 
 function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
     return (
@@ -82,12 +85,20 @@ export default function VigilanciaDashboard() {
         const statusValues = statusEntries.map(([, v]) => Number(v));
 
         // por_nivel_risco: { "1": 5, "2": 3, "N/A": 1, ... }
-        const riscoEntries = Object.entries(dados.por_nivel_risco || {}).map(([r, v]) => [normalizeRisco(r), v]);
-        const riscoLabels = riscoEntries.map(([r]) => `Risco ${r}`);
-        const riscoValues = riscoEntries.map(([, v]) => Number(v));
-        const riscoCores = riscoEntries.map(([r]) => RISCO_COR[r] || '#607d8b');
+        const riscoNormalizado = {};
+        Object.entries(dados.por_nivel_risco || {}).forEach(([r, v]) => {
+            const risco = normalizarRisco(r);
+            riscoNormalizado[risco] = (riscoNormalizado[risco] || 0) + Number(v || 0);
+        });
+        const riscoKeys = RISCO_ORDEM.filter((r) => Number(riscoNormalizado[r] || 0) > 0);
+        const riscoLabels = riscoKeys.map((r) => `Risco ${r}`);
+        const riscoValues = riscoKeys.map((r) => Number(riscoNormalizado[r] || 0));
+        const riscoCores = riscoKeys.map((r) => RISCO_COR[r] || '#607d8b');
 
-        const proximos = dados.proximos_vencimentos || [];
+        const proximos = (dados.proximos_vencimentos || []).map((alv) => ({
+            ...alv,
+            nivel_risco: normalizarRisco(alv?.nivel_risco),
+        }));
 
         return { porMes, statusLabels, statusValues, riscoLabels, riscoValues, riscoCores, proximos };
     }, [dados]);
@@ -134,7 +145,7 @@ export default function VigilanciaDashboard() {
 
             <Grid container spacing={3}>
                 {/* Alvarás por status */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                     <BaseCard title="Alvarás por Status">
                         {chart.statusLabels.length > 0 ? (
                             <Chart
@@ -162,7 +173,7 @@ export default function VigilanciaDashboard() {
                 </Grid>
 
                 {/* Alvarás por nível de risco */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                     <BaseCard title="Por Nível de Risco">
                         {chart.riscoLabels.length > 0 ? (
                             <Chart
@@ -232,9 +243,9 @@ export default function VigilanciaDashboard() {
                                                 <td style={{ padding: '8px 12px' }}>{alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? '—'}</td>
                                                 <td style={{ padding: '8px 12px' }}>
                                                     <Chip
-                                                        label={`Risco ${normalizeRisco(alv.nivel_risco)}`}
+                                                        label={`Risco ${normalizarRisco(alv.nivel_risco)}`}
                                                         size="small"
-                                                        sx={{ bgcolor: (RISCO_COR[normalizeRisco(alv.nivel_risco)] || '#607d8b') + '33', color: RISCO_COR[normalizeRisco(alv.nivel_risco)] || '#607d8b' }}
+                                                        sx={{ bgcolor: (RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b') + '33', color: RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b' }}
                                                     />
                                                 </td>
                                                 <td style={{ padding: '8px 12px' }}>{alv.status || '—'}</td>
