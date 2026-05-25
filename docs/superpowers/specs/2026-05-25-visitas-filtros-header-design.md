@@ -12,18 +12,33 @@ A página `/monitor-aps/visitas` tem dois grupos de filtros hoje:
 - **Header:** Equipe, Ano, Mês
 - **Dentro do card "Tabela":** Agente, Desfecho, Geolocalização
 
-Os cards de métricas (Total de Visitas, Realizadas, Recusadas, Cidadãos Distintos) reagem apenas a Equipe/Ano/Mês, ignorando os três filtros do card. A aba "Por Agente" também ignora o filtro de Agente.
+Os cards de métricas (Total de Visitas, Realizadas, Recusadas, Cidadãos Distintos) reagem apenas a Equipe/Ano/Mês, ignorando os três filtros do card. A aba "Por Agente" também ignora os filtros de Agente e Geolocalização.
 
 ## Objetivo
 
 1. Mover Agente, Desfecho e Geolocalização para o header, ao lado de Equipe/Ano/Mês.
 2. Fazer os cards e a aba "Por Agente" reagirem a todos os filtros ativos.
+3. Adicionar card de **Ausentes** ao dashboard.
 
 ---
 
 ## Design
 
-### 1. Frontend — Layout do Header
+### 1. Frontend — Cards de Métricas
+
+Passa de 4 para **5 cards**, todos em linha com `xs={6} sm` responsivo:
+
+| Card | Ícone | Cor | Valor |
+|---|---|---|---|
+| Total de Visitas | `map-pin` | `#1351B4` | `totais.total` |
+| Realizadas | `check-circle` | `#168821` | `totais.realizadas (X%)` |
+| Recusadas | `x-circle` | `#E52207` | `totais.recusadas` + sub `X%` |
+| **Ausentes** | `user-x` | `#FF8C00` | `totais.ausentes` + sub `X%` |
+| Cidadãos Distintos | `users` | `#7B2D8B` | `totais.cidadaos` |
+
+> O card de Cidadãos Distintos muda de cor (de `#FF8C00` para `#7B2D8B`) para diferenciar do card Ausentes que passa a usar laranja. Grid: `xs={6} sm={true}` para 5 cards em linha no desktop.
+
+### 2. Frontend — Layout do Header
 
 O header passa de 3 para 6 selects, todos no mesmo `Box` com `flexWrap="wrap"`:
 
@@ -36,9 +51,9 @@ O header passa de 3 para 6 selects, todos no mesmo `Box` com `flexWrap="wrap"`:
 - O select **Geolocalização** mantém: Com / Sem geolocalização.
 - O bloco de filtros inline dentro do `CardContent` da aba Tabela é **removido**.
 
-### 2. Frontend — Estado e Efeitos
+### 3. Frontend — Estado e Efeitos
 
-**Reset de `filtroAgente`:**  
+**Reset de `filtroAgente`:**
 Quando `ine`, `ano` ou `mes` muda, o `filtroAgente` é resetado para `''`, porque os agentes disponíveis mudam com a equipe/período.
 
 **`useEffect` do `resumo`:**
@@ -47,13 +62,13 @@ Quando `ine`, `ano` ou `mes` muda, o `filtroAgente` é resetado para `''`, porqu
 - A chave de cache inclui os novos filtros.
 
 **`useEffect` dos `agentes`:**
-- Adiciona `filtroAgente` às dependências.
-- Envia `agente` como query param quando informado.
-- A chave de cache inclui `filtroAgente`.
+- Adiciona `filtroAgente` e `filtroGeo` às dependências.
+- Envia `agente` e `has_geo` como query params quando informados.
+- A chave de cache inclui ambos.
 
 **`useEffect` da `lista`:** sem alteração de lógica — já usa os três filtros.
 
-### 3. Backend — `buildWhere`
+### 4. Backend — `buildWhere`
 
 Assinatura estendida (parâmetros opcionais ao final para não quebrar chamadas existentes):
 
@@ -72,25 +87,26 @@ Cláusulas adicionadas:
 - `$hasGeo = 'sim'` → `AND v.nu_latitude IS NOT NULL AND v.nu_longitude IS NOT NULL`
 - `$hasGeo = 'nao'` → `AND (v.nu_latitude IS NULL OR v.nu_longitude IS NULL)`
 
-### 4. Backend — Endpoint `resumo`
+### 5. Backend — Endpoint `resumo`
 
 Validação estendida:
 ```php
-'agente'  => 'nullable|string',
+'agente'   => 'nullable|string',
 'desfecho' => 'nullable|integer|in:1,2,3',
 'has_geo'  => 'nullable|string|in:sim,nao',
 ```
 
-Passa os três para `buildWhere`. O cache não existe neste endpoint (sem sessionStorage aqui — o cache é no frontend). Sem breaking change: os parâmetros são opcionais.
+Passa os três para `buildWhere`. Sem breaking change: os parâmetros são opcionais.
 
-### 5. Backend — Endpoint `agentes`
+### 6. Backend — Endpoint `agentes`
 
 Validação estendida:
 ```php
-'agente' => 'nullable|string',
+'agente'  => 'nullable|string',
+'has_geo' => 'nullable|string|in:sim,nao',
 ```
 
-Passa `$agente` para `buildWhere`. Quando informado, a query retorna apenas uma linha (o agente filtrado), que a aba "Por Agente" exibe normalmente.
+Passa `$agente` e `$hasGeo` para `buildWhere`. Quando `agente` informado, retorna apenas uma linha. Quando `has_geo` informado, filtra visitas com/sem coordenadas antes de agregar por agente.
 
 ---
 
@@ -101,10 +117,10 @@ Passa `$agente` para `buildWhere`. Quando informado, a query retorna apenas uma 
 | Equipe | Sim | Sim | Sim |
 | Ano / Mês | Sim | Sim | Sim |
 | Agente | Sim | Sim (só aquele agente) | Sim |
-| Desfecho | Sim | Não (desfecho não afeta a aba) | Sim |
-| Geolocalização | Sim | Não (geo não afeta a aba) | Sim |
+| Desfecho | Sim | Não | Sim |
+| Geolocalização | Sim | Sim | Sim |
 
-> **Nota:** Desfecho e Geo não afetam a aba "Por Agente" porque essa aba mostra breakdown por agente — filtrar por desfecho/geo ali seria redundante e confuso (os totais por agente já mostram cada desfecho separado).
+> **Desfecho** não afeta a aba "Por Agente" porque essa aba já mostra o breakdown de cada desfecho por agente — filtrar por desfecho seria redundante.
 
 ---
 
@@ -112,7 +128,7 @@ Passa `$agente` para `buildWhere`. Quando informado, a query retorna apenas uma 
 
 | Arquivo | Natureza da mudança |
 |---|---|
-| `sysdoc_front/src/components/monitor-aps/VisitasAcs.js` | Mover selects, novos deps nos useEffects, reset de filtroAgente |
+| `sysdoc_front/src/components/monitor-aps/VisitasAcs.js` | Novo card Ausentes, mover selects, novos deps nos useEffects, reset de filtroAgente, cor de Cidadãos |
 | `sysdoc_back/app/Http/Controllers/VisitaAcsController.php` | Estender `buildWhere`, `resumo`, `agentes` |
 
 ---
