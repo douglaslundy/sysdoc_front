@@ -113,7 +113,7 @@ export default function AttendancePanel() {
         {state?.currentCall ? (
           <>
             <Typography variant="h1" sx={{ fontWeight: 800, lineHeight: 1.1 }}>{state.currentCall.ticketCode}</Typography>
-            <Typography variant="h3">{state.currentCall.clientName}</Typography>
+            <Typography variant="h3">{(state.currentCall.clientName || "").toUpperCase()}</Typography>
             <Typography variant="h5">Sala: {state.currentCall.roomName}</Typography>
             <Typography>Atendente: {state.currentCall.userName}</Typography>
           </>
