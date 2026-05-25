@@ -77,6 +77,7 @@ export default function VisitasAcs() {
 
     const [resumo, setResumo]         = useState(null);
     const [agentes, setAgentes]       = useState([]);
+    const [agenteOpcoes, setAgenteOpcoes] = useState([]);
     const [visitas, setVisitas]        = useState([]);
     const [pontosMapa, setPontosMapa]  = useState([]);
     const [totalVisitas, setTotalVisitas] = useState(0);
@@ -103,10 +104,28 @@ export default function VisitasAcs() {
         return () => ctrl.abort();
     }, []);
 
-    // Carrega resumo
+    // Opções do select Agente — sempre sem filtros adicionais
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
         if (ine) params.set('ine', ine);
+        const ctrl = new AbortController();
+        monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
+            .then(d => setAgenteOpcoes(d.agentes ?? []))
+            .catch(() => {});
+        return () => ctrl.abort();
+    }, [ano, mes, ine]);
+
+    useEffect(() => {
+        setFiltroAgente('');
+    }, [ine, ano, mes]);
+
+    // Carrega resumo
+    useEffect(() => {
+        const params = new URLSearchParams({ ano, mes });
+        if (ine)            params.set('ine', ine);
+        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
+        if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_resumo_${params}`;
         const cached = getCached(key);
         if (cached) { setResumo(cached); return; }
@@ -116,12 +135,14 @@ export default function VisitasAcs() {
             .then(d => { setCached(key, d); setResumo(d); })
             .catch(() => {});
         return () => ctrl.abort();
-    }, [ano, mes, ine]);
+    }, [ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
-    // Carrega estatísticas por agente
+    // Carrega estatísticas por agente (filtrado para a aba "Por Agente")
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
-        if (ine) params.set('ine', ine);
+        if (ine)          params.set('ine', ine);
+        if (filtroAgente) params.set('agente', filtroAgente);
+        if (filtroGeo)    params.set('has_geo', filtroGeo);
         const key = `visitas_agentes_${params}`;
         const cached = getCached(key);
         if (cached) { setAgentes(cached.agentes ?? []); return; }
@@ -131,7 +152,7 @@ export default function VisitasAcs() {
             .then(d => { setCached(key, d); setAgentes(d.agentes ?? []); })
             .catch(() => {});
         return () => ctrl.abort();
-    }, [ano, mes, ine]);
+    }, [ano, mes, ine, filtroAgente, filtroGeo]);
 
     // Carrega lista de visitas
     useEffect(() => {
@@ -230,27 +251,61 @@ export default function VisitasAcs() {
                             ))}
                         </Select>
                     </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 160 }}>
+                        <InputLabel>Agente</InputLabel>
+                        <Select label="Agente" value={filtroAgente}
+                            onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
+                            <MenuItem value="">Todos os agentes</MenuItem>
+                            {agenteOpcoes.map((a, i) => (
+                                <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                        <InputLabel>Desfecho</InputLabel>
+                        <Select label="Desfecho" value={filtroDesfecho}
+                            onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value="1">Realizada</MenuItem>
+                            <MenuItem value="2">Recusada</MenuItem>
+                            <MenuItem value="3">Ausente</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 170 }}>
+                        <InputLabel>Geolocalização</InputLabel>
+                        <Select label="Geolocalização" value={filtroGeo}
+                            onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}>
+                            <MenuItem value="">Todas</MenuItem>
+                            <MenuItem value="sim">Com geolocalização</MenuItem>
+                            <MenuItem value="nao">Sem geolocalização</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Box>
             </Box>
 
             {/* Cards de métricas */}
             <Grid container spacing={2} mb={3}>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={true}>
                     <MetricCard icon="map-pin" titulo="Total de Visitas"
                         valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4" />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={true}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
                         valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={true}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
                         valor={totais.recusadas.toLocaleString('pt-BR')} cor="#E52207"
                         sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''} />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={true}>
+                    <MetricCard icon="user-x" titulo="Ausentes"
+                        valor={totais.ausentes.toLocaleString('pt-BR')} cor="#FF8C00"
+                        sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''} />
+                </Grid>
+                <Grid item xs={6} sm={true}>
                     <MetricCard icon="users" titulo="Cidadãos Distintos"
-                        valor={totais.cidadaos.toLocaleString('pt-BR')} cor="#FF8C00" />
+                        valor={totais.cidadaos.toLocaleString('pt-BR')} cor="#7B2D8B" />
                 </Grid>
             </Grid>
 
@@ -270,39 +325,6 @@ export default function VisitasAcs() {
                     {aba === 'tabela' && (
                         <Card>
                             <CardContent>
-                                {/* Filtros inline da tabela */}
-                                <Box display="flex" gap={1.5} mb={2} flexWrap="wrap">
-                                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                                        <InputLabel>Agente</InputLabel>
-                                        <Select label="Agente" value={filtroAgente}
-                                            onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
-                                            <MenuItem value="">Todos os agentes</MenuItem>
-                                            {agentes.map((a, i) => (
-                                                <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl size="small" sx={{ minWidth: 150 }}>
-                                        <InputLabel>Desfecho</InputLabel>
-                                        <Select label="Desfecho" value={filtroDesfecho}
-                                            onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
-                                            <MenuItem value="">Todos</MenuItem>
-                                            <MenuItem value="1">Realizada</MenuItem>
-                                            <MenuItem value="2">Recusada</MenuItem>
-                                            <MenuItem value="3">Ausente</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl size="small" sx={{ minWidth: 180 }}>
-                                        <InputLabel>Geolocalização</InputLabel>
-                                        <Select label="Geolocalização" value={filtroGeo}
-                                            onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}>
-                                            <MenuItem value="">Todas</MenuItem>
-                                            <MenuItem value="sim">Com geolocalização</MenuItem>
-                                            <MenuItem value="nao">Sem geolocalização</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
                                 <Box sx={{ overflowX: 'auto' }}>
                                     <Table size="small">
                                         <TableHead>
