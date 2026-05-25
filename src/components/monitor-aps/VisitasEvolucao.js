@@ -1,0 +1,167 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getCached, setCached } from '../../services/monitorApsCache';
+import {
+    Box, CircularProgress, FormControl, InputLabel,
+    MenuItem, Select, Typography,
+} from '@mui/material';
+import BaseCard from '../baseCard/BaseCard';
+import Chart from '../charts/ApexChartSafe';
+import { monitorApsApi } from '../../services/monitorApsApi';
+
+const MESES  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const CORES  = ['#1351B4', '#168821', '#FF8C00'];
+const FONT   = { fontFamily: "'DM Sans', sans-serif" };
+
+export function buildChartSeries(series, cores) {
+    return series.map((s, i) => ({
+        name:  String(s.ano),
+        data:  s.meses,
+        color: cores[i] ?? '#888',
+    }));
+}
+
+export default function VisitasEvolucao() {
+    const anoAtual = new Date().getFullYear();
+    const mesAtual = new Date().getMonth() + 1;
+
+    const [equipes,      setEquipes]      = useState([]);
+    const [agenteOpcoes, setAgenteOpcoes] = useState([]);
+    const [ine,          setIne]          = useState('');
+    const [agente,       setAgente]       = useState('');
+    const [desfecho,     setDesfecho]     = useState('');
+    const [geo,          setGeo]          = useState('');
+    const [series,       setSeries]       = useState([]);
+    const [loading,      setLoading]      = useState(true);
+    const [erro,         setErro]         = useState(null);
+    const ctrlRef = useRef(null);
+
+    useEffect(() => {
+        monitorApsApi.get('/config/equipes')
+            .then(d => setEquipes(d.equipes ?? []))
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        if (!ine) { setAgenteOpcoes([]); return; }
+        const params = new URLSearchParams({ ano: anoAtual, mes: mesAtual, ine });
+        monitorApsApi.get(`/visitas/agentes?${params}`)
+            .then(d => setAgenteOpcoes(d.agentes ?? []))
+            .catch(() => setAgenteOpcoes([]));
+    }, [ine, anoAtual, mesAtual]);
+
+    useEffect(() => { setAgente(''); }, [ine]);
+
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (ine)      params.set('ine',      ine);
+        if (agente)   params.set('agente',   agente);
+        if (desfecho) params.set('desfecho', desfecho);
+        if (geo)      params.set('has_geo',  geo);
+
+        const key = `visitas_evolucao_${ine}_${agente}_${desfecho}_${geo}`;
+        const cached = getCached(key);
+        if (cached) { setSeries(cached.series ?? []); setLoading(false); return; }
+
+        if (ctrlRef.current) ctrlRef.current.abort();
+        ctrlRef.current = new AbortController();
+
+        setLoading(true);
+        setErro(null);
+        monitorApsApi.get(`/visitas/evolucao?${params}`, { signal: ctrlRef.current.signal })
+            .then(d => { setCached(key, d); setSeries(d.series ?? []); })
+            .catch(e => { if (e?.code !== 'ERR_CANCELED') setErro(e.message); })
+            .finally(() => setLoading(false));
+    }, [ine, agente, desfecho, geo]);
+
+    const chartSeries = useMemo(() => buildChartSeries(series, CORES), [series]);
+
+    const chartOptions = useMemo(() => ({
+        chart:   { ...FONT, toolbar: { show: false }, zoom: { enabled: false } },
+        xaxis:   { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily } } },
+        yaxis:   { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily } } },
+        stroke:  { width: 2, curve: 'smooth' },
+        markers: { size: 4 },
+        legend:  { position: 'bottom', fontFamily: FONT.fontFamily },
+        tooltip: { theme: 'dark', y: { formatter: v => v.toLocaleString('pt-BR') } },
+        grid:    { borderColor: 'var(--lg-border)' },
+        colors:  series.map((_, i) => CORES[i] ?? '#888'),
+    }), [series]);
+
+    const selSx = { minWidth: 140 };
+
+    return (
+        <Box>
+            <Box display="flex" justifyContent="space-between" alignItems="center"
+                mb={3} mt="20px" flexWrap="wrap" gap={2}>
+                <Typography variant="h5" fontWeight={700}>Evolução de Visitas ACS/TACS</Typography>
+                <Box display="flex" gap={1.5} flexWrap="wrap">
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel>Equipe</InputLabel>
+                        <Select label="Equipe" value={ine}
+                            onChange={e => setIne(e.target.value)}>
+                            <MenuItem value="">Todas as equipes</MenuItem>
+                            {equipes.map(eq => (
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    {ine && (
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                            <InputLabel>Agente</InputLabel>
+                            <Select label="Agente" value={agente}
+                                onChange={e => setAgente(e.target.value)}>
+                                <MenuItem value="">Todos os agentes</MenuItem>
+                                {agenteOpcoes.map((a, i) => (
+                                    <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
+
+                    <FormControl size="small" sx={selSx}>
+                        <InputLabel>Desfecho</InputLabel>
+                        <Select label="Desfecho" value={desfecho}
+                            onChange={e => setDesfecho(e.target.value)}>
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value="1">Realizada</MenuItem>
+                            <MenuItem value="2">Recusada</MenuItem>
+                            <MenuItem value="3">Ausente</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" sx={{ minWidth: 170 }}>
+                        <InputLabel>Geolocalização</InputLabel>
+                        <Select label="Geolocalização" value={geo}
+                            onChange={e => setGeo(e.target.value)}>
+                            <MenuItem value="">Todas</MenuItem>
+                            <MenuItem value="sim">Com geolocalização</MenuItem>
+                            <MenuItem value="nao">Sem geolocalização</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+            </Box>
+
+            <BaseCard title={`Visitas por Mês — ${anoAtual - 2} a ${anoAtual}`}>
+                {loading ? (
+                    <Box display="flex" justifyContent="center" py={8}>
+                        <CircularProgress />
+                    </Box>
+                ) : erro ? (
+                    <Box p={3}>
+                        <Typography color="error">Erro: {erro}</Typography>
+                    </Box>
+                ) : chartSeries.length === 0 ? (
+                    <Box p={3} textAlign="center">
+                        <Typography color="textSecondary">Sem dados para exibir.</Typography>
+                    </Box>
+                ) : (
+                    <Chart type="line" height={420}
+                        options={chartOptions}
+                        series={chartSeries}
+                    />
+                )}
+            </BaseCard>
+        </Box>
+    );
+}
