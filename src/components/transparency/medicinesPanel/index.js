@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
@@ -7,12 +7,6 @@ const HEADER_HEIGHT = 124;
 const COLUMN_HEADER_HEIGHT = 56;
 const PANEL_CONTENT_OFFSET = HEADER_HEIGHT + COLUMN_HEADER_HEIGHT + 40;
 const SCROLL_DURATION_SECONDS = 240;
-const getColumnAnimation = (itemsCount) => {
-    if (itemsCount <= 8) return 'none';
-    const duration = Math.max(30, Math.round((SCROLL_DURATION_SECONDS * itemsCount) / 40));
-    return `medicinesPanelColumnScroll ${duration}s linear infinite`;
-};
-
 const getColumnAnimation = (itemsCount) => {
     if (itemsCount <= 8) return 'none';
     const duration = Math.max(60, Math.round((SCROLL_DURATION_SECONDS * itemsCount) / 40));
@@ -198,3 +192,4 @@ export default function MedicinesPanel() {
         </Box>
     );
 }
+
