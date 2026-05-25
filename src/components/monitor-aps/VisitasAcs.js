@@ -20,7 +20,7 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-function MetricCard({ icon, titulo, valor, cor, sub }) {
+function MetricCard({ icon, titulo, valor, cor, sub, subFamily }) {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent sx={{ px: 2.5, py: 2 }}>
@@ -34,6 +34,11 @@ function MetricCard({ icon, titulo, valor, cor, sub }) {
                         </Typography>
                         {sub && (
                             <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>{sub}</Typography>
+                        )}
+                        {subFamily && (
+                            <Typography variant="caption" display="block" sx={{ color: 'var(--lg-text-muted)' }}>
+                                {subFamily}
+                            </Typography>
                         )}
                     </Box>
                     <Box sx={{
@@ -208,8 +213,15 @@ export default function VisitasAcs() {
         setDetalhe(null);
     }, []);
 
-    const totais = resumo?.totais ?? { total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0 };
-    const pctReal = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
+    const totais = resumo?.totais ?? {
+        total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,
+        familias: null, familias_acompanhadas: null, familias_recusadas: null, familias_ausentes: null,
+    };
+    const pctReal       = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
+    const temFamilias   = totais.familias > 0;
+    const pctFamAcomp   = temFamilias ? Math.round(totais.familias_acompanhadas / totais.familias * 100) : 0;
+    const pctFamRecus   = temFamilias ? Math.round(totais.familias_recusadas   / totais.familias * 100) : 0;
+    const pctFamAusent  = temFamilias ? Math.round(totais.familias_ausentes    / totais.familias * 100) : 0;
 
     const anosDisponiveis = useMemo(
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
@@ -291,17 +303,26 @@ export default function VisitasAcs() {
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
-                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" />
+                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
+                        subFamily={temFamilias
+                            ? `${totais.familias_acompanhadas.toLocaleString('pt-BR')} famílias acompanhadas (${pctFamAcomp}%)`
+                            : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
                         valor={totais.recusadas.toLocaleString('pt-BR')} cor="#E52207"
-                        sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''} />
+                        sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''}
+                        subFamily={temFamilias
+                            ? `${totais.familias_recusadas.toLocaleString('pt-BR')} famílias (${pctFamRecus}%)`
+                            : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="user-x" titulo="Ausentes"
                         valor={totais.ausentes.toLocaleString('pt-BR')} cor="#FF8C00"
-                        sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''} />
+                        sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''}
+                        subFamily={temFamilias
+                            ? `${totais.familias_ausentes.toLocaleString('pt-BR')} famílias (${pctFamAusent}%)`
+                            : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="users" titulo="Cidadãos Distintos"
