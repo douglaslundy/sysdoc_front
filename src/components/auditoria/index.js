@@ -14,6 +14,7 @@ import { api } from '../../services/api';
 const ACTION_COLORS = {
     LOGIN: 'info', LOGOUT: 'default', CREATE: 'success',
     UPDATE: 'warning', DELETE: 'error',
+    READ: 'default',
     VIEW: 'primary', VIEW_REPORT: 'secondary', LIBERAR: 'success', DOWNLOAD: 'info',
 };
 
@@ -24,7 +25,7 @@ const RECURSOS = [
 
 const ACOES = [
     'LOGIN', 'LOGOUT', 'CREATE', 'UPDATE', 'DELETE',
-    'VIEW', 'VIEW_REPORT', 'LIBERAR', 'DOWNLOAD',
+    'READ', 'VIEW', 'VIEW_REPORT', 'LIBERAR', 'DOWNLOAD',
 ];
 
 const FORM_INICIAL = { action: '', model_type: '', user_name: '', date_from: '', date_to: '' };
