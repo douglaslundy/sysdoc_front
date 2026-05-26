@@ -5,6 +5,10 @@ import { api } from './api';
 const publicHttp = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 export const painelEsusPublicApi = {
+    validarCnes: (cnes, options = {}) =>
+        publicHttp
+            .get('/public/painel-esus/validar-cnes', { params: { cnes }, signal: options.signal })
+            .then(r => r.data),
     estado: (cnes, options = {}) =>
         publicHttp
             .get('/public/painel-esus/estado', { params: { cnes }, signal: options.signal })

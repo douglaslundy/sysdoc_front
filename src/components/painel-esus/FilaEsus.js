@@ -5,7 +5,7 @@ import {
     TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
-import { painelEsusApi } from '../../services/painelEsusApi';
+import { painelEsusApi, painelEsusPublicApi } from '../../services/painelEsusApi';
 
 function ContadorCard({ icon, titulo, valor, cor }) {
     return (
@@ -36,6 +36,9 @@ const selSx = {
 export default function FilaEsus() {
     const [cnes,          setCnes]          = useState('');
     const [cnesInput,     setCnesInput]     = useState('');
+    // validação: null | 'loading' | { cnes, nome } | 'erro'
+    const [validacao,     setValidacao]     = useState(null);
+    const [erroValidacao, setErroValidacao] = useState('');
     const [equipes,       setEquipes]       = useState([]);
     const [profissionais, setProfissionais] = useState([]);
     const [equipeId,      setEquipeId]      = useState('');
@@ -85,7 +88,23 @@ export default function FilaEsus() {
 
     const handleCnesSubmit = (e) => {
         e.preventDefault();
-        if (cnesInput.trim()) setCnes(cnesInput.trim());
+        const v = cnesInput.trim();
+        if (!v) return;
+        setValidacao('loading');
+        setErroValidacao('');
+        painelEsusPublicApi.validarCnes(v)
+            .then(d => setValidacao(d))
+            .catch(err => {
+                const msg = err?.response?.data?.error ?? 'Erro ao verificar o CNES. Tente novamente.';
+                setErroValidacao(msg);
+                setValidacao('erro');
+            });
+    };
+
+    const handleConfirmar = () => {
+        if (validacao && validacao !== 'loading' && validacao !== 'erro') {
+            setCnes(validacao.cnes);
+        }
     };
 
     if (!cnes) {
@@ -97,15 +116,41 @@ export default function FilaEsus() {
                 <Box component="form" onSubmit={handleCnesSubmit} display="flex" gap={1}>
                     <input
                         value={cnesInput}
-                        onChange={e => setCnesInput(e.target.value)}
+                        onChange={e => { setCnesInput(e.target.value); setValidacao(null); setErroValidacao(''); }}
                         placeholder="CNES da unidade"
                         maxLength={10}
+                        disabled={validacao === 'loading'}
                         style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--lg-border-input)', background: 'var(--lg-glass-input)', color: 'var(--lg-text-primary)', fontSize: 15 }}
                     />
-                    <button type="submit" style={{ padding: '10px 20px', background: 'var(--lg-primary, #1a56db)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15 }}>
-                        Buscar
+                    <button
+                        type="submit"
+                        disabled={validacao === 'loading'}
+                        style={{ padding: '10px 20px', background: 'var(--lg-primary, #1a56db)', color: '#fff', border: 'none', borderRadius: 8, cursor: validacao === 'loading' ? 'default' : 'pointer', fontSize: 15, opacity: validacao === 'loading' ? 0.7 : 1 }}
+                    >
+                        {validacao === 'loading' ? 'Verificando...' : 'Buscar'}
                     </button>
                 </Box>
+
+                {validacao && validacao !== 'loading' && validacao !== 'erro' && (
+                    <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
+                        <Typography sx={{ color: 'var(--lg-text-primary)', fontWeight: 600 }}>
+                            {validacao.nome}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
+                            CNES {validacao.cnes}
+                        </Typography>
+                        <button
+                            onClick={handleConfirmar}
+                            style={{ padding: '10px 28px', background: '#168821', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
+                        >
+                            Confirmar e Entrar
+                        </button>
+                    </Box>
+                )}
+
+                {validacao === 'erro' && (
+                    <Typography sx={{ color: '#E52207', fontSize: 14 }}>{erroValidacao}</Typography>
+                )}
             </Box>
         );
     }

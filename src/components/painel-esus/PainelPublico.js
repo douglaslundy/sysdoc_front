@@ -15,6 +15,82 @@ function Relogio() {
     return <span style={s.relogio}>{hora}</span>;
 }
 
+// validacao: null | 'loading' | { cnes, nome } | 'erro'
+function FormCnes({ onConfirmar, initialCnes = '' }) {
+    const [cnesInput, setCnesInput]   = useState(initialCnes);
+    const [validacao, setValidacao]   = useState(null);
+    const [erroMsg,   setErroMsg]     = useState('');
+
+    const validar = useCallback((v) => {
+        setValidacao('loading');
+        setErroMsg('');
+        painelEsusPublicApi.validarCnes(v)
+            .then(d => setValidacao(d))
+            .catch(err => {
+                const msg = err?.response?.data?.error ?? 'Erro ao verificar o CNES. Tente novamente.';
+                setErroMsg(msg);
+                setValidacao('erro');
+            });
+    }, []);
+
+    // Auto-valida quando CNES vier pré-preenchido da URL
+    useEffect(() => {
+        if (initialCnes) validar(initialCnes);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const v = cnesInput.trim();
+        if (!v) return;
+        validar(v);
+    };
+
+    return (
+        <div style={s.formRoot}>
+            <Head><title>Painel de Atendimento — eSUS PEC</title></Head>
+            <div style={s.formBox}>
+                <h1 style={s.formTitle}>Painel de Atendimento</h1>
+                <p style={s.formSub}>Digite o CNES da unidade de saúde</p>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12 }}>
+                    <input
+                        style={s.input}
+                        value={cnesInput}
+                        onChange={e => { setCnesInput(e.target.value); setValidacao(null); setErroMsg(''); }}
+                        placeholder="Ex: 1234567"
+                        maxLength={10}
+                        autoFocus
+                        disabled={validacao === 'loading'}
+                    />
+                    <button
+                        type="submit"
+                        style={{ ...s.btnPrimary, opacity: validacao === 'loading' ? 0.7 : 1, cursor: validacao === 'loading' ? 'default' : 'pointer' }}
+                        disabled={validacao === 'loading'}
+                    >
+                        {validacao === 'loading' ? 'Verificando...' : 'Buscar'}
+                    </button>
+                </form>
+
+                {validacao && validacao !== 'loading' && validacao !== 'erro' && (
+                    <div style={{ marginTop: 24, textAlign: 'center' }}>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{validacao.nome}</div>
+                        <div style={{ fontSize: 13, color: '#7ba4d9', marginBottom: 20 }}>CNES {validacao.cnes}</div>
+                        <button
+                            onClick={() => onConfirmar(validacao.cnes)}
+                            style={{ ...s.btnPrimary, background: '#168821', fontSize: 16, padding: '12px 32px' }}
+                        >
+                            Confirmar e Entrar
+                        </button>
+                    </div>
+                )}
+
+                {validacao === 'erro' && (
+                    <div style={{ marginTop: 16, color: '#fca5a5', fontSize: 14 }}>{erroMsg}</div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 const s = {
     root:       { minHeight: '100vh', background: '#060d1f', color: '#fff', fontFamily: "'Segoe UI', Arial, sans-serif", display: 'flex', flexDirection: 'column' },
     header:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)' },
@@ -45,20 +121,17 @@ const s = {
 };
 
 export default function PainelPublico() {
-    const router             = useRouter();
-    const [cnesInput, setCnesInput] = useState('');
-    const [cnes, setCnes]    = useState('');
-    const [dados, setDados]  = useState(null);
-    const [erro, setErro]    = useState(null);
-    const pollingRef         = useRef(null);
-    const abortRef           = useRef(null);
+    const router              = useRouter();
+    const [cnes, setCnes]     = useState('');
+    const [dados, setDados]   = useState(null);
+    const [erro, setErro]     = useState(null);
+    const pollingRef          = useRef(null);
+    const abortRef            = useRef(null);
 
-    // Lê CNES da URL ao montar (bookmarkável)
-    useEffect(() => {
-        if (router.isReady && router.query.cnes) {
-            setCnes(String(router.query.cnes));
-        }
-    }, [router.isReady, router.query.cnes]);
+    const handleConfirmar = useCallback((cnesConfirmado) => {
+        router.push({ pathname: '/painel-esus', query: { cnes: cnesConfirmado } }, undefined, { shallow: true });
+        setCnes(cnesConfirmado);
+    }, [router]);
 
     const fetchDados = useCallback(() => {
         if (!cnes) return;
@@ -85,35 +158,9 @@ export default function PainelPublico() {
         };
     }, [cnes, fetchDados]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const v = cnesInput.trim();
-        if (!v) return;
-        router.push({ pathname: '/painel-esus', query: { cnes: v } }, undefined, { shallow: true });
-        setCnes(v);
-    };
-
     if (!cnes) {
-        return (
-            <div style={s.formRoot}>
-                <Head><title>Painel de Atendimento — eSUS PEC</title></Head>
-                <div style={s.formBox}>
-                    <h1 style={s.formTitle}>Painel de Atendimento</h1>
-                    <p style={s.formSub}>Digite o CNES da unidade de saúde</p>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12 }}>
-                        <input
-                            style={s.input}
-                            value={cnesInput}
-                            onChange={e => setCnesInput(e.target.value)}
-                            placeholder="Ex: 1234567"
-                            maxLength={10}
-                            autoFocus
-                        />
-                        <button type="submit" style={s.btnPrimary}>Acessar</button>
-                    </form>
-                </div>
-            </div>
-        );
+        const initialCnes = router.isReady && router.query.cnes ? String(router.query.cnes) : '';
+        return <FormCnes key={initialCnes} onConfirmar={handleConfirmar} initialCnes={initialCnes} />;
     }
 
     return (
