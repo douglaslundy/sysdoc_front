@@ -11,7 +11,6 @@ jest.mock('../../../services/painelEsusApi', () => ({
             aguardando: [],
         }),
     },
-    painelEsusPublicApi: {},
 }));
 
 import FilaEsus from '../FilaEsus';
@@ -49,5 +48,8 @@ describe('FilaEsus (Bug 1)', () => {
         await waitFor(() =>
             expect(screen.getByText('UBS Norte')).toBeInTheDocument()
         );
+        // The unit-selection Select (FormControl with label) must be present
+        const labels = screen.getAllByText('Unidade de Saúde');
+        expect(labels.some(el => el.tagName === 'LABEL')).toBe(true);
     });
 });
