@@ -159,8 +159,8 @@ export default function MedicinesManager() {
               key={filter.name}
               size="small"
               sx={{
-                flex: '1 1 140px',
-                minWidth: 130,
+                flex: '1 1 145px',
+                minWidth: 135,
               }}
             >
               <InputLabel>{filter.label}</InputLabel>
@@ -235,5 +235,4 @@ export default function MedicinesManager() {
     </Box>
   );
 }
-
 
