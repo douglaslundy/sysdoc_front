@@ -28,7 +28,9 @@ const ACOES = [
     'READ', 'VIEW', 'VIEW_REPORT', 'LIBERAR', 'DOWNLOAD',
 ];
 
-const FORM_INICIAL = { action: '', model_type: '', user_name: '', date_from: '', date_to: '' };
+const hoje = new Date().toISOString().slice(0, 10);
+const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const FORM_INICIAL = { action: '', model_type: '', user_name: '', date_from: seteDiasAtras, date_to: hoje };
 const PAGE_LABELS = {
     '/': 'Início',
     '/dashboard': 'Dashboard',
