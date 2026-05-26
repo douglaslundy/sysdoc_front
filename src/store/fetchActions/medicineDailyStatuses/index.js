@@ -1,4 +1,4 @@
-import { api } from '../../../services/api';
+﻿import { api } from '../../../services/api';
 import {
     addDailyStatuses,
     setDailyStatusesPagination,
@@ -23,7 +23,7 @@ export const getDailyStatuses = (params = {}) => {
     };
 };
 
-export const upsertDailyStatusFetch = (data, onSuccess) => {
+export const upsertDailyStatusFetch = (data, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/pharmacy/medicines/daily-statuses', data)
@@ -35,10 +35,9 @@ export const upsertDailyStatusFetch = (data, onSuccess) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
-                dispatch(addAlertMessage(extractApiErrorMessage(error, 'Não foi possível salvar o status diário.')));
+                const message = extractApiErrorMessage(error, 'Não foi possível salvar o status diário.');
+                onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());
             });
     };
 };
-
-

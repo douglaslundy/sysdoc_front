@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Alert, Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { api } from '../../../services/api';
-import { addAlertMessage } from '../../../store/ducks/Layout';
 import { addMedicineFetch, editMedicineFetch } from '../../../store/fetchActions/medicines';
 
 const EMPTY = {
@@ -21,6 +20,7 @@ const EMPTY = {
     is_free_distribution: true,
     is_controlled: false,
     is_judicial_order: false,
+    is_high_cost: false,
     active: true,
     technical_notes: '',
 };
@@ -31,12 +31,14 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
     const [units, setUnits] = useState([]);
     const [forms, setForms] = useState([]);
     const [presentations, setPresentations] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         setForm(medicine ? {
             ...EMPTY,
             ...medicine,
         } : EMPTY);
+        setErrorMessage('');
     }, [medicine?.id, open]);
 
     useEffect(() => {
@@ -47,21 +49,22 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
                     setForms(res.data?.pharmaceutical_forms || []);
                     setPresentations(res.data?.presentations || []);
                 })
-                .catch(() => dispatch(addAlertMessage('Não foi possível carregar os catálogos da farmácia.')));
+                .catch(() => setErrorMessage('Não foi possível carregar os catálogos da farmácia.'));
         }
     }, [open]);
 
     const change = ({ target }) => {
         const value = target.type === 'checkbox' ? target.checked : target.value;
-        setForm(f => ({ ...f, [target.name]: value }));
+        setForm((f) => ({ ...f, [target.name]: value }));
+        if (errorMessage) setErrorMessage('');
     };
 
     const save = () => {
         if (medicine?.id) {
-            dispatch(editMedicineFetch(medicine.id, form, onSuccess));
+            dispatch(editMedicineFetch(medicine.id, form, onSuccess, setErrorMessage));
             return;
         }
-        dispatch(addMedicineFetch(form, onSuccess));
+        dispatch(addMedicineFetch(form, onSuccess, setErrorMessage));
     };
 
     return (
@@ -112,6 +115,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
                     <Stack spacing={2}>
+                        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
                         <TextField name="internal_code" label="Código Interno" value={form.internal_code} onChange={change} fullWidth required />
                         <TextField name="brand_name" label="Nome Comercial" value={form.brand_name || ''} onChange={change} fullWidth />
                         <TextField name="active_ingredient" label="Princípio Ativo" value={form.active_ingredient} onChange={change} fullWidth required />
@@ -145,6 +149,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
                         <FormControlLabel control={<Checkbox name="is_free_distribution" checked={!!form.is_free_distribution} onChange={change} />} label="Distribuição Gratuita" />
                         <FormControlLabel control={<Checkbox name="is_controlled" checked={!!form.is_controlled} onChange={change} />} label="Medicamento Controlado" />
                         <FormControlLabel control={<Checkbox name="is_judicial_order" checked={!!form.is_judicial_order} onChange={change} />} label="Ordem Judicial" />
+                        <FormControlLabel control={<Checkbox name="is_high_cost" checked={!!form.is_high_cost} onChange={change} />} label="Alto Custo" />
                         <FormControlLabel control={<Checkbox name="active" checked={!!form.active} onChange={change} />} label="Ativo" />
                     </Stack>
                 </Box>

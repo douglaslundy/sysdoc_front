@@ -1,4 +1,4 @@
-import { api } from '../../../services/api';
+﻿import { api } from '../../../services/api';
 import {
     addMedicine,
     addMedicines,
@@ -41,7 +41,7 @@ export const getMedicinesSelect = (params = {}) => {
     };
 };
 
-export const addMedicineFetch = (data, onSuccess) => {
+export const addMedicineFetch = (data, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/medicines', data)
@@ -53,13 +53,14 @@ export const addMedicineFetch = (data, onSuccess) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
-                dispatch(addAlertMessage(extractApiErrorMessage(error, 'Não foi possível cadastrar o medicamento.')));
+                const message = extractApiErrorMessage(error, 'Não foi possível cadastrar o medicamento.');
+                onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());
             });
     };
 };
 
-export const editMedicineFetch = (id, data, onSuccess) => {
+export const editMedicineFetch = (id, data, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.put(`/medicines/${id}`, data)
@@ -71,7 +72,8 @@ export const editMedicineFetch = (id, data, onSuccess) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
-                dispatch(addAlertMessage(extractApiErrorMessage(error, 'Não foi possível atualizar o medicamento.')));
+                const message = extractApiErrorMessage(error, 'Não foi possível atualizar o medicamento.');
+                onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());
             });
     };
@@ -93,5 +95,3 @@ export const removeMedicineFetch = (id) => {
             });
     };
 };
-
-

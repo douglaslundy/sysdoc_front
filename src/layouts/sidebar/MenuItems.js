@@ -93,6 +93,7 @@ const Menuitems = [
       { title: "Medicamentos", icon: "archive", href: "/pharmacy/medicines" },
       { title: "Status Diario", icon: "calendar", href: "/pharmacy/daily-status" },
       { title: "Aquisicoes Mensais", icon: "bar-chart-2", href: "/pharmacy/monthly-acquisitions" },
+      { title: "Config. Painel", icon: "sliders", href: "/pharmacy/panel-settings" },
       { title: "Conformidade", icon: "check-square", href: "/pharmacy/compliance" },
     ],
   },

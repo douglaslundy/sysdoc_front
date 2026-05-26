@@ -26,6 +26,7 @@ const ROUTE_TITLES_PT = {
   "/pharmacy/medicines": "Farmacia - Medicamentos",
   "/pharmacy/daily-status": "Farmacia - Status Diario",
   "/pharmacy/monthly-acquisitions": "Farmacia - Aquisicoes Mensais",
+  "/pharmacy/panel-settings": "Farmacia - Configuracao do Painel",
   "/pharmacy/compliance": "Farmacia - Compliance",
   "/laboratorio/agenda": "Laboratorio - Agenda",
   "/laboratorio/exames": "Laboratorio - Exames",

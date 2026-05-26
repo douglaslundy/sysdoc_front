@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+    Alert,
     Box,
     Button,
     Dialog,
@@ -26,19 +27,30 @@ const EMPTY = {
     public_note: '',
 };
 
+const localDate = () => {
+    const now = new Date();
+    const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+    return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
+};
+
 export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) {
     const dispatch = useDispatch();
     const { medicines } = useSelector(state => state.medicines);
     const [form, setForm] = useState(EMPTY);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         if (open) {
             dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
-            setForm({ ...EMPTY, reference_date: new Date().toISOString().slice(0, 10) });
+            setForm({ ...EMPTY, reference_date: localDate() });
+            setErrorMessage('');
         }
-    }, [open]);
+    }, [open, dispatch]);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target }) => {
+        setForm(f => ({ ...f, [target.name]: target.value }));
+        if (errorMessage) setErrorMessage('');
+    };
 
     const save = () => {
         dispatch(upsertDailyStatusFetch({
@@ -46,7 +58,7 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
             available_quantity: form.available_quantity === '' ? null : Number(form.available_quantity),
             restock_forecast_date: form.restock_forecast_date || null,
             public_note: form.public_note || null,
-        }, onSuccess));
+        }, onSuccess, setErrorMessage));
     };
 
     return (
@@ -97,6 +109,7 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
                     <Stack spacing={2}>
+                        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
                         <FormControl fullWidth required>
                             <InputLabel>Medicamento</InputLabel>
                             <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>

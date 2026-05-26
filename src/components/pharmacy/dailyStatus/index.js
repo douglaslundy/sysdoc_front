@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -33,6 +33,12 @@ const truncate = (value, max = 40) => {
   return `${text.slice(0, max)}...`;
 };
 
+const localDate = () => {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+  return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
+};
+
 export default function DailyStatusManager() {
   const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
@@ -46,7 +52,7 @@ export default function DailyStatusManager() {
   const dispatch = useDispatch();
   const { dailyStatuses, pagination } = useSelector((state) => state.medicineDailyStatuses);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [referenceDate, setReferenceDate] = useState(new Date().toISOString().slice(0, 10));
+  const [referenceDate, setReferenceDate] = useState(localDate());
   const [search, setSearch] = useState('');
   const [includeAll, setIncludeAll] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
@@ -135,7 +141,7 @@ export default function DailyStatusManager() {
 
   return (
     <Box sx={modalFormRootSx}>
-      <BaseCard title="Status Diário de Medicamentos">
+      <BaseCard title={`Status Diário de Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
         <AlertModal />
         <Box
           sx={{
@@ -240,3 +246,4 @@ export default function DailyStatusManager() {
     </Box>
   );
 }
+
