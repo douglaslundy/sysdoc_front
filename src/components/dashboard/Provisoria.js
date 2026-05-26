@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 const Dashboard = () => {
   const iframeUrl = 'https://lookerstudio.google.com/embed/reporting/30e41f91-0f96-42da-9911-717027216ff8/page/a86tD';

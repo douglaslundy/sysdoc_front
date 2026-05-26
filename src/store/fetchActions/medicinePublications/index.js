@@ -1,4 +1,4 @@
-﻿import { api } from '../../../services/api';
+import { api } from '../../../services/api';
 import { addAlertMessage, addMessage, turnAlert, turnLoading } from '../../ducks/Layout';
 
 export const registerMedicinePublicationFetch = (data, onSuccess) => {

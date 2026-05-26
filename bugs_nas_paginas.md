@@ -1,4 +1,4 @@
-﻿# Catálogo de Bugs - Páginas e Modais
+# Catálogo de Bugs - Páginas e Modais
 
 Data da varredura: 2026-05-21
 Escopo: `pages/` e `src/components/modal/` (com pontos correlatos em `src/components/queue` e `src/components/messagesModal` quando impactam o fluxo de páginas/modais).

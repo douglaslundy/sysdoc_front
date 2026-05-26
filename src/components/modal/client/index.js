@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';

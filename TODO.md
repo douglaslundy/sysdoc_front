@@ -1,4 +1,4 @@
-﻿# SYSDOC - TODO MASTER
+# SYSDOC - TODO MASTER
 
 > Ultima atualizacao: 2026-05-18
 > Escopo: backend (`sysdoc_back`) + frontend (`sysdoc_front`)

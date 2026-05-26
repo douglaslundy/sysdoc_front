@@ -1,4 +1,4 @@
-﻿import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, CircularProgress, Dialog, DialogActions,

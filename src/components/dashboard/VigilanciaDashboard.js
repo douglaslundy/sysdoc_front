@@ -6,7 +6,7 @@ import { normalizeIconName } from '../../utils/iconResolver';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
-import { DashboardErro, getDashboardErrorMÃªssage } from './DashboardStatus';
+import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
 const RISCO_COR = { '1': '#4caf50', '2': '#ff9800', '3': '#f44336', 'N/A': '#607d8b' };
 const RISCO_ORDEM = ['1', '2', '3', 'N/A'];
@@ -25,7 +25,7 @@ function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
         <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600, lineHeight: 1.25 }}>{titulo}</Typography>
-            <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? 'Ã¢â‚¬â€'}</Typography>
+            <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '-'}</Typography>
           </Box>
           <Box
             sx={{
@@ -46,7 +46,7 @@ function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
   );
 }
 
-function gerarMÃªsesFromMap(mapa) {
+function gerarMesesFromMap(mapa) {
   const meses = [];
   const valores = [];
   for (let i = 11; i >= 0; i--) {
@@ -77,7 +77,7 @@ export default function VigilanciaDashboard() {
   const chart = useMemo(() => {
     if (!dados) return null;
 
-    const porMÃªs = gerarMÃªsesFromMap(dados.por_mes || {});
+    const porMes = gerarMesesFromMap(dados.por_mes || {});
     const statusEntries = Object.entries(dados.por_status || {});
     const statusLabels = statusEntries.map(([s]) => s || 'Sem status');
     const statusValues = statusEntries.map(([, v]) => Number(v));
@@ -98,7 +98,7 @@ export default function VigilanciaDashboard() {
       nivel_risco: normalizarRisco(alv?.nivel_risco),
     }));
 
-    return { porMÃªs, statusLabels, statusValues, riscoLabels, riscoValues, riscoCores, proximos };
+    return { porMes, statusLabels, statusValues, riscoLabels, riscoValues, riscoCores, proximos };
   }, [dados]);
 
   if (loading) {
@@ -109,14 +109,14 @@ export default function VigilanciaDashboard() {
     );
   }
 
-  if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMÃªssage('Vigilancia Sanitaria', erro)} />;
+  if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Vigilância Sanitária', erro)} />;
 
   const { totais } = dados;
   const chartFont = { fontFamily: "'DM Sans', sans-serif" };
   const toolbarOff = { toolbar: { show: false } };
 
   const formatDate = (s) => {
-    if (!s) return 'Ã¢â‚¬â€';
+    if (!s) return '-';
     const [y, m, d] = s.substring(0, 10).split('-');
     return `${d}/${m}/${y}`;
   };
@@ -128,7 +128,7 @@ export default function VigilanciaDashboard() {
           <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
         </Grid>
         <Grid item xs={6} sm={4} md={2}>
-          <CardTotal icon="shield" titulo="AlvarÃ¡s" valor={totais.alvaras} cor="#607d8b" />
+          <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
         </Grid>
         <Grid item xs={6} sm={4} md={2}>
           <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
@@ -166,7 +166,7 @@ export default function VigilanciaDashboard() {
         }}
       >
         <Box className="vigi-fill-card">
-          <BaseCard title="AlvarÃ¡s por Status">
+          <BaseCard title="Alvarás por Status">
             {chart.statusLabels.length > 0 ? (
               <Chart
                 type="bar"
@@ -186,14 +186,14 @@ export default function VigilanciaDashboard() {
                   tooltip: { theme: 'dark' },
                   grid: { borderColor: 'transparent' },
                 }}
-                series={[{ name: 'AlvarÃ¡s', data: chart.statusValues }]}
+                series={[{ name: 'Alvarás', data: chart.statusValues }]}
               />
             ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
           </BaseCard>
         </Box>
 
         <Box className="vigi-fill-card risk">
-          <BaseCard title="Por NÃ­vel de Risco">
+          <BaseCard title="Por Nível de Risco">
             {chart.riscoLabels.length > 0 ? (
               <Chart
                 type="donut"
@@ -215,7 +215,7 @@ export default function VigilanciaDashboard() {
 
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <BaseCard title="AlvarÃ¡s Emitidos por MÃªs (Ãºltimos 12 meses)">
+          <BaseCard title="Alvarás Emitidos por Mês (últimos 12 meses)">
             <Chart
               type="area"
               height={300}
@@ -223,7 +223,7 @@ export default function VigilanciaDashboard() {
                 chart: { ...chartFont, ...toolbarOff },
                 colors: ['#4caf50'],
                 xaxis: {
-                  categories: chart.porMÃªs.meses,
+                  categories: chart.porMes.meses,
                   labels: {
                     style: { colors: '#b0bec5', fontSize: '11px' },
                     formatter: v => typeof v === 'string' ? v.toUpperCase() : v,
@@ -236,19 +236,19 @@ export default function VigilanciaDashboard() {
                 tooltip: { theme: 'dark' },
                 grid: { borderColor: 'transparent' },
               }}
-              series={[{ name: 'AlvarÃ¡s', data: chart.porMÃªs.valores }]}
+              series={[{ name: 'Alvarás', data: chart.porMes.valores }]}
             />
           </BaseCard>
         </Grid>
 
         {chart.proximos.length > 0 && (
           <Grid item xs={12}>
-            <BaseCard title="PrÃ³ximos Vencimentos">
+            <BaseCard title="Próximos Vencimentos">
               <Box sx={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      {['NÃºmero', 'Estabelecimento', 'Risco', 'Status', 'Vencimento'].map(h => (
+                      {['Número', 'Estabelecimento', 'Risco', 'Status', 'Vencimento'].map(h => (
                         <th key={h} style={{ textAlign: 'left', padding: '6px 12px', color: '#90a4ae', fontWeight: 600, fontSize: 12, borderBottom: '1px solid #2a3140' }}>
                           {h.toUpperCase()}
                         </th>
@@ -259,7 +259,7 @@ export default function VigilanciaDashboard() {
                     {chart.proximos.map((alv) => (
                       <tr key={alv.id} style={{ borderBottom: '1px solid #1e2736' }}>
                         <td style={{ padding: '8px 12px', fontWeight: 600 }}>{alv.numero_alvara}</td>
-                        <td style={{ padding: '8px 12px' }}>{alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? 'Ã¢â‚¬â€'}</td>
+                        <td style={{ padding: '8px 12px' }}>{alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? '-'}</td>
                         <td style={{ padding: '8px 12px' }}>
                           <Chip
                             label={`Risco ${normalizarRisco(alv.nivel_risco)}`}
@@ -267,7 +267,7 @@ export default function VigilanciaDashboard() {
                             sx={{ bgcolor: (RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b') + '33', color: RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b' }}
                           />
                         </td>
-                        <td style={{ padding: '8px 12px' }}>{alv.status || 'Ã¢â‚¬â€'}</td>
+                        <td style={{ padding: '8px 12px' }}>{alv.status || '-'}</td>
                         <td style={{ padding: '8px 12px', color: '#ff9800', fontWeight: 600 }}>{formatDate(alv.vencimento_alvara)}</td>
                       </tr>
                     ))}
@@ -281,3 +281,4 @@ export default function VigilanciaDashboard() {
     </Box>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
