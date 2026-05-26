@@ -344,7 +344,11 @@ export default function VisitasAcs() {
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="home" titulo="Famílias"
+<<<<<<< HEAD
                         valor={(totais.familias_total ?? totais.cidadaos ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
+=======
+                        valor={totais.familias_total != null ? totais.familias_total.toLocaleString('pt-BR') : '—'} cor="#7B2D8B"
+>>>>>>> df045ae (fix: VisitasAcs — card Famílias mostra total cadastral do ACS)
                         sub={temFamilias ? `${(totais.familias_acompanhadas ?? 0).toLocaleString('pt-BR')} acompanhadas (${pctFamAcomp}%)` : null} />
                 </Grid>
             </Grid>
