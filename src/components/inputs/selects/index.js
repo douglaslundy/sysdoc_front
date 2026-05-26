@@ -34,7 +34,7 @@ export default function BasicSelect(props) {
   return (
     <Box sx={{ minWidth: 120, width: wd }}>
       <FormControl fullWidth required>
-        <InputLabel sx={labelSx} shrink={value !== undefined && value !== null && String(value) !== ""}>
+        <InputLabel sx={labelSx}>
           {label}
         </InputLabel>
         <Select
@@ -46,7 +46,6 @@ export default function BasicSelect(props) {
           onChange={changeItem}
           size={size}
           sx={selectSx}
-          notched={value !== undefined && value !== null && String(value) !== ""}
         >
           {valueDefault && <MenuItem key={0} value={0} sx={menuItemSx}>{valueDefault}</MenuItem>}
 

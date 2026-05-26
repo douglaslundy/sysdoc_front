@@ -52,6 +52,21 @@ const style = {
 };
 
 export default function QueueModal(props) {
+    const controlHeight = 40;
+    const controlSx = {
+        "& .MuiInputBase-root": { height: `${controlHeight}px` },
+    };
+    const selectControlSx = {
+        "& .MuiInputBase-root": { height: `${controlHeight}px` },
+        "& .MuiSelect-select": {
+            display: "flex",
+            alignItems: "center",
+            minHeight: "unset",
+            height: `${controlHeight}px`,
+            boxSizing: "border-box",
+        },
+    };
+    const buttonSx = { height: `${controlHeight}px` };
 
 
     const [form, setForm] = useState({
@@ -446,6 +461,7 @@ export default function QueueModal(props) {
                                             clients={clients}
                                             value={form.client}
                                             setClient={setClient}
+                                            wd="100%"
                                         />
 
                                     }
@@ -455,6 +471,8 @@ export default function QueueModal(props) {
                                         name={'speciality'}
                                         store={specialities}
                                         changeItem={changeItem}
+                                        wd={"100%"}
+                                        selectSx={selectControlSx}
                                     />
 
                                     <FormGroup>
@@ -467,6 +485,7 @@ export default function QueueModal(props) {
                                         label={obs && obs.length > 0 ? `Observa\u00e7\u00f5es: ${200 - obs.length} caracteres restantes` : 'Observa\u00e7\u00f5es'}
                                         multiline
                                         rows={2}
+                                        sx={controlSx}
                                         value={obs ? obs : ''}
                                         name="obs"
                                         // disabled={queue?.id ? true : false}
@@ -493,7 +512,7 @@ export default function QueueModal(props) {
                                             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                                 Este registro aceita multiplos anexos (PDF, JPG, JPEG e PNG).
                                             </Typography>
-                                            <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ mt: 0.5 }}>
+                                            <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ mt: 0.5, ...buttonSx }}>
                                                 {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s)'}
                                                 <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
                                             </Button>
@@ -516,10 +535,10 @@ export default function QueueModal(props) {
                                                             </Typography>
                                                         </MuiBox>
                                                         <MuiBox sx={{ "& button": { ml: 1 } }}>
-                                                            <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
+                                                            <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)} sx={buttonSx}>
                                                                 Baixar
                                                             </Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>
+                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)} sx={buttonSx}>
                                                                 Remover
                                                             </Button>
                                                         </MuiBox>
@@ -533,7 +552,7 @@ export default function QueueModal(props) {
                                                 Selecione os anexos agora e clique em Gravar. O sistema salva o registro e envia os arquivos em seguida.
                                             </Typography>
                                             <MuiBox mt={1}>
-                                                <Button component="label" variant="outlined" size="small">
+                                                <Button component="label" variant="outlined" size="small" sx={buttonSx}>
                                                     Selecionar Anexo(s) (PDF/JPG/PNG)
                                                     <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handlePendingFiles} />
                                                 </Button>
@@ -548,17 +567,17 @@ export default function QueueModal(props) {
                                 </MuiBox>
 
                                 <Box sx={{ mt: 3, "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }} disabled={isSubmittingQueue || isAttachmentUploading}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2, ...buttonSx }} disabled={isSubmittingQueue || isAttachmentUploading}>
                                         {isSubmittingQueue ? 'Salvando...' : 'Gravar'}
                                     </Button>
 
                                     {queue?.id && (
-                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ mt: 2 }}>
+                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ mt: 2, ...buttonSx }}>
                                             Gerar Recibo
                                         </Button>
                                     )}
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }} disabled={isSubmittingQueue}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2, ...buttonSx }} disabled={isSubmittingQueue}>
                                         Cancelar
                                     </Button>
                                 </Box>

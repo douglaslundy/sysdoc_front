@@ -25,6 +25,7 @@ const ROUTE_TITLES_PT = {
   "/paginas-categorias": "Categorias de Paginas",
   "/pharmacy/medicines": "Farmacia - Medicamentos",
   "/pharmacy/daily-status": "Farmacia - Status Diario",
+  "/pharmacy/stock-import": "Farmacia - Importacao de Estoque",
   "/pharmacy/monthly-acquisitions": "Farmacia - Aquisicoes Mensais",
   "/pharmacy/panel-settings": "Farmacia - Configuracao do Painel",
   "/pharmacy/compliance": "Farmacia - Compliance",

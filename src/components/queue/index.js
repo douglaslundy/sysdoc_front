@@ -62,6 +62,28 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default () => {
+    const controlHeight = 40;
+    const controlSx = {
+        height: `${controlHeight}px`,
+        "& .MuiInputBase-root": { height: `${controlHeight}px` },
+    };
+    const selectControlSx = {
+        ...controlSx,
+        "& .MuiSelect-select": {
+            display: "flex",
+            alignItems: "center",
+            minHeight: "unset",
+            height: `${controlHeight}px`,
+            boxSizing: "border-box",
+            fontSize: "10px",
+        },
+    };
+    const fabControlSx = {
+        width: `${controlHeight}px`,
+        height: `${controlHeight}px`,
+        minHeight: `${controlHeight}px`,
+    };
+
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -298,7 +320,7 @@ export default () => {
 
                 <TextField
                     className="lg-search-field"
-                    sx={{ flex: 1, minWidth: 280 }}
+                    sx={{ flex: 1, minWidth: 280, ...controlSx }}
                     placeholder="Pesquisar por Nome / CPF / CNS"
                     name="search"
                     value={searchValue}
@@ -315,7 +337,7 @@ export default () => {
                     wd={"18%"}
                     size="small"
                     labelSx={{ fontSize: "12px" }}
-                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    selectSx={selectControlSx}
                     menuItemSx={{ fontSize: "10px" }}
                 />
 
@@ -328,7 +350,7 @@ export default () => {
                     wd={"10%"}
                     size="small"
                     labelSx={{ fontSize: "12px" }}
-                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    selectSx={selectControlSx}
                     menuItemSx={{ fontSize: "10px" }}
                 />
                 <Select
@@ -340,7 +362,7 @@ export default () => {
                     wd={"10%"}
                     size="small"
                     labelSx={{ fontSize: "12px" }}
-                    selectSx={{ "& .MuiSelect-select": { fontSize: "10px" } }}
+                    selectSx={selectControlSx}
                     menuItemSx={{ fontSize: "10px" }}
                 />
 
@@ -354,12 +376,12 @@ export default () => {
                 /> */}
 
                 {profile === "admin" &&
-                    <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista">
+                    <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista" sx={fabControlSx}>
                         <FeatherIcon icon="printer" />
                     </Fab>
                 }
 
-                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila">
+                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila" sx={fabControlSx}>
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -600,24 +622,25 @@ export default () => {
                                                         size="medium"
                                                         variant="contained"
                                                         disabled
+                                                        sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}
                                                     >
                                                         <FeatherIcon icon="paperclip" width="20" height="20" />
                                                     </Button>
                                                 )}
 
-                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained">
+                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" >
+                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'}>
+                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
                                                     <FeatherIcon icon="book-open" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true}>
+                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
@@ -741,7 +764,7 @@ export default () => {
                                 Cada registro da fila pode receber multiplos arquivos (PDF, JPG, JPEG e PNG).
                             </Typography>
                             <Box mt={1} mb={1}>
-                                <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading}>
+                                <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ height: `${controlHeight}px` }}>
                                     {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s) (PDF/JPG/PNG)'}
                                     <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
                                 </Button>
@@ -761,10 +784,10 @@ export default () => {
                                         </Typography>
                                     </Box>
                                     <Box sx={{ "& button": { ml: 1 } }}>
-                                        <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>
+                                        <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)} sx={{ height: `${controlHeight}px` }}>
                                             Baixar
                                         </Button>
-                                        <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>
+                                        <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)} sx={{ height: `${controlHeight}px` }}>
                                             Remover
                                         </Button>
                                     </Box>
@@ -775,12 +798,9 @@ export default () => {
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setViewQueue(null)} variant="outlined">Fechar</Button>
+                <Button onClick={() => setViewQueue(null)} variant="outlined" sx={{ height: `${controlHeight}px` }}>Fechar</Button>
             </DialogActions>
         </Dialog>
         </>
     );
 };
-
-
-

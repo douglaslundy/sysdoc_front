@@ -42,6 +42,11 @@ const style = {
 };
 
 export default function QueueModal(props) {
+    const controlHeight = 40;
+    const controlSx = {
+        "& .MuiInputBase-root": { height: `${controlHeight}px` },
+    };
+    const buttonSx = { height: `${controlHeight}px` };
 
 
     const [form, setForm] = useState({
@@ -168,6 +173,7 @@ export default function QueueModal(props) {
                                         label={obsConclusion && obsConclusion.length > 0 ? `Observações: ${200 - obsConclusion.length} caracteres restantes` : 'Observações'}
                                         multiline
                                         rows={2}
+                                        sx={controlSx}
                                         value={obsConclusion ? obsConclusion : ''}
                                         name="obsConclusion"
                                         // disabled={queue?.id ? true : false}
@@ -184,11 +190,11 @@ export default function QueueModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2, ...buttonSx }}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2, ...buttonSx }}>
                                         Cancelar
                                     </Button>
                                 </Box>

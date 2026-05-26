@@ -56,6 +56,10 @@ export const modalFormRootSx = {
     boxShadow: "var(--lg-focus-ring)",
   },
   "& .MuiInputBase-input": {
+    border: "none",
+    borderRadius: 0,
+    boxShadow: "none",
+    background: "transparent",
     paddingTop: "11px",
     paddingBottom: "11px",
   },

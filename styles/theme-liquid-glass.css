@@ -376,6 +376,10 @@ input[type="checkbox"],
 
 .MuiTextField-root .MuiInputBase-input,
 .MuiFormControl-root .MuiInputBase-input {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
   padding-top: 10px;
   padding-bottom: 10px;
 }
@@ -501,8 +505,7 @@ input[type="checkbox"],
 
 /* Inputs e selects em telas de listagem (cards) seguindo o modal de clientes */
 .MuiCard-root .MuiTextField-root .MuiOutlinedInput-root,
-.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-root,
-.MuiCard-root .MuiSelect-select {
+.MuiCard-root .MuiFormControl-root .MuiOutlinedInput-root {
   background: var(--lg-glass-input);
   border: 0.5px solid var(--lg-border-input);
   border-radius: 11px;
@@ -510,6 +513,19 @@ input[type="checkbox"],
   backdrop-filter: var(--lg-blur-input);
   -webkit-backdrop-filter: var(--lg-blur-input);
   box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.06), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.MuiCard-root .MuiSelect-select {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.MuiCard-root .MuiInputBase-input {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .MuiCard-root .MuiTextField-root .MuiOutlinedInput-notchedOutline,
@@ -620,8 +636,20 @@ input[type="checkbox"],
 
 .MuiModal-root .MuiInputBase-input,
 .MuiDialog-root .MuiInputBase-input {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
   padding-top: 11px;
   padding-bottom: 11px;
+}
+
+.MuiModal-root .MuiSelect-select,
+.MuiDialog-root .MuiSelect-select {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .MuiModal-root .MuiInputBase-input::placeholder,

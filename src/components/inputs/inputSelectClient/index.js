@@ -42,7 +42,24 @@ export default function index(props) {
   return (
     <Autocomplete
       id="client"
-      sx={wd ? { width: wd } : { width: "85%" }}
+      sx={{
+        width: wd || "100%",
+        "& .MuiInputBase-root": {
+          width: "100%",
+        },
+        "& .MuiAutocomplete-inputRoot": {
+          background: "transparent !important",
+          boxShadow: "none !important",
+        },
+        "& .MuiInputBase-input": {
+          background: "transparent !important",
+          border: "none",
+          boxShadow: "none",
+        },
+        "& .MuiAutocomplete-endAdornment": {
+          background: "transparent",
+        },
+      }}
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
