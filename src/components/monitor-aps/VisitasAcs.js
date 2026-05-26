@@ -185,7 +185,10 @@ export default function VisitasAcs() {
     useEffect(() => {
         if (aba !== 'mapa') return;
         const params = new URLSearchParams({ ano, mes });
-        if (ine) params.set('ine', ine);
+        if (ine)            params.set('ine', ine);
+        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
+        if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_mapa_all_${params}`;
         const cached = getCached(key);
         if (cached) { setPontosMapa(cached.pontos ?? []); return; }
@@ -197,7 +200,7 @@ export default function VisitasAcs() {
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setPontosMapa([]); })
             .finally(() => setLoadingMapa(false));
         return () => ctrl.abort();
-    }, [aba, ano, mes, ine]);
+    }, [aba, ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
     const abrirDetalhe = useCallback(async (id) => {
         setLoadingDetalhe(true);
