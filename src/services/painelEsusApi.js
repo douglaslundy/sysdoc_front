@@ -21,4 +21,6 @@ export const painelEsusApi = {
         api.get('/painel-esus/fila', { params, signal: options.signal }).then(r => r.data),
     filtros: (cnes, options = {}) =>
         api.get('/painel-esus/filtros', { params: { cnes }, signal: options.signal }).then(r => r.data),
+    unidades: (options = {}) =>
+        api.get('/painel-esus/unidades', { signal: options.signal }).then(r => r.data),
 };
