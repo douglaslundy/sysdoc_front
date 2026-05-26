@@ -193,6 +193,17 @@ export default function VisitasAcs() {
         return () => ctrl.abort();
     }, [ano, mes, ine, page, filtroAgente, filtroDesfecho, filtroGeo]);
 
+    // Carrega responsabilidade (cadastrados por agente) — recarrega quando equipe muda
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (ine) params.set('ine', ine);
+        const ctrl = new AbortController();
+        monitorApsApi.get(`/visitas/responsabilidade?${params}`, { signal: ctrl.signal })
+            .then(d => setResponsabilidade(d.responsabilidade ?? []))
+            .catch(() => {});
+        return () => ctrl.abort();
+    }, [ine]);
+
     // Carrega pontos do mapa quando a aba muda para mapa
     useEffect(() => {
         if (aba !== 'mapa') return;
@@ -499,6 +510,7 @@ export default function VisitasAcs() {
                                             <TableCell align="right">Recusadas</TableCell>
                                             <TableCell align="right">Ausentes</TableCell>
                                             <TableCell align="right">% Realiz.</TableCell>
+                                            <TableCell align="right">Cadastrados</TableCell>
                                             <TableCell align="right">Cidadãos</TableCell>
                                             <TableCell align="right">Cadastrados</TableCell>
                                             <TableCell align="right">Famílias</TableCell>
@@ -542,6 +554,14 @@ export default function VisitasAcs() {
                                                             fontWeight: 700,
                                                         }}
                                                     />
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {(() => {
+                                                        const r = responsabilidade.find(
+                                                            r => r.agente?.trim().toLowerCase() === a.agente?.trim().toLowerCase()
+                                                        );
+                                                        return r ? Number(r.cadastrados).toLocaleString('pt-BR') : '—';
+                                                    })()}
                                                 </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right">
