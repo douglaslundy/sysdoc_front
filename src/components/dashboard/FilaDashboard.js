@@ -123,7 +123,7 @@ export default function FilaDashboard() {
 
             <Grid container spacing={3}>
                 {/* Fila x Especialidades — barras empilhadas */}
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Fila x Especialidades">
                         {chart.espNomes.length > 0 ? (
                             <Chart
@@ -159,7 +159,7 @@ export default function FilaDashboard() {
                 </Grid>
 
                 {/* Entradas na fila — últimos 12 meses */}
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Entradas na Fila — Últimos 12 Meses">
                         <Chart
                             type="area"

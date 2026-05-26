@@ -98,7 +98,7 @@ export default function InicioDashboard() {
             </Grid>
 
             <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Clientes Cadastrados por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -125,7 +125,7 @@ export default function InicioDashboard() {
                     </BaseCard>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Ofícios por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -152,7 +152,7 @@ export default function InicioDashboard() {
                     </BaseCard>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={12}>
                     <BaseCard title="Portarias por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
