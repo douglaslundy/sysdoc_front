@@ -49,6 +49,15 @@ const PAGE_LABELS = {
     '/pharmacy/daily-status': 'Farmácia - Status Diário',
     '/pharmacy/monthly-acquisitions': 'Farmácia - Aquisições Mensais',
     '/pharmacy/compliance': 'Farmácia - Conformidade',
+    // Monitor APS
+    '/monitor-aps': 'Monitor APS - Resumo',
+    '/monitor-aps/qualidade': 'Monitor APS - Indicadores de Qualidade',
+    '/monitor-aps/vinculo': 'Monitor APS - Vínculo Territorial',
+    '/monitor-aps/equipe': 'Monitor APS - Por Equipe',
+    '/monitor-aps/visitas': 'Monitor APS - Visitas ACS',
+    '/monitor-aps/visitas/evolucao': 'Monitor APS - Evolução de Visitas',
+    '/monitor-aps/visitas/mapa': 'Monitor APS - Mapa de Visitas',
+    '/monitor-aps/configuracoes': 'Monitor APS - Configurações',
 };
 
 const endpointLabel = (endpoint) => {
@@ -60,25 +69,18 @@ const endpointLabel = (endpoint) => {
         .replace(/-/g, ' ');          // hífens → espaços
 };
 
-const pageViewPathLabel = (log) => {
-    const event = log?.new_values?.event;
-    const path = log?.new_values?.path;
-    if (event !== 'PAGE_VIEW' || !path) return null;
-
-    return String(path)
-        .replace(/^\/+/, '')
-        .replace(/\/\d+$/, '')
-        .replace(/\/\d+\//, '/')
-        .replace(/-/g, ' ') || '/';
-};
-
 const pageViewFriendlyLabel = (log) => {
+    // Prioridade 1: label explícito gravado pelo frontend (monitor-aps, etc.)
+    if (log?.new_values?.label) return log.new_values.label;
+
     const path = log?.new_values?.path;
     if (!path) return null;
 
+    // Prioridade 2: mapeamento estático de paths conhecidos
     const normalized = `/${String(path).replace(/^\/+/, '').replace(/\/\d+$/, '')}`;
     if (PAGE_LABELS[normalized]) return PAGE_LABELS[normalized];
 
+    // Fallback: path legível
     const fallback = normalized
         .replace(/^\/+/, '')
         .replace(/-/g, ' ')
@@ -258,12 +260,23 @@ export default function Auditoria() {
                                         <Typography variant="body2" fontWeight={600}>{log.user_name?.toUpperCase()}</Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                        <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
                                             <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
-                                            {['VIEW', 'VIEW_REPORT'].includes(log.action) && (pageViewPathLabel(log) || log.endpoint) && (
+                                            {['VIEW', 'VIEW_REPORT', 'READ'].includes(log.action) && (
                                                 <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
-                                                    / {pageViewFriendlyLabel(log) ?? pageViewPathLabel(log) ?? endpointLabel(log.endpoint)}
+                                                    {pageViewFriendlyLabel(log) ?? endpointLabel(log.endpoint) ?? ''}
                                                 </Typography>
+                                            )}
+                                            {log.action === 'READ' && log.new_values?.filtros && (
+                                                <Chip
+                                                    label={Object.entries(log.new_values.filtros)
+                                                        .filter(([, v]) => v !== '' && v != null)
+                                                        .map(([k, v]) => `${k}: ${v}`)
+                                                        .join(' · ')}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontSize: 10, maxWidth: 320 }}
+                                                />
                                             )}
                                         </Box>
                                     </TableCell>

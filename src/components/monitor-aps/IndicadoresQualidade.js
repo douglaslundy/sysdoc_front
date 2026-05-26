@@ -9,6 +9,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -89,6 +90,8 @@ export default function IndicadoresQualidade() {
     const [data, setData]   = useState([]);
     const [loading, setLoading] = useState(true);
     const [detalhe, setDetalhe] = useState(null);
+
+    useMonitorApsAudit('/monitor-aps/qualidade', 'Monitor APS - Indicadores de Qualidade', { ano, quadrimestre: quad, equipe: ine, bloco });
 
     useEffect(() => {
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});

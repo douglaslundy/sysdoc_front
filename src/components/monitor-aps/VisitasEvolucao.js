@@ -8,6 +8,7 @@ import {
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 
 const MESES  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES  = ['#1351B4', '#168821', '#FF8C00'];
@@ -37,6 +38,10 @@ export default function VisitasEvolucao() {
     const [loading,      setLoading]      = useState(true);
     const [erro,         setErro]         = useState(null);
     const ctrlRef = useRef(null);
+
+    useMonitorApsAudit('/monitor-aps/visitas/evolucao', 'Monitor APS - Evolução de Visitas', {
+        equipe: ine, agente, desfecho, geo,
+    });
 
     useEffect(() => {
         monitorApsApi.get('/config/equipes')

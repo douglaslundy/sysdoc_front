@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
@@ -37,6 +38,10 @@ export default function MapaVisitasPage() {
     const [detalhe, setDetalhe]               = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]       = useState(false);
+
+    useMonitorApsAudit('/monitor-aps/visitas/mapa', 'Monitor APS - Mapa de Visitas', {
+        ano, mes, equipe: equipeIne, agente: agenteNome,
+    });
 
     // Color mode is auto-determined by the filter state (no separate toggle needed)
     const modoExterno = useMemo(() => {

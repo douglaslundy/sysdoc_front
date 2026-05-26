@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
@@ -99,6 +100,10 @@ export default function VisitasAcs() {
     const [detalhe, setDetalhe]           = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]   = useState(false);
+
+    useMonitorApsAudit('/monitor-aps/visitas', 'Monitor APS - Visitas ACS', {
+        ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
+    });
 
     // Carrega equipes uma única vez
     useEffect(() => {

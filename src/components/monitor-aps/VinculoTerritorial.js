@@ -8,6 +8,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -63,6 +64,8 @@ export default function VinculoTerritorial() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(null);
+
+    useMonitorApsAudit('/monitor-aps/vinculo', 'Monitor APS - Vínculo Territorial', { ano, quadrimestre: quad });
 
     useEffect(() => {
         const key = `vinculo_${ano}_${quad}`;

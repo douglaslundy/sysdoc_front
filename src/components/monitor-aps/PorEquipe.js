@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -41,6 +42,8 @@ export default function PorEquipe() {
     const [repasse, setRepasse]   = useState(null);
     const [historico, setHistorico] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    useMonitorApsAudit('/monitor-aps/equipe', 'Monitor APS - Por Equipe', { ano, quadrimestre: quad, equipe: ine });
 
     useEffect(() => {
         monitorApsApi.get('/config/equipes').then(d => {
