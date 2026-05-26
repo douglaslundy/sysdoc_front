@@ -16,6 +16,7 @@ const Menuitems = [
       { title: "Perfis de Acesso", icon: "shield", href: "/perfis" },
       { title: "Paginas do Sistema", icon: "layout", href: "/paginas-sistema" },
       { title: "Categorias de Paginas", icon: "tag", href: "/paginas-categorias" },
+      { title: "Backup do Banco", icon: "database", href: "/backup" },
     ],
   },
   {
