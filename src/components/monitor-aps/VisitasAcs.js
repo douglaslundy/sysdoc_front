@@ -193,17 +193,6 @@ export default function VisitasAcs() {
         return () => ctrl.abort();
     }, [ano, mes, ine, page, filtroAgente, filtroDesfecho, filtroGeo]);
 
-    // Carrega responsabilidade (cadastrados por agente) — recarrega quando equipe muda
-    useEffect(() => {
-        const params = new URLSearchParams();
-        if (ine) params.set('ine', ine);
-        const ctrl = new AbortController();
-        monitorApsApi.get(`/visitas/responsabilidade?${params}`, { signal: ctrl.signal })
-            .then(d => setResponsabilidade(d.responsabilidade ?? []))
-            .catch(() => {});
-        return () => ctrl.abort();
-    }, [ine]);
-
     // Carrega pontos do mapa quando a aba muda para mapa
     useEffect(() => {
         if (aba !== 'mapa') return;
@@ -246,13 +235,14 @@ export default function VisitasAcs() {
 
     const totais = resumo?.totais ?? {
         total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,
-        familias: null, familias_acompanhadas: null, familias_recusadas: null, familias_ausentes: null,
+        familias_total: null, familias_acompanhadas: null, familias_recusadas: null, familias_ausentes: null,
     };
     const pctReal       = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
-    const temFamilias   = totais.familias > 0;
-    const pctFamAcomp   = temFamilias ? Math.round(totais.familias_acompanhadas / totais.familias * 100) : 0;
-    const pctFamRecus   = temFamilias ? Math.round(totais.familias_recusadas   / totais.familias * 100) : 0;
-    const pctFamAusent  = temFamilias ? Math.round(totais.familias_ausentes    / totais.familias * 100) : 0;
+    const totalFamilias = totais.familias_total ?? 0;
+    const temFamilias   = totalFamilias > 0;
+    const pctFamAcomp   = temFamilias ? Math.round((totais.familias_acompanhadas ?? 0) / totalFamilias * 100) : 0;
+    const pctFamRecus   = temFamilias ? Math.round((totais.familias_recusadas   ?? 0) / totalFamilias * 100) : 0;
+    const pctFamAusent  = temFamilias ? Math.round((totais.familias_ausentes    ?? 0) / totalFamilias * 100) : 0;
 
     const anosDisponiveis = useMemo(
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
@@ -334,16 +324,13 @@ export default function VisitasAcs() {
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
-                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
-                        subFamily={temFamilias
-                            ? `${totais.familias_acompanhadas.toLocaleString('pt-BR')} famílias acompanhadas (${pctFamAcomp}%)`
-                            : null} />
+                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
                         valor={totais.recusadas.toLocaleString('pt-BR')} cor="#E52207"
                         sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''}
-                        subFamily={temFamilias
+                        subFamily={temFamilias && totais.familias_recusadas != null
                             ? `${totais.familias_recusadas.toLocaleString('pt-BR')} famílias (${pctFamRecus}%)`
                             : null} />
                 </Grid>
@@ -351,13 +338,14 @@ export default function VisitasAcs() {
                     <MetricCard icon="user-x" titulo="Ausentes"
                         valor={totais.ausentes.toLocaleString('pt-BR')} cor="#FF8C00"
                         sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''}
-                        subFamily={temFamilias
+                        subFamily={temFamilias && totais.familias_ausentes != null
                             ? `${totais.familias_ausentes.toLocaleString('pt-BR')} famílias (${pctFamAusent}%)`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
-                    <MetricCard icon="users" titulo="Cidadãos Distintos"
-                        valor={totais.cidadaos.toLocaleString('pt-BR')} cor="#7B2D8B" />
+                    <MetricCard icon="home" titulo="Famílias"
+                        valor={(totais.familias_total ?? totais.cidadaos ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
+                        sub={temFamilias ? `${(totais.familias_acompanhadas ?? 0).toLocaleString('pt-BR')} acompanhadas (${pctFamAcomp}%)` : null} />
                 </Grid>
             </Grid>
 
@@ -573,7 +561,7 @@ export default function VisitasAcs() {
                                                     })()}
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    {a.familias != null ? a.familias.toLocaleString('pt-BR') : '—'}
+                                                    {a.familias_total != null ? a.familias_total.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     {a.familias_acompanhadas != null
