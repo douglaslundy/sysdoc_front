@@ -100,6 +100,7 @@ export default function VisitasAcs() {
     const [detalhe, setDetalhe]           = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]   = useState(false);
+    const [responsabilidade, setResponsabilidade] = useState([]);
 
     useMonitorApsAudit('/monitor-aps/visitas', 'Monitor APS - Visitas ACS', {
         ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
@@ -163,6 +164,17 @@ export default function VisitasAcs() {
             .catch(() => {});
         return () => ctrl.abort();
     }, [ano, mes, ine, filtroAgente, filtroGeo]);
+
+    // Carrega responsabilidade (cadastrados por agente) — recarrega quando equipe muda
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (ine) params.set('ine', ine);
+        const ctrl = new AbortController();
+        monitorApsApi.get(`/visitas/responsabilidade?${params}`, { signal: ctrl.signal })
+            .then(d => setResponsabilidade(d.responsabilidade ?? []))
+            .catch(() => {});
+        return () => ctrl.abort();
+    }, [ine]);
 
     // Carrega lista de visitas
     useEffect(() => {
@@ -488,6 +500,7 @@ export default function VisitasAcs() {
                                             <TableCell align="right">Ausentes</TableCell>
                                             <TableCell align="right">% Realiz.</TableCell>
                                             <TableCell align="right">Cidadãos</TableCell>
+                                            <TableCell align="right">Cadastrados</TableCell>
                                             <TableCell align="right">Famílias</TableCell>
                                             <TableCell align="right">Fam. Acomp.</TableCell>
                                             <TableCell align="right">% Família</TableCell>
@@ -532,6 +545,14 @@ export default function VisitasAcs() {
                                                 </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right">
+                                                    {(() => {
+                                                        const r = responsabilidade.find(
+                                                            r => r.agente?.trim().toLowerCase() === a.agente?.trim().toLowerCase()
+                                                        );
+                                                        return r ? Number(r.cadastrados).toLocaleString('pt-BR') : '—';
+                                                    })()}
+                                                </TableCell>
+                                                <TableCell align="right">
                                                     {a.familias != null ? a.familias.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
@@ -556,7 +577,7 @@ export default function VisitasAcs() {
                                         ))}
                                         {agentes.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={11} align="center"
+                                                <TableCell colSpan={12} align="center"
                                                     sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                     Nenhum agente encontrado para o período.
                                                 </TableCell>
