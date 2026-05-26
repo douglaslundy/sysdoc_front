@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import CidadaosPageRoute from '../cidadaos';
+import CidadaosPageRoute from '../../pages/monitor-aps/cidadaos';
 
-jest.mock('../../../src/components/monitor-aps/CidadaosPage', () => {
+jest.mock('../../src/components/monitor-aps/CidadaosPage', () => {
     const MockCidadaosPage = () => <div>MockCidadaosPage</div>;
     MockCidadaosPage.displayName = 'MockCidadaosPage';
     return MockCidadaosPage;
