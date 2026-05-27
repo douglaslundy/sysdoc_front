@@ -135,6 +135,7 @@ export default function TripClientsModal(props) {
             time: ""
         });
         setClient([]);
+        setTexto('');
     }
 
     const handleChangePage = (event, newPage) => {
