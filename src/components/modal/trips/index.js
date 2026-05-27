@@ -9,6 +9,10 @@ import {
     TextField,
     Alert,
     Button,
+    Dialog,
+    DialogContent,
+    DialogActions,
+    Typography,
 } from "@mui/material";
 
 import BaseCard from "../../baseCard/BaseCard";
@@ -23,6 +27,7 @@ import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
 import DateTime from '../../inputs/dateTime';
 import BasicDatePicker from '../../inputs/datePicker';
+import { format } from 'date-fns';
 
 const style = {
     position: 'absolute',
@@ -61,6 +66,15 @@ export default function TripModal(props) {
     const { trip } = useSelector(state => state.trips);
     // const [driv, setDriver] = useState([]);
     const [texto, setTexto] = useState();
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
+    const formatDisplayDate = (date) => {
+        try {
+            return format(date instanceof Date ? date : new Date(`${date}T12:00:00`), 'dd/MM/yyyy');
+        } catch {
+            return '';
+        }
+    };
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
@@ -82,11 +96,19 @@ export default function TripModal(props) {
 
 
     const handleSaveData = async () => {
-        trip && trip.id ? handlePutData() : handlePostData()
-    }
+        if (trip && trip.id) {
+            handlePutData();
+        } else {
+            setConfirmOpen(true);
+        }
+    };
+
+    const handleConfirm = () => {
+        setConfirmOpen(false);
+        handlePostData();
+    };
 
     const handlePostData = async () => {
-        // dispatch(changeTitleAlert(`Viagem com destino ${form.destination.toUpperCase()} foi Cadastrada com sucesso!`));
         dispatch(changeTitleAlert(`Viagem Cadastrada com sucesso!`));
         dispatch(addTripFetch(form, cleanForm));
     };
@@ -254,6 +276,31 @@ export default function TripModal(props) {
 
                 </Box>
             </Modal>
+
+            {/* Confirmação de cadastro de nova viagem */}
+            <Dialog
+                open={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogContent sx={{ textAlign: 'center', pt: 5, pb: 3 }}>
+                    <Typography variant="body1" sx={{ mb: 2, fontSize: 18 }}>
+                        Confirma o cadastro da viagem para a data
+                    </Typography>
+                    <Typography sx={{ fontWeight: 'bold', fontSize: 46, lineHeight: 1.2 }}>
+                        {formatDisplayDate(departure_date)}
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
+                    <Button variant="contained" size="large" onClick={handleConfirm}>
+                        Confirmar
+                    </Button>
+                    <Button variant="outlined" size="large" onClick={() => setConfirmOpen(false)}>
+                        Cancelar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div >
     );
 }
