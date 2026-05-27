@@ -100,7 +100,6 @@ export default function VisitasAcs() {
     const [detalhe, setDetalhe]           = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]   = useState(false);
-    const [responsabilidade, setResponsabilidade] = useState([]);
 
     useMonitorApsAudit('/monitor-aps/visitas', 'Monitor APS - Visitas ACS', {
         ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
@@ -165,17 +164,6 @@ export default function VisitasAcs() {
         return () => ctrl.abort();
     }, [ano, mes, ine, filtroAgente, filtroGeo]);
 
-    // Carrega responsabilidade (cadastrados por agente) — recarrega quando equipe muda
-    useEffect(() => {
-        const params = new URLSearchParams();
-        if (ine) params.set('ine', ine);
-        const ctrl = new AbortController();
-        monitorApsApi.get(`/visitas/responsabilidade?${params}`, { signal: ctrl.signal })
-            .then(d => setResponsabilidade(d.responsabilidade ?? []))
-            .catch(() => {});
-        return () => ctrl.abort();
-    }, [ine]);
-
     // Carrega lista de visitas
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes, page: page + 1, per_page: perPage });
@@ -235,14 +223,17 @@ export default function VisitasAcs() {
 
     const totais = resumo?.totais ?? {
         total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,
-        familias_total: null, familias_acompanhadas: null, familias_recusadas: null, familias_ausentes: null,
+        domicilios_total: null, domicilios_com_moradores: null, domicilios_casa_vazia: null,
+        domicilios_acompanhados: null, domicilios_recusados: null, domicilios_ausentes: null,
     };
-    const pctReal       = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
-    const totalFamilias = totais.familias_total ?? 0;
-    const temFamilias   = totalFamilias > 0;
-    const pctFamAcomp   = temFamilias ? Math.round((totais.familias_acompanhadas ?? 0) / totalFamilias * 100) : 0;
-    const pctFamRecus   = temFamilias ? Math.round((totais.familias_recusadas   ?? 0) / totalFamilias * 100) : 0;
-    const pctFamAusent  = temFamilias ? Math.round((totais.familias_ausentes    ?? 0) / totalFamilias * 100) : 0;
+    const pctReal          = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
+    const totalDomicilios  = totais.domicilios_total ?? 0;
+    const temDomicilios    = totalDomicilios > 0;
+    const pctDomAcomp      = temDomicilios ? Math.round((totais.domicilios_acompanhados ?? 0) / totalDomicilios * 100) : 0;
+    const pctDomRecus      = temDomicilios ? Math.round((totais.domicilios_recusados   ?? 0) / totalDomicilios * 100) : 0;
+    const pctDomAusent     = temDomicilios ? Math.round((totais.domicilios_ausentes    ?? 0) / totalDomicilios * 100) : 0;
+    const pctDomMoradores  = temDomicilios ? Math.round((totais.domicilios_com_moradores ?? 0) / totalDomicilios * 100) : 0;
+    const pctDomCasaVazia  = temDomicilios ? Math.round((totais.domicilios_casa_vazia ?? 0) / totalDomicilios * 100) : 0;
 
     const anosDisponiveis = useMemo(
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
@@ -320,32 +311,37 @@ export default function VisitasAcs() {
             <Grid container spacing={2} mb={3}>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="map-pin" titulo="Total de Visitas"
-                        valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4" />
+                        valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4"
+                        sub={temDomicilios && totais.domicilios_acompanhados != null
+                            ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} domicílios visitados`
+                            : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
-                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" />
+                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
+                        sub={temDomicilios ? `${pctDomAcomp}% dos domicílios cadastrados` : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
                         valor={totais.recusadas.toLocaleString('pt-BR')} cor="#E52207"
                         sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''}
-                        subFamily={temFamilias && totais.familias_recusadas != null
-                            ? `${totais.familias_recusadas.toLocaleString('pt-BR')} famílias (${pctFamRecus}%)`
+                        subFamily={temDomicilios && totais.domicilios_recusados != null
+                            ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} domicílios (${pctDomRecus}%)`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
                     <MetricCard icon="user-x" titulo="Ausentes"
                         valor={totais.ausentes.toLocaleString('pt-BR')} cor="#FF8C00"
                         sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''}
-                        subFamily={temFamilias && totais.familias_ausentes != null
-                            ? `${totais.familias_ausentes.toLocaleString('pt-BR')} famílias (${pctFamAusent}%)`
+                        subFamily={temDomicilios && totais.domicilios_ausentes != null
+                            ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} domicílios (${pctDomAusent}%)`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={true}>
-                    <MetricCard icon="home" titulo="Famílias"
-                        valor={(totais.familias_total ?? totais.cidadaos ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
-                        sub={temFamilias ? `${(totais.familias_acompanhadas ?? 0).toLocaleString('pt-BR')} acompanhadas (${pctFamAcomp}%)` : null} />
+                    <MetricCard icon="home" titulo="Domicílios Cadastrados"
+                        valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
+                        sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} com moradores (${pctDomMoradores}%)` : null}
+                        subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} casa vazia (${pctDomCasaVazia}%) • ${(totais.domicilios_acompanhados ?? 0).toLocaleString('pt-BR')} acompanhados (${pctDomAcomp}%)` : null} />
                 </Grid>
             </Grid>
 
@@ -498,12 +494,11 @@ export default function VisitasAcs() {
                                             <TableCell align="right">Recusadas</TableCell>
                                             <TableCell align="right">Ausentes</TableCell>
                                             <TableCell align="right">% Realiz.</TableCell>
-                                            <TableCell align="right">Cadastrados</TableCell>
                                             <TableCell align="right">Cidadãos</TableCell>
-                                            <TableCell align="right">Cadastrados</TableCell>
-                                            <TableCell align="right">Famílias</TableCell>
-                                            <TableCell align="right">Fam. Acomp.</TableCell>
-                                            <TableCell align="right">% Família</TableCell>
+                                            <TableCell align="right">Domicílios</TableCell>
+                                            <TableCell align="right">Com moradores</TableCell>
+                                            <TableCell align="right">Casa vazia</TableCell>
+                                            <TableCell align="right">% Com moradores</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -543,39 +538,24 @@ export default function VisitasAcs() {
                                                         }}
                                                     />
                                                 </TableCell>
-                                                <TableCell align="right">
-                                                    {(() => {
-                                                        const r = responsabilidade.find(
-                                                            r => r.agente?.trim().toLowerCase() === a.agente?.trim().toLowerCase()
-                                                        );
-                                                        return r ? Number(r.cadastrados).toLocaleString('pt-BR') : '—';
-                                                    })()}
-                                                </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right">
-                                                    {(() => {
-                                                        const r = responsabilidade.find(
-                                                            r => r.agente?.trim().toLowerCase() === a.agente?.trim().toLowerCase()
-                                                        );
-                                                        return r ? Number(r.cadastrados).toLocaleString('pt-BR') : '—';
-                                                    })()}
+                                                    {a.domicilios_total != null ? a.domicilios_total.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    {a.familias_total != null ? a.familias_total.toLocaleString('pt-BR') : '—'}
+                                                    {a.domicilios_com_moradores != null ? a.domicilios_com_moradores.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    {a.familias_acompanhadas != null
-                                                        ? a.familias_acompanhadas.toLocaleString('pt-BR')
-                                                        : '—'}
+                                                    {a.domicilios_casa_vazia != null ? a.domicilios_casa_vazia.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    {a.pct_familias != null ? (
+                                                    {a.pct_domicilios_com_moradores != null ? (
                                                         <Chip
-                                                            label={`${a.pct_familias}%`}
+                                                            label={`${a.pct_domicilios_com_moradores}%`}
                                                             size="small"
                                                             sx={{
-                                                                bgcolor: a.pct_familias >= 70 ? '#16882122' : '#FF8C0022',
-                                                                color:   a.pct_familias >= 70 ? '#168821'   : '#FF8C00',
+                                                                bgcolor: a.pct_domicilios_com_moradores >= 70 ? '#16882122' : '#FF8C0022',
+                                                                color:   a.pct_domicilios_com_moradores >= 70 ? '#168821'   : '#FF8C00',
                                                                 fontWeight: 700,
                                                             }}
                                                         />

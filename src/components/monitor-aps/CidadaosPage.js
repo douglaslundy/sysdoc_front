@@ -190,7 +190,7 @@ export default function CidadaosPage() {
                                         },
                                     }}>
                                         <TableCell>#</TableCell>
-                                        <TableCell>Nome</TableCell>
+                                        <TableCell>Nome / Ult. Atualização</TableCell>
                                         <TableCell>CPF / CNS</TableCell>
                                         <TableCell>Idade</TableCell>
                                         <TableCell>Equipe</TableCell>
