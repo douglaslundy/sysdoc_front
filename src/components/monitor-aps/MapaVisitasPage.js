@@ -170,7 +170,18 @@ export default function MapaVisitasPage() {
                                 placeholder="CPF, CNS ou nome (mín. 3 letras)"
                                 value={filtroSearch}
                                 onChange={e => handleSearchChange(e.target.value)}
-                                sx={{ minWidth: 280 }}
+                                sx={{
+                                    minWidth: 280,
+                                    '& .MuiOutlinedInput-input': {
+                                        backgroundColor: 'transparent !important',
+                                    },
+                                    '& input:-webkit-autofill': {
+                                        WebkitBoxShadow: '0 0 0 100px transparent inset',
+                                        transition: 'background-color 9999s ease-out 0s',
+                                        WebkitTextFillColor: 'var(--lg-text-primary)',
+                                        caretColor: 'var(--lg-text-primary)',
+                                    },
+                                }}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">

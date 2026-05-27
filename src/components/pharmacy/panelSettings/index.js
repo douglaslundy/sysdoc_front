@@ -16,6 +16,24 @@ const EMPTY = {
   filter_show_all: false,
 };
 
+const ALL_FILTERS_ENABLED = {
+  filter_is_free_distribution: true,
+  filter_is_controlled: true,
+  filter_is_judicial_order: true,
+  filter_is_high_cost: true,
+  filter_active: true,
+};
+
+const normalizeForm = (data) => {
+  const next = { ...EMPTY, ...data };
+
+  if (next.filter_show_all) {
+    return { ...next, ...ALL_FILTERS_ENABLED };
+  }
+
+  return next;
+};
+
 export default function MedicinesPanelSettings() {
   const dispatch = useDispatch();
   const [form, setForm] = useState(EMPTY);
@@ -24,7 +42,7 @@ export default function MedicinesPanelSettings() {
     dispatch(turnLoading());
     api.get('/pharmacy/medicines/panel-settings')
       .then((res) => {
-        setForm({ ...EMPTY, ...res.data });
+        setForm(normalizeForm(res.data));
         dispatch(turnLoading());
       })
       .catch(() => {
@@ -34,6 +52,15 @@ export default function MedicinesPanelSettings() {
   }, [dispatch]);
 
   const change = ({ target }) => {
+    if (target.name === 'filter_show_all') {
+      setForm((prev) => ({
+        ...prev,
+        ...(target.checked ? ALL_FILTERS_ENABLED : {}),
+        filter_show_all: target.checked,
+      }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [target.name]: target.checked }));
   };
 
@@ -61,11 +88,11 @@ export default function MedicinesPanelSettings() {
 
         <Stack spacing={1.2} sx={{ mb: 2 }}>
           <FormControlLabel control={<Checkbox name="filter_show_all" checked={!!form.filter_show_all} onChange={change} />} label="Todos" />
-          <FormControlLabel control={<Checkbox name="filter_is_free_distribution" checked={!!form.filter_is_free_distribution} onChange={change} />} label="Distribuição Gratuita" />
-          <FormControlLabel control={<Checkbox name="filter_is_controlled" checked={!!form.filter_is_controlled} onChange={change} />} label="Medicamento Controlado" />
-          <FormControlLabel control={<Checkbox name="filter_is_judicial_order" checked={!!form.filter_is_judicial_order} onChange={change} />} label="Ordem Judicial" />
-          <FormControlLabel control={<Checkbox name="filter_is_high_cost" checked={!!form.filter_is_high_cost} onChange={change} />} label="Alto Custo" />
-          <FormControlLabel control={<Checkbox name="filter_active" checked={!!form.filter_active} onChange={change} />} label="Ativo" />
+          <FormControlLabel control={<Checkbox name="filter_is_free_distribution" checked={!!form.filter_is_free_distribution} disabled={!!form.filter_show_all} onChange={change} />} label="Distribuição Gratuita" />
+          <FormControlLabel control={<Checkbox name="filter_is_controlled" checked={!!form.filter_is_controlled} disabled={!!form.filter_show_all} onChange={change} />} label="Medicamento Controlado" />
+          <FormControlLabel control={<Checkbox name="filter_is_judicial_order" checked={!!form.filter_is_judicial_order} disabled={!!form.filter_show_all} onChange={change} />} label="Ordem Judicial" />
+          <FormControlLabel control={<Checkbox name="filter_is_high_cost" checked={!!form.filter_is_high_cost} disabled={!!form.filter_show_all} onChange={change} />} label="Alto Custo" />
+          <FormControlLabel control={<Checkbox name="filter_active" checked={!!form.filter_active} disabled={!!form.filter_show_all} onChange={change} />} label="Ativo" />
         </Stack>
 
         <Button variant="contained" onClick={save}>Salvar Configurações</Button>
