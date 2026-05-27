@@ -289,7 +289,7 @@ export default function TripModal(props) {
                         Confirma o cadastro da viagem para a data
                     </Typography>
                     <Typography sx={{ fontWeight: 'bold', fontSize: 46, lineHeight: 1.2 }}>
-                        {formatDisplayDate(departure_date)}
+                        {formatDisplayDate(departure_date)}{departure_time ? ` às ${departure_time}` : ''}
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
