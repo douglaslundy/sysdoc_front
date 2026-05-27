@@ -241,98 +241,95 @@ export default function Trips() {
       <Stack sx={{ gap: 1.5, mb: 2 }}>
         <SwitchModal option={option} />
 
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          sx={{ gap: 1.5, alignItems: { xs: "stretch", md: "center" }, flexWrap: "wrap" }}
-        >
-          <BasicDatePicker
-            label="Data de Início"
-            name="date_begin"
-            value={dateBegin}
-            setValue={setDateBegin}
-            sx={{ minWidth: 190, width: { xs: "100%", md: 190 } }}
-          />
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
 
-          <BasicDatePicker
-            label="Data de Fim"
-            name="date_end"
-            value={dateEnd}
-            disabled={!dateBegin}
-            setValue={setDateEnd}
-            sx={{ minWidth: 190, width: { xs: "100%", md: 190 } }}
-          />
+          {/* Filtros: todos inline na mesma linha */}
+          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
+            <TextField
+              className="lg-search-field"
+              placeholder="Buscar por motorista, destino ou placa"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              size="small"
+              sx={{ flex: 1, minWidth: 180 }}
+            />
 
-          <Button
-            title="Buscar"
-            onClick={getTripsPerDate}
-            disabled={!dateBegin}
-            color="primary"
-            variant="contained"
-            sx={{ minWidth: 44, height: 40, px: 1.2 }}
-          >
-            <FeatherIcon icon="search" width="16" height="16" />
-          </Button>
+            <BasicDatePicker
+              label="Data de Início"
+              name="date_begin"
+              value={dateBegin}
+              setValue={setDateBegin}
+              sx={{ minWidth: 170, width: 170 }}
+            />
 
-          <TextField
-            className="lg-search-field"
-            placeholder="Buscar por motorista, destino ou placa"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            size="small"
-            sx={{ minWidth: { xs: "100%", md: 320 }, flexGrow: 1 }}
-          />
+            <BasicDatePicker
+              label="Data de Fim"
+              name="date_end"
+              value={dateEnd}
+              disabled={!dateBegin}
+              setValue={setDateEnd}
+              sx={{ minWidth: 170, width: 170 }}
+            />
 
-          {profile === "admin" && (
-            <>
-              <Fab
-                title="Imprimir PDF com BPA-I"
-                onClick={() => {
-                  bpaTripsPdf(allTrips);
-                }}
-                color="success"
-                aria-label="imprimir-bpa"
-                disabled={allTrips.length <= 0}
-                sx={actionFabSx}
-              >
-                <FeatherIcon icon="file" width="16" height="16" />
-              </Fab>
-              <Fab
-                title="Gerar BPA-I"
-                onClick={() => {
-                  openBpaModal();
-                }}
-                color="success"
-                aria-label="gerar-bpa"
-                disabled={allTrips.length <= 0}
-                sx={actionFabSx}
-              >
-                <FeatherIcon icon="download" width="16" height="16" />
-              </Fab>
-            </>
-          )}
+            <Button
+              title="Buscar"
+              onClick={getTripsPerDate}
+              disabled={!dateBegin}
+              color="primary"
+              variant="contained"
+              sx={{ minWidth: 44, height: 40, px: 1.2, flexShrink: 0 }}
+            >
+              <FeatherIcon icon="search" width="16" height="16" />
+            </Button>
+          </Box>
 
-          <Fab
-            title="Imprimir mapa de viagens"
-            onClick={() => {
-              tripsPDF(allTrips);
-            }}
-            color="success"
-            aria-label="imprimir-mapa"
-            disabled={allTrips.length <= 0}
-            sx={actionFabSx}
-          >
-            <FeatherIcon icon="printer" width="16" height="16" />
-          </Fab>
+          {/* Botões de ação */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+            {profile === "admin" && (
+              <>
+                <Fab
+                  title="Imprimir PDF com BPA-I"
+                  onClick={() => { bpaTripsPdf(allTrips); }}
+                  color="success"
+                  aria-label="imprimir-bpa"
+                  disabled={allTrips.length <= 0}
+                  sx={actionFabSx}
+                >
+                  <FeatherIcon icon="file" width="16" height="16" />
+                </Fab>
+                <Fab
+                  title="Gerar BPA-I"
+                  onClick={() => { openBpaModal(); }}
+                  color="success"
+                  aria-label="gerar-bpa"
+                  disabled={allTrips.length <= 0}
+                  sx={actionFabSx}
+                >
+                  <FeatherIcon icon="download" width="16" height="16" />
+                </Fab>
+              </>
+            )}
 
-          <ActionCreateFab
-            title="Cadastrar viagem"
-            onClick={() => {
-              handleGoTrip();
-            }}
-            icon="user-plus"
-            sx={actionFabSx}
-          />
-        </Stack>
+            <Fab
+              title="Imprimir mapa de viagens"
+              onClick={() => { tripsPDF(allTrips); }}
+              color="success"
+              aria-label="imprimir-mapa"
+              disabled={allTrips.length <= 0}
+              sx={actionFabSx}
+            >
+              <FeatherIcon icon="printer" width="16" height="16" />
+            </Fab>
+
+            <ActionCreateFab
+              title="Cadastrar viagem"
+              onClick={() => { handleGoTrip(); }}
+              icon="user-plus"
+              sx={actionFabSx}
+            />
+          </Box>
+
+        </Box>
       </Stack>
 
       {trips?.length > 0 && (
