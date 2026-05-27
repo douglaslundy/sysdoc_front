@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import VisitasAcs from '../../src/components/monitor-aps/VisitasAcs';
+import VisitasAcs from '../../../src/components/monitor-aps/VisitasAcs';
 
 export default function MonitorApsVisitasPage() {
     return (

@@ -21,12 +21,24 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
+function nomeEquipeCurto(nome) {
+    if (!nome || !nome.includes(' - ')) return nome;
+    return nome.split(' - ').slice(1).join(' - ').trim();
+}
+
 function MetricCard({ icon, titulo, valor, cor, sub, subFamily }) {
     return (
         <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ px: 2.5, py: 2 }}>
-                <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
-                    <Box sx={{ minWidth: 0 }}>
+            <CardContent sx={{ px: '12px', py: 2 }}>
+                <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
+                    <Box sx={{
+                        minWidth: 52, width: 52, height: 52, borderRadius: '50%',
+                        bgcolor: cor + '22', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <FeatherIcon icon={icon} color={cor} width="24" height="24" />
+                    </Box>
+                    <Box sx={{ minWidth: 0, width: '100%', textAlign: 'center' }}>
                         <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600 }}>
                             {titulo}
                         </Typography>
@@ -34,20 +46,32 @@ function MetricCard({ icon, titulo, valor, cor, sub, subFamily }) {
                             {valor ?? '—'}
                         </Typography>
                         {sub && (
-                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>{sub}</Typography>
+                            <Typography
+                                variant="caption"
+                                display="block"
+                                sx={{
+                                    color: 'var(--lg-text-muted)',
+                                    borderBottom: '1px solid var(--lg-border)',
+                                    pb: 0.5,
+                                    mb: 0.5,
+                                }}
+                            >
+                                {sub}
+                            </Typography>
                         )}
                         {subFamily && (
-                            <Typography variant="caption" display="block" sx={{ color: 'var(--lg-text-muted)' }}>
+                            <Typography
+                                variant="caption"
+                                display="block"
+                                sx={{
+                                    color: 'var(--lg-text-muted)',
+                                    borderBottom: '1px solid var(--lg-border)',
+                                    pb: 0.5,
+                                }}
+                            >
                                 {subFamily}
                             </Typography>
                         )}
-                    </Box>
-                    <Box sx={{
-                        minWidth: 52, width: 52, height: 52, borderRadius: '50%',
-                        bgcolor: cor + '22', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', flexShrink: 0,
-                    }}>
-                        <FeatherIcon icon={icon} color={cor} width="24" height="24" />
                     </Box>
                 </Box>
             </CardContent>
@@ -150,9 +174,10 @@ export default function VisitasAcs() {
     // Carrega estatísticas por agente (filtrado para a aba "Por Agente")
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
-        if (ine)          params.set('ine', ine);
-        if (filtroAgente) params.set('agente', filtroAgente);
-        if (filtroGeo)    params.set('has_geo', filtroGeo);
+        if (ine)            params.set('ine', ine);
+        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
+        if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_agentes_${params}`;
         const cached = getCached(key);
         if (cached) { setAgentes(cached.agentes ?? []); return; }
@@ -162,7 +187,7 @@ export default function VisitasAcs() {
             .then(d => { setCached(key, d); setAgentes(d.agentes ?? []); })
             .catch(() => {});
         return () => ctrl.abort();
-    }, [ano, mes, ine, filtroAgente, filtroGeo]);
+    }, [ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
     // Carrega lista de visitas
     useEffect(() => {
@@ -224,16 +249,23 @@ export default function VisitasAcs() {
     const totais = resumo?.totais ?? {
         total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,
         domicilios_total: null, domicilios_com_moradores: null, domicilios_casa_vazia: null,
-        domicilios_acompanhados: null, domicilios_recusados: null, domicilios_ausentes: null,
+        domicilios_fa: null,
+        domicilios_visitados: null, domicilios_acompanhados: null, domicilios_recusados: null, domicilios_ausentes: null,
     };
     const pctReal          = totais.total > 0 ? Math.round(totais.realizadas / totais.total * 100) : 0;
+    const pctRecusadas     = totais.total > 0 ? Math.round(totais.recusadas / totais.total * 100) : 0;
+    const pctAusentes      = totais.total > 0 ? Math.round(totais.ausentes / totais.total * 100) : 0;
     const totalDomicilios  = totais.domicilios_total ?? 0;
     const temDomicilios    = totalDomicilios > 0;
-    const pctDomAcomp      = temDomicilios ? Math.round((totais.domicilios_acompanhados ?? 0) / totalDomicilios * 100) : 0;
-    const pctDomRecus      = temDomicilios ? Math.round((totais.domicilios_recusados   ?? 0) / totalDomicilios * 100) : 0;
-    const pctDomAusent     = temDomicilios ? Math.round((totais.domicilios_ausentes    ?? 0) / totalDomicilios * 100) : 0;
+    const domiciliosComMoradores = totais.domicilios_com_moradores ?? 0;
+    const temDomiciliosComMoradores = domiciliosComMoradores > 0;
+    const pctDomAcomp      = temDomiciliosComMoradores ? Math.round((totais.domicilios_acompanhados ?? 0) / domiciliosComMoradores * 100) : 0;
+    const pctDomRecus      = temDomiciliosComMoradores ? Math.round((totais.domicilios_recusados   ?? 0) / domiciliosComMoradores * 100) : 0;
+    const pctDomAusent     = temDomiciliosComMoradores ? Math.round((totais.domicilios_ausentes    ?? 0) / domiciliosComMoradores * 100) : 0;
     const pctDomMoradores  = temDomicilios ? Math.round((totais.domicilios_com_moradores ?? 0) / totalDomicilios * 100) : 0;
     const pctDomCasaVazia  = temDomicilios ? Math.round((totais.domicilios_casa_vazia ?? 0) / totalDomicilios * 100) : 0;
+    const domiciliosPendentes = Math.max(domiciliosComMoradores - (totais.domicilios_acompanhados ?? 0), 0);
+    const pctDomPendentes = temDomiciliosComMoradores ? Math.round(domiciliosPendentes / domiciliosComMoradores * 100) : 0;
 
     const anosDisponiveis = useMemo(
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
@@ -308,40 +340,48 @@ export default function VisitasAcs() {
             </Box>
 
             {/* Cards de métricas */}
-            <Grid container spacing={2} mb={3}>
-                <Grid item xs={6} sm={true}>
+            <Grid container columnSpacing={0.0625} rowSpacing={1} mb={3}>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="map-pin" titulo="Total de Visitas"
                         valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4"
-                        sub={temDomicilios && totais.domicilios_acompanhados != null
-                            ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} domicílios visitados`
+                        sub={temDomicilios && totais.domicilios_visitados != null
+                            ? `${totais.domicilios_visitados.toLocaleString('pt-BR')} domicílios visitados`
                             : null} />
                 </Grid>
-                <Grid item xs={6} sm={true}>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
                         valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
-                        sub={temDomicilios ? `${pctDomAcomp}% dos domicílios cadastrados` : null} />
+                        sub={temDomicilios && totais.domicilios_acompanhados != null
+                            ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} (${pctDomAcomp}%) - domicílios acompanhados`
+                            : null}
+                        subFamily={temDomiciliosComMoradores
+                            ? `${domiciliosPendentes.toLocaleString('pt-BR')} (${pctDomPendentes}%) - domicílios pendentes`
+                            : null} />
                 </Grid>
-                <Grid item xs={6} sm={true}>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
-                        valor={totais.recusadas.toLocaleString('pt-BR')} cor="#E52207"
-                        sub={totais.total > 0 ? `${Math.round(totais.recusadas / totais.total * 100)}%` : ''}
+                        valor={`${totais.recusadas.toLocaleString('pt-BR')} (${pctRecusadas}%)`} cor="#E52207"
                         subFamily={temDomicilios && totais.domicilios_recusados != null
-                            ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} domicílios (${pctDomRecus}%)`
+                            ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} (${pctDomRecus}%) - domicílios`
                             : null} />
                 </Grid>
-                <Grid item xs={6} sm={true}>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="user-x" titulo="Ausentes"
-                        valor={totais.ausentes.toLocaleString('pt-BR')} cor="#FF8C00"
-                        sub={totais.total > 0 ? `${Math.round(totais.ausentes / totais.total * 100)}%` : ''}
+                        valor={`${totais.ausentes.toLocaleString('pt-BR')} (${pctAusentes}%)`} cor="#FF8C00"
                         subFamily={temDomicilios && totais.domicilios_ausentes != null
-                            ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} domicílios (${pctDomAusent}%)`
+                            ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} (${pctDomAusent}%) - domicílios`
                             : null} />
                 </Grid>
-                <Grid item xs={6} sm={true}>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="home" titulo="Domicílios Cadastrados"
                         valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
-                        sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} com moradores (${pctDomMoradores}%)` : null}
-                        subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} casa vazia (${pctDomCasaVazia}%) • ${(totais.domicilios_acompanhados ?? 0).toLocaleString('pt-BR')} acompanhados (${pctDomAcomp}%)` : null} />
+                        sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} (${pctDomMoradores}%) - com moradores` : null}
+                        subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} (${pctDomCasaVazia}%) - casa vazia` : null} />
+                </Grid>
+                <Grid item xs={6} sm={4} md={3} lg={2}>
+                    <MetricCard icon="home" titulo="Domicílios FA"
+                        valor={(totais.domicilios_fa ?? 0).toLocaleString('pt-BR')} cor="#555"
+                        sub="Fora de Área" />
                 </Grid>
             </Grid>
 
@@ -513,7 +553,7 @@ export default function VisitasAcs() {
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" noWrap>{a.equipe?.nome}</Typography>
+                                                    <Typography variant="body2" noWrap>{nomeEquipeCurto(a.equipe?.nome)}</Typography>
                                                 </TableCell>
                                                 <TableCell align="right" sx={{ fontWeight: 700 }}>
                                                     {a.total.toLocaleString('pt-BR')}
