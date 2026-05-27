@@ -91,7 +91,8 @@ export default function ConfiguracoesAPS() {
 dispatch(addMessage('Configuração salva com sucesso!'));
             dispatch(turnAlert());
         } catch (e) {
-            dispatch(addAlertMessage(`Erro ao salvar: ${e.message}`));
+            const backendError = e.response?.data?.error || e.response?.data?.message;
+            dispatch(addAlertMessage(`Erro ao salvar: ${backendError || e.message}`));
         } finally { setSalvando(false); }
     }
 
