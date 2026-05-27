@@ -124,7 +124,7 @@ export const excludeClientTripFetch = (cli) => {
     }
 }
 
-export const insertClientTrip = (client) => {
+export const insertClientTrip = (client, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
         client = {
@@ -145,7 +145,8 @@ export const insertClientTrip = (client) => {
                 dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
                 dispatch(turnAlert()),
-                dispatch(turnLoading())
+                dispatch(turnLoading()),
+                cleanForm && cleanForm()
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
@@ -156,10 +157,10 @@ export const insertClientTrip = (client) => {
     };
 }
 
-export const editClientTrip = (client) => {
+export const editClientTrip = (client, cleanForm) => {
     return (dispatch) => {
         dispatch(turnLoading());
-       
+
         client = {
             'id': client.id,
             'trip_id': client.trip_id,
@@ -179,7 +180,8 @@ export const editClientTrip = (client) => {
                 dispatch(showTrip(res.data.trip)),
                 dispatch(addMessage(`Viagem foi atualizado com sucesso!`)),
                 dispatch(turnAlert()),
-                dispatch(turnLoading())
+                dispatch(turnLoading()),
+                cleanForm && cleanForm()
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));

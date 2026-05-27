@@ -126,7 +126,7 @@ export default function TripClientsModal(props) {
 
     const cleanForm = () => {
         setForm({
-            ...form,
+            id: trip?.id || "",
             client_id: "",
             person_type: "",
             phone: "",
@@ -176,12 +176,12 @@ export default function TripClientsModal(props) {
 
     const handleSaveClient = async () => {
         dispatch(changeTitleAlert(`O Cliente foi inserido na viagem com sucesso!`));
-        dispatch(insertClientTrip(form));
+        dispatch(insertClientTrip(form, cleanForm));
     };
 
     const handleUpdateClient = async () => {
         dispatch(changeTitleAlert(`O Cliente atualizado na viagem com sucesso!`));
-        dispatch(editClientTrip(form));
+        dispatch(editClientTrip(form, cleanForm));
     };
 
     const handleIsConfirm = async (cli) => {
