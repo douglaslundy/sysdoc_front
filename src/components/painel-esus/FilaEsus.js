@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Box, Card, CardContent, CircularProgress, FormControl,
     Grid, InputLabel, MenuItem, Select, Table, TableBody,
-    TableCell, TableContainer, TableHead, TableRow, Typography,
+    TableCell, TableContainer, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { painelEsusApi } from '../../services/painelEsusApi';
@@ -33,6 +33,12 @@ const selSx = {
     '& .MuiOutlinedInput-root': { background: 'var(--lg-glass-input)' },
 };
 
+const hojeIso = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() - offset * 60000).toISOString().slice(0, 10);
+};
+
 export default function FilaEsus() {
     const [cnes,            setCnes]            = useState(null);
     const [unidades,        setUnidades]        = useState([]);
@@ -42,6 +48,8 @@ export default function FilaEsus() {
     const [profissionais,   setProfissionais]   = useState([]);
     const [equipeId,        setEquipeId]        = useState('');
     const [profId,          setProfId]          = useState('');
+    const [dataFiltro,      setDataFiltro]      = useState(hojeIso());
+    const [situacao,        setSituacao]        = useState('aguardando');
     const [dados,           setDados]           = useState(null);
     const [loading,         setLoading]         = useState(false);
     const [erro,            setErro]            = useState(null);
@@ -65,18 +73,18 @@ export default function FilaEsus() {
         return () => ac.abort();
     }, []);
 
-    // Carrega filtros quando CNES muda
+    // Carrega filtros quando CNES ou data muda
     useEffect(() => {
         if (!cnes) return;
         const ac = new AbortController();
-        painelEsusApi.filtros(cnes, { signal: ac.signal })
+        painelEsusApi.filtros({ cnes, data: dataFiltro }, { signal: ac.signal })
             .then(d => {
                 setEquipes(d.equipes ?? []);
                 setProfissionais(d.profissionais ?? []);
             })
             .catch(() => {});
         return () => ac.abort();
-    }, [cnes]);
+    }, [cnes, dataFiltro]);
 
     const carregarFila = useCallback(() => {
         if (!cnes) return;
@@ -85,7 +93,7 @@ export default function FilaEsus() {
         abortRef.current = ac;
         setLoading(true);
         setErro(null);
-        const params = { cnes };
+        const params = { cnes, data: dataFiltro, situacao };
         if (equipeId) params.equipe = equipeId;
         if (profId)   params.profissional = profId;
         painelEsusApi.fila(params, { signal: ac.signal })
@@ -95,7 +103,7 @@ export default function FilaEsus() {
                 setErro('Erro ao carregar a fila. Tente novamente.');
             })
             .finally(() => setLoading(false));
-    }, [cnes, equipeId, profId]);
+    }, [cnes, dataFiltro, equipeId, profId, situacao]);
 
     // Re-fetch quando qualquer filtro muda
     useEffect(() => {
@@ -123,31 +131,6 @@ export default function FilaEsus() {
 
     return (
         <Box>
-            {/* Seletor de unidade — só exibido quando há mais de uma */}
-            {unidades.length > 1 && (
-                <Box mb={2} display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                    <FormControl size="small" sx={{ minWidth: 300, ...selSx }}>
-                        <InputLabel>Unidade de Saúde</InputLabel>
-                        <Select
-                            label="Unidade de Saúde"
-                            value={cnes ?? ''}
-                            MenuProps={{ keepMounted: true }}
-                            onChange={e => {
-                                setCnes(e.target.value || null);
-                                setEquipeId('');
-                                setProfId('');
-                                setDados(null);
-                            }}
-                        >
-                            <MenuItem value=""><em>Selecione uma unidade</em></MenuItem>
-                            {unidades.map(u => (
-                                <MenuItem key={u.cnes} value={u.cnes}>{u.nome}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Box>
-            )}
-
             {/* Nome da unidade selecionada */}
             {unidadeAtual && (
                 <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 2 }}>
@@ -158,7 +141,7 @@ export default function FilaEsus() {
             )}
 
             {/* Estado: aguardando seleção */}
-            {!cnes && (
+            {!cnes && unidades.length <= 1 && (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
                     <Typography sx={{ color: 'var(--lg-text-muted)' }}>
                         Selecione uma unidade de saúde para visualizar a fila.
@@ -167,13 +150,71 @@ export default function FilaEsus() {
             )}
 
             {/* Conteúdo principal */}
-            {cnes && (
+            {(cnes || unidades.length > 1) && (
                 <>
                     {/* Filtros */}
-                    <Card sx={{ mb: 3 }}>
+                    <Card sx={{ mt: '10px', mb: 3 }}>
                         <CardContent>
                             <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={4}>
+                                {unidades.length > 1 && (
+                                    <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                        <FormControl fullWidth size="small" sx={selSx}>
+                                            <InputLabel>Unidade de Saúde</InputLabel>
+                                            <Select
+                                                label="Unidade de Saúde"
+                                                value={cnes ?? ''}
+                                                MenuProps={{ keepMounted: true }}
+                                                onChange={e => {
+                                                    setCnes(e.target.value || null);
+                                                    setEquipeId('');
+                                                    setProfId('');
+                                                    setDados(null);
+                                                }}
+                                            >
+                                                <MenuItem value=""><em>Selecione uma unidade</em></MenuItem>
+                                                {unidades.map(u => (
+                                                    <MenuItem key={u.cnes} value={u.cnes}>{u.nome}</MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                )}
+                                {cnes && (
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Data"
+                                        type="date"
+                                        value={dataFiltro}
+                                        onChange={e => {
+                                            setDataFiltro(e.target.value || hojeIso());
+                                            setEquipeId('');
+                                            setProfId('');
+                                        }}
+                                        InputLabelProps={{ shrink: true }}
+                                        sx={selSx}
+                                    />
+                                </Grid>
+                                )}
+                                {cnes && (
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                    <FormControl fullWidth size="small" sx={selSx}>
+                                        <InputLabel>Situação</InputLabel>
+                                        <Select
+                                            label="Situação"
+                                            value={situacao}
+                                            onChange={e => setSituacao(e.target.value)}
+                                        >
+                                            <MenuItem value="aguardando">Em espera</MenuItem>
+                                            <MenuItem value="atendidos">Atendidos</MenuItem>
+                                            <MenuItem value="nao_aguardaram">Não aguardaram</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                )}
+                                {cnes && (
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
                                     <FormControl fullWidth size="small" sx={selSx}>
                                         <InputLabel>Equipe</InputLabel>
                                         <Select
@@ -188,7 +229,9 @@ export default function FilaEsus() {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={12} sm={4}>
+                                )}
+                                {cnes && (
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
                                     <FormControl fullWidth size="small" sx={selSx}>
                                         <InputLabel>Profissional</InputLabel>
                                         <Select
@@ -203,33 +246,34 @@ export default function FilaEsus() {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={12} sm={4}>
-                                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                        CNES: {cnes}
-                                    </Typography>
-                                </Grid>
+                                )}
                             </Grid>
                         </CardContent>
                     </Card>
 
+                    {cnes && (
+                    <>
                     {/* Contadores */}
                     <Grid container spacing={3} sx={{ mb: 3 }}>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6} md={3}>
                             <ContadorCard icon="clock" titulo="Em Espera" valor={dados?.contadores?.aguardando} cor="#1351B4" />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <ContadorCard icon="check-circle" titulo="Atendidos Hoje" valor={dados?.contadores?.atendidos} cor="#168821" />
+                        <Grid item xs={12} sm={6} md={3}>
+                            <ContadorCard icon="check-circle" titulo="Atendidos" valor={dados?.contadores?.atendidos} cor="#168821" />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6} md={3}>
                             <ContadorCard icon="user-x" titulo="Não Aguardaram" valor={dados?.contadores?.nao_aguardaram} cor="#E52207" />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <ContadorCard icon="activity" titulo="Tempo Médio" valor={dados?.contadores?.tempo_medio_espera} cor="#7A4CC2" />
                         </Grid>
                     </Grid>
 
-                    {/* Lista de aguardando */}
+                    {/* Lista de atendimentos */}
                     <Card>
                         <CardContent>
                             <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
-                                Aguardando Atendimento
+                                {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
                             </Typography>
 
                             {loading && (
@@ -249,7 +293,9 @@ export default function FilaEsus() {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
                                                 <TableCell sx={{ fontWeight: 700 }}>Cidadão</TableCell>
+                                                <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
                                                 <TableCell sx={{ fontWeight: 700 }}>Chegada</TableCell>
+                                                <TableCell sx={{ fontWeight: 700 }}>Tempo Espera</TableCell>
                                                 <TableCell sx={{ fontWeight: 700 }}>Equipe</TableCell>
                                                 <TableCell sx={{ fontWeight: 700 }}>Profissional</TableCell>
                                             </TableRow>
@@ -260,15 +306,22 @@ export default function FilaEsus() {
                                                     <TableRow key={row.id} hover>
                                                         <TableCell sx={{ color: 'var(--lg-text-muted)', fontSize: 12 }}>{i + 1}</TableCell>
                                                         <TableCell sx={{ fontWeight: 600 }}>{row.cidadao}</TableCell>
-                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.hr_chegada || '—'}</TableCell>
+                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.data_atendimento || '—'}</TableCell>
+                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                            <Box>{row.hr_chegada || '—'}</Box>
+                                                            <Box sx={{ color: 'var(--lg-text-muted)', fontSize: 12 }}>
+                                                                Saída: {row.hr_saida || '—'}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.tempo_espera || '—'}</TableCell>
                                                         <TableCell>{row.equipe || '—'}</TableCell>
                                                         <TableCell>{row.profissional || '—'}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                        Nenhum paciente aguardando no momento
+                                                    <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
+                                                        Nenhum registro encontrado
                                                     </TableCell>
                                                 </TableRow>
                                             )}
@@ -278,6 +331,8 @@ export default function FilaEsus() {
                             )}
                         </CardContent>
                     </Card>
+                    </>
+                    )}
                 </>
             )}
         </Box>

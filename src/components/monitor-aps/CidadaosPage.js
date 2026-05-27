@@ -13,11 +13,52 @@ const CHIP_CONDICOES = [
     { key: 'st_idoso',    label: 'Idoso',    cor: '#168821' },
 ];
 
+const FILTROS_CONDICOES = [
+    { value: 'gestante', label: 'Gestante' },
+    { value: 'has', label: 'HAS' },
+    { value: 'dm', label: 'DM' },
+    { value: 'idoso', label: 'Idoso' },
+];
+
+const onlyDigits = (value) => String(value ?? '').replace(/\D/g, '');
+
+const formatCpf = (value) => {
+    const digits = onlyDigits(value);
+    if (digits.length !== 11 || /^0+$/.test(digits)) return '—';
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+};
+
+const formatCns = (value) => {
+    const digits = onlyDigits(value);
+    if (digits.length !== 15 || /^0+$/.test(digits)) return '—';
+    return digits;
+};
+
+const formatIdade = (value) => {
+    if (value == null) return '—';
+    const idade = Number(value);
+    if (!Number.isFinite(idade)) return '—';
+    return `${idade} ${idade === 1 ? 'ano' : 'anos'}`;
+};
+
+const truncateText = (value, limit = 20) => {
+    const text = String(value ?? '—');
+    if (text.length <= limit) return text;
+    return `${text.slice(0, limit)}...`;
+};
+
+const formatEquipe = (value) => {
+    const text = String(value ?? '—');
+    const parts = text.split(' - ');
+    return parts.length > 1 ? parts.slice(1).join(' - ') : text;
+};
+
 export default function CidadaosPage() {
     const [equipes,   setEquipes]   = useState([]);
     const [agentes,   setAgentes]   = useState([]);
     const [ine,       setIne]       = useState('');
     const [agenteSel, setAgenteSel] = useState('');
+    const [condicao,  setCondicao]  = useState('');
     const [busca,     setBusca]     = useState('');
     const [cidadaos,  setCidadaos]  = useState([]);
     const [meta,      setMeta]      = useState({ total: 0, page: 1, per_page: 50, pages: 0 });
@@ -38,9 +79,9 @@ export default function CidadaosPage() {
     // Carrega agentes quando equipe muda
     useEffect(() => {
         setAgenteSel('');
-        if (!ine) { setAgentes([]); return; }
         const ctrl = new AbortController();
-        const params = new URLSearchParams({ ine });
+        const params = new URLSearchParams();
+        if (ine) params.set('ine', ine);
         monitorApsApi.get(`/cidadaos/agentes?${params}`, { signal: ctrl.signal })
             .then(d => setAgentes(d.agentes ?? []))
             .catch(() => {});
@@ -54,7 +95,8 @@ export default function CidadaosPage() {
 
         const params = new URLSearchParams({ page: overridePage + 1, per_page: 50 });
         if (ine)               params.set('ine', ine);
-        if (agenteSel)         params.set('profissional_id', agenteSel);
+        if (agenteSel)         params.set('agente', agenteSel);
+        if (condicao)          params.set('condicao', condicao);
         if (busca.length >= 3) params.set('busca', busca);
 
         setLoading(true);
@@ -65,7 +107,7 @@ export default function CidadaosPage() {
             })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setCidadaos([]); })
             .finally(() => setLoading(false));
-    }, [ine, agenteSel, busca]);
+    }, [ine, agenteSel, condicao, busca]);
 
     // Fetch com debounce de 400ms para campo de busca
     useEffect(() => {
@@ -73,7 +115,7 @@ export default function CidadaosPage() {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => fetchCidadaos(0), busca ? 400 : 0);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }, [ine, agenteSel, busca]);
+    }, [ine, agenteSel, condicao, busca]);
 
     const handlePageChange = (_, newPage) => {
         setPage(newPage);
@@ -82,10 +124,20 @@ export default function CidadaosPage() {
 
     return (
         <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center"
-                mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Cidadãos</Typography>
-                <Box display="flex" gap={1.5} flexWrap="wrap">
+            <Box mb={3} mt="20px">
+                <Typography variant="h5" fontWeight={700}>
+                    Cidadãos ({meta.total.toLocaleString('pt-BR')})
+                </Typography>
+                <Box display="flex" gap={1.5} flexWrap="wrap" mt={2}>
+                    <TextField
+                        size="small"
+                        label="Busca"
+                        placeholder="nome, CPF ou CNS"
+                        value={busca}
+                        onChange={e => setBusca(e.target.value)}
+                        sx={{ minWidth: 220 }}
+                        helperText={busca.length > 0 && busca.length < 3 ? 'Mínimo 3 caracteres' : ''}
+                    />
                     <FormControl size="small" sx={{ minWidth: 220 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
@@ -96,25 +148,26 @@ export default function CidadaosPage() {
                             ))}
                         </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 200 }} disabled={!ine}>
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Agente</InputLabel>
                         <Select label="Agente" value={agenteSel}
                             onChange={e => { setAgenteSel(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todos os agentes</MenuItem>
                             {agentes.map(a => (
-                                <MenuItem key={a.id} value={a.id}>{a.nome}</MenuItem>
+                                <MenuItem key={a.nome} value={a.nome}>{a.nome}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField
-                        size="small"
-                        label="Busca"
-                        placeholder="nome, CPF ou CNS"
-                        value={busca}
-                        onChange={e => setBusca(e.target.value)}
-                        sx={{ minWidth: 220 }}
-                        helperText={busca.length > 0 && busca.length < 3 ? 'Mínimo 3 caracteres' : ''}
-                    />
+                    <FormControl size="small" sx={{ minWidth: 180 }}>
+                        <InputLabel>Condição</InputLabel>
+                        <Select label="Condição" value={condicao}
+                            onChange={e => { setCondicao(e.target.value); setPage(0); }}>
+                            <MenuItem value="">Todas</MenuItem>
+                            {FILTROS_CONDICOES.map(item => (
+                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Box>
             </Box>
 
@@ -138,8 +191,7 @@ export default function CidadaosPage() {
                                     }}>
                                         <TableCell>#</TableCell>
                                         <TableCell>Nome</TableCell>
-                                        <TableCell>CPF</TableCell>
-                                        <TableCell>CNS</TableCell>
+                                        <TableCell>CPF / CNS</TableCell>
                                         <TableCell>Idade</TableCell>
                                         <TableCell>Equipe</TableCell>
                                         <TableCell>Agente</TableCell>
@@ -153,29 +205,29 @@ export default function CidadaosPage() {
                                                 {(page * 50) + i + 1}
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" fontWeight={600} noWrap>
-                                                    {c.nome ?? '—'}
+                                                <Typography variant="body2" fontWeight={600} noWrap title={c.nome ?? '—'}>
+                                                    {truncateText(c.nome, 30)}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
+                                                    {c.data_atualizacao ?? '—'}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
-                                                {c.cpf
-                                                    ? c.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-                                                    : '—'}
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
-                                                {c.cns ?? '—'}
+                                                <Box>{formatCpf(c.cpf)}</Box>
+                                                <Box sx={{ color: 'var(--lg-text-muted)', mt: 0.25 }}>{formatCns(c.cns)}</Box>
                                             </TableCell>
                                             <TableCell sx={{ fontSize: 12 }}>
-                                                {c.idade != null ? `${c.idade} a` : '—'}
+                                                {formatIdade(c.idade)}
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" noWrap>{c.no_equipe ?? '—'}</Typography>
-                                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                                    {c.nu_ine}
+                                                <Typography variant="body2" noWrap title={c.no_equipe ?? '—'}>
+                                                    {truncateText(formatEquipe(c.no_equipe), 15)}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" noWrap>{c.agente ?? '—'}</Typography>
+                                                <Typography variant="body2" noWrap title={c.agente ?? '—'}>
+                                                    {truncateText(c.agente, 25)}
+                                                </Typography>
                                             </TableCell>
                                             <TableCell>
                                                 <Box display="flex" gap={0.5} flexWrap="wrap">
@@ -197,7 +249,7 @@ export default function CidadaosPage() {
                                     ))}
                                     {cidadaos.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={8} align="center"
+                                            <TableCell colSpan={7} align="center"
                                                 sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                 Nenhum cidadão encontrado com os filtros aplicados.
                                             </TableCell>

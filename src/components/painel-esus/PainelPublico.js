@@ -15,6 +15,54 @@ function Relogio() {
     return <span style={s.relogio}>{hora}</span>;
 }
 
+function tocarCampainha() {
+    if (typeof window === 'undefined') return Promise.resolve();
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return Promise.resolve();
+
+    const ctx = new AudioContext();
+    const tocarTom = (inicio, frequencia) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(frequencia, inicio);
+        gain.gain.setValueAtTime(0.0001, inicio);
+        gain.gain.exponentialRampToValueAtTime(0.35, inicio + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, inicio + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(inicio);
+        osc.stop(inicio + 0.3);
+    };
+
+    const now = ctx.currentTime;
+    tocarTom(now, 880);
+    tocarTom(now + 0.34, 1046);
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            ctx.close?.();
+            resolve();
+        }, 780);
+    });
+}
+
+function falarChamada(cidadao, profissional) {
+    if (typeof window === 'undefined' || !window.speechSynthesis || !cidadao) return;
+
+    const nomeProfissional = profissional || 'profissional da unidade';
+    const frase = `${cidadao}, você foi chamada pelo profissional ${nomeProfissional}`;
+    const utterance = new window.SpeechSynthesisUtterance(frase);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+}
+
 // validacao: null | 'loading' | { cnes, nome } | 'erro'
 function FormCnes({ onConfirmar, initialCnes = '' }) {
     const [cnesInput, setCnesInput]   = useState(initialCnes);
@@ -111,6 +159,10 @@ const s = {
     ultimoCidadao: { fontSize: 16, fontWeight: 600, marginBottom: 4 },
     ultimoProf: { fontSize: 13, color: '#7ba4d9', marginBottom: 6 },
     ultimoHr:   { fontSize: 12, color: '#4a7ab5', fontVariantNumeric: 'tabular-nums' },
+    filaSection: { padding: '8px 40px 24px' },
+    filaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, marginTop: 8 },
+    filaCard: { background: 'rgba(26,86,219,0.10)', border: '1px solid rgba(74,122,181,0.35)', borderRadius: 12, padding: '14px 18px' },
+    filaNome: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
     erroBar:    { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#7f1d1d', color: '#fca5a5', padding: '10px 24px', fontSize: 13 },
     formRoot:   { minHeight: '100vh', background: '#060d1f', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "'Segoe UI', Arial, sans-serif" },
     formBox:    { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '48px', maxWidth: 480, width: '90%', textAlign: 'center' },
@@ -127,8 +179,12 @@ export default function PainelPublico() {
     const [erro, setErro]     = useState(null);
     const pollingRef          = useRef(null);
     const abortRef            = useRef(null);
+    const ultimoChamadoRef    = useRef(null);
+    const primeiraCargaRef    = useRef(true);
 
     const handleConfirmar = useCallback((cnesConfirmado) => {
+        primeiraCargaRef.current = true;
+        ultimoChamadoRef.current = null;
         router.push({ pathname: '/painel-esus', query: { cnes: cnesConfirmado } }, undefined, { shallow: true });
         setCnes(cnesConfirmado);
     }, [router]);
@@ -157,6 +213,25 @@ export default function PainelPublico() {
             if (abortRef.current) abortRef.current.abort();
         };
     }, [cnes, fetchDados]);
+
+    useEffect(() => {
+        const atual = dados?.em_atendimento;
+        if (!atual?.cidadao) return;
+
+        const chave = `${atual.cidadao}|${atual.profissional || ''}|${atual.hr_inicio || ''}`;
+        if (primeiraCargaRef.current) {
+            primeiraCargaRef.current = false;
+            ultimoChamadoRef.current = chave;
+            return;
+        }
+
+        if (ultimoChamadoRef.current === chave) return;
+        ultimoChamadoRef.current = chave;
+
+        tocarCampainha().finally(() => {
+            falarChamada(atual.cidadao, atual.profissional);
+        });
+    }, [dados?.em_atendimento]);
 
     if (!cnes) {
         const initialCnes = router.isReady && router.query.cnes ? String(router.query.cnes) : '';
@@ -191,6 +266,26 @@ export default function PainelPublico() {
                     ) : (
                         <div style={s.semDados}>
                             {dados ? 'Nenhum atendimento em andamento no momento' : 'Carregando...'}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Fila de Espera */}
+            <div style={s.filaSection}>
+                <div style={s.sectionLabel}>Fila de Espera</div>
+                <div style={s.filaGrid}>
+                    {dados?.aguardando?.length > 0 ? (
+                        dados.aguardando.map((item, i) => (
+                            <div key={`${item.cidadao}-${item.hr_inicio}-${i}`} style={s.filaCard}>
+                                <div style={s.filaNome}>{item.cidadao}</div>
+                                <div style={s.ultimoProf}>{item.profissional}</div>
+                                <div style={s.ultimoHr}>{item.hr_inicio}</div>
+                            </div>
+                        ))
+                    ) : (
+                        <div style={{ ...s.semDados, fontSize: 16 }}>
+                            {dados ? 'Nenhum paciente aguardando no momento' : ''}
                         </div>
                     )}
                 </div>
