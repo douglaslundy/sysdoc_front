@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { getCached, setCached } from '../../services/monitorApsCache';
 import {
-    Box, CircularProgress, FormControl, InputLabel,
+    Box, Button, CircularProgress, FormControl, InputLabel,
     MenuItem, Select, Typography,
 } from '@mui/material';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
+import FeatherIcon from 'feather-icons-react';
+import generateVisitasEvolucaoPDF from '../../reports/visitasEvolucao';
 
 const MESES  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES  = ['#1351B4', '#168821', '#FF8C00'];
@@ -87,7 +89,7 @@ export default function VisitasEvolucao() {
     const legendColor = isDarkMode ? '#ffffff' : '#546e7a';
 
     const chartOptions = useMemo(() => ({
-        chart:   { ...FONT, toolbar: { show: false }, zoom: { enabled: false } },
+        chart:   { ...FONT, id: 'visitas-evolucao-chart', toolbar: { show: false }, zoom: { enabled: false } },
         xaxis:   { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
         yaxis:   { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
         stroke:  { width: 2, curve: 'smooth' },
@@ -98,13 +100,41 @@ export default function VisitasEvolucao() {
         colors:  series.map((_, i) => CORES[i] ?? '#888'),
     }), [series, labelColor, legendColor]);
 
+    const [printLoading, setPrintLoading] = useState(false);
+
+    const handlePrint = async () => {
+        setPrintLoading(true);
+        try {
+            const equipeNome = equipes.find(e => e.nu_ine === ine)?.no_equipe ?? '';
+            await generateVisitasEvolucaoPDF({
+                series,
+                filtros: { equipeNome, agente, desfecho, geo },
+                anoAtual,
+            });
+        } finally {
+            setPrintLoading(false);
+        }
+    };
+
     const selSx = { minWidth: 140 };
 
     return (
         <Box>
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Evolução de Visitas ACS/TACS</Typography>
+                <Box display="flex" alignItems="center" gap={1.5}>
+                    <Typography variant="h5" fontWeight={700}>Evolução de Visitas ACS/TACS</Typography>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={printLoading || loading || !series.length}
+                        onClick={handlePrint}
+                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
+                        sx={{ textTransform: 'none', borderRadius: 1.5, whiteSpace: 'nowrap' }}
+                    >
+                        {printLoading ? 'Gerando...' : 'Imprimir PDF'}
+                    </Button>
+                </Box>
                 <Box display="flex" gap={1.5} flexWrap="wrap">
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
@@ -112,7 +142,7 @@ export default function VisitasEvolucao() {
                             onChange={e => setIne(e.target.value)}>
                             <MenuItem value="">Todas as equipes</MenuItem>
                             {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

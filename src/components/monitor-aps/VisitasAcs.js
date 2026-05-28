@@ -11,6 +11,7 @@ import FeatherIcon from 'feather-icons-react';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
+import generateVisitasAcsPDF from '../../reports/visitasAcs';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
 
@@ -26,7 +27,7 @@ function nomeEquipeCurto(nome) {
     return nome.split(' - ').slice(1).join(' - ').trim();
 }
 
-function MetricCard({ icon, titulo, valor, cor, sub, subFamily }) {
+function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false }) {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent sx={{ px: '12px', py: 2 }}>
@@ -47,10 +48,11 @@ function MetricCard({ icon, titulo, valor, cor, sub, subFamily }) {
                         </Typography>
                         {sub && (
                             <Typography
-                                variant="caption"
                                 display="block"
                                 sx={{
-                                    color: 'var(--lg-text-muted)',
+                                    fontSize: subDestacado ? 14 : 12,
+                                    fontWeight: subDestacado ? 700 : 400,
+                                    color: subDestacado ? '#42A5F5' : 'var(--lg-text-muted)',
                                     borderBottom: '1px solid var(--lg-border)',
                                     pb: 0.5,
                                     mb: 0.5,
@@ -118,6 +120,7 @@ export default function VisitasAcs() {
     const [filtroGeo, setFiltroGeo]           = useState('');
     const [loading, setLoading]       = useState(false);
     const [loadingMapa, setLoadingMapa] = useState(false);
+    const [printLoading, setPrintLoading] = useState(false);
     const [aba, setAba]               = useState('tabela');
 
     // Estado do modal de detalhe
@@ -144,7 +147,7 @@ export default function VisitasAcs() {
         if (ine) params.set('ine', ine);
         const ctrl = new AbortController();
         monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
-            .then(d => setAgenteOpcoes(d.agentes ?? []))
+            .then(d => setAgenteOpcoes((d.agentes ?? []).slice().sort((a, b) => (a.agente ?? '').localeCompare(b.agente ?? '', 'pt-BR', { sensitivity: 'base' }))))
             .catch(() => {});
         return () => ctrl.abort();
     }, [ano, mes, ine]);
@@ -267,6 +270,46 @@ export default function VisitasAcs() {
     const domiciliosPendentes = Math.max(domiciliosComMoradores - (totais.domicilios_acompanhados ?? 0), 0);
     const pctDomPendentes = temDomiciliosComMoradores ? Math.round(domiciliosPendentes / domiciliosComMoradores * 100) : 0;
 
+    const handlePrint = async () => {
+        setPrintLoading(true);
+        try {
+            let allVisitas = visitas;
+            if (aba === 'tabela' && totalVisitas > perPage) {
+                const params = new URLSearchParams({ ano, mes, page: 1, per_page: Math.min(totalVisitas, 5000) });
+                if (ine)            params.set('ine', ine);
+                if (filtroAgente)   params.set('agente', filtroAgente);
+                if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
+                if (filtroGeo)      params.set('has_geo', filtroGeo);
+                const d = await monitorApsApi.get(`/visitas/lista?${params}`);
+                allVisitas = d.visitas ?? [];
+            }
+            const equipeNome = equipes.find(e => e.nu_ine === ine)?.no_equipe ?? '';
+            await generateVisitasAcsPDF({
+                aba,
+                totais,
+                pcts: {
+                    pctReal, pctRecusadas, pctAusentes,
+                    pctDomAcomp, pctDomPendentes, pctDomMoradores,
+                    pctDomCasaVazia, pctDomRecus, pctDomAusent,
+                    domiciliosPendentes,
+                },
+                visitas: allVisitas,
+                agentes,
+                filtros: {
+                    ano, mes,
+                    mesLabel: MESES_COMPLETO[mes],
+                    equipeNome,
+                    filtroAgente,
+                    filtroDesfecho,
+                    filtroGeo,
+                },
+                totalVisitas,
+            });
+        } finally {
+            setPrintLoading(false);
+        }
+    };
+
     const anosDisponiveis = useMemo(
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
         [anoAtual]
@@ -279,7 +322,19 @@ export default function VisitasAcs() {
             {/* Header + Filtros */}
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Visitas ACS / TACS</Typography>
+                <Box display="flex" alignItems="center" gap={1.5}>
+                    <Typography variant="h5" fontWeight={700}>Visitas ACS / TACS</Typography>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={printLoading || !resumo}
+                        onClick={handlePrint}
+                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
+                        sx={{ textTransform: 'none', borderRadius: 1.5, whiteSpace: 'nowrap' }}
+                    >
+                        {printLoading ? 'Gerando...' : `PDF — ${aba === 'tabela' ? 'Visitas' : aba === 'agentes' ? 'Por Agente' : 'Mapa'}`}
+                    </Button>
+                </Box>
                 <Box display="flex" gap={1.5} flexWrap="wrap">
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
@@ -287,7 +342,7 @@ export default function VisitasAcs() {
                             onChange={e => { setIne(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todas as equipes</MenuItem>
                             {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{nomeEquipeCurto(eq.no_equipe)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -354,6 +409,7 @@ export default function VisitasAcs() {
                         sub={temDomicilios && totais.domicilios_acompanhados != null
                             ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} (${pctDomAcomp}%) - domicílios acompanhados`
                             : null}
+                        subDestacado
                         subFamily={temDomiciliosComMoradores
                             ? `${domiciliosPendentes.toLocaleString('pt-BR')} (${pctDomPendentes}%) - domicílios pendentes`
                             : null} />
@@ -529,24 +585,28 @@ export default function VisitasAcs() {
                                         }}>
                                             <TableCell>Agente</TableCell>
                                             <TableCell>Equipe</TableCell>
-                                            <TableCell align="right">Total</TableCell>
+                                            <TableCell align="right">Cidadãos</TableCell>
                                             <TableCell align="right">Realizadas</TableCell>
                                             <TableCell align="right">Recusadas</TableCell>
                                             <TableCell align="right">Ausentes</TableCell>
-                                            <TableCell align="right">% Realiz.</TableCell>
-                                            <TableCell align="right">Cidadãos</TableCell>
+                                            <TableCell align="right">Total</TableCell>
                                             <TableCell align="right">Domicílios</TableCell>
+                                            <TableCell align="right">Dom. Visitados</TableCell>
+                                            <TableCell align="right">Dom. Ausentes</TableCell>
+                                            <TableCell align="right">Dom. Recusados</TableCell>
                                             <TableCell align="right">Com moradores</TableCell>
                                             <TableCell align="right">Casa vazia</TableCell>
-                                            <TableCell align="right">% Com moradores</TableCell>
+                                            <TableCell align="right">% Domicílios Acomp.</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {agentes.map((a, i) => (
                                             <TableRow key={i} hover>
-                                                <TableCell>
-                                                    <Typography variant="body2" fontWeight={600} noWrap>
-                                                        {a.agente}
+                                                <TableCell sx={{ maxWidth: 160 }}>
+                                                    <Typography variant="body2" fontWeight={600} noWrap
+                                                        title={a.agente}
+                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
+                                                        {(a.agente ?? '').length > 20 ? (a.agente ?? '').slice(0, 20) + '…' : a.agente}
                                                     </Typography>
                                                     <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
                                                         {a.cbo_nome}
@@ -555,9 +615,7 @@ export default function VisitasAcs() {
                                                 <TableCell>
                                                     <Typography variant="body2" noWrap>{nomeEquipeCurto(a.equipe?.nome)}</Typography>
                                                 </TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 700 }}>
-                                                    {a.total.toLocaleString('pt-BR')}
-                                                </TableCell>
+                                                <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right" sx={{ color: '#168821' }}>
                                                     {a.realizadas.toLocaleString('pt-BR')}
                                                 </TableCell>
@@ -567,20 +625,20 @@ export default function VisitasAcs() {
                                                 <TableCell align="right" sx={{ color: '#FF8C00' }}>
                                                     {a.ausentes.toLocaleString('pt-BR')}
                                                 </TableCell>
-                                                <TableCell align="right">
-                                                    <Chip
-                                                        label={`${a.pct_realizadas}%`}
-                                                        size="small"
-                                                        sx={{
-                                                            bgcolor: a.pct_realizadas >= 70 ? '#16882122' : '#FF8C0022',
-                                                            color:   a.pct_realizadas >= 70 ? '#168821' : '#FF8C00',
-                                                            fontWeight: 700,
-                                                        }}
-                                                    />
+                                                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                                                    {a.total.toLocaleString('pt-BR')}
                                                 </TableCell>
-                                                <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right">
                                                     {a.domicilios_total != null ? a.domicilios_total.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {a.domicilios_visitados != null ? a.domicilios_visitados.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right" sx={{ color: '#FF8C00' }}>
+                                                    {a.domicilios_ausentes_visita != null ? a.domicilios_ausentes_visita.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right" sx={{ color: '#E52207' }}>
+                                                    {a.domicilios_recusados_visita != null ? a.domicilios_recusados_visita.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     {a.domicilios_com_moradores != null ? a.domicilios_com_moradores.toLocaleString('pt-BR') : '—'}
@@ -589,23 +647,30 @@ export default function VisitasAcs() {
                                                     {a.domicilios_casa_vazia != null ? a.domicilios_casa_vazia.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    {a.pct_domicilios_com_moradores != null ? (
-                                                        <Chip
-                                                            label={`${a.pct_domicilios_com_moradores}%`}
-                                                            size="small"
-                                                            sx={{
-                                                                bgcolor: a.pct_domicilios_com_moradores >= 70 ? '#16882122' : '#FF8C0022',
-                                                                color:   a.pct_domicilios_com_moradores >= 70 ? '#168821'   : '#FF8C00',
-                                                                fontWeight: 700,
-                                                            }}
-                                                        />
+                                                    {a.domicilios_acompanhados != null ? (
+                                                        <Box display="inline-flex" alignItems="center" gap={0.5} justifyContent="flex-end">
+                                                            <Typography variant="body2" fontWeight={700}>
+                                                                {a.domicilios_acompanhados.toLocaleString('pt-BR')}
+                                                            </Typography>
+                                                            {a.pct_dom_acompanhados != null && (
+                                                                <Chip
+                                                                    label={`${a.pct_dom_acompanhados}%`}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        bgcolor: a.pct_dom_acompanhados >= 70 ? '#16882122' : '#FF8C0022',
+                                                                        color:   a.pct_dom_acompanhados >= 70 ? '#168821'   : '#FF8C00',
+                                                                        fontWeight: 700,
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </Box>
                                                     ) : '—'}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
                                         {agentes.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={12} align="center"
+                                                <TableCell colSpan={14} align="center"
                                                     sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                     Nenhum agente encontrado para o período.
                                                 </TableCell>

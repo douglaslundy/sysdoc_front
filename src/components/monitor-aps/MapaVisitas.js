@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
@@ -66,16 +66,6 @@ export default function MapaVisitas({
     const [modoInterno, setModoInterno] = useState('todos');
     const modo = modoExterno ?? modoInterno;
 
-    useEffect(() => {
-        if (!document.getElementById('leaflet-css')) {
-            const link = document.createElement('link');
-            link.id   = 'leaflet-css';
-            link.rel  = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1/dist/leaflet.css';
-            document.head.appendChild(link);
-        }
-    }, []);
-
     const colorMap = useMemo(() => {
         if (modo === 'todos')  return buildColorMap(pontos.map(p => p.equipe ?? p.equipe_ine ?? ''));
         if (modo === 'equipe') return buildColorMap(pontos.map(p => p.agente ?? ''));
@@ -90,7 +80,7 @@ export default function MapaVisitas({
 
     if (pontos.length === 0) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height={490}
+            <Box display="flex" justifyContent="center" alignItems="center" height={588}
                 sx={{ bgcolor: 'var(--lg-glass)', borderRadius: 2, border: '1px dashed var(--lg-border)' }}>
                 <Typography color="textSecondary">Nenhuma visita georreferenciada no período</Typography>
             </Box>
@@ -122,7 +112,7 @@ export default function MapaVisitas({
             )}
 
             <Box sx={{
-                height: 560, width: '100%', borderRadius: 2,
+                height: 672, width: '100%', borderRadius: 2,
                 overflow: 'hidden', position: 'relative',
             }}>
                 <MapContainer
@@ -149,17 +139,35 @@ export default function MapaVisitas({
                             eventHandlers={onPinClick ? { click: () => onPinClick(p.id) } : undefined}
                         >
                             <Tooltip>
-                                <div style={{ lineHeight: 1.6 }}>
-                                    {p.cidadao && <><strong>{p.cidadao}</strong><br /></>}
-                                    <strong>{LABEL_DESFECHO[p.desfecho] ?? '—'}</strong><br />
-                                    {p.agente}<br />
-                                    {p.equipe ? `Equipe: ${p.equipe}` : ''}<br />
-                                    {p.micro_area ? `Microárea: ${p.micro_area}` : ''}<br />
-                                    {p.data ? (() => {
+                                <div style={{ lineHeight: 1.7, minWidth: 160 }}>
+                                    {/* Endereço do domicílio */}
+                                    {p.logradouro ? (
+                                        <div>
+                                            <strong>
+                                                {[
+                                                    p.logradouro,
+                                                    p.num_endereco,
+                                                    p.complemento,
+                                                ].filter(Boolean).join(', ')}
+                                            </strong>
+                                        </div>
+                                    ) : p.cidadao ? (
+                                        <div><strong>{p.cidadao}</strong></div>
+                                    ) : null}
+                                    {p.bairro && <div style={{ fontSize: 11, color: '#555' }}>{p.bairro}</div>}
+                                    {p.micro_area && <div style={{ fontSize: 11 }}>Microárea: {p.micro_area}</div>}
+                                    <div style={{ marginTop: 3 }}>
+                                        <strong style={{ color: p.desfecho === 1 ? '#168821' : p.desfecho === 2 ? '#E52207' : '#FF8C00' }}>
+                                            {LABEL_DESFECHO[p.desfecho] ?? '—'}
+                                        </strong>
+                                    </div>
+                                    <div>{p.agente}</div>
+                                    {p.equipe && <div style={{ fontSize: 11, color: '#555' }}>Equipe: {p.equipe}</div>}
+                                    {p.data && <div style={{ fontSize: 11 }}>{(() => {
                                         const d = new Date(p.data.length === 10 ? p.data + 'T12:00:00' : p.data).toLocaleDateString('pt-BR');
                                         const h = p.hora != null ? ` ${String(p.hora).padStart(2, '0')}:00` : '';
                                         return d + h;
-                                    })() : ''}
+                                    })()}</div>}
                                 </div>
                             </Tooltip>
                         </CircleMarker>

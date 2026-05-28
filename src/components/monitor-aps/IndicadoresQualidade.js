@@ -141,7 +141,7 @@ export default function IndicadoresQualidade() {
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)}>
                             <MenuItem value="">Todas as equipes</MenuItem>
-                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>)}
+                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={selSx}>

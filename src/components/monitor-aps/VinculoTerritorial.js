@@ -59,24 +59,31 @@ function exportarCSV(data, filename) {
 export default function VinculoTerritorial() {
     const anoAtual  = new Date().getFullYear();
     const quadAtual = Math.ceil((new Date().getMonth() + 1) / 4);
-    const [ano, setAno]   = useState(anoAtual);
-    const [quad, setQuad] = useState(quadAtual);
-    const [data, setData] = useState([]);
+    const [ano, setAno]       = useState(anoAtual);
+    const [quad, setQuad]     = useState(quadAtual);
+    const [equipes, setEquipes] = useState([]);
+    const [ine, setIne]       = useState('');
+    const [data, setData]     = useState([]);
     const [loading, setLoading] = useState(true);
-    const [erro, setErro] = useState(null);
+    const [erro, setErro]     = useState(null);
 
-    useMonitorApsAudit('/monitor-aps/vinculo', 'Monitor APS - Vínculo Territorial', { ano, quadrimestre: quad });
+    useMonitorApsAudit('/monitor-aps/vinculo', 'Monitor APS - Vínculo Territorial', { ano, quadrimestre: quad, equipe: ine });
 
     useEffect(() => {
-        const key = `vinculo_${ano}_${quad}`;
+        monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        const key = `vinculo_${ano}_${quad}_${ine || 'all'}`;
         const cached = getCached(key);
         if (cached) { setData(cached); setLoading(false); return; }
         setLoading(true); setErro(null);
-        monitorApsApi.get(`/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}`)
+        const params = `/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}${ine ? `&ine=${ine}` : ''}`;
+        monitorApsApi.get(params)
             .then(d => { const eq = d.equipes ?? []; setCached(key, eq); setData(eq); })
             .catch(e => setErro(e.message))
             .finally(() => setLoading(false));
-    }, [ano, quad]);
+    }, [ano, quad, ine]);
 
     const totais = data.reduce((acc, e) => ({
         individuais: acc.individuais + (e.cadastros?.individuais ?? 0),
@@ -103,8 +110,8 @@ export default function VinculoTerritorial() {
 
     return (
         <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={1}>
-                <Typography variant="h5" fontWeight={700}>Vínculo e Acompanhamento Territorial</Typography>
+            <Box mt="20px" mb={3}>
+                <Typography variant="h5" fontWeight={700} mb={1.5}>Vínculo e Acompanhamento Territorial</Typography>
                 <Box display="flex" gap={1} alignItems="center">
                     <select value={ano} onChange={e => setAno(Number(e.target.value))} style={selSx}>
                         {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <option key={a}>{a}</option>)}
@@ -112,6 +119,14 @@ export default function VinculoTerritorial() {
                     <select value={quad} onChange={e => setQuad(Number(e.target.value))} style={selSx}>
                         {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}
                     </select>
+                    {equipes.length > 0 && (
+                        <select value={ine} onChange={e => setIne(e.target.value)} style={{ ...selSx, maxWidth: 220 }}>
+                            <option value="">Todas as equipes</option>
+                            {equipes.map(eq => (
+                                <option key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</option>
+                            ))}
+                        </select>
+                    )}
                     <Button variant="outlined" size="small" sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                         startIcon={<FeatherIcon icon="download" width="16" height="16" />}
                         onClick={() => exportarCSV(csvData, `vinculo-${ano}-q${quad}`)}>

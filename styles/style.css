@@ -4,3 +4,42 @@
 .roundedCircle {
   border-radius: 100%;
 }
+
+@media print {
+  /* Oculta elementos de navegação e controles */
+  .no-print { display: none !important; }
+  .MuiDrawer-root { display: none !important; }
+  .MuiAppBar-root { display: none !important; }
+
+  /* Mostra bloco de cabeçalho de impressão */
+  .print-only { display: block !important; }
+
+  /* Remove o margin-left gerado pela sidebar */
+  #page-wrapper {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Fundo branco limpo */
+  html, body { background: #fff !important; }
+
+  /* Cards sem efeito glass no papel */
+  .MuiCard-root {
+    background: #fff !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Garante que as cores do mapa e da legenda saiam na impressão */
+  .leaflet-container,
+  .leaflet-tile-pane,
+  .leaflet-overlay-pane {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove quebras de página indesejadas dentro do card do mapa */
+  .MuiCard-root { page-break-inside: avoid; }
+}

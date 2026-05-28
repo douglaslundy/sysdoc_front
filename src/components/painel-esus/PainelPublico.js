@@ -49,18 +49,22 @@ function tocarCampainha() {
 }
 
 function falarChamada(cidadao, profissional) {
-    if (typeof window === 'undefined' || !window.speechSynthesis || !cidadao) return;
-
-    const nomeProfissional = profissional || 'profissional da unidade';
-    const frase = `${cidadao}, você foi chamada pelo profissional ${nomeProfissional}`;
-    const utterance = new window.SpeechSynthesisUtterance(frase);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    return new Promise(resolve => {
+        if (typeof window === 'undefined' || !window.speechSynthesis || !cidadao) {
+            resolve(); return;
+        }
+        const nomeProfissional = profissional || 'profissional da unidade';
+        const frase = `Chamando ${cidadao} você será atendido agora por ${nomeProfissional}`;
+        const utterance = new window.SpeechSynthesisUtterance(frase);
+        utterance.lang    = 'pt-BR';
+        utterance.rate    = 0.81;
+        utterance.pitch   = 1;
+        utterance.volume  = 1;
+        utterance.onend   = resolve;
+        utterance.onerror = resolve;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    });
 }
 
 // validacao: null | 'loading' | { cnes, nome } | 'erro'
@@ -177,17 +181,33 @@ export default function PainelPublico() {
     const [cnes, setCnes]     = useState('');
     const [dados, setDados]   = useState(null);
     const [erro, setErro]     = useState(null);
-    const pollingRef          = useRef(null);
-    const abortRef            = useRef(null);
-    const ultimoChamadoRef    = useRef(null);
-    const primeiraCargaRef    = useRef(true);
+    const pollingRef       = useRef(null);
+    const abortRef         = useRef(null);
+    const primeiraCargaRef = useRef(true);
+    const anunciadosRef    = useRef(new Set()); // IDs já anunciados
+    const filaRef          = useRef([]);         // fila de chamadas pendentes
+    const processandoRef   = useRef(false);      // mutex da fila
 
     const handleConfirmar = useCallback((cnesConfirmado) => {
         primeiraCargaRef.current = true;
-        ultimoChamadoRef.current = null;
+        anunciadosRef.current    = new Set();
+        filaRef.current          = [];
+        processandoRef.current   = false;
         router.push({ pathname: '/painel-esus', query: { cnes: cnesConfirmado } }, undefined, { shallow: true });
         setCnes(cnesConfirmado);
     }, [router]);
+
+    // Processa a fila de chamadas sequencialmente: campainha → fala → próxima
+    const processarFila = useCallback(async () => {
+        if (processandoRef.current || filaRef.current.length === 0) return;
+        processandoRef.current = true;
+        while (filaRef.current.length > 0) {
+            const item = filaRef.current.shift();
+            await tocarCampainha();
+            await falarChamada(item.cidadao, item.profissional);
+        }
+        processandoRef.current = false;
+    }, []);
 
     const fetchDados = useCallback(() => {
         if (!cnes) return;
@@ -215,23 +235,31 @@ export default function PainelPublico() {
     }, [cnes, fetchDados]);
 
     useEffect(() => {
-        const atual = dados?.em_atendimento;
-        if (!atual?.cidadao) return;
+        const recentes = dados?.chamados_recentes;
+        if (!recentes || recentes.length === 0) return;
 
-        const chave = `${atual.cidadao}|${atual.profissional || ''}|${atual.hr_inicio || ''}`;
+        // Na primeira carga apenas marca todos como já anunciados (sem falar)
         if (primeiraCargaRef.current) {
             primeiraCargaRef.current = false;
-            ultimoChamadoRef.current = chave;
+            recentes.forEach(r => anunciadosRef.current.add(r.id));
             return;
         }
 
-        if (ultimoChamadoRef.current === chave) return;
-        ultimoChamadoRef.current = chave;
+        // Filtra apenas os novos (não anunciados ainda)
+        // recentes vem do mais novo → mais antigo; invertemos para anunciar na ordem certa
+        const novos = [...recentes]
+            .reverse()
+            .filter(r => !anunciadosRef.current.has(r.id));
 
-        tocarCampainha().finally(() => {
-            falarChamada(atual.cidadao, atual.profissional);
+        if (novos.length === 0) return;
+
+        novos.forEach(r => {
+            anunciadosRef.current.add(r.id);
+            filaRef.current.push(r);
         });
-    }, [dados?.em_atendimento]);
+
+        processarFila();
+    }, [dados?.chamados_recentes, processarFila]);
 
     if (!cnes) {
         const initialCnes = router.isReady && router.query.cnes ? String(router.query.cnes) : '';

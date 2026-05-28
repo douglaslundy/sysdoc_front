@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Box, Card, CardContent, CircularProgress, FormControl, IconButton,
+    Box, Button, Card, CardContent, CircularProgress, FormControl, IconButton,
     InputAdornment, InputLabel, MenuItem, Select, TextField,
     ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
@@ -137,18 +137,52 @@ export default function MapaVisitasPage() {
 
     return (
         <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center"
+            {/* Cabeçalho — oculto na impressão (substituído pelo print-header abaixo) */}
+            <Box className="no-print" display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
                 <Typography variant="h5" fontWeight={700}>Mapa de Visitas ACS/TACS</Typography>
-                {!loading && pontos.length > 0 && (
-                    <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)' }}>
-                        {pontos.length.toLocaleString('pt-BR')} ponto{pontos.length !== 1 ? 's' : ''} no mapa
-                    </Typography>
-                )}
+                <Box display="flex" alignItems="center" gap={2}>
+                    {!loading && pontos.length > 0 && (
+                        <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)' }}>
+                            {pontos.length.toLocaleString('pt-BR')} ponto{pontos.length !== 1 ? 's' : ''} no mapa
+                        </Typography>
+                    )}
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<FeatherIcon icon="printer" width={14} height={14} />}
+                        onClick={() => window.print()}
+                        disabled={loading || pontos.length === 0}
+                        sx={{ textTransform: 'none', borderRadius: '10px', minWidth: 90 }}
+                    >
+                        PDF
+                    </Button>
+                </Box>
             </Box>
 
-            {/* Painel de filtros */}
-            <Card sx={{ mb: 2 }}>
+            {/* Cabeçalho visível apenas na impressão */}
+            <Box className="print-only" sx={{ display: 'none', mb: 2, pb: 1.5, borderBottom: '1px solid #ccc' }}>
+                <Typography variant="h5" fontWeight={700} sx={{ color: '#000', mb: 0.5 }}>
+                    Mapa de Visitas ACS/TACS
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#333' }}>
+                    Período: {MESES_COMPLETO[mes]} / {ano}
+                    {filtroModo === 'equipe' && equipeIne && equipes.find(e => e.nu_ine === equipeIne)
+                        ? ` • Equipe: ${equipes.find(e => e.nu_ine === equipeIne).no_equipe}`
+                        : ''}
+                    {agenteNome ? ` • Agente: ${agenteNome}` : ''}
+                    {searchAtivo ? ` • Busca: "${searchAtivo}"` : ''}
+                    {pontos.length > 0
+                        ? ` • ${pontos.length.toLocaleString('pt-BR')} ponto${pontos.length !== 1 ? 's' : ''} georreferenciado${pontos.length !== 1 ? 's' : ''}`
+                        : ''}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#666' }}>
+                    Gerado em: {new Date().toLocaleString('pt-BR')}
+                </Typography>
+            </Box>
+
+            {/* Painel de filtros — oculto na impressão */}
+            <Card className="no-print" sx={{ mb: 2 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                     <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
 
@@ -207,7 +241,7 @@ export default function MapaVisitasPage() {
                                     onChange={e => { setEquipeIne(e.target.value); setAgenteNome(''); }}>
                                     <MenuItem value="">Todas as equipes</MenuItem>
                                     {equipes.map(eq => (
-                                        <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>
+                                        <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>

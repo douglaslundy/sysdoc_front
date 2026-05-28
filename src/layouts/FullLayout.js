@@ -51,6 +51,7 @@ const FullLayout = ({ children }) => {
         <Header toggleSidebar={toggleSidebar} />
 
         <PageWrapper
+        id="page-wrapper"
         sx={{
           marginLeft: isDesktop && isSidebarOpen ? "265px" : 0,
           paddingTop: "64px",

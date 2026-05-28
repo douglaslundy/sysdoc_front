@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Box, Card, CardContent, CircularProgress, FormControl,
+    Box, Button, Card, CardContent, CircularProgress, FormControl,
     Grid, InputLabel, MenuItem, Select, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { painelEsusApi } from '../../services/painelEsusApi';
+import generateFilaEsusPDF from '../../reports/filaEsus';
 
 function ContadorCard({ icon, titulo, valor, cor }) {
     return (
@@ -53,6 +54,7 @@ export default function FilaEsus() {
     const [dados,           setDados]           = useState(null);
     const [loading,         setLoading]         = useState(false);
     const [erro,            setErro]            = useState(null);
+    const [printLoading,    setPrintLoading]    = useState(false);
     const abortRef = useRef(null);
 
     // Carrega unidades no mount — auto-seleciona se houver apenas 1
@@ -85,6 +87,25 @@ export default function FilaEsus() {
             .catch(() => {});
         return () => ac.abort();
     }, [cnes, dataFiltro]);
+
+    const handlePrint = async () => {
+        setPrintLoading(true);
+        try {
+            const equipeNome      = equipes.find(e => String(e.id) === String(equipeId))?.nome ?? '';
+            const profissionalNome = profissionais.find(p => String(p.id) === String(profId))?.nome ?? '';
+            await generateFilaEsusPDF({
+                dados,
+                unidadeNome: unidades.find(u => u.cnes === cnes)?.nome ?? '',
+                cnes,
+                dataFiltro,
+                situacao,
+                equipeNome,
+                profissionalNome,
+            });
+        } finally {
+            setPrintLoading(false);
+        }
+    };
 
     const carregarFila = useCallback(() => {
         if (!cnes) return;
@@ -272,9 +293,21 @@ export default function FilaEsus() {
                     {/* Lista de atendimentos */}
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
-                                {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
-                            </Typography>
+                            <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                                <Typography variant="h6" fontWeight={700}>
+                                    {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
+                                </Typography>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    disabled={printLoading || loading || !dados}
+                                    onClick={handlePrint}
+                                    startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
+                                    sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                                >
+                                    {printLoading ? 'Gerando...' : 'Imprimir PDF'}
+                                </Button>
+                            </Box>
 
                             {loading && (
                                 <Box display="flex" justifyContent="center" py={4}>

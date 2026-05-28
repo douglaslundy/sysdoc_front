@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Box, Card, CardContent, Chip, CircularProgress,
     FormControl, InputLabel, MenuItem, Select, Table,
-    TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Typography,
+    TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { monitorApsApi } from '../../services/monitorApsApi';
 
@@ -54,12 +54,13 @@ const formatEquipe = (value) => {
 };
 
 export default function CidadaosPage() {
-    const [equipes,   setEquipes]   = useState([]);
-    const [agentes,   setAgentes]   = useState([]);
-    const [ine,       setIne]       = useState('');
-    const [agenteSel, setAgenteSel] = useState('');
-    const [condicao,  setCondicao]  = useState('');
-    const [busca,     setBusca]     = useState('');
+    const [equipes,        setEquipes]        = useState([]);
+    const [agentes,        setAgentes]        = useState([]);
+    const [ine,            setIne]            = useState('');
+    const [agenteSel,      setAgenteSel]      = useState('');
+    const [condicao,       setCondicao]       = useState('');
+    const [busca,          setBusca]          = useState('');
+    const [multiDomicilio, setMultiDomicilio] = useState(false);
     const [cidadaos,  setCidadaos]  = useState([]);
     const [meta,      setMeta]      = useState({ total: 0, page: 1, per_page: 50, pages: 0 });
     const [page,      setPage]      = useState(0);
@@ -98,6 +99,7 @@ export default function CidadaosPage() {
         if (agenteSel)         params.set('agente', agenteSel);
         if (condicao)          params.set('condicao', condicao);
         if (busca.length >= 3) params.set('busca', busca);
+        if (multiDomicilio)    params.set('multi_domicilio', '1');
 
         setLoading(true);
         monitorApsApi.get(`/cidadaos?${params}`, { signal: ctrl.signal })
@@ -107,7 +109,7 @@ export default function CidadaosPage() {
             })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setCidadaos([]); })
             .finally(() => setLoading(false));
-    }, [ine, agenteSel, condicao, busca]);
+    }, [ine, agenteSel, condicao, busca, multiDomicilio]);
 
     // Fetch com debounce de 400ms para campo de busca
     useEffect(() => {
@@ -115,7 +117,7 @@ export default function CidadaosPage() {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => fetchCidadaos(0), busca ? 400 : 0);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }, [ine, agenteSel, condicao, busca]);
+    }, [ine, agenteSel, condicao, busca, multiDomicilio]);
 
     const handlePageChange = (_, newPage) => {
         setPage(newPage);
@@ -144,7 +146,7 @@ export default function CidadaosPage() {
                             onChange={e => { setIne(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todas as equipes</MenuItem>
                             {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</MenuItem>
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -168,6 +170,17 @@ export default function CidadaosPage() {
                             ))}
                         </Select>
                     </FormControl>
+
+                    <Tooltip title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios">
+                        <Chip
+                            label="Múltiplos domicílios"
+                            clickable
+                            onClick={() => { setMultiDomicilio(v => !v); setPage(0); }}
+                            color={multiDomicilio ? 'primary' : 'default'}
+                            variant={multiDomicilio ? 'filled' : 'outlined'}
+                            sx={{ alignSelf: 'center', fontWeight: 600 }}
+                        />
+                    </Tooltip>
                 </Box>
             </Box>
 
@@ -194,7 +207,7 @@ export default function CidadaosPage() {
                                         <TableCell>CPF / CNS</TableCell>
                                         <TableCell>Idade</TableCell>
                                         <TableCell>Equipe</TableCell>
-                                        <TableCell>Agente</TableCell>
+                                        <TableCell>{multiDomicilio ? 'Domicílios' : 'Agente'}</TableCell>
                                         <TableCell>Condições</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -225,9 +238,21 @@ export default function CidadaosPage() {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell>
-                                                <Typography variant="body2" noWrap title={c.agente ?? '—'}>
-                                                    {truncateText(c.agente, 25)}
-                                                </Typography>
+                                                {multiDomicilio ? (
+                                                    <Tooltip title={c.domicilios ?? '—'} placement="top">
+                                                        <Typography variant="body2" sx={{ fontSize: 11, maxWidth: 260, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                                                            {c.domicilios
+                                                                ? c.domicilios.split(' | ').map((d, i) => (
+                                                                    <Box key={i} component="span" display="block">• {d}</Box>
+                                                                ))
+                                                                : '—'}
+                                                        </Typography>
+                                                    </Tooltip>
+                                                ) : (
+                                                    <Typography variant="body2" noWrap title={c.agente ?? '—'}>
+                                                        {truncateText(c.agente, 25)}
+                                                    </Typography>
+                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 <Box display="flex" gap={0.5} flexWrap="wrap">

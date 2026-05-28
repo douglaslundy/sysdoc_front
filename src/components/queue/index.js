@@ -50,6 +50,7 @@ import AlertModal from "../messagesModal";
 import protocolPDF from "../../reports/protocol"
 import generateQueuePDF from "../../reports/queues"
 import { addAlertMessage, addMessage } from "../../store/ducks/Layout";
+import { api } from "../../services/api";
 
 const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
@@ -92,6 +93,7 @@ export default () => {
         onConfirm: null,
     });
     const [viewQueue, setViewQueue] = useState(null);
+    const [isPrinting, setIsPrinting] = useState(false);
     const [attachments, setAttachments] = useState([]);
     const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(false);
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
@@ -208,6 +210,52 @@ export default () => {
     const HandleAddQueue = () => {
         setOption('add');
         dispatch(openModal());
+    };
+
+    const handlePrintList = async () => {
+        setIsPrinting(true);
+        try {
+            const baseParams = { per_page: 100 };
+            if (debouncedSearch) baseParams.search        = debouncedSearch;
+            if (speci)           baseParams.speciality_id = speci;
+            baseParams.done    = done;
+            baseParams.urgency = urgency;
+
+            // Busca a primeira página para saber o total
+            const first = await api.get('/queues', { params: { ...baseParams, page: 1 } });
+            const firstData = first.data?.data || first.data || [];
+            const total     = first.data?.meta?.total ?? firstData.length;
+            const lastPage  = Math.ceil(total / 100);
+
+            // Busca as páginas restantes em paralelo
+            const rest = lastPage > 1
+                ? await Promise.all(
+                    Array.from({ length: lastPage - 1 }, (_, i) =>
+                        api.get('/queues', { params: { ...baseParams, page: i + 2 } })
+                            .then(r => r.data?.data || r.data || [])
+                    )
+                )
+                : [];
+
+            const data = [...firstData, ...rest.flat()];
+
+            const specialityName = speci
+                ? (specialities.find(s => s.id === speci || s.id === Number(speci))?.name ?? null)
+                : null;
+
+            await generateQueuePDF(data, {
+                search: debouncedSearch || null,
+                specialityName,
+                done,
+                urgency,
+            });
+        } catch (err) {
+            console.error('[handlePrintList]', err);
+            const msg = err?.response?.data?.message || err?.message || 'Erro desconhecido';
+            dispatch(addAlertMessage(`Erro ao gerar o PDF: ${msg}`));
+        } finally {
+            setIsPrinting(false);
+        }
     };
 
     const searchQueues = ({ target }) => {
@@ -375,11 +423,16 @@ export default () => {
                     wd={"20%"}
                 /> */}
 
-                {profile === "admin" &&
-                    <Fab onClick={() => { generateQueuePDF(queues) }} color="success" aria-label="print" title="imprimir lista" sx={fabControlSx}>
-                        <FeatherIcon icon="printer" />
-                    </Fab>
-                }
+                <Fab
+                    onClick={handlePrintList}
+                    color="success"
+                    aria-label="imprimir"
+                    title="Imprimir listagem filtrada"
+                    disabled={isPrinting}
+                    sx={fabControlSx}
+                >
+                    <FeatherIcon icon={isPrinting ? 'loader' : 'printer'} />
+                </Fab>
 
                 <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila" sx={fabControlSx}>
                     <FeatherIcon icon="plus" />
