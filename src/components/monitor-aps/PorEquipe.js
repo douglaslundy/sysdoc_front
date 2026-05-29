@@ -123,6 +123,9 @@ export default function PorEquipe() {
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)}>
+                            <MenuItem value="">
+                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                            </MenuItem>
                             {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>)}
                         </Select>
                     </FormControl>
