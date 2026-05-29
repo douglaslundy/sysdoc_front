@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Typography } from '@mui/material';
 import { monitorApsApi } from '../../services/monitorApsApi';
 
@@ -11,15 +11,17 @@ import { monitorApsApi } from '../../services/monitorApsApi';
  */
 export default function VetorPanel({ label, equipes, vetor, onChange }) {
     const [agentesOpcoes, setAgentesOpcoes] = useState([]);
-    const anoAtual = new Date().getFullYear();
-    const mesAtual = new Date().getMonth() + 1;
+    const anoAtual = useMemo(() => new Date().getFullYear(), []);
+    const mesAtual = useMemo(() => new Date().getMonth() + 1, []);
 
     useEffect(() => {
         if (!vetor.ine) { setAgentesOpcoes([]); return; }
+        const ctrl = new AbortController();
         const params = new URLSearchParams({ ano: anoAtual, mes: mesAtual, ine: vetor.ine });
-        monitorApsApi.get(`/visitas/agentes?${params}`)
+        monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
             .then(d => setAgentesOpcoes(d.agentes ?? []))
-            .catch(() => setAgentesOpcoes([]));
+            .catch(e => { if (e?.code !== 'ERR_CANCELED') setAgentesOpcoes([]); });
+        return () => ctrl.abort();
     }, [vetor.ine, anoAtual, mesAtual]);
 
     function update(field, value) {
@@ -54,8 +56,8 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
                         <Select label="Agente" value={vetor.agente}
                             onChange={e => update('agente', e.target.value)}>
                             <MenuItem value="">Todos os agentes</MenuItem>
-                            {agentesOpcoes.map((a, i) => (
-                                <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                            {agentesOpcoes.map(a => (
+                                <MenuItem key={a.agente} value={a.agente}>{a.agente}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
