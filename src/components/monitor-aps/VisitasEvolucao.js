@@ -364,6 +364,13 @@ export default function VisitasEvolucao() {
                     </Box>
 
                     {/* Botão Comparar */}
+                    {vetorConfigurado(vetor1) && vetorConfigurado(vetor2) && JSON.stringify(vetor1) === JSON.stringify(vetor2) && (
+                        <Box display="flex" justifyContent="center" mb={1}>
+                            <Typography variant="caption" color="warning.main">
+                                Os dois vetores estão com os mesmos filtros — configure filtros diferentes para comparar.
+                            </Typography>
+                        </Box>
+                    )}
                     <Box display="flex" justifyContent="center">
                         <Button
                             variant="contained"
@@ -372,7 +379,8 @@ export default function VisitasEvolucao() {
                                 !anoComparacao ||
                                 !vetorConfigurado(vetor1) ||
                                 !vetorConfigurado(vetor2) ||
-                                loadingComp
+                                loadingComp ||
+                                (vetorConfigurado(vetor1) && JSON.stringify(vetor1) === JSON.stringify(vetor2))
                             }
                             onClick={handleComparar}
                             startIcon={
