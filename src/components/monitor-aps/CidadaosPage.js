@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Card, CardContent, Chip, CircularProgress,
     FormControl, InputLabel, MenuItem, Select, Table,
@@ -153,12 +154,17 @@ export default function CidadaosPage() {
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
                             onChange={e => { setIne(e.target.value); setPage(0); }}
-                            disabled={isRestrito && equipes.length === 1}>
+                            disabled={isRestrito && equipes.length === 1}
+                            renderValue={(val) => {
+                                if (!val) return '';
+                                const eq = equipes.find(e => e.nu_ine === val);
+                                return eq ? equipeLabel(eq.no_equipe) : val;
+                            }}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>
                             {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
+import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Button, Chip, CircularProgress, Grid, LinearProgress,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -135,7 +136,7 @@ export default function VinculoTerritorial() {
                                 : <option value="">Todas as equipes</option>
                             }
                             {equipes.map(eq => (
-                                <option key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</option>
+                                <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
                             ))}
                         </select>
                     )}

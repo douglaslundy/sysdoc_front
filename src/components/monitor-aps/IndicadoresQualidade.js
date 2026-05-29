@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
+import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
     Grid, IconButton, MenuItem, Select, Table, TableBody, TableCell,
@@ -148,11 +149,16 @@ export default function IndicadoresQualidade() {
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 180 }}>
                         <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}>
+                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}
+                            renderValue={(val) => {
+                                if (!val) return '';
+                                const eq = equipes.find(e => e.nu_ine === val);
+                                return eq ? equipeLabel(eq.no_equipe) : val;
+                            }}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>
-                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>)}
+                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>)}
                         </Select>
                     </FormControl>
                     {isRestrito && !loadingPerms && equipes.length === 0 && (

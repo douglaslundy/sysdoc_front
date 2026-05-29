@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Typography } from '@mui/material';
+import { equipeLabel } from '../../utils/equipeLabel';
 import { monitorApsApi } from '../../services/monitorApsApi';
 
 /**
@@ -29,7 +30,7 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
         if (field === 'ine') updates.agente = '';
         const newVetor = { ...vetor, ...updates };
         const nomeEquipeFull = equipes.find(e => e.nu_ine === newVetor.ine)?.no_equipe ?? '';
-        const nomeEquipe = nomeEquipeFull.split(' - ').slice(1).join(' - ').trim() || nomeEquipeFull;
+        const nomeEquipe = equipeLabel(nomeEquipeFull);
         onChange(newVetor, nomeEquipe);
     }
 
@@ -44,7 +45,7 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
                         <MenuItem value="">Todas as equipes</MenuItem>
                         {equipes.map(eq => (
                             <MenuItem key={eq.nu_ine} value={eq.nu_ine}>
-                                {eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}
+                                {equipeLabel(eq.no_equipe)}
                             </MenuItem>
                         ))}
                     </Select>

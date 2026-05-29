@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
+import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Button, Card, CardContent, Chip, CircularProgress,
     FormControl, Grid, InputLabel, MenuItem,
@@ -22,11 +23,6 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                         'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-function nomeEquipeCurto(nome) {
-    if (!nome || !nome.includes(' - ')) return nome;
-    return nome.split(' - ').slice(1).join(' - ').trim();
-}
 
 function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false }) {
     return (
@@ -349,12 +345,17 @@ export default function VisitasAcs() {
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
                             onChange={e => { setIne(e.target.value); setPage(0); }}
-                            disabled={isRestrito && equipes.length === 1}>
+                            disabled={isRestrito && equipes.length === 1}
+                            renderValue={(val) => {
+                                if (!val) return '';
+                                const eq = equipes.find(e => e.nu_ine === val);
+                                return eq ? equipeLabel(eq.no_equipe) : val;
+                            }}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>
                             {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{nomeEquipeCurto(eq.no_equipe)}</MenuItem>
+                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -632,7 +633,7 @@ export default function VisitasAcs() {
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" noWrap>{nomeEquipeCurto(a.equipe?.nome)}</Typography>
+                                                    <Typography variant="body2" noWrap>{equipeLabel(a.equipe?.nome)}</Typography>
                                                 </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right" sx={{ color: '#168821' }}>
