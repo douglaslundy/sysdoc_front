@@ -23,15 +23,12 @@ export function useEquipesPermitidas() {
         const ctrl = new AbortController();
         monitorApsApi.get('/minhas-equipes', { signal: ctrl.signal })
             .then(d => {
-                const isRt      = Boolean(d.is_rt);
-                const allTeams  = Boolean(d.all_teams);
-                const isRestrito = isRt && !allTeams;
                 setState({
-                    isRt,
-                    allTeams,
-                    isRestrito,
-                    equipes: d.equipes ?? [],
-                    loading: false,
+                    isRt:       Boolean(d.is_rt),
+                    allTeams:   Boolean(d.all_teams),
+                    isRestrito: Boolean(d.restrito),
+                    equipes:    d.equipes ?? [],
+                    loading:    false,
                 });
             })
             .catch(() => setState(s => ({ ...s, loading: false })));
