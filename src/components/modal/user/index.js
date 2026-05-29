@@ -18,6 +18,9 @@ import {
   FormControlLabel,
   Switch,
   Typography,
+  Autocomplete,
+  Checkbox,
+  Chip,
 } from '@mui/material';
 
 import BaseCard from '../../baseCard/BaseCard';
@@ -27,6 +30,7 @@ import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
 import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store/ducks/Layout';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { getAllProfiles } from '../../../store/fetchActions/accessProfiles';
+import { api } from '../../../services/api';
 
 const style = {
   position: 'absolute',
@@ -54,9 +58,15 @@ export default function UserModal(props) {
     email: '',
     cpf: '',
     is_driver: false,
+    is_rt_psf: false,
+    rt_all_teams: false,
     password: '',
     password2: '',
   });
+
+  const [equipesRt, setEquipesRt] = useState([]);
+  const [equipesOpcoes, setEquipesOpcoes] = useState([]);
+  const [loadingEquipes, setLoadingEquipes] = useState(false);
 
   const { user } = useSelector((state) => state.users);
   const { isOpenUserModal } = useSelector((state) => state.layout);
@@ -78,10 +88,14 @@ export default function UserModal(props) {
       email: '',
       cpf: '',
       is_driver: false,
+      is_rt_psf: false,
+      rt_all_teams: false,
       password: '',
       password2: '',
     });
     setTexto('');
+    setEquipesRt([]);
+    setEquipesOpcoes([]);
     dispatch(turnUserModal());
     dispatch(showUser({}));
   };
@@ -104,8 +118,22 @@ export default function UserModal(props) {
       return;
     }
 
+    // Wrap cleanForm so that equipes are saved before the modal closes.
+    // editUserFetch calls the second argument synchronously in .then(),
+    // so we pass an async wrapper that fires the equipes PUT first.
+    const cleanFormWithEquipes = async () => {
+      if (userProfile === 'admin' && user?.id) {
+        await api.put(`/users/${user.id}/equipe-aps`, {
+          is_rt_psf: form.is_rt_psf,
+          rt_all_teams: form.rt_all_teams,
+          equipes: form.is_rt_psf && !form.rt_all_teams ? equipesRt : [],
+        }).catch(() => {});
+      }
+      cleanForm();
+    };
+
     dispatch(changeTitleAlert(`O usuario ${form.name} foi atualizado com sucesso!`));
-    dispatch(editUserFetch(form, cleanForm));
+    dispatch(editUserFetch(form, cleanFormWithEquipes));
   };
 
   const handleIsDriver = (isDriver) => {
@@ -119,14 +147,32 @@ export default function UserModal(props) {
     cleanForm();
   };
 
+  // Load user data when editing an existing user
   useEffect(() => {
     if (user && user.id) {
       setForm({
         ...user,
         is_driver: user.is_driver === true || Number(user.is_driver) === 1,
+        is_rt_psf: Boolean(user.is_rt_psf),
+        rt_all_teams: Boolean(user.rt_all_teams),
       });
+      if (userProfile === 'admin') {
+        api.get(`/users/${user.id}/equipe-aps`)
+          .then(r => setEquipesRt(r.data.equipes ?? []))
+          .catch(() => {});
+      }
     }
   }, [user]);
+
+  // Load equipes options when RT toggle is turned on
+  useEffect(() => {
+    if (!form.is_rt_psf || equipesOpcoes.length > 0) return;
+    setLoadingEquipes(true);
+    api.get('/monitor-aps/config/equipes')
+      .then(r => setEquipesOpcoes(r.data.equipes ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingEquipes(false));
+  }, [form.is_rt_psf, equipesOpcoes.length]);
 
   useEffect(() => {
     if (isOpenUserModal && userProfile === 'admin' && dbProfiles.length === 0) {
@@ -295,6 +341,66 @@ export default function UserModal(props) {
                     }
                     label={is_driver ? 'DIRIGE VEICULO OFICIAL' : 'NAO DIRIGE VEICULO OFICIAL'}
                   />
+
+                  {userProfile === 'admin' && (
+                    <>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={Boolean(form.is_rt_psf)}
+                            onChange={e => setForm(f => ({
+                              ...f,
+                              is_rt_psf: e.target.checked,
+                              rt_all_teams: false,
+                            }))}
+                          />
+                        }
+                        label="É Responsável Técnico de Equipe PSF"
+                      />
+
+                      {form.is_rt_psf && (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={Boolean(form.rt_all_teams)}
+                              onChange={e => setForm(f => ({ ...f, rt_all_teams: e.target.checked }))}
+                            />
+                          }
+                          label="Acesso a todas as equipes"
+                        />
+                      )}
+
+                      {form.is_rt_psf && !form.rt_all_teams && (
+                        <Autocomplete
+                          multiple
+                          options={equipesOpcoes}
+                          loading={loadingEquipes}
+                          getOptionLabel={opt => opt.no_equipe ?? ''}
+                          isOptionEqualToValue={(opt, val) => opt.nu_ine === val.nu_ine}
+                          value={equipesRt}
+                          onChange={(_, newValue) => setEquipesRt(newValue)}
+                          renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                              <Chip
+                                key={option.nu_ine}
+                                label={option.no_equipe}
+                                size="small"
+                                {...getTagProps({ index })}
+                              />
+                            ))
+                          }
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label="Equipes autorizadas"
+                              placeholder={equipesRt.length === 0 ? 'Selecione as equipes' : ''}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+                      )}
+                    </>
+                  )}
 
                   <TextField
                     required
