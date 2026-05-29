@@ -122,6 +122,20 @@ Retorna as equipes que o usuário logado pode ver:
 
 Se `is_rt = false` ou `all_teams = true`, retorna `equipes: []` com flag indicando acesso irrestrito.
 
+#### `GET /api/users/{id}/equipe-aps` (middleware: auth:sanctum + admin)
+
+Retorna as equipes vinculadas a um usuário específico. Usado pelo UserModal ao abrir para edição.
+
+```json
+{
+  "is_rt_psf": true,
+  "rt_all_teams": false,
+  "equipes": [
+    { "nu_ine": "0001234567", "no_equipe": "ESF CENTRO" }
+  ]
+}
+```
+
 #### `GET /api/monitor-aps/config/equipes`
 
 Removido do grupo `middleware('admin')` — liberado para qualquer usuário autenticado. Necessário para popular o seletor de equipes no UserModal.
@@ -182,6 +196,7 @@ if ($ine === null && $allowedInes !== null) {
 ```
 
 Controllers afetados:
+- `MonitorApsController::resumo()` — usado pelo dashboard; o middleware se aplica, filtragem é aceitável como comportamento secundário
 - `MonitorApsController::vinculo()`
 - `MonitorApsController::qualidade()`
 - `MonitorApsController::qualidadeIndicador()`
