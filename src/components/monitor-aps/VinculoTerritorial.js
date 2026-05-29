@@ -76,6 +76,7 @@ export default function VinculoTerritorial() {
         if (loadingPerms) return;
         if (isRestrito) {
             setEquipes(minhasEquipes);
+            if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
@@ -128,7 +129,7 @@ export default function VinculoTerritorial() {
                         {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}
                     </select>
                     {equipes.length > 0 && (
-                        <select value={ine} onChange={e => setIne(e.target.value)} style={{ ...selSx, maxWidth: 220 }}>
+                        <select value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1} style={{ ...selSx, maxWidth: 220, opacity: (isRestrito && equipes.length === 1) ? 0.7 : 1 }}>
                             {isRestrito && equipes.length > 1
                                 ? <option value="">Todas as minhas equipes</option>
                                 : <option value="">Todas as equipes</option>

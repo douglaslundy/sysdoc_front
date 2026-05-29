@@ -140,6 +140,7 @@ export default function VisitasAcs() {
         if (loadingPerms) return;
         if (isRestrito) {
             setEquipes(minhasEquipes);
+            if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
         const ctrl = new AbortController();
@@ -347,7 +348,8 @@ export default function VisitasAcs() {
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
-                            onChange={e => { setIne(e.target.value); setPage(0); }}>
+                            onChange={e => { setIne(e.target.value); setPage(0); }}
+                            disabled={isRestrito && equipes.length === 1}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>

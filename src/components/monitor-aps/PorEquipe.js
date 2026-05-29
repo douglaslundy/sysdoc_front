@@ -122,7 +122,7 @@ export default function PorEquipe() {
                 <Box display="flex" gap={1.5} flexWrap="wrap">
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)}>
+                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>

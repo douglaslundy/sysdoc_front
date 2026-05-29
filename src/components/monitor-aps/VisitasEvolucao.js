@@ -83,6 +83,7 @@ export default function VisitasEvolucao() {
         if (loadingPerms) return;
         if (isRestrito) {
             setEquipes(minhasEquipes);
+            if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
         monitorApsApi.get('/config/equipes')
@@ -267,7 +268,8 @@ export default function VisitasEvolucao() {
                         <FormControl size="small" sx={{ minWidth: 200 }}>
                             <InputLabel>Equipe</InputLabel>
                             <Select label="Equipe" value={ine}
-                                onChange={e => setIne(e.target.value)}>
+                                onChange={e => setIne(e.target.value)}
+                                disabled={isRestrito && equipes.length === 1}>
                                 <MenuItem value="">
                                     {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                                 </MenuItem>

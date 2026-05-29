@@ -100,6 +100,7 @@ export default function IndicadoresQualidade() {
         if (loadingPerms) return;
         if (isRestrito) {
             setEquipes(minhasEquipes);
+            if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
@@ -147,7 +148,7 @@ export default function IndicadoresQualidade() {
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 180 }}>
                         <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)}>
+                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}>
                             <MenuItem value="">
                                 {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                             </MenuItem>

@@ -58,6 +58,7 @@ export default function MapaVisitasPage() {
         if (isRestrito) {
             setEquipes(minhasEquipes);
             setFiltroModo('equipe');
+            if (minhasEquipes.length === 1) setEquipeIne(minhasEquipes[0].nu_ine);
             return;
         }
         monitorApsApi.get('/config/equipes')
@@ -252,7 +253,8 @@ export default function MapaVisitasPage() {
                             <FormControl size="small" sx={{ minWidth: 220 }}>
                                 <InputLabel>Equipe</InputLabel>
                                 <Select label="Equipe" value={equipeIne}
-                                    onChange={e => { setEquipeIne(e.target.value); setAgenteNome(''); }}>
+                                    onChange={e => { setEquipeIne(e.target.value); setAgenteNome(''); }}
+                                    disabled={isRestrito && equipes.length === 1}>
                                     <MenuItem value="">
                                         {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
                                     </MenuItem>
