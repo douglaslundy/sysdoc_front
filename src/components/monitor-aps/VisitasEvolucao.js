@@ -70,6 +70,7 @@ export default function VisitasEvolucao() {
     const [seriesComp,      setSeriesComp]      = useState([]);
     const [loadingComp,     setLoadingComp]     = useState(false);
     const [erroComp,        setErroComp]        = useState(null);
+    const [loadingAnos,     setLoadingAnos]     = useState(false);
 
     useMonitorApsAudit('/monitor-aps/visitas/evolucao', 'Monitor APS - Evolução de Visitas', {
         equipe: ine, agente, desfecho, geo,
@@ -120,9 +121,12 @@ export default function VisitasEvolucao() {
         setVetor2(VETOR_VAZIO); setNomeEquipe2('');
         setSeriesComp([]); setErroComp(null);
 
+        setLoadingAnos(true);
+
         monitorApsApi.get('/visitas/evolucao/anos')
             .then(d => setAnosDisponiveis(d.anos ?? []))
-            .catch(() => setAnosDisponiveis([]));
+            .catch(() => setAnosDisponiveis([]))
+            .finally(() => setLoadingAnos(false));
     }
 
     function desativarComparacao() {
@@ -314,9 +318,14 @@ export default function VisitasEvolucao() {
                                 ))}
                             </Select>
                         </FormControl>
-                        {anosDisponiveis.length === 0 && (
+                        {loadingAnos && (
                             <Typography variant="caption" color="textSecondary">
                                 Carregando anos disponíveis...
+                            </Typography>
+                        )}
+                        {!loadingAnos && anosDisponiveis.length === 0 && (
+                            <Typography variant="caption" color="error">
+                                Nenhum ano com dados encontrado.
                             </Typography>
                         )}
                     </Box>
