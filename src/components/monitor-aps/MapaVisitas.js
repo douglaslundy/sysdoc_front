@@ -140,20 +140,12 @@ export default function MapaVisitas({
                         >
                             <Tooltip>
                                 <div style={{ lineHeight: 1.7, minWidth: 160 }}>
-                                    {/* Endereço do domicílio */}
-                                    {p.logradouro ? (
-                                        <div>
-                                            <strong>
-                                                {[
-                                                    p.logradouro,
-                                                    p.num_endereco,
-                                                    p.complemento,
-                                                ].filter(Boolean).join(', ')}
-                                            </strong>
+                                    {p.cidadao && <div><strong>{p.cidadao}</strong></div>}
+                                    {p.logradouro && (
+                                        <div style={{ fontSize: 11, color: '#555' }}>
+                                            {[p.logradouro, p.num_endereco, p.complemento].filter(Boolean).join(', ')}
                                         </div>
-                                    ) : p.cidadao ? (
-                                        <div><strong>{p.cidadao}</strong></div>
-                                    ) : null}
+                                    )}
                                     {p.bairro && <div style={{ fontSize: 11, color: '#555' }}>{p.bairro}</div>}
                                     {p.micro_area && <div style={{ fontSize: 11 }}>Microárea: {p.micro_area}</div>}
                                     <div style={{ marginTop: 3 }}>

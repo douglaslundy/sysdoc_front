@@ -21,108 +21,76 @@ async function loadImage(url) {
     } catch { return null; }
 }
 
-// ── Gráfico de linhas via canvas pdfmake ────────────────────────────────────
+// ── Gráfico de linhas via SVG (suporta texto nos pontos) ─────────────────────
 function buildLineChart(series) {
     if (!series.length) return null;
 
-    const CHART_W  = 700;
-    const CHART_H  = 180;
-    const PAD_T    = 10;   // topo interno do canvas
+    const SVG_W    = 750;
+    const PLOT_H   = 180;
+    const PAD_L    = 46;   // espaço para rótulos do eixo Y
+    const PAD_T    = 18;   // espaço para rótulos de valor acima dos pontos
+    const PAD_B    = 18;   // espaço para rótulos do eixo X
     const NUM_GRID = 5;
-    const Y_COL_W  = 46;   // coluna dos rótulos do eixo Y
+    const SVG_H    = PAD_T + PLOT_H + PAD_B;
+    const PLOT_W   = SVG_W - PAD_L;
 
-    const allVals = series.flatMap(s => s.meses ?? []).filter(v => v > 0);
+    const allVals = series.flatMap(s => s.meses ?? []).filter(v => v != null && v >= 0);
     if (!allVals.length) return null;
 
-    // Arredonda para cima até intervalo "bonito"
-    const rawMax  = Math.max(...allVals);
+    const rawMax  = Math.max(...allVals, 1);
     const step    = rawMax <= 50 ? 10 : rawMax <= 200 ? 50 : rawMax <= 1000 ? 100 : rawMax <= 5000 ? 500 : 1000;
     const niceMax = Math.ceil(rawMax / step) * step;
 
-    // Pontos centralizados em 12 colunas iguais (alinha com rótulos dos meses)
-    const xPos = m => (m + 0.5) * (CHART_W / 12);
-    const yPos = v => PAD_T + CHART_H - Math.max(0, Math.min(v / niceMax, 1)) * CHART_H;
+    const xPos = m  => PAD_L + (m + 0.5) * (PLOT_W / 12);
+    const yPos = v  => PAD_T + PLOT_H - Math.max(0, Math.min((v ?? 0) / niceMax, 1)) * PLOT_H;
 
-    const shapes = [];
+    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-    // Rect transparente para forçar altura do canvas
-    shapes.push({ type: 'rect', x: 0, y: 0, w: CHART_W, h: PAD_T + CHART_H + 4, color: 'white', lineColor: 'white' });
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}">`;
+    svg += `<rect width="${SVG_W}" height="${SVG_H}" fill="white"/>`;
 
-    // Linhas de grade horizontais
+    // Grade horizontal + rótulos eixo Y
     for (let g = 0; g <= NUM_GRID; g++) {
-        const y = PAD_T + CHART_H - (g / NUM_GRID) * CHART_H;
-        shapes.push({
-            type: 'line',
-            x1: 0, y1: y, x2: CHART_W, y2: y,
-            lineWidth: g === 0 ? 0.8 : 0.3,
-            lineColor: g === 0 ? '#bbb' : '#e8e8e8',
-        });
+        const y  = PAD_T + PLOT_H - (g / NUM_GRID) * PLOT_H;
+        const lw = g === 0 ? 0.8 : 0.3;
+        const lc = g === 0 ? '#bbbbbb' : '#e8e8e8';
+        svg += `<line x1="${PAD_L}" y1="${y}" x2="${SVG_W}" y2="${y}" stroke="${lc}" stroke-width="${lw}"/>`;
+        svg += `<text x="${PAD_L - 3}" y="${y + 2.5}" font-size="7" fill="#888888" text-anchor="end" font-family="Helvetica">${esc(Math.round((g / NUM_GRID) * niceMax).toLocaleString('pt-BR'))}</text>`;
     }
 
-    // Linhas de grade verticais leves (um por mês)
+    // Grade vertical leve (um traço por mês)
     for (let m = 0; m < 12; m++) {
         const x = xPos(m);
-        shapes.push({
-            type: 'line',
-            x1: x, y1: PAD_T, x2: x, y2: PAD_T + CHART_H,
-            lineWidth: 0.2,
-            lineColor: '#f0f0f0',
-        });
+        svg += `<line x1="${x}" y1="${PAD_T}" x2="${x}" y2="${PAD_T + PLOT_H}" stroke="#f0f0f0" stroke-width="0.2"/>`;
     }
 
-    // Séries: linha + marcadores
+    // Séries: linha → marcadores → rótulos de valor
     for (let si = 0; si < series.length; si++) {
-        const color = CORES[si] ?? '#888';
+        const color = CORES[si] ?? '#888888';
         const meses = series[si].meses ?? Array(12).fill(0);
-        const pts   = meses.map((v, m) => ({ x: xPos(m), y: yPos(v ?? 0) }));
 
-        // Linha conectando os pontos
-        shapes.push({
-            type: 'polyline',
-            points: pts,
-            lineColor: color,
-            lineWidth: 2,
-            closePath: false,
-        });
+        // Linha
+        const pts = meses.map((v, m) => `${xPos(m)},${yPos(v ?? 0)}`).join(' ');
+        svg += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>`;
 
-        // Marcadores (círculo branco com borda colorida)
-        pts.forEach(p => {
-            shapes.push({ type: 'ellipse', x: p.x, y: p.y, r1: 3.5, r2: 3.5, color: '#fff', lineWidth: 1.8, lineColor: color });
-        });
-    }
-
-    // Rótulos eixo Y (coluna separada à esquerda do canvas)
-    const gridStepVal  = niceMax / NUM_GRID;
-    const gridStepPx   = CHART_H / NUM_GRID;
-    const yLabels = [];
-    for (let g = NUM_GRID; g >= 0; g--) {
-        const isTop = g === NUM_GRID;
-        yLabels.push({
-            text: Math.round(gridStepVal * g).toLocaleString('pt-BR'),
-            fontSize: 6.5,
-            color: '#888',
-            alignment: 'right',
-            // primeiro label tem margem = PAD_T - metade do font; os seguintes = espaço entre grades - font
-            margin: [0, isTop ? PAD_T - 4 : gridStepPx - 10.5, 3, 0],
+        // Marcadores e rótulos
+        meses.forEach((v, m) => {
+            const x = xPos(m);
+            const y = yPos(v ?? 0);
+            svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="white" stroke="${color}" stroke-width="1.8"/>`;
+            const label = v != null ? v.toLocaleString('pt-BR') : '0';
+            // desloca rótulos de séries diferentes para evitar sobreposição
+            const dy = y - 7 - si * 9;
+            svg += `<text x="${x}" y="${dy}" font-size="7" fill="${color}" text-anchor="middle" font-family="Helvetica" font-weight="bold">${esc(label)}</text>`;
         });
     }
 
     // Rótulos eixo X (meses)
-    const xLabels = {
-        columns: MESES.map(() => ({ width: CHART_W / 12, text: '' })), // placeholder — sobrescrito abaixo
-        columnGap: 0,
-    };
-    const xLabelRow = {
-        columns: MESES.map(m => ({
-            width: CHART_W / 12,
-            text: m,
-            fontSize: 7,
-            color: '#777',
-            alignment: 'center',
-        })),
-        columnGap: 0,
-        margin: [0, 2, 0, 0],
-    };
+    for (let m = 0; m < 12; m++) {
+        svg += `<text x="${xPos(m)}" y="${PAD_T + PLOT_H + 13}" font-size="7" fill="#777777" text-anchor="middle" font-family="Helvetica">${MESES[m]}</text>`;
+    }
+
+    svg += '</svg>';
 
     // Legenda
     const legend = {
@@ -142,23 +110,7 @@ function buildLineChart(series) {
     };
 
     return {
-        stack: [
-            // Gráfico: coluna Y + canvas
-            {
-                columns: [
-                    { width: Y_COL_W, stack: yLabels },
-                    {
-                        width: CHART_W,
-                        stack: [
-                            { canvas: shapes },
-                            xLabelRow,
-                        ],
-                    },
-                ],
-                columnGap: 0,
-            },
-            legend,
-        ],
+        stack: [{ svg, width: SVG_W }, legend],
         margin: [0, 0, 0, 18],
     };
 }
@@ -176,11 +128,11 @@ function buildDataTable(series) {
         return [
             { text: String(s.ano), fontSize: 9, bold: true, alignment: 'center', color: CORES[i] ?? '#333' },
             ...(s.meses ?? Array(12).fill(0)).map(v => ({
-                text: v > 0 ? Number(v).toLocaleString('pt-BR') : '—',
+                text: Number(v ?? 0).toLocaleString('pt-BR'),
                 fontSize: 8, alignment: 'right',
-                color: v > 0 ? '#222' : '#bbb',
+                color: (v ?? 0) > 0 ? '#222' : '#bbb',
             })),
-            { text: total > 0 ? total.toLocaleString('pt-BR') : '—', fontSize: 9, bold: true, alignment: 'right' },
+            { text: total.toLocaleString('pt-BR'), fontSize: 9, bold: true, alignment: 'right' },
         ];
     });
 

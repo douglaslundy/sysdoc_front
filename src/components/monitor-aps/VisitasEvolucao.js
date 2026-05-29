@@ -89,15 +89,22 @@ export default function VisitasEvolucao() {
     const legendColor = isDarkMode ? '#ffffff' : '#546e7a';
 
     const chartOptions = useMemo(() => ({
-        chart:   { ...FONT, id: 'visitas-evolucao-chart', toolbar: { show: false }, zoom: { enabled: false } },
-        xaxis:   { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
-        yaxis:   { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
-        stroke:  { width: 2, curve: 'smooth' },
-        markers: { size: 4 },
-        legend:  { position: 'bottom', fontFamily: FONT.fontFamily, labels: { colors: legendColor } },
-        tooltip: { theme: 'dark', y: { formatter: v => v.toLocaleString('pt-BR') } },
-        grid:    { borderColor: 'var(--lg-border)' },
-        colors:  series.map((_, i) => CORES[i] ?? '#888'),
+        chart:       { ...FONT, id: 'visitas-evolucao-chart', toolbar: { show: false }, zoom: { enabled: false } },
+        xaxis:       { categories: MESES, labels: { style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
+        yaxis:       { labels: { formatter: v => v.toLocaleString('pt-BR'), style: { fontFamily: FONT.fontFamily, colors: labelColor } } },
+        stroke:      { width: 2, curve: 'smooth' },
+        markers:     { size: 4 },
+        dataLabels:  {
+            enabled:    true,
+            formatter:  v => v != null ? v.toLocaleString('pt-BR') : '',
+            offsetY:    -8,
+            style:      { fontFamily: FONT.fontFamily, fontSize: '11px', fontWeight: '600' },
+            background: { enabled: false },
+        },
+        legend:      { position: 'bottom', fontFamily: FONT.fontFamily, labels: { colors: legendColor } },
+        tooltip:     { theme: 'dark', y: { formatter: v => v.toLocaleString('pt-BR') } },
+        grid:        { borderColor: 'var(--lg-border)' },
+        colors:      series.map((_, i) => CORES[i] ?? '#888'),
     }), [series, labelColor, legendColor]);
 
     const [printLoading, setPrintLoading] = useState(false);
