@@ -12,6 +12,7 @@ import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import FeatherIcon from 'feather-icons-react';
 import generateVisitasEvolucaoPDF from '../../reports/visitasEvolucao';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const MESES  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES  = ['#1351B4', '#168821', '#FF8C00'];
@@ -72,15 +73,22 @@ export default function VisitasEvolucao() {
     const [erroComp,        setErroComp]        = useState(null);
     const [loadingAnos,     setLoadingAnos]     = useState(false);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     useMonitorApsAudit('/monitor-aps/visitas/evolucao', 'Monitor APS - Evolução de Visitas', {
         equipe: ine, agente, desfecho, geo,
     });
 
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            return;
+        }
         monitorApsApi.get('/config/equipes')
             .then(d => setEquipes(d.equipes ?? []))
             .catch(() => {});
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
         if (!ine) { setAgenteOpcoes([]); return; }
@@ -260,12 +268,21 @@ export default function VisitasEvolucao() {
                             <InputLabel>Equipe</InputLabel>
                             <Select label="Equipe" value={ine}
                                 onChange={e => setIne(e.target.value)}>
-                                <MenuItem value="">Todas as equipes</MenuItem>
+                                <MenuItem value="">
+                                    {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                                </MenuItem>
                                 {equipes.map(eq => (
                                     <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
+                        {isRestrito && !loadingPerms && equipes.length === 0 && (
+                            <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                                <Typography variant="body2" color="warning.dark">
+                                    Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                                </Typography>
+                            </Box>
+                        )}
 
                         {ine && (
                             <FormControl size="small" sx={{ minWidth: 200 }}>

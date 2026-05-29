@@ -9,6 +9,7 @@ import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -67,11 +68,18 @@ export default function VinculoTerritorial() {
     const [loading, setLoading] = useState(true);
     const [erro, setErro]     = useState(null);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     useMonitorApsAudit('/monitor-aps/vinculo', 'Monitor APS - Vínculo Territorial', { ano, quadrimestre: quad, equipe: ine });
 
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            return;
+        }
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
         const key = `vinculo_${ano}_${quad}_${ine || 'all'}`;
@@ -121,11 +129,21 @@ export default function VinculoTerritorial() {
                     </select>
                     {equipes.length > 0 && (
                         <select value={ine} onChange={e => setIne(e.target.value)} style={{ ...selSx, maxWidth: 220 }}>
-                            <option value="">Todas as equipes</option>
+                            {isRestrito && equipes.length > 1
+                                ? <option value="">Todas as minhas equipes</option>
+                                : <option value="">Todas as equipes</option>
+                            }
                             {equipes.map(eq => (
                                 <option key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</option>
                             ))}
                         </select>
+                    )}
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                            <Typography variant="body2" color="warning.dark">
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                            </Typography>
+                        </Box>
                     )}
                     <Button variant="outlined" size="small" sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
                         startIcon={<FeatherIcon icon="download" width="16" height="16" />}

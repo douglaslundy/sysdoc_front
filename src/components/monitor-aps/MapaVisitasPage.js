@@ -9,6 +9,7 @@ import FeatherIcon from 'feather-icons-react';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
 
@@ -35,6 +36,8 @@ export default function MapaVisitasPage() {
     const [pontos, setPontos]     = useState([]);
     const [loading, setLoading]   = useState(false);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     const [detalhe, setDetalhe]               = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]       = useState(false);
@@ -51,10 +54,21 @@ export default function MapaVisitasPage() {
     }, [filtroModo, equipeIne, agenteNome]);
 
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            setFiltroModo('equipe');
+            return;
+        }
         monitorApsApi.get('/config/equipes')
             .then(d => setEquipes(d.equipes ?? []))
             .catch(() => {});
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
+
+    // Força modo equipe quando isRestrito
+    useEffect(() => {
+        if (isRestrito) setFiltroModo('equipe');
+    }, [isRestrito]);
 
     // Reload agent list whenever team or period changes
     useEffect(() => {
@@ -193,7 +207,7 @@ export default function MapaVisitasPage() {
                             onChange={handleFiltroModo}
                             sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 2 } }}
                         >
-                            <ToggleButton value="todos">Todos</ToggleButton>
+                            {!isRestrito && <ToggleButton value="todos">Todos</ToggleButton>}
                             <ToggleButton value="equipe">Por Equipe</ToggleButton>
                         </ToggleButtonGroup>
 
@@ -239,12 +253,21 @@ export default function MapaVisitasPage() {
                                 <InputLabel>Equipe</InputLabel>
                                 <Select label="Equipe" value={equipeIne}
                                     onChange={e => { setEquipeIne(e.target.value); setAgenteNome(''); }}>
-                                    <MenuItem value="">Todas as equipes</MenuItem>
+                                    <MenuItem value="">
+                                        {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                                    </MenuItem>
                                     {equipes.map(eq => (
                                         <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
+                        )}
+                        {isRestrito && !loadingPerms && equipes.length === 0 && (
+                            <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                                <Typography variant="body2" color="warning.dark">
+                                    Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                                </Typography>
+                            </Box>
                         )}
 
                         {/* Agente — habilitado apenas quando equipe selecionada */}

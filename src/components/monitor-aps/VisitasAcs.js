@@ -12,6 +12,7 @@ import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 import generateVisitasAcsPDF from '../../reports/visitasAcs';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
 
@@ -107,6 +108,8 @@ export default function VisitasAcs() {
     const [ine, setIne]     = useState('');
     const [equipes, setEquipes] = useState([]);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     const [resumo, setResumo]         = useState(null);
     const [agentes, setAgentes]       = useState([]);
     const [agenteOpcoes, setAgenteOpcoes] = useState([]);
@@ -132,14 +135,19 @@ export default function VisitasAcs() {
         ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
     });
 
-    // Carrega equipes uma única vez
+    // Carrega equipes conforme permissões do usuário
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            return;
+        }
         const ctrl = new AbortController();
         monitorApsApi.get('/config/equipes', { signal: ctrl.signal })
             .then(d => setEquipes(d.equipes ?? []))
             .catch(() => {});
         return () => ctrl.abort();
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     // Opções do select Agente — sempre sem filtros adicionais
     useEffect(() => {
@@ -340,12 +348,21 @@ export default function VisitasAcs() {
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
                             onChange={e => { setIne(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todas as equipes</MenuItem>
+                            <MenuItem value="">
+                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                            </MenuItem>
                             {equipes.map(eq => (
                                 <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{nomeEquipeCurto(eq.no_equipe)}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                            <Typography variant="body2" color="warning.dark">
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                            </Typography>
+                        </Box>
+                    )}
                     <FormControl size="small" sx={selSx}>
                         <InputLabel>Ano</InputLabel>
                         <Select label="Ano" value={ano}

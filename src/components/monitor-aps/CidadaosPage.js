@@ -5,6 +5,7 @@ import {
     TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const CHIP_CONDICOES = [
     { key: 'st_gestante', label: 'Gestante', cor: '#1351B4' },
@@ -68,14 +69,21 @@ export default function CidadaosPage() {
     const debounceRef = useRef(null);
     const ctrlRef     = useRef(null);
 
-    // Carrega equipes uma vez
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
+    // Carrega equipes conforme permissões do usuário
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            return;
+        }
         const ctrl = new AbortController();
         monitorApsApi.get('/config/equipes', { signal: ctrl.signal })
             .then(d => setEquipes(d.equipes ?? []))
             .catch(() => {});
         return () => ctrl.abort();
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     // Carrega agentes quando equipe muda
     useEffect(() => {
@@ -144,12 +152,21 @@ export default function CidadaosPage() {
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
                             onChange={e => { setIne(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todas as equipes</MenuItem>
+                            <MenuItem value="">
+                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                            </MenuItem>
                             {equipes.map(eq => (
                                 <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                            <Typography variant="body2" color="warning.dark">
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                            </Typography>
+                        </Box>
+                    )}
                     <FormControl size="small" sx={{ minWidth: 200 }}>
                         <InputLabel>Agente</InputLabel>
                         <Select label="Agente" value={agenteSel}

@@ -10,6 +10,7 @@ import FeatherIcon from 'feather-icons-react';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -91,11 +92,18 @@ export default function IndicadoresQualidade() {
     const [loading, setLoading] = useState(true);
     const [detalhe, setDetalhe] = useState(null);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     useMonitorApsAudit('/monitor-aps/qualidade', 'Monitor APS - Indicadores de Qualidade', { ano, quadrimestre: quad, equipe: ine, bloco });
 
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            return;
+        }
         monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
         const p = new URLSearchParams({ ano, quadrimestre: quad });
@@ -140,10 +148,19 @@ export default function IndicadoresQualidade() {
                     <FormControl size="small" sx={{ minWidth: 180 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)}>
-                            <MenuItem value="">Todas as equipes</MenuItem>
+                            <MenuItem value="">
+                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
+                            </MenuItem>
                             {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>)}
                         </Select>
                     </FormControl>
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                            <Typography variant="body2" color="warning.dark">
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                            </Typography>
+                        </Box>
+                    )}
                     <FormControl size="small" sx={selSx}>
                         <InputLabel>Bloco</InputLabel>
                         <Select label="Bloco" value={bloco} onChange={e => setBloco(e.target.value)}>

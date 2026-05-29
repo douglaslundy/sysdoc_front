@@ -8,6 +8,7 @@ import {
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
+import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -43,15 +44,23 @@ export default function PorEquipe() {
     const [historico, setHistorico] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
+
     useMonitorApsAudit('/monitor-aps/equipe', 'Monitor APS - Por Equipe', { ano, quadrimestre: quad, equipe: ine });
 
     useEffect(() => {
+        if (loadingPerms) return;
+        if (isRestrito) {
+            setEquipes(minhasEquipes);
+            if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
+            return;
+        }
         monitorApsApi.get('/config/equipes').then(d => {
             const eq = d.equipes ?? [];
             setEquipes(eq);
-            if (eq.length > 0) setIne(eq[0].nu_ine);
+            if (eq.length === 1) setIne(eq[0].nu_ine);
         }).catch(() => {});
-    }, []);
+    }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
         if (!ine) return;
@@ -117,6 +126,13 @@ export default function PorEquipe() {
                             {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</MenuItem>)}
                         </Select>
                     </FormControl>
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
+                            <Typography variant="body2" color="warning.dark">
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
+                            </Typography>
+                        </Box>
+                    )}
                     <FormControl size="small" sx={{ minWidth: 100 }}>
                         <InputLabel>Ano</InputLabel>
                         <Select label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))}>
