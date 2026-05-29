@@ -135,7 +135,7 @@ export default function VinculoTerritorial() {
                                 : <option value="">Todas as equipes</option>
                             }
                             {equipes.map(eq => (
-                                <option key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe}</option>
+                                <option key={eq.nu_ine} value={eq.nu_ine}>{eq.no_equipe?.split(' - ').slice(1).join(' - ').trim() || eq.no_equipe}</option>
                             ))}
                         </select>
                     )}
