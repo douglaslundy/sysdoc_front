@@ -146,6 +146,7 @@ export const editClientFetch = (client, cleanForm) => {
                 if (client.data_obito instanceof Date) return format(client.data_obito, 'yyyy-MM-dd');
                 return String(client.data_obito).substring(0, 10);
             })(),
+            raca_cor: client.raca_cor || null,
 
             addresses: {
                 zip_code: client.zip_code,
