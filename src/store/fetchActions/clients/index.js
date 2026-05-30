@@ -91,6 +91,8 @@ export const addClientFetch = (client, cleanForm) => {
             obs: client.obs,
             born_date: client?.born_date ? format(client?.born_date, 'yyyy/MM/dd') : null,
             sexo: client.sexo,
+            raca_cor: client.raca_cor || null,
+            data_obito: client.data_obito || null,
             // active: client.active,
 
             addresses: {
@@ -138,6 +140,11 @@ export const editClientFetch = (client, cleanForm) => {
                 if (!client.born_date) return null;
                 if (client.born_date instanceof Date) return format(client.born_date, 'yyyy-MM-dd');
                 return String(client.born_date).substring(0, 10); // string ISO da API — não reprocessar
+            })(),
+            data_obito: (() => {
+                if (!client.data_obito) return null;
+                if (client.data_obito instanceof Date) return format(client.data_obito, 'yyyy-MM-dd');
+                return String(client.data_obito).substring(0, 10);
             })(),
 
             addresses: {
