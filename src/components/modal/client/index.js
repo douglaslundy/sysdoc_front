@@ -18,6 +18,10 @@ import {
   InputLabel,
   FormControl,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 
 import BaseCard from '../../baseCard/BaseCard';
@@ -56,6 +60,8 @@ export default function ClientModal(props) {
     obs: '',
     born_date: '',
     sexo: '',
+    raca_cor: '',
+    data_obito: '',
     zip_code: '',
     city: '',
     street: '',
@@ -84,8 +90,11 @@ export default function ClientModal(props) {
     number,
     district,
     complement,
+    raca_cor,
+    data_obito,
   } = form;
   const [texto, setTexto] = useState();
+  const [confirmObito, setConfirmObito] = useState(false);
 
   const changeItem = ({ target }) => {
     setForm({ ...form, [target.name]: target.value });
@@ -102,6 +111,8 @@ export default function ClientModal(props) {
       obs: '',
       born_date: '',
       sexo: '',
+      raca_cor: '',
+      data_obito: '',
       zip_code: '',
       city: '',
       street: '',
@@ -114,7 +125,17 @@ export default function ClientModal(props) {
     dispatch(showClient({}));
   };
 
-  const handleSaveData = async () => {
+  const handleSaveData = () => {
+    const clienteAtivo = !(client?.id) || client?.active;
+    if (form.data_obito && clienteAtivo) {
+        setConfirmObito(true);
+        return;
+    }
+    client && client.id ? handlePutData() : handlePostData();
+  };
+
+  const handleConfirmarObito = () => {
+    setConfirmObito(false);
     client && client.id ? handlePutData() : handlePostData();
   };
 
@@ -136,11 +157,17 @@ export default function ClientModal(props) {
     setForm({ ...form, born_date: value });
   };
 
+  const handleSetDataObito = (value) => {
+    setForm({ ...form, data_obito: value });
+  };
+
   useEffect(() => {
     if (client && client.id) {
       setForm({ ...client, ...client?.addresses });
     }
   }, [client]);
+
+  const obitoReadOnly = !!(client?.id && !client?.active && client?.data_obito);
 
   return (
     <div>
@@ -282,6 +309,36 @@ export default function ClientModal(props) {
                         <MenuItem value="FEMININE">Feminino</MenuItem>
                       </Select>
                     </FormControl>
+                  </Box>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                    <FormControl>
+                      <InputLabel id="raca_cor">Raça/Cor</InputLabel>
+                      <Select
+                        labelId="raca_cor"
+                        value={raca_cor || ''}
+                        label="Raça/Cor"
+                        onChange={(e) => setForm({ ...form, raca_cor: e.target.value })}
+                      >
+                        <MenuItem value="">— Não selecionado —</MenuItem>
+                        <MenuItem value="Branca">Branca</MenuItem>
+                        <MenuItem value="Preta">Preta</MenuItem>
+                        <MenuItem value="Amarela">Amarela</MenuItem>
+                        <MenuItem value="Parda">Parda</MenuItem>
+                        <MenuItem value="Indígena">Indígena</MenuItem>
+                        <MenuItem value="Não informado">Não informado</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {client?.id && (
+                      <BasicDatePicker
+                        label={obitoReadOnly ? 'Data do Óbito (registrada pelo e-SUS)' : 'Data do Óbito'}
+                        name="data_obito"
+                        value={data_obito}
+                        setValue={handleSetDataObito}
+                        disabled={obitoReadOnly}
+                      />
+                    )}
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
@@ -466,6 +523,23 @@ export default function ClientModal(props) {
           </Grid>
         </Box>
       </Modal>
+
+        <Dialog open={confirmObito} onClose={() => setConfirmObito(false)}>
+            <DialogTitle>Confirmar registro de óbito</DialogTitle>
+            <DialogContent>
+                <Typography>
+                    Informar a data do óbito irá <strong>inativar o cadastro e todas as filas abertas</strong> deste cliente. Deseja continuar?
+                </Typography>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setConfirmObito(false)} color="inherit">
+                    Cancelar
+                </Button>
+                <Button onClick={handleConfirmarObito} variant="contained" color="error">
+                    Confirmar
+                </Button>
+            </DialogActions>
+        </Dialog>
     </div>
   );
 }
