@@ -7,11 +7,19 @@ export const loginFetch = (dataUser) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
-        fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataUser),
-        })
+        const doLogin = async () => {
+            const body = JSON.stringify(dataUser);
+            const opts = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+            };
+            const first = await fetch('/api/auth/login', opts);
+            if (first.status !== 404) return first;
+            return fetch('/api/login', opts);
+        };
+
+        doLogin()
             .then(async (res) => {
                 const data = await res.json();
                 if (!res.ok) {

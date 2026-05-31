@@ -15,14 +15,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify(req.body),
-        });
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+        const loginUrls = baseUrl.endsWith('/api')
+            ? [`${baseUrl}/login`, `${baseUrl.slice(0, -4)}/api/login`]
+            : [`${baseUrl}/api/login`, `${baseUrl}/login`];
+
+        let response;
+        for (const url of loginUrls) {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(req.body),
+            });
+
+            if (response.ok || response.status !== 404) {
+                break;
+            }
+        }
 
         if (!response.ok) {
             const data = await response.json().catch(() => ({}));
