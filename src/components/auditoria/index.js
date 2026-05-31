@@ -10,6 +10,7 @@ import { getAuditLogs } from '../../store/fetchActions/auditLogs';
 import BaseCard from '../baseCard/BaseCard';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import { auditoriaPDF } from '../../reports/auditoria';
 
 const ACTION_COLORS = {
     LOGIN: 'info', LOGOUT: 'default', CREATE: 'success',
@@ -292,12 +293,19 @@ export default function Auditoria() {
                                         {log.ip_address}
                                     </TableCell>
                                     <TableCell>
-                                        {(log.old_values || log.new_values) && (
-                                            <Button size="small" onClick={() => toggle(log.id)}
-                                                endIcon={<FeatherIcon icon={expanded[log.id] ? 'chevron-up' : 'chevron-down'} width="14" height="14" />}>
-                                                ver
-                                            </Button>
-                                        )}
+                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                            {(log.old_values || log.new_values) && (
+                                                <Button size="small" onClick={() => toggle(log.id)}
+                                                    endIcon={<FeatherIcon icon={expanded[log.id] ? 'chevron-up' : 'chevron-down'} width="14" height="14" />}>
+                                                    ver
+                                                </Button>
+                                            )}
+                                            {log.action === 'UPDATE' && log.old_values && log.new_values && (
+                                                <Button size="small" onClick={() => auditoriaPDF(log)} title="Baixar PDF desta alteração">
+                                                    <FeatherIcon icon="download" width="14" height="14" />
+                                                </Button>
+                                            )}
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                                 {(log.old_values || log.new_values) && (

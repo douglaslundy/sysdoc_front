@@ -1,9 +1,8 @@
-// pages/conformidade-cidadao.js
 import { Grid } from '@mui/material';
 import ConformidadeCidadao from '../src/components/conformidadeCidadao';
 import AuthGuard from '../src/components/authGuard';
 
-const ConformidadeCidadaoPage = () => {
+export default function ConformidadeCidadaoPage() {
     return (
         <AuthGuard>
             <Grid container spacing={2} sx={{ p: 2 }}>
@@ -13,6 +12,4 @@ const ConformidadeCidadaoPage = () => {
             </Grid>
         </AuthGuard>
     );
-};
-
-export default ConformidadeCidadaoPage;
+}
