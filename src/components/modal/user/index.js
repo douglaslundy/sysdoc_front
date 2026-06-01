@@ -183,6 +183,7 @@ export default function UserModal(props) {
         }}
       >
         <Box
+          className="monitor-users-modal-shell"
           sx={{
             ...modalShellSx,
             ...modalFormRootSx,

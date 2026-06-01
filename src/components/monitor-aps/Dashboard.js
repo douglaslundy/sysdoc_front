@@ -16,7 +16,7 @@ const FONT = { fontFamily: "'DM Sans', sans-serif" };
 
 function MetricCard({ icon, titulo, valor, sub, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
             <CardContent sx={{ px: 2.5, py: 2 }}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
                     <Box sx={{ minWidth: 0 }}>
@@ -92,7 +92,8 @@ export default function MonitorApsDashboard() {
     });
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface">
             {/* Filtros */}
             <Box mb={3} mt="20px">
                 <Typography variant="h5" fontWeight={700} mb={1.5}>Monitor APS — Cofinanciamento Federal</Typography>
@@ -206,6 +207,7 @@ export default function MonitorApsDashboard() {
                     )}
                 </Grid>
             </Grid>
+            </Box>
         </Box>
     );
 }

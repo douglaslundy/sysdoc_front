@@ -9,7 +9,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -21,6 +20,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
 import { getAllPages } from "../../store/fetchActions/accessProfiles";
 import { normalizeIconName } from "../../utils/iconResolver";
+
+const SIDEBAR_WIDTH = 318;
 
 const CATEGORY_ICONS = {
   Administracao: "shield",
@@ -54,7 +55,6 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
-  const pageTitle = pathname === "/dashboard" ? "Dashboard" : (pathname.split("/").filter(Boolean).pop() || "Dashboard");
 
   // Aguarda o token estar disponível antes de buscar as páginas, evitando 401 na corrida de inicialização.
   useEffect(() => {
@@ -166,10 +166,10 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
             color: "var(--lg-text-primary)",
           },
           ...(pathname === item.href && {
-            background: "linear-gradient(90deg, rgba(37,99,235,0.46), rgba(30,64,175,0.25))",
-            border: "1px solid rgba(59,130,246,0.45)",
-            boxShadow: "0 0 22px rgba(37,99,235,0.34), inset 0 0 18px rgba(37,99,235,0.10)",
-            color: "#38bdf8",
+            background: "linear-gradient(90deg, rgba(var(--lg-accent-rgb),0.34), rgba(var(--lg-accent-rgb),0.16))",
+            border: "1px solid rgba(var(--lg-accent-rgb),0.45)",
+            boxShadow: "0 0 22px rgba(var(--lg-accent-rgb),0.28), inset 0 0 18px rgba(var(--lg-accent-rgb),0.10)",
+            color: "var(--lg-nav-active-color)",
             fontWeight: 500,
           }),
         }}
@@ -272,24 +272,6 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         overflowY: "auto",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1.8 }}>
-        <Box
-          sx={{
-            width: 42,
-            height: 42,
-            borderRadius: "12px",
-            border: "1px solid var(--lg-border)",
-            background: "var(--lg-glass-input)",
-            display: "grid",
-            placeItems: "center",
-          }}
-        >
-          <FeatherIcon icon="menu" width="20" height="20" />
-        </Box>
-        <Typography sx={{ fontSize: "40px", fontWeight: 700, color: "var(--lg-text-primary)", textTransform: "capitalize" }}>
-          {pageTitle}
-        </Typography>
-      </Box>
       <Box
         sx={{
           borderBottom: "0.5px solid var(--lg-border)",
@@ -315,10 +297,10 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
                     color: "var(--lg-text-primary)",
                   },
                   ...(pathname === DashboardItem.href && {
-                    background: "linear-gradient(90deg, rgba(37,99,235,0.46), rgba(30,64,175,0.25))",
-                    border: "1px solid rgba(59,130,246,0.45)",
-                    boxShadow: "0 0 22px rgba(37,99,235,0.34), inset 0 0 18px rgba(37,99,235,0.10)",
-                    color: "#38bdf8",
+                    background: "linear-gradient(90deg, rgba(var(--lg-accent-rgb),0.34), rgba(var(--lg-accent-rgb),0.16))",
+                    border: "1px solid rgba(var(--lg-accent-rgb),0.45)",
+                    boxShadow: "0 0 22px rgba(var(--lg-accent-rgb),0.28), inset 0 0 18px rgba(var(--lg-accent-rgb),0.10)",
+                    color: "var(--lg-nav-active-color)",
                   }),
                 }}
               >
@@ -366,14 +348,18 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         }),
       }}
       PaperProps={{
+        className: "lg-sidebar-paper",
         sx: {
-          width: "265px",
+          width: `${SIDEBAR_WIDTH}px`,
           border: "0 !important",
-          background: "var(--lg-glass-sidebar)",
+          background: `
+            radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.14) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+            linear-gradient(180deg, var(--lg-glass-sidebar) 0%, var(--lg-glass-sidebar) 100%)
+          `,
           backdropFilter: "var(--lg-blur-sidebar)",
           WebkitBackdropFilter: "var(--lg-blur-sidebar)",
-          borderRight: "0.5px solid var(--lg-border-sidebar)",
-          boxShadow: "var(--lg-shadow-panel)",
+          borderRight: "1px solid var(--lg-border-sidebar)",
+          boxShadow: "inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.12), 0 20px 38px rgba(1, 7, 26, 0.24)",
           overflow: "hidden",
           position: "relative",
         },
@@ -388,42 +374,40 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           bottom: 0,
           left: 0,
           width: "100%",
-          height: 220,
+          height: 168,
           pointerEvents: "none",
           overflow: "hidden",
           zIndex: 0,
         }}
       >
-        {/* Glow radial azul/roxo — layer principal */}
+        {/* Glow base discreto */}
         <Box
           sx={{
             position: "absolute",
-            left: "-70px",
-            bottom: "-80px",
-            width: "340px",
-            height: "220px",
-            background: `
-              radial-gradient(circle at 35% 45%, rgba(37,99,235,0.34), transparent 42%),
-              radial-gradient(circle at 55% 55%, rgba(124,58,237,0.28), transparent 48%)
-            `,
-            filter: "blur(8px)",
-            opacity: 0.95,
+            left: "-92px",
+            bottom: "-106px",
+            width: "292px",
+            height: "194px",
+            background: "radial-gradient(circle at 40% 44%, rgba(var(--lg-accent-rgb), 0.24), rgba(var(--lg-accent-rgb), 0) 62%)",
+            filter: "blur(9px)",
+            opacity: 0.66,
           }}
         />
-        {/* Linhas curvas elípticas — layer de profundidade */}
+        {/* Arcos de luz no mesmo padrão da referência */}
         <Box
           sx={{
             position: "absolute",
-            left: "-40px",
-            bottom: "-20px",
-            width: "380px",
-            height: "170px",
-            opacity: 0.45,
+            left: "-86px",
+            bottom: "-44px",
+            width: "312px",
+            height: "126px",
+            opacity: 0.86,
             background: `
-              radial-gradient(ellipse at 20% 90%, transparent 52%, rgba(37,99,235,0.42) 53%, transparent 54%),
-              radial-gradient(ellipse at 45% 95%, transparent 58%, rgba(79,70,229,0.36) 59%, transparent 60%),
-              radial-gradient(ellipse at 70% 100%, transparent 64%, rgba(124,58,237,0.30) 65%, transparent 66%)
+              radial-gradient(134% 122% at 0% 100%, transparent 65.3%, rgba(var(--lg-accent-rgb), 0.50) 66.0%, transparent 66.7%),
+              radial-gradient(134% 122% at 0% 100%, transparent 71.2%, rgba(var(--lg-accent-rgb), 0.42) 71.9%, transparent 72.6%),
+              radial-gradient(134% 122% at 0% 100%, transparent 77.1%, rgba(var(--lg-accent-rgb), 0.34) 77.8%, transparent 78.5%)
             `,
+            filter: "drop-shadow(0 0 6px rgba(var(--lg-accent-rgb), 0.34))",
           }}
         />
       </Box>
@@ -437,4 +421,3 @@ Sidebar.propTypes = {
 };
 
 export default Sidebar;
-

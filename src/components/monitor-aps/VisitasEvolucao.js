@@ -238,7 +238,8 @@ export default function VisitasEvolucao() {
     const selSx = { minWidth: 140 };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-evolucao-page">
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
                 <Box display="flex" alignItems="center" gap={1.5}>
@@ -453,6 +454,7 @@ export default function VisitasEvolucao() {
                     )}
                 </BaseCard>
             )}
+            </Box>
         </Box>
     );
 }

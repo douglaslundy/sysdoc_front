@@ -31,14 +31,14 @@ import Router from "next/router";
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
-    backgroundColor: 'rgba(15, 28, 60, 0.55)',
-    borderTop: '1px solid rgba(86,127,201,0.22)',
-    borderBottom: '1px solid rgba(86,127,201,0.22)',
+    backgroundColor: 'var(--users-row-bg, rgba(15, 28, 60, 0.55))',
+    borderTop: '1px solid var(--users-row-border, rgba(86,127,201,0.22))',
+    borderBottom: '1px solid var(--users-row-border, rgba(86,127,201,0.22))',
     paddingTop: '18px',
     paddingBottom: '18px',
   },
-  '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
-  '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
+  '& td:first-of-type': { borderLeft: '1px solid var(--users-row-border, rgba(86,127,201,0.22))', borderRadius: '14px 0 0 14px' },
+  '& td:last-of-type': { borderRight: '1px solid var(--users-row-border, rgba(86,127,201,0.22))', borderRadius: '0 14px 14px 0' },
 }));
 
 export default function Users() {
@@ -109,7 +109,8 @@ export default function Users() {
   }, [profile]);
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box className="dashboard-neon-page monitor-users-page" sx={modalFormRootSx}>
+      <Box className="dashboard-neon-home monitor-users-surface">
       <BaseCard title={`Você possui ${filteredUsers.length} Usuários Cadastrados`}>
         <AlertModal />
 
@@ -133,7 +134,7 @@ export default function Users() {
           />
         </Box>
 
-        <TableContainer>
+        <TableContainer className="monitor-users-table-wrap">
           <Table
             aria-label="tabela de usuarios"
             sx={{ mt: 2, whiteSpace: "nowrap" }}
@@ -249,6 +250,7 @@ export default function Users() {
 
         <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
       </BaseCard>
+      </Box>
     </Box>
   );
 }

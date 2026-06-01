@@ -135,7 +135,8 @@ export default function CidadaosPage() {
     };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-cidadaos-page">
             <Box mb={3} mt="20px">
                 <Typography variant="h5" fontWeight={700}>
                     Cidadãos ({meta.total.toLocaleString('pt-BR')})
@@ -209,7 +210,7 @@ export default function CidadaosPage() {
                 </Box>
             </Box>
 
-            <Card>
+            <Card className="monitor-aps-panel">
                 <CardContent>
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={6}>
@@ -322,6 +323,7 @@ export default function CidadaosPage() {
                     />
                 </CardContent>
             </Card>
+            </Box>
         </Box>
     );
 }

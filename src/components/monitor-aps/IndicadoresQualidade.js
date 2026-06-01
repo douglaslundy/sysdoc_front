@@ -46,7 +46,7 @@ function IndicadorCard({ indicador, onDetalhes }) {
     }), [cor]);
 
     return (
-        <Card sx={{ height: '100%', cursor: 'pointer', transition: 'box-shadow .2s', '&:hover': { boxShadow: 4 } }}
+        <Card className="monitor-aps-indicador-card" sx={{ height: '100%', cursor: 'pointer', transition: 'box-shadow .2s', '&:hover': { boxShadow: 4 } }}
             onClick={() => onDetalhes(indicador)}>
             <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
@@ -131,7 +131,8 @@ export default function IndicadoresQualidade() {
     const selSx = { minWidth: 120 };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface">
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={2}>
                 <Typography variant="h5" fontWeight={700}>Indicadores de Qualidade</Typography>
                 <Box display="flex" gap={1.5} flexWrap="wrap">
@@ -201,7 +202,7 @@ export default function IndicadoresQualidade() {
             )}
 
             {/* Modal de detalhes */}
-            <Dialog open={!!detalhe} onClose={() => setDetalhe(null)} maxWidth="sm" fullWidth>
+            <Dialog open={!!detalhe} onClose={() => setDetalhe(null)} maxWidth="sm" fullWidth PaperProps={{ className: 'monitor-aps-dialog' }}>
                 {detalhe && (
                     <>
                         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -247,6 +248,7 @@ export default function IndicadoresQualidade() {
                     </>
                 )}
             </Dialog>
+            </Box>
         </Box>
     );
 }

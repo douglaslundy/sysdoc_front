@@ -18,7 +18,7 @@ const FONT = { fontFamily: "'DM Sans', sans-serif", toolbar: { show: false } };
 function ClassCard({ titulo, classificacao, repasse }) {
     const cor = COR[classificacao] ?? '#888';
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
             <CardContent>
                 <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 1 }}>{titulo}</Typography>
                 <Chip label={LABEL[classificacao] ?? '—'} sx={{ bgcolor: cor + '22', color: cor, fontWeight: 700, mb: 1 }} />
@@ -116,7 +116,8 @@ export default function PorEquipe() {
     }, [indicadores]);
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface">
             {/* Seletores */}
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={2}>
                 <Typography variant="h5" fontWeight={700}>Desempenho por Equipe</Typography>
@@ -170,7 +171,7 @@ export default function PorEquipe() {
                             <ClassCard titulo="Qualidade dos Indicadores" classificacao={classQ} repasse={repasse?.componente_qualidade} />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <Card sx={{ height: '100%' }}>
+                            <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
                                 <CardContent>
                                     <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 1 }}>Repasse Estimado</Typography>
                                     <Typography variant="h3" fontWeight={700} sx={{ color: '#168821' }}>
@@ -278,6 +279,7 @@ export default function PorEquipe() {
                     </Grid>
                 </>
             )}
+            </Box>
         </Box>
     );
 }

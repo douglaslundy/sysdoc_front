@@ -23,58 +23,25 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                         'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const hexToRgb = (hex) => {
+    const s = (hex || '').replace('#', '');
+    if (s.length !== 6) return '79,142,247';
+    const n = Number.parseInt(s, 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+};
 
 function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false, glowSide = 'left' }) {
-    const leftStrong = glowSide === 'left';
-    const nearX = leftStrong ? '0%' : '100%';
-    const farX = leftStrong ? '-22%' : '122%';
-    const nearCore = `${cor}ff`;
-    const nearSoft = `${cor}7a`;
-    const farSoft = `${cor}30`;
-    const oppSoft = `${cor}14`;
     return (
         <Card
-            className="dashboard-neon-kpi"
+            className="monitor-visitas-metric-card"
             sx={{
                 height: '100%',
-                overflow: 'hidden',
-                position: 'relative',
-                border: `1px solid ${cor}bb`,
-                boxShadow: `
-                    0 0 0 1px ${cor}29 inset,
-                    0 0 10px ${cor}4a,
-                    0 0 20px ${cor}2b,
-                    0 22px 52px rgba(2, 8, 27, 0.62)
-                `,
                 borderRadius: 2.2,
-                background: `
-                    radial-gradient(240px 130px at 50% 118%, ${cor}1c, transparent 72%),
-                    radial-gradient(200px 120px at 50% 4%, ${cor}0f, transparent 72%),
-                    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96))
-                `,
-                '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    inset: 0,
-                    background: `
-                        radial-gradient(12px 104px at ${nearX} 58%, ${nearCore}, ${nearSoft} 42%, transparent 78%),
-                        radial-gradient(180px 180px at ${farX} 60%, ${farSoft}, transparent 72%),
-                        radial-gradient(140px 100px at 50% 114%, ${cor}55, transparent 72%),
-                        radial-gradient(10px 84px at ${leftStrong ? '100%' : '0%'} 58%, ${oppSoft}, transparent 78%)
-                    `,
-                    pointerEvents: 'none',
-                },
-                '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    inset: 0,
-                    background: `
-                        radial-gradient(120px 10px at 50% 100%, ${cor}d0, ${cor}3b 46%, transparent 80%),
-                        linear-gradient(to bottom, ${cor}00 0%, ${cor}10 55%, ${cor}00 100%)
-                    `,
-                    mixBlendMode: 'screen',
-                    pointerEvents: 'none',
-                },
+                '--mv-accent': cor,
+                '--mv-rgb': hexToRgb(cor),
+                '--mv-glow-side': glowSide === 'left' ? '0%' : '100%',
+                '--mv-glow-far': glowSide === 'left' ? '-22%' : '122%',
+                '--mv-glow-opp': glowSide === 'left' ? '100%' : '0%',
             }}
         >
             <CardContent sx={{ px: '12px', py: 2 }}>
@@ -131,15 +98,14 @@ function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = f
 function AbaBtn({ label, aba, atual, icon, onClick }) {
     const ativo = aba === atual;
     return (
-        <Box onClick={onClick} sx={{
+        <Box onClick={onClick} className={`monitor-visitas-tab${ativo ? ' is-active' : ''}`} sx={{
             px: 2, py: 0.8, cursor: 'pointer', borderRadius: 1,
             display: 'flex', alignItems: 'center', gap: 0.8,
-            bgcolor: ativo ? '#0c4fa844' : 'transparent',
-            color:   ativo ? '#3aa2ff' : 'var(--lg-text-secondary)',
+            bgcolor: ativo ? 'rgba(var(--lg-accent-rgb),0.18)' : 'transparent',
+            color:   ativo ? 'var(--lg-text-accent)' : 'var(--lg-text-secondary)',
             fontWeight: ativo ? 700 : 400, fontSize: 14,
-            borderBottom: ativo ? '2px solid #1e90ff' : '2px solid transparent',
-            textShadow: ativo ? '0 0 10px rgba(58,162,255,.45)' : 'none',
-            '&:hover': { bgcolor: '#1351B411' },
+            borderBottom: ativo ? '2px solid var(--lg-accent)' : '2px solid transparent',
+            '&:hover': { bgcolor: 'rgba(var(--lg-accent-rgb),0.08)' },
         }}>
             <FeatherIcon icon={icon} width="16" height="16" />
             {label}
@@ -375,20 +341,20 @@ export default function VisitasAcs() {
     const selSx = {
         minWidth: 130,
         '& .MuiOutlinedInput-root': {
-            color: '#e7f0ff',
-            background: 'rgba(5, 18, 56, 0.75)',
+            color: 'var(--lg-text-primary)',
+            background: 'var(--lg-glass-input)',
             borderRadius: 1.5,
-            '& fieldset': { borderColor: 'rgba(95, 145, 220, 0.35)' },
-            '&:hover fieldset': { borderColor: 'rgba(110, 170, 255, 0.5)' },
-            '&.Mui-focused fieldset': { borderColor: '#2f97ff', boxShadow: '0 0 0 2px rgba(47,151,255,.18)' },
+            '& fieldset': { borderColor: 'var(--lg-border-input)' },
+            '&:hover fieldset': { borderColor: 'var(--lg-border-input-focus)' },
+            '&.Mui-focused fieldset': { borderColor: 'var(--lg-border-input-focus)', boxShadow: 'var(--lg-focus-ring)' },
         },
         '& .MuiInputLabel-root': { color: 'var(--lg-text-secondary)' },
-        '& .MuiSvgIcon-root': { color: '#cfe2ff' },
+        '& .MuiSvgIcon-root': { color: 'var(--lg-text-secondary)' },
     };
 
     return (
-        <Box className="dashboard-neon-page">
-            <Box className="dashboard-neon-home">
+        <Box className="dashboard-neon-page monitor-visitas-page">
+            <Box className="dashboard-neon-home monitor-visitas-surface">
             {/* Header + Filtros */}
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
@@ -404,10 +370,10 @@ export default function VisitasAcs() {
                             textTransform: 'none',
                             borderRadius: 1.5,
                             whiteSpace: 'nowrap',
-                            borderColor: 'rgba(64, 152, 255, 0.55)',
-                            color: '#2da1ff',
-                            background: 'rgba(7, 29, 88, 0.48)',
-                            '&:hover': { borderColor: '#59b7ff', background: 'rgba(9, 37, 110, 0.68)' },
+                            borderColor: 'var(--lg-border-input-focus)',
+                            color: 'var(--lg-text-accent)',
+                            background: 'var(--lg-glass-input)',
+                            '&:hover': { borderColor: 'var(--lg-accent)', background: 'var(--lg-glass-input-focus)' },
                         }}
                     >
                         {printLoading ? 'Gerando...' : `PDF — ${aba === 'tabela' ? 'Visitas' : aba === 'agentes' ? 'Por Agente' : 'Mapa'}`}
@@ -468,6 +434,7 @@ export default function VisitasAcs() {
                     <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
                         <InputLabel>Desfecho</InputLabel>
                         <Select label="Desfecho" value={filtroDesfecho}
+                            className="monitor-visitas-select-desfecho"
                             onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todos</MenuItem>
                             <MenuItem value="1">Realizada</MenuItem>
@@ -548,7 +515,7 @@ export default function VisitasAcs() {
                 <>
                     {/* ── ABA: Tabela de visitas ── */}
                     {aba === 'tabela' && (
-                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
+                        <Card className="monitor-visitas-panel">
                             <CardContent>
                                 <Box sx={{ overflowX: 'auto' }}>
                                     <Table size="small">
@@ -610,6 +577,7 @@ export default function VisitasAcs() {
                                                             size="small"
                                                             color={v.has_geo ? 'success' : 'default'}
                                                             icon={<FeatherIcon icon={v.has_geo ? 'map-pin' : 'map-pin'} width="12" height="12" />}
+                                                            className={`monitor-visitas-chip-geo ${v.has_geo ? 'is-yes' : 'is-no'}`}
                                                             sx={{ fontSize: 10 }}
                                                         />
                                                     </TableCell>
@@ -617,6 +585,7 @@ export default function VisitasAcs() {
                                                         <Chip
                                                             label={LABEL_DESFECHO[v.desfecho_id] ?? '—'}
                                                             size="small"
+                                                            className="monitor-visitas-chip-status"
                                                             sx={{
                                                                 bgcolor: (COR_DESFECHO[v.desfecho_id] ?? '#888') + '22',
                                                                 color:   COR_DESFECHO[v.desfecho_id] ?? '#888',
@@ -664,7 +633,7 @@ export default function VisitasAcs() {
 
                     {/* ── ABA: Por agente ── */}
                     {aba === 'agentes' && (
-                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
+                        <Card className="monitor-visitas-panel">
                             <CardContent>
                                 <Table size="small">
                                     <TableHead>
@@ -777,7 +746,7 @@ export default function VisitasAcs() {
 
                     {/* ── ABA: Mapa ── */}
                     {aba === 'mapa' && (
-                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
+                        <Card className="monitor-visitas-panel">
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
                                     <Typography variant="subtitle1" fontWeight={700}>

@@ -152,7 +152,8 @@ export default function MapaVisitasPage() {
     }
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-mapa-page">
             {/* Cabeçalho — oculto na impressão (substituído pelo print-header abaixo) */}
             <Box className="no-print" display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
@@ -198,7 +199,7 @@ export default function MapaVisitasPage() {
             </Box>
 
             {/* Painel de filtros — oculto na impressão */}
-            <Card className="no-print" sx={{ mb: 2 }}>
+            <Card className="no-print monitor-aps-panel" sx={{ mb: 2 }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                     <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
 
@@ -318,7 +319,7 @@ export default function MapaVisitasPage() {
             </Card>
 
             {/* Mapa */}
-            <Card>
+            <Card className="monitor-aps-panel">
                 <CardContent>
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={8}>
@@ -346,6 +347,7 @@ export default function MapaVisitasPage() {
                 onClose={fecharModal}
                 visita={loadingDetalhe ? null : detalhe}
             />
+            </Box>
         </Box>
     );
 }

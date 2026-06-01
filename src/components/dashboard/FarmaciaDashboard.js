@@ -9,7 +9,7 @@ import { DashboardErro, DashboardLoading, getDashboardErrorMessage } from './Das
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
             <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
@@ -115,7 +115,7 @@ export default function FarmaciaDashboard() {
     const alturaTop = Math.max(300, chart.topNomes.length * 36);
 
     return (
-        <Box>
+        <Box className="dashboard-neon-home">
             <Grid container spacing={3} mb={3}>
                 <Grid item xs={12} sm={6} md={3}>
                     <CardTotal icon="archive" titulo="Medicamentos Ativos" valor={totais.medicamentos_ativos} cor="#1e88e5" />

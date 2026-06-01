@@ -17,7 +17,7 @@ const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 
 
 function MetricCard({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
             <CardContent sx={{ px: 2.5, py: 2 }}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
                     <Box>
@@ -119,7 +119,8 @@ export default function VinculoTerritorial() {
     if (erro) return <Box p={3}><Typography color="error">Erro ao carregar vínculo territorial: {erro}</Typography></Box>;
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page monitor-aps-page">
+            <Box className="dashboard-neon-home monitor-aps-surface">
             <Box mt="20px" mb={3}>
                 <Typography variant="h5" fontWeight={700} mb={1.5}>Vínculo e Acompanhamento Territorial</Typography>
                 <Box display="flex" gap={1} alignItems="center">
@@ -212,6 +213,7 @@ export default function VinculoTerritorial() {
                     </BaseCard>
                 </Grid>
             </Grid>
+            </Box>
         </Box>
     );
 }

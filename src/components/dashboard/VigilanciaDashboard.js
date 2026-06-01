@@ -20,7 +20,7 @@ function normalizarRisco(valor) {
 
 function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
       <CardContent sx={{ px: 2.5, py: 2 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
           <Box sx={{ minWidth: 0 }}>
@@ -122,7 +122,7 @@ export default function VigilanciaDashboard() {
   };
 
   return (
-    <Box>
+    <Box className="dashboard-neon-home">
       <Grid container spacing={3} mb={3}>
         <Grid item xs={6} sm={4} md={2}>
           <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
@@ -146,7 +146,7 @@ export default function VigilanciaDashboard() {
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
           gap: 3,
-          minHeight: { xs: 'auto', md: 'calc(100vh - 320px)' },
+          minHeight: { xs: 'auto', md: 'calc((100vh - 320px) * 0.8)' },
           mb: 3,
           '& .vigi-fill-card .card': {
             height: '100%',
@@ -162,6 +162,9 @@ export default function VigilanciaDashboard() {
           },
           '& .vigi-fill-card.risk .card__content': {
             justifyContent: 'center',
+            alignItems: 'center',
+            paddingTop: '8px !important',
+            paddingBottom: '8px !important',
           },
         }}
       >
@@ -195,19 +198,43 @@ export default function VigilanciaDashboard() {
         <Box className="vigi-fill-card risk">
           <BaseCard title="Por Nível de Risco">
             {chart.riscoLabels.length > 0 ? (
-              <Chart
-                type="donut"
-                height="100%"
-                options={{
-                  chart: { ...chartFont },
-                  labels: chart.riscoLabels,
-                  colors: chart.riscoCores,
-                  legend: { labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' } },
-                  dataLabels: { enabled: true },
-                  tooltip: { theme: 'dark' },
+              <Box
+                className="vigi-risk-donut-wrap"
+                sx={{
+                  width: { xs: '100%', md: '80%' },
+                  height: { xs: 360, md: '80%' },
+                  minHeight: { xs: 340, md: 380 },
+                  mx: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pb: 1.5,
+                  overflow: 'visible',
+                  '& .apexcharts-canvas, & .apexcharts-inner, & .apexcharts-legend': {
+                    overflow: 'visible !important',
+                  },
                 }}
-                series={chart.riscoValues}
-              />
+              >
+                <Chart
+                  type="donut"
+                  height="92%"
+                  options={{
+                    chart: { ...chartFont, width: '100%' },
+                    labels: chart.riscoLabels,
+                    colors: chart.riscoCores,
+                    legend: {
+                      position: 'bottom',
+                      horizontalAlign: 'center',
+                      offsetY: 8,
+                      labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' },
+                    },
+                    plotOptions: { pie: { donut: { size: '68%' } } },
+                    dataLabels: { enabled: true },
+                    tooltip: { theme: 'dark' },
+                  }}
+                  series={chart.riscoValues}
+                />
+              </Box>
             ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
           </BaseCard>
         </Box>
@@ -261,11 +288,22 @@ export default function VigilanciaDashboard() {
                         <td style={{ padding: '8px 12px', fontWeight: 600 }}>{alv.numero_alvara}</td>
                         <td style={{ padding: '8px 12px' }}>{alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? '-'}</td>
                         <td style={{ padding: '8px 12px' }}>
+                          {(() => {
+                            const risco = normalizarRisco(alv.nivel_risco);
+                            const corRisco = RISCO_COR[risco] || '#607d8b';
+                            return (
                           <Chip
-                            label={`Risco ${normalizarRisco(alv.nivel_risco)}`}
+                            label={`Risco ${risco}`}
                             size="small"
-                            sx={{ bgcolor: (RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b') + '33', color: RISCO_COR[normalizarRisco(alv.nivel_risco)] || '#607d8b' }}
+                            sx={{
+                              bgcolor: isDarkMode ? `${corRisco}33` : `${corRisco}22`,
+                              color: isDarkMode ? corRisco : '#0f172a',
+                              border: isDarkMode ? `1px solid ${corRisco}44` : `1px solid ${corRisco}88`,
+                              fontWeight: 700,
+                            }}
                           />
+                            );
+                          })()}
                         </td>
                         <td style={{ padding: '8px 12px' }}>{alv.status || '-'}</td>
                         <td style={{ padding: '8px 12px', color: '#ff9800', fontWeight: 600 }}>{formatDate(alv.vencimento_alvara)}</td>

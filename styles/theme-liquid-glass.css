@@ -1280,7 +1280,7 @@ hr,
     background: rgba(15, 25, 60, 0.92) !important;
   }
 
-  .lg-glass-sidebar {
+.lg-glass-sidebar {
     background: rgba(12, 20, 50, 0.95) !important;
   }
 
@@ -1299,5 +1299,21 @@ hr,
   [data-theme="light"] .lg-glass-modal {
     background: rgba(255, 255, 255, 0.98) !important;
   }
+}
+
+.lg-sidebar-paper {
+  background:
+    radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.18) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, #041238 0%, #031032 60%, #020e2b 100%) !important;
+  border-right: 1px solid rgba(88, 134, 233, 0.22) !important;
+  box-shadow: inset -1px 0 0 rgba(119, 160, 245, 0.10), 0 20px 38px rgba(1, 7, 26, 0.56) !important;
+}
+
+[data-theme="light"] .lg-sidebar-paper {
+  background:
+    radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.16) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(242, 247, 255, 0.84) 100%) !important;
+  border-right: 1px solid rgba(var(--lg-accent-rgb), 0.22) !important;
+  box-shadow: inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.10), 0 16px 30px rgba(37, 99, 235, 0.16) !important;
 }
 
