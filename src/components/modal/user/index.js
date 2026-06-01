@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
-
+import {
+  modalFormRootSx,
+  modalPrimaryButtonSx,
+  modalSecondaryButtonSx,
+  modalShellSx,
+} from '../_shared/modalFormStyles';
+import BaseCard from '../../baseCard/BaseCard';
 import {
   Grid,
   Stack,
@@ -22,35 +28,12 @@ import {
   Checkbox,
   Chip,
 } from '@mui/material';
-
-import BaseCard from '../../baseCard/BaseCard';
-
 import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
 import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store/ducks/Layout';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { getAllProfiles } from '../../../store/fetchActions/accessProfiles';
 import { api } from '../../../services/api';
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '400px',
-  maxWidth: '95vw',
-  maxHeight: '92vh',
-  overflow: 'auto',
-  background: 'var(--lg-glass-modal)',
-  backdropFilter: 'var(--lg-blur-modal)',
-  WebkitBackdropFilter: 'var(--lg-blur-modal)',
-  border: '0.5px solid var(--lg-border)',
-  borderTop: '1px solid var(--lg-border-strong)',
-  boxShadow: 'var(--lg-shadow-modal)',
-  borderRadius: '20px',
-  p: 3.2,
-};
-
 export default function UserModal(props) {
   const [form, setForm] = useState({
     profile: '',
@@ -201,7 +184,8 @@ export default function UserModal(props) {
       >
         <Box
           sx={{
-            ...style,
+            ...modalShellSx,
+            ...modalFormRootSx,
             '& .MuiCard-root': {
               background: 'transparent',
               boxShadow: 'none',
@@ -426,46 +410,11 @@ export default function UserModal(props) {
                 </Stack>
 
                 <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                  <Button
-                    onClick={handleSaveData}
-                    variant="contained"
-                    sx={{
-                      flex: 1,
-                      py: 1.2,
-                      borderRadius: '10px',
-                      background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
-                      boxShadow: 'var(--lg-shadow-btn)',
-                      textTransform: 'none',
-                      fontSize: '14px',
-                      '&:hover': {
-                        opacity: 0.92,
-                        transform: 'translateY(-1px)',
-                        boxShadow: 'var(--lg-shadow-btn-hover)',
-                        background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
-                      },
-                    }}
-                  >
+                  <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                     Gravar
                   </Button>
 
-                  <Button
-                    onClick={cleanForm}
-                    variant="outlined"
-                    sx={{
-                      py: 1.2,
-                      px: 2.2,
-                      borderRadius: '10px',
-                      background: 'var(--lg-glass-input)',
-                      border: '0.5px solid var(--lg-border-input)',
-                      color: 'var(--lg-text-secondary)',
-                      textTransform: 'none',
-                      '&:hover': {
-                        background: 'var(--lg-glass-input-focus)',
-                        color: 'var(--lg-text-primary)',
-                        border: '0.5px solid var(--lg-border-input)',
-                      },
-                    }}
-                  >
+                  <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx}>
                     Cancelar
                   </Button>
                 </Box>
@@ -477,3 +426,8 @@ export default function UserModal(props) {
     </div>
   );
 }
+
+
+
+
+

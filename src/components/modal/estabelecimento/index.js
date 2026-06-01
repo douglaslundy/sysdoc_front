@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -7,6 +7,7 @@ import DialogActions from '@mui/material/DialogActions';
 import { Autocomplete, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { addEstabelecimentoFetch, editEstabelecimentoFetch } from '../../../store/fetchActions/estabelecimentos';
 import { api } from '../../../services/api';
+import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 
 const EMPTY = {
     nome_responsavel: '',
@@ -82,7 +83,25 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
     };
 
     return (
-        <Dialog open={open} onClose={onClose} PaperProps={{ sx: { width: '960px', maxWidth: '96vw', maxHeight: '92vh', overflowY: 'auto' } }}>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            PaperProps={{
+                sx: {
+                    width: '960px',
+                    maxWidth: '96vw',
+                    maxHeight: '92vh',
+                    overflowY: 'auto',
+                    background: 'var(--lg-glass-modal)',
+                    backdropFilter: 'var(--lg-blur-modal)',
+                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
+                    border: '0.5px solid var(--lg-border)',
+                    borderTop: '1px solid var(--lg-border-strong)',
+                    boxShadow: 'var(--lg-shadow-modal)',
+                    borderRadius: '20px',
+                },
+            }}
+        >
             <DialogTitle>{estabelecimento?.id ? 'Editar Estabelecimento' : 'Novo Estabelecimento'}</DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 1 }}>
@@ -145,10 +164,11 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
                     </Stack>
                 </Box>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} variant="outlined">Cancelar</Button>
-                <Button onClick={handleSalvar} variant="contained">Gravar</Button>
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
+                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
+                <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
             </DialogActions>
         </Dialog>
     );
 }
+

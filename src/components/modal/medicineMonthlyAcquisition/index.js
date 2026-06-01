@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import InputMask from 'react-input-mask';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -19,6 +19,7 @@ import { api } from '../../../services/api';
 import { addAlertMessage } from '../../../store/ducks/Layout';
 import { upsertMonthlyAcquisitionFetch } from '../../../store/fetchActions/medicineMonthlyAcquisitions';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
+import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -161,47 +162,14 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
                 </Box>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2.6, gap: 1 }}>
-                <Button
-                    onClick={onClose}
-                    variant="outlined"
-                    sx={{
-                        py: 1.1,
-                        px: 2.2,
-                        borderRadius: '10px',
-                        background: 'var(--lg-glass-input)',
-                        border: '0.5px solid var(--lg-border-input)',
-                        color: 'var(--lg-text-secondary)',
-                        textTransform: 'none',
-                        '&:hover': {
-                            background: 'var(--lg-glass-input-focus)',
-                            color: 'var(--lg-text-primary)',
-                            border: '0.5px solid var(--lg-border-input)',
-                        },
-                    }}
-                >
+                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>
                     Cancelar
                 </Button>
-                <Button
-                    onClick={save}
-                    variant="contained"
-                    sx={{
-                        py: 1.1,
-                        px: 2.2,
-                        borderRadius: '10px',
-                        background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
-                        boxShadow: 'var(--lg-shadow-btn)',
-                        textTransform: 'none',
-                        '&:hover': {
-                            opacity: 0.92,
-                            transform: 'translateY(-1px)',
-                            boxShadow: 'var(--lg-shadow-btn-hover)',
-                            background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
-                        },
-                    }}
-                >
+                <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>
                     Salvar
                 </Button>
             </DialogActions>
         </Dialog>
     );
 }
+

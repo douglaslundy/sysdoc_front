@@ -1,4 +1,5 @@
 import { parseCookies } from 'nookies';
+import { fetchWithFallback } from '../../../src/lib/backendUrls';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -13,24 +14,22 @@ export default async function handler(req, res) {
     }
 
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-
         // Validate session and load profile permissions in a single round-trip pair
         const [validateRes, permissionsRes] = await Promise.all([
-            fetch(`${baseUrl}/validate`, {
+            fetchWithFallback('validate', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-            }),
-            fetch(`${baseUrl}/auth/my-permissions`, {
+            }).then(({ res }) => res),
+            fetchWithFallback('auth/my-permissions', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json',
                 },
-            }),
+            }).then(({ res }) => res),
         ]);
 
         if (!validateRes.ok) {
@@ -48,6 +47,6 @@ export default async function handler(req, res) {
             permissions: permissionsData.paths || [],
         });
     } catch (_) {
-        return res.status(500).json({ message: 'Erro interno do servidor' });
+        return res.status(503).json({ message: 'Backend indisponível ou URL de API inválida.' });
     }
 }

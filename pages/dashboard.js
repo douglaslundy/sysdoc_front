@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+﻿import React, { useContext, useMemo, useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
@@ -43,12 +43,28 @@ export default function DashboardPage() {
 
     return (
         <Box>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+            <Box sx={{ borderBottom: '1px solid var(--lg-border-row)', mb: 3 }}>
                 <Tabs
                     value={abaSegura}
                     onChange={(_, novaAba) => setAba(novaAba)}
                     variant="scrollable"
                     scrollButtons="auto"
+                    sx={{
+                        '& .MuiTabs-indicator': {
+                            backgroundColor: '#2e89ff',
+                            height: 2,
+                            borderRadius: 2,
+                        },
+                        '& .MuiTab-root': {
+                            textTransform: 'none',
+                            fontSize: '15px',
+                            color: 'var(--lg-text-muted)',
+                            minHeight: 46,
+                        },
+                        '& .MuiTab-root.Mui-selected': {
+                            color: '#48a7ff',
+                        },
+                    }}
                 >
                     {abasVisiveis.map((item, idx) => (
                         <Tab key={item.permission} label={item.label} />
@@ -62,3 +78,4 @@ export default function DashboardPage() {
         </Box>
     );
 }
+

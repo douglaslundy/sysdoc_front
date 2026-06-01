@@ -1,4 +1,5 @@
 import { parseCookies, destroyCookie } from 'nookies';
+import { fetchWithFallback } from '../../../src/lib/backendUrls';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -10,7 +11,7 @@ export default async function handler(req, res) {
 
     if (token) {
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
+            await fetchWithFallback('logout', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

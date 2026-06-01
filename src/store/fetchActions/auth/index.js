@@ -14,8 +14,8 @@ export const loginFetch = (dataUser) => {
                 headers: { 'Content-Type': 'application/json' },
                 body,
             };
-            const first = await fetch('/api/auth/login', opts);
-            if (first.status !== 404) return first;
+            const primary = await fetch('/api/auth/login', opts);
+            if (primary.status !== 404) return primary;
             return fetch('/api/login', opts);
         };
 

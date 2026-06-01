@@ -1,3 +1,5 @@
+import { fetchWithFallback } from '../../src/lib/backendUrls';
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
       return res.status(405).json({ message: 'Método não permitido' });
@@ -10,7 +12,7 @@ export default async function handler(req, res) {
     }
   
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/queues/log-location`, {
+      const { res: response } = await fetchWithFallback('queues/log-location', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Log registrado com sucesso' });
     } catch (error) {
       console.error('Erro ao enviar log para o Laravel:', error);
-      return res.status(500).json({ message: 'Erro interno do servidor' });
+      return res.status(503).json({ message: 'Backend indisponível ou URL de API inválida.' });
     }
   }
   

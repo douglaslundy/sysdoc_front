@@ -1,4 +1,5 @@
 import { setCookie } from 'nookies';
+import { fetchWithFallback } from '../../../src/lib/backendUrls';
 
 const MAX_AGE = 60 * 60 * 72; // 72h
 const COOKIE_OPTS = {
@@ -15,26 +16,14 @@ export default async function handler(req, res) {
     }
 
     try {
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
-        const loginUrls = baseUrl.endsWith('/api')
-            ? [`${baseUrl}/login`, `${baseUrl.slice(0, -4)}/api/login`]
-            : [`${baseUrl}/api/login`, `${baseUrl}/login`];
-
-        let response;
-        for (const url of loginUrls) {
-            response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(req.body),
-            });
-
-            if (response.ok || response.status !== 404) {
-                break;
-            }
-        }
+        const { res: response } = await fetchWithFallback('login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(req.body),
+        });
 
         if (!response.ok) {
             const data = await response.json().catch(() => ({}));
@@ -56,6 +45,6 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ user: data.user });
     } catch (_) {
-        return res.status(500).json({ message: 'Erro interno do servidor' });
+        return res.status(503).json({ message: 'Backend indisponível ou URL de API inválida.' });
     }
 }

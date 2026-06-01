@@ -3,10 +3,8 @@ import axios from "axios";
 const normalize = (v) => String(v || "").trim().replace(/\/+$/, "");
 const apiBaseCandidates = [
   normalize(process.env.NEXT_PUBLIC_API_URL),
-  "http://127.0.0.1:8001/api",
-  "http://127.0.0.1:8000/api",
-  "http://localhost:8001/api",
-  "http://localhost:8000/api",
+  "http://127.0.0.1:8010/api",
+  "http://localhost:8010/api",
 ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
 
 export const api = axios.create({

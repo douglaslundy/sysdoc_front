@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -34,12 +34,15 @@ import { parseISO, format } from 'date-fns';
 
 
 const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: 'var(--lg-glass-row-hover)',
+    '& td': {
+        backgroundColor: 'rgba(15, 28, 60, 0.55)',
+        borderTop: '1px solid rgba(86,127,201,0.22)',
+        borderBottom: '1px solid rgba(86,127,201,0.22)',
+        paddingTop: '18px',
+        paddingBottom: '18px',
     },
-    '&:last-child td, &:last-child th': {
-        border: 0,
-    },
+    '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
+    '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
 }));
 
 export default () => {
@@ -102,7 +105,7 @@ export default () => {
         <BaseCard title={`Você possui ${allSpecialities.length} Especialidades Cadastradas`}>
             <AlertModal />
             <Box sx={{
-                '& > :not(style)': { m: 1 },
+                '& > :not(style)': { m: 0 },
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -129,7 +132,7 @@ export default () => {
                 />
 
                 <SpecialityModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
+                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
                         <FeatherIcon icon="user-plus" />
                     </Fab>
                 </SpecialityModal>
@@ -140,7 +143,7 @@ export default () => {
                 <Table
                     aria-label="simple table"
                     sx={{
-                        mt: 3,
+                        mt: 2,
                         whiteSpace: "nowrap",
                     }}
                 >
@@ -311,4 +314,5 @@ export default () => {
         </Box>
     );
 };
+
 

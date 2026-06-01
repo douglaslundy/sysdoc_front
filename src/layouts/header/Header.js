@@ -1,59 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
-import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 
-const ROUTE_TITLES_PT = {
-  "/": "Inicio",
-  "/dashboard": "Dashboard",
-  "/users": "Usuarios",
-  "/clients": "Clientes",
-  "/client_report": "Relatorio de Clientes",
-  "/trips": "Viagens",
-  "/routes": "Rotas",
-  "/queue": "Fila",
-  "/specialities": "Especialidades",
-  "/logs": "Logs",
-  "/errorlogs": "Erros",
-  "/qrcodelogs": "Logs QR Code",
-  "/auditoria": "Auditoria",
-  "/estabelecimentos": "Estabelecimentos",
-  "/alvaras": "Alvaras",
-  "/paginas-sistema": "Paginas do Sistema",
-  "/paginas-categorias": "Categorias de Paginas",
-  "/pharmacy/medicines": "Farmacia - Medicamentos",
-  "/pharmacy/daily-status": "Farmacia - Status Diario",
-  "/pharmacy/stock-import": "Farmacia - Importacao de Estoque",
-  "/pharmacy/monthly-acquisitions": "Farmacia - Aquisicoes Mensais",
-  "/pharmacy/panel-settings": "Farmacia - Configuracao do Painel",
-  "/pharmacy/compliance": "Farmacia - Compliance",
-  "/laboratorio/agenda": "Laboratorio - Agenda",
-  "/laboratorio/exames": "Laboratorio - Exames",
-  "/laboratorio/pedidos": "Laboratorio - Pedidos",
-  "/laboratorio/medicos": "Laboratorio - Medicos",
-  "/laboratorio/categorias": "Laboratorio - Categorias",
-  "/attendance/tickets": "Atendimento - Emissao de Senha",
-  "/attendance/queue": "Atendimento - Fila do Atendente",
-  "/attendance/service": "Atendimento - Atendimento Atual",
-  "/attendance/rooms": "Atendimento - Salas de Atendimento",
-  "/attendance/panel": "Atendimento - Painel Publico",
-  "/attendance/history": "Atendimento - Atendimentos Realizados",
-};
-
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
-  const router = useRouter();
-
-  const normalizedPath = `/${router.pathname.replace(/^\/+/, "").replace(/\/\d+$/, "")}`;
-  const mappedTitle = ROUTE_TITLES_PT[normalizedPath];
-  const fallbackTitle = normalizedPath
-    .split("/")
-    .filter(Boolean)
-    .pop()
-    ?.replace(/[-_]/g, " ");
-  const pageTitle = mappedTitle || fallbackTitle || "Inicio";
-
   return (
     <AppBar
       sx={{
@@ -91,17 +42,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
           <FeatherIcon icon="menu" width="20" height="20" />
         </IconButton>
 
-        <Typography
-          sx={{
-            fontSize: "17px",
-            fontWeight: 600,
-            color: "var(--lg-text-primary)",
-            letterSpacing: "-0.01em",
-            textTransform: "capitalize",
-          }}
-        >
-          {pageTitle}
-        </Typography>
+        <Box sx={{ display: { xs: "none", md: "block" }, minWidth: 8 }} />
 
         <Box flexGrow={1} />
 

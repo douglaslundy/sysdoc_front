@@ -1,35 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { parseISO, format } from 'date-fns';
-
+import { modalFormRootSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
+import BaseCard from '../../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
     Button,
     Typography,
 } from "@mui/material";
-
-import BaseCard from "../../../baseCard/BaseCard";
-
 import { showModel } from '../../../../store/ducks/models';
-import { turnModalViewModel } from '../../../../store/ducks/Layout';
-
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
 
 export default function ViewModelModal(props) {
 
@@ -84,7 +65,7 @@ export default function ViewModelModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
@@ -229,8 +210,8 @@ export default function ViewModelModal(props) {
 
                                 </Stack>
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={() => { cleanMod() }} variant="outlined" sx={{ mt: 2 }}>
+                                <Box sx={{ mt: 2.2, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Button onClick={() => { cleanMod() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Voltar
                                     </Button>
                                 </Box>
@@ -243,3 +224,8 @@ export default function ViewModelModal(props) {
         </div>
     );
 }
+
+
+
+
+

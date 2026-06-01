@@ -53,10 +53,14 @@ const components = {
       root: {
         textTransform: "none",
         boxShadow: "none",
+        borderRadius: "12px",
 
         "&:hover": {
           boxShadow: "none",
         },
+      },
+      containedPrimary: {
+        background: "linear-gradient(90deg,#3B82F6,#6366F1,#7C3AED)",
       },
     },
   },
@@ -72,10 +76,29 @@ const components = {
   MuiCard: {
     styleOverrides: {
       root: {
-        borderRadius: "20px",
+        borderRadius: "16px",
         padding: "14px",
         margin: "15px",
-        boxShadow: "0px 7px 30px 0px rgba(90, 114, 123, 0.11)",
+        border: "1px solid rgba(148, 163, 184, 0.25)",
+        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
+      },
+    },
+  },
+  MuiOutlinedInput: {
+    styleOverrides: {
+      root: {
+        minHeight: "48px",
+      },
+      input: {
+        minHeight: "48px",
+        boxSizing: "border-box",
+      },
+    },
+  },
+  MuiInputBase: {
+    styleOverrides: {
+      root: {
+        minHeight: "48px",
       },
     },
   },

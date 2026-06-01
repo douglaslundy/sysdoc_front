@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
@@ -9,6 +9,12 @@ import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showLetter, editLetter } from '../../../store/ducks/letters';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
+import {
     editLetterFetch,
     addLetterFetch,
     getTextAI,
@@ -18,20 +24,6 @@ import {
     downloadLetterAttachment,
     getAllLetters
 } from '../../../store/fetchActions/letter';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
 
 export default function LetterModal(props) {
     const [form, setForm] = useState({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
@@ -204,7 +196,7 @@ export default function LetterModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
@@ -265,12 +257,12 @@ export default function LetterModal(props) {
                                     )}
                                 </MuiBox>
 
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" disabled={isSubmitting || isAttachmentUploading}>
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx} disabled={isSubmitting || isAttachmentUploading}>
                                         {isSubmitting ? 'Salvando...' : 'Gravar'}
                                     </Button>
-                                    <Button onClick={handleGetTextAI} variant="contained" color="success" disabled={isSubmitting}>Gerar um Modelo com IA</Button>
-                                    <Button onClick={cleanForm} variant="outlined" disabled={isSubmitting}>Cancelar</Button>
+                                    <Button onClick={handleGetTextAI} variant="contained" color="success" sx={modalPrimaryButtonSx} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
+                                    <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx} disabled={isSubmitting}>Cancelar</Button>
                                 </Box>
                             </BaseCard>
                         </Grid>
@@ -281,3 +273,8 @@ export default function LetterModal(props) {
         </div>
     );
 }
+
+
+
+
+

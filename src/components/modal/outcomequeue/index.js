@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
-
+import BaseCard from '../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
@@ -12,11 +13,6 @@ import {
     FormGroup,
     FormControlLabel
 } from "@mui/material";
-
-import Switch from '@mui/material/Switch';
-
-import BaseCard from "../../baseCard/BaseCard";
-
 import { showQueue } from '../../../store/ducks/queues';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues';
@@ -25,22 +21,6 @@ import ConfirmDialog from "../../confirmDialog";
 import InputSelectClient from '../../inputs/inputSelectClient';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
-import BasicDatePicker from '../../inputs/datePicker';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
-
 export default function QueueModal(props) {
     const controlHeight = 40;
     const controlSx = {
@@ -127,7 +107,7 @@ export default function QueueModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
@@ -189,12 +169,12 @@ export default function QueueModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2, ...buttonSx }}>
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, ...buttonSx }}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2, ...buttonSx }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ ...modalSecondaryButtonSx, ...buttonSx }}>
                                         Cancelar
                                     </Button>
                                 </Box>
@@ -210,3 +190,7 @@ export default function QueueModal(props) {
         </div>
     );
 }
+
+
+
+

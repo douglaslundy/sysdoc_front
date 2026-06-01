@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
-
+import BaseCard from '../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
@@ -10,28 +11,9 @@ import {
     Alert,
     Button,
 } from "@mui/material";
-
-import BaseCard from "../../baseCard/BaseCard";
-
 import { showSpeciality } from '../../../store/ducks/specialities';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
-import AlertModal from '../../messagesModal';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
-
 export default function SpecialityModal(props) {
 
 
@@ -94,7 +76,7 @@ export default function SpecialityModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
@@ -131,12 +113,12 @@ export default function SpecialityModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Cancelar
                                     </Button>
                                 </Box>
@@ -149,3 +131,7 @@ export default function SpecialityModal(props) {
         </div>
     );
 }
+
+
+
+

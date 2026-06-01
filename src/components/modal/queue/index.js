@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import {
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx,
+} from '../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
-
+import BaseCard from '../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
@@ -15,11 +21,6 @@ import {
     Divider,
     Box as MuiBox
 } from "@mui/material";
-
-import Switch from '@mui/material/Switch';
-
-import BaseCard from "../../baseCard/BaseCard";
-
 import { showQueue, editQueue } from '../../../store/ducks/queues';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editQueueFetch, addQueueFetch } from '../../../store/fetchActions/queues';
@@ -35,22 +36,6 @@ import { getClientsSelect } from '../../../store/fetchActions/clients';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
 import protocolPDF from "../../../reports/protocol";
-import ConfirmDialog from '../../confirmDialog';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
-
 export default function QueueModal(props) {
     const controlHeight = 40;
     const controlSx = {
@@ -432,7 +417,7 @@ export default function QueueModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
@@ -566,18 +551,18 @@ export default function QueueModal(props) {
                                     )}
                                 </MuiBox>
 
-                                <Box sx={{ mt: 3, "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2, ...buttonSx }} disabled={isSubmittingQueue || isAttachmentUploading}>
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, ...buttonSx }} disabled={isSubmittingQueue || isAttachmentUploading}>
                                         {isSubmittingQueue ? 'Salvando...' : 'Gravar'}
                                     </Button>
 
                                     {queue?.id && (
-                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ mt: 2, ...buttonSx }}>
+                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ ...modalPrimaryButtonSx, ...buttonSx }}>
                                             Gerar Recibo
                                         </Button>
                                     )}
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2, ...buttonSx }} disabled={isSubmittingQueue}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ ...modalSecondaryButtonSx, ...buttonSx }} disabled={isSubmittingQueue}>
                                         Cancelar
                                     </Button>
                                 </Box>
@@ -591,3 +576,7 @@ export default function QueueModal(props) {
         </div>
     );
 }
+
+
+
+

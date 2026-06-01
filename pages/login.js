@@ -1,50 +1,21 @@
 import React, { useState } from 'react';
-import Avatar from '@mui/material/Avatar';
-import FeatherIcon from "feather-icons-react";
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
+import Image from 'next/image';
 import { parseCookies } from 'nookies';
-import AlertModal from '../src/components/messagesModal';
-import LogoDark from "../assets/images/logos/logo.png";
-import Image from "next/image";
-
 import { useDispatch } from 'react-redux';
 import { loginFetch } from '../src/store/fetchActions/auth';
-
-function Copyright(props) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <Link color="inherit" href="www.dlsistemas.com.br">
-                DLSistemas
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
+import AlertModal from '../src/components/messagesModal';
+import LogoDark from '../assets/images/logos/logo.png';
+import styles from '../styles/login-split.module.css';
 
 export default function SignIn() {
     const dispatch = useDispatch();
 
-    const [form, setForm] = useState({
-        cpf: '',
-        password: ''
-    });
+    const [form, setForm] = useState({ cpf: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
     };
-
-    const { cpf, password } = form;
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -52,139 +23,141 @@ export default function SignIn() {
     };
 
     return (
-        <Container component="main" maxWidth="xs">
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Typography component="h1" variant="h5">
-                    <Image width={310} height={80} src={LogoDark} alt={LogoDark} />
-                </Typography>
+        <main className={styles.loginPage}>
+            <div className={`${styles.orb} ${styles.orbTopLeft}`} aria-hidden="true" />
+            <div className={`${styles.orb} ${styles.orbBottomRight}`} aria-hidden="true" />
+            <div className={`${styles.ambient} ${styles.ambientLeft}`} aria-hidden="true" />
+            <div className={`${styles.ambient} ${styles.ambientRight}`} aria-hidden="true" />
 
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%', ml: 0 }}>
+            <section className={styles.loginCopy} aria-labelledby="login-copy-title">
+                <span className={styles.eyebrow}>⚡ Tecnologia que transforma</span>
+
+                <h1 id="login-copy-title">
+                    Tecnologia que impulsiona<br />
+                    o <span>seu negócio.</span>
+                </h1>
+
+                <p className={styles.copyDescription}>
+                    Há mais de 10 anos entregando soluções inteligentes e inovadoras que
+                    otimizam processos, aumentam a produtividade e garantem resultados reais.
+                </p>
+
+                <div className={styles.benefits} aria-label="Benefícios DL Sistemas">
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">↗</div>
+                        <div>
+                            <h2>Soluções completas</h2>
+                            <p>Sistemas integrados para otimizar processos e aumentar a produtividade.</p>
+                        </div>
+                    </article>
+
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">⌾</div>
+                        <div>
+                            <h2>Segurança e confiabilidade</h2>
+                            <p>Proteção de dados e infraestrutura robusta para o seu negócio.</p>
+                        </div>
+                    </article>
+
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">☏</div>
+                        <div>
+                            <h2>Suporte especializado</h2>
+                            <p>Time dedicado para garantir a melhor experiência sempre.</p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section className={styles.loginPanel} aria-label="Acesso ao sistema">
+                <form className={styles.loginCard} onSubmit={handleSubmit}>
+                    <header className={styles.cardHeader}>
+                        <Image
+                            className={styles.brandLogo}
+                            src={LogoDark}
+                            alt="DL Sistemas Soluções em TI"
+                            width={270}
+                            height={70}
+                            style={{ display: 'block' }}
+                        />
+                        <h2>Bem-vindo de volta!</h2>
+                        <p>Acesse sua conta para continuar.</p>
+                    </header>
+
                     <AlertModal />
-                    <Stack spacing={1.5}>
-                        <TextField
-                            required
-                            fullWidth
-                            id="CPF"
-                            label="CPF"
-                            name="cpf"
-                            value={cpf}
-                            onChange={changeItem}
-                            autoComplete="cpf"
-                            autoFocus
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    fontSize: '10px',
-                                    fontWeight: 700,
-                                    color: 'var(--lg-text-muted)',
-                                    letterSpacing: '0.07em',
-                                    textTransform: 'uppercase',
-                                },
-                                '& .MuiOutlinedInput-root': {
-                                    minHeight: '56px',
-                                    background: 'var(--lg-glass-input)',
-                                    border: '0.5px solid var(--lg-border-input)',
-                                    borderRadius: '10px',
-                                    color: 'var(--lg-text-primary)',
-                                    boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                },
-                                '& .MuiOutlinedInput-root.Mui-focused': {
-                                    background: 'var(--lg-glass-input-focus)',
-                                    boxShadow: 'var(--lg-focus-ring)',
-                                },
-                                '& .MuiOutlinedInput-input': {
-                                    paddingTop: '16.5px',
-                                    paddingBottom: '16.5px',
-                                },
-                            }}
-                        />
-                        <TextField
-                            required
-                            fullWidth
-                            name="password"
-                            label="Senha"
-                            type="password"
-                            value={password}
-                            onChange={changeItem}
-                            id="password"
-                            autoComplete="current-password"
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    fontSize: '10px',
-                                    fontWeight: 700,
-                                    color: 'var(--lg-text-muted)',
-                                    letterSpacing: '0.07em',
-                                    textTransform: 'uppercase',
-                                },
-                                '& .MuiOutlinedInput-root': {
-                                    minHeight: '56px',
-                                    background: 'var(--lg-glass-input)',
-                                    border: '0.5px solid var(--lg-border-input)',
-                                    borderRadius: '10px',
-                                    color: 'var(--lg-text-primary)',
-                                    boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                },
-                                '& .MuiOutlinedInput-root.Mui-focused': {
-                                    background: 'var(--lg-glass-input-focus)',
-                                    boxShadow: 'var(--lg-focus-ring)',
-                                },
-                                '& .MuiOutlinedInput-input': {
-                                    paddingTop: '16.5px',
-                                    paddingBottom: '16.5px',
-                                },
-                            }}
-                        />
-                    </Stack>
-                    {/* <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" />}
-                        label="Lembrar"
-                    /> */}
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{
-                            mt: 3,
-                            mb: 2,
-                            py: 1.2,
-                            borderRadius: '10px',
-                            background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
-                            boxShadow: 'var(--lg-shadow-btn)',
-                            textTransform: 'none',
-                            fontSize: '14px',
-                            '&:hover': {
-                                opacity: 0.92,
-                                transform: 'translateY(-1px)',
-                                boxShadow: 'var(--lg-shadow-btn-hover)',
-                                background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
-                            },
-                        }}
-                    >
-                        Entrar
-                    </Button>
-                    <Grid container justifyContent="center">
-                        <Grid item>
-                            <Link href="/esqueci-senha" variant="body2">
-                                Esqueceu a senha?
-                            </Link>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Box>
-            <Copyright sx={{ mt: 8, mb: 4 }} />
-        </Container>
+
+                    <div className={styles.fieldGroup}>
+                        <label htmlFor="cpf">CPF</label>
+                        <div className={styles.inputShell}>
+                            <span aria-hidden="true">♙</span>
+                            <input
+                                id="cpf"
+                                name="cpf"
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="username"
+                                placeholder="Digite seu CPF"
+                                value={form.cpf}
+                                onChange={changeItem}
+                                autoFocus
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className={styles.fieldGroup}>
+                        <label htmlFor="password">Senha</label>
+                        <div className={styles.inputShell}>
+                            <span aria-hidden="true">▣</span>
+                            <input
+                                id="password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                autoComplete="current-password"
+                                placeholder="Digite sua senha"
+                                value={form.password}
+                                onChange={changeItem}
+                                required
+                            />
+                            <button
+                                className={styles.togglePassword}
+                                type="button"
+                                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                onClick={() => setShowPassword(v => !v)}
+                            >
+                                {showPassword ? '◎' : '◉'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className={styles.formRow}>
+                        <label className={styles.remember}>
+                            <input type="checkbox" name="remember" />
+                            <span>Lembrar-me</span>
+                        </label>
+                        <a href="/esqueci-senha" className={styles.forgotLink}>
+                            Esqueceu a senha?
+                        </a>
+                    </div>
+
+                    <button className={styles.submitButton} type="submit">
+                        Entrar →
+                    </button>
+
+                    <div className={styles.safeAccess} aria-hidden="true">
+                        <span />
+                        <p>Acesso seguro</p>
+                        <span />
+                    </div>
+
+                    <div className={styles.securityBadge} aria-label="Acesso seguro">⌾</div>
+                </form>
+
+                <footer className={styles.loginFooter}>
+                    Copyright © DL Sistemas {new Date().getFullYear()} • Todos os direitos reservados.
+                </footer>
+            </section>
+        </main>
     );
 }
 
@@ -201,10 +174,8 @@ export async function getServerSideProps(context) {
             redirect: {
                 destination: '/',
                 permanent: false,
-            }
+            },
         };
     }
-    return {
-        props: {},
-    };
+    return { props: {} };
 }

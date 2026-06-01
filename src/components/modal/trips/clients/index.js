@@ -1,9 +1,8 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import Phone from '../../../inputs/textFields/phone';
-
+import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
 import {
     Grid,
     Stack,
@@ -26,8 +25,6 @@ import {
 
 
 import BaseCard from "../../../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
-
 import { closeModal, changeTitleAlert } from '../../../../store/ducks/Layout';
 import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
@@ -37,8 +34,6 @@ import Select from '../../../inputs/selects';
 import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
-import { parseISO, format } from "date-fns";
-
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -49,23 +44,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
         border: 0,
     },
 }));
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '98%',
-    height: '98%',
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    padding: '24px',
-    overflow: "scroll",
-    '& .MuiCard-root': {
-        margin: '0 !important',
-    },
-};
 
 export default function TripClientsModal(props) {
 
@@ -245,7 +223,7 @@ export default function TripClientsModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style} className="trip-clients-modal-box">
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }} className="trip-clients-modal-box">
 
                     <AlertModal />
 
@@ -253,7 +231,7 @@ export default function TripClientsModal(props) {
                         <Grid item xs={12} lg={12}>
                             <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
                             
-                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.brand ? `${" - VEÃCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
                                 ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
@@ -325,7 +303,7 @@ export default function TripClientsModal(props) {
                                         <TextField
                                             className="lg-search-field"
                                             id="departure_location"
-                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
+                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÃDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÃDA'}
                                             value={departure_location ? departure_location : ''}
                                             name="departure_location"
                                             onChange={changeItem}
@@ -352,12 +330,12 @@ export default function TripClientsModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Limpar dados
                                     </Button>
                                 </Box>
@@ -399,7 +377,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        SAÍDA
+                                                        SAÃDA
                                                     </Typography>
                                                 </TableCell>
 
@@ -411,7 +389,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        HORÁRIO
+                                                        HORÃRIO
                                                     </Typography>
                                                 </TableCell>
 
@@ -564,3 +542,7 @@ export default function TripClientsModal(props) {
         </div >
     );
 }
+
+
+
+

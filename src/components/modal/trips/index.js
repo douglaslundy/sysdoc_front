@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
-
+import BaseCard from '../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
@@ -14,9 +15,6 @@ import {
     DialogActions,
     Typography,
 } from "@mui/material";
-
-import BaseCard from "../../baseCard/BaseCard";
-
 import { showTrip } from '../../../store/ducks/trips';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
@@ -27,22 +25,6 @@ import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
 import DateTime from '../../inputs/dateTime';
 import BasicDatePicker from '../../inputs/datePicker';
-import { format } from 'date-fns';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
-
 export default function TripModal(props) {
 
 
@@ -170,7 +152,7 @@ export default function TripModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
@@ -261,12 +243,12 @@ export default function TripModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                                         Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Cancelar
                                     </Button>
                                 </Box>
@@ -304,3 +286,7 @@ export default function TripModal(props) {
         </div >
     );
 }
+
+
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+﻿import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   Typography,
   Box,
@@ -29,13 +29,16 @@ import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 import Router from "next/router";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+const StyledTableRow = styled(TableRow)(() => ({
+  '& td': {
+    backgroundColor: 'rgba(15, 28, 60, 0.55)',
+    borderTop: '1px solid rgba(86,127,201,0.22)',
+    borderBottom: '1px solid rgba(86,127,201,0.22)',
+    paddingTop: '18px',
+    paddingBottom: '18px',
   },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
+  '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
+  '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
 }));
 
 export default function Users() {
@@ -107,20 +110,14 @@ export default function Users() {
 
   return (
     <Box sx={modalFormRootSx}>
-      <BaseCard title={`Voce possui ${filteredUsers.length} Usuarios Cadastrados`}>
+      <BaseCard title={`Você possui ${filteredUsers.length} Usuários Cadastrados`}>
         <AlertModal />
 
-        <Box
-          sx={{
-            "& > :not(style)": { m: 2 },
-            display: "flex",
-            justifyContent: "stretch",
-          }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.4, mb: 1.2 }}>
           <TextField
             className="lg-search-field"
             sx={{ width: "100%" }}
-            placeholder="Pesquisar usuario: Nome / E-mail / CPF"
+            placeholder="Pesquisar usuário: Nome / E-mail / CPF"
             name="search"
             autoComplete="off"
             value={searchValue}
@@ -132,16 +129,14 @@ export default function Users() {
             onClick={() => {
               dispatch(turnUserModal());
             }}
+            sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
           />
         </Box>
 
         <TableContainer>
           <Table
             aria-label="tabela de usuarios"
-            sx={{
-              mt: 3,
-              whiteSpace: "nowrap",
-            }}
+            sx={{ mt: 2, whiteSpace: "nowrap" }}
           >
             <TableHead>
               <TableRow>
@@ -257,3 +252,5 @@ export default function Users() {
     </Box>
   );
 }
+
+

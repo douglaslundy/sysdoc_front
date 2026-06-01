@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Card, CardContent, Chip, Divider, FormControlLabel,
     IconButton, MenuItem, Select, Stack, Switch, Table, TableBody,
@@ -29,7 +29,7 @@ const modalStyle = {
     width: '90%',
     height: '98%',
     bgcolor: 'background.paper',
-    border: '0px solid #000',
+    border: '0px solid transparent',
     boxShadow: 24,
     p: 4,
     overflow: 'scroll',
@@ -399,6 +399,7 @@ export default function GerenciarCampos() {
         </>
     );
 }
+
 
 
 

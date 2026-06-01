@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -12,6 +12,7 @@ import FeatherIcon from 'feather-icons-react';
 import { updatePedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
+import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 
 const STATUS_BLOQUEADO = ['liberado', 'cancelado'];
 
@@ -189,8 +190,8 @@ export default function EditarPedidoDialog({ open, onClose, pedido }) {
                     )}
                 </Stack>
             </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={onClose}>
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
+                <Button variant="outlined" onClick={onClose} sx={modalSecondaryButtonSx}>
                     Cancelar
                 </Button>
                 <Button
@@ -198,6 +199,7 @@ export default function EditarPedidoDialog({ open, onClose, pedido }) {
                     color="warning"
                     onClick={handleSave}
                     disabled={bloqueado}
+                    sx={modalPrimaryButtonSx}
                 >
                     Salvar Alterações
                 </Button>
@@ -205,3 +207,4 @@ export default function EditarPedidoDialog({ open, onClose, pedido }) {
         </Dialog>
     );
 }
+

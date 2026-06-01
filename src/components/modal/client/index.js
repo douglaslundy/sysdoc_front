@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
@@ -6,7 +6,13 @@ import Modal from '@mui/material/Modal';
 import Phone from '../../inputs/textFields/phone';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import BasicDatePicker from '../../inputs/datePicker';
-
+import {
+  modalFormRootSx,
+  modalPrimaryButtonSx,
+  modalSecondaryButtonSx,
+  modalShellSx,
+} from '../_shared/modalFormStyles';
+import BaseCard from '../../baseCard/BaseCard';
 import {
   Grid,
   Stack,
@@ -23,32 +29,9 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-
-import BaseCard from '../../baseCard/BaseCard';
-
 import { showClient } from '../../../store/ducks/clients';
 import { editClientFetch, addClientFetch } from '../../../store/fetchActions/clients';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '960px',
-  maxWidth: '96vw',
-  maxHeight: '92vh',
-  overflow: 'auto',
-  background: 'var(--lg-glass-modal)',
-  backdropFilter: 'var(--lg-blur-modal)',
-  WebkitBackdropFilter: 'var(--lg-blur-modal)',
-  border: '0.5px solid var(--lg-border)',
-  borderTop: '1px solid var(--lg-border-strong)',
-  boxShadow: 'var(--lg-shadow-modal)',
-  borderRadius: '20px',
-  p: 3.2,
-};
-
 export default function ClientModal(props) {
   const [form, setForm] = useState({
     name: '',
@@ -190,7 +173,8 @@ export default function ClientModal(props) {
       >
         <Box
           sx={{
-            ...style,
+            ...modalShellSx,
+            ...modalFormRootSx,
             '& .MuiCard-root': {
               background: 'transparent',
               boxShadow: 'none',
@@ -475,46 +459,11 @@ export default function ClientModal(props) {
                 </Stack>
 
                 <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                  <Button
-                    onClick={handleSaveData}
-                    variant="contained"
-                    sx={{
-                      flex: 1,
-                      py: 1.2,
-                      borderRadius: '10px',
-                      background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
-                      boxShadow: 'var(--lg-shadow-btn)',
-                      textTransform: 'none',
-                      fontSize: '14px',
-                      '&:hover': {
-                        opacity: 0.92,
-                        transform: 'translateY(-1px)',
-                        boxShadow: 'var(--lg-shadow-btn-hover)',
-                        background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
-                      },
-                    }}
-                  >
+                  <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
                     Gravar
                   </Button>
 
-                  <Button
-                    onClick={cleanForm}
-                    variant="outlined"
-                    sx={{
-                      py: 1.2,
-                      px: 2.2,
-                      borderRadius: '10px',
-                      background: 'var(--lg-glass-input)',
-                      border: '0.5px solid var(--lg-border-input)',
-                      color: 'var(--lg-text-secondary)',
-                      textTransform: 'none',
-                      '&:hover': {
-                        background: 'var(--lg-glass-input-focus)',
-                        color: 'var(--lg-text-primary)',
-                        border: '0.5px solid var(--lg-border-input)',
-                      },
-                    }}
-                  >
+                  <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx}>
                     Cancelar
                   </Button>
                 </Box>
@@ -531,11 +480,15 @@ export default function ClientModal(props) {
                     Informar a data do óbito irá <strong>inativar o cadastro e todas as filas abertas</strong> deste cliente. Deseja continuar?
                 </Typography>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setConfirmObito(false)} color="inherit">
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.5, gap: 1.2 }}>
+                <Button onClick={() => setConfirmObito(false)} variant="outlined" sx={modalSecondaryButtonSx}>
                     Cancelar
                 </Button>
-                <Button onClick={handleConfirmarObito} variant="contained" color="error">
+                <Button
+                  onClick={handleConfirmarObito}
+                  variant="contained"
+                  sx={{ ...modalPrimaryButtonSx, background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+                >
                     Confirmar
                 </Button>
             </DialogActions>
@@ -543,3 +496,8 @@ export default function ClientModal(props) {
     </div>
   );
 }
+
+
+
+
+

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+﻿import React, { useContext, useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
 import PropTypes from "prop-types";
 import {
@@ -6,10 +6,10 @@ import {
   Collapse,
   Drawer,
   List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -54,6 +54,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
+  const pageTitle = pathname === "/dashboard" ? "Dashboard" : (pathname.split("/").filter(Boolean).pop() || "Dashboard");
 
   // Aguarda o token estar disponível antes de buscar as páginas, evitando 401 na corrida de inicialização.
   useEffect(() => {
@@ -154,31 +155,22 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       <ListItemButton
         onClick={onSidebarClose}
         sx={{
-          pl: 4.5,
-          py: 0.9,
+          pl: 3,
+          py: 1.1,
           mb: 0.6,
-          borderRadius: "10px",
+          borderRadius: "12px",
           color: "var(--lg-nav-color)",
-          position: "relative",
           transition: "background 0.14s ease, color 0.14s ease",
           "&:hover": {
             background: "var(--lg-nav-hover-bg)",
             color: "var(--lg-text-primary)",
           },
           ...(pathname === item.href && {
-            background: "var(--lg-nav-active-bg)",
-            color: "var(--lg-nav-active-color)",
+            background: "linear-gradient(90deg, rgba(37,99,235,0.46), rgba(30,64,175,0.25))",
+            border: "1px solid rgba(59,130,246,0.45)",
+            boxShadow: "0 0 22px rgba(37,99,235,0.34), inset 0 0 18px rgba(37,99,235,0.10)",
+            color: "#38bdf8",
             fontWeight: 500,
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              left: 0,
-              top: "20%",
-              height: "60%",
-              width: "3px",
-              background: "var(--lg-nav-active-bar)",
-              borderRadius: "0 3px 3px 0",
-            },
           }),
         }}
       >
@@ -246,7 +238,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
             primary={group.title}
             primaryTypographyProps={{
               fontWeight: 700,
-              fontSize: "9px",
+              fontSize: "11px",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               color: "var(--lg-text-muted)",
@@ -276,8 +268,28 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       height="100%"
       sx={{
         mt: "64px",
+        position: "relative",
+        overflowY: "auto",
       }}
     >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1.8 }}>
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: "12px",
+            border: "1px solid var(--lg-border)",
+            background: "var(--lg-glass-input)",
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
+          <FeatherIcon icon="menu" width="20" height="20" />
+        </Box>
+        <Typography sx={{ fontSize: "40px", fontWeight: 700, color: "var(--lg-text-primary)", textTransform: "capitalize" }}>
+          {pageTitle}
+        </Typography>
+      </Box>
       <Box
         sx={{
           borderBottom: "0.5px solid var(--lg-border)",
@@ -295,27 +307,18 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
                 onClick={onSidebarClose}
                 sx={{
                   mb: 0.8,
-                  borderRadius: "10px",
+                  borderRadius: "12px",
                   color: "var(--lg-nav-color)",
-                  position: "relative",
                   transition: "background 0.14s ease, color 0.14s ease",
                   "&:hover": {
                     background: "var(--lg-nav-hover-bg)",
                     color: "var(--lg-text-primary)",
                   },
                   ...(pathname === DashboardItem.href && {
-                    background: "var(--lg-nav-active-bg)",
-                    color: "var(--lg-nav-active-color)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      left: 0,
-                      top: "20%",
-                      height: "60%",
-                      width: "3px",
-                      background: "var(--lg-nav-active-bar)",
-                      borderRadius: "0 3px 3px 0",
-                    },
+                    background: "linear-gradient(90deg, rgba(37,99,235,0.46), rgba(30,64,175,0.25))",
+                    border: "1px solid rgba(59,130,246,0.45)",
+                    boxShadow: "0 0 22px rgba(37,99,235,0.34), inset 0 0 18px rgba(37,99,235,0.10)",
+                    color: "#38bdf8",
                   }),
                 }}
               >
@@ -371,10 +374,59 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
           WebkitBackdropFilter: "var(--lg-blur-sidebar)",
           borderRight: "0.5px solid var(--lg-border-sidebar)",
           boxShadow: "var(--lg-shadow-panel)",
+          overflow: "hidden",
+          position: "relative",
         },
       }}
     >
       {SidebarContent}
+      {/* Glow effects posicionados relativos ao Paper, contidos pelo overflow:hidden */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: 220,
+          pointerEvents: "none",
+          overflow: "hidden",
+          zIndex: 0,
+        }}
+      >
+        {/* Glow radial azul/roxo — layer principal */}
+        <Box
+          sx={{
+            position: "absolute",
+            left: "-70px",
+            bottom: "-80px",
+            width: "340px",
+            height: "220px",
+            background: `
+              radial-gradient(circle at 35% 45%, rgba(37,99,235,0.34), transparent 42%),
+              radial-gradient(circle at 55% 55%, rgba(124,58,237,0.28), transparent 48%)
+            `,
+            filter: "blur(8px)",
+            opacity: 0.95,
+          }}
+        />
+        {/* Linhas curvas elípticas — layer de profundidade */}
+        <Box
+          sx={{
+            position: "absolute",
+            left: "-40px",
+            bottom: "-20px",
+            width: "380px",
+            height: "170px",
+            opacity: 0.45,
+            background: `
+              radial-gradient(ellipse at 20% 90%, transparent 52%, rgba(37,99,235,0.42) 53%, transparent 54%),
+              radial-gradient(ellipse at 45% 95%, transparent 58%, rgba(79,70,229,0.36) 59%, transparent 60%),
+              radial-gradient(ellipse at 70% 100%, transparent 64%, rgba(124,58,237,0.30) 65%, transparent 66%)
+            `,
+          }}
+        />
+      </Box>
     </Drawer>
   );
 };
@@ -385,3 +437,4 @@ Sidebar.propTypes = {
 };
 
 export default Sidebar;
+

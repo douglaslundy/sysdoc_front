@@ -1,9 +1,9 @@
-export const modalShellSx = {
+﻿export const modalShellSx = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "960px",
+  width: "1100px",
   maxWidth: "96vw",
   maxHeight: "92vh",
   overflow: "auto",
@@ -39,7 +39,7 @@ export const modalFormRootSx = {
     textTransform: "uppercase",
   },
   "& .MuiInputBase-root": {
-    minHeight: 44,
+    minHeight: 48,
     background: "var(--lg-glass-input)",
     border: "0.5px solid var(--lg-border-input)",
     borderRadius: "10px",
@@ -60,8 +60,8 @@ export const modalFormRootSx = {
     borderRadius: 0,
     boxShadow: "none",
     background: "transparent",
-    paddingTop: "11px",
-    paddingBottom: "11px",
+    paddingTop: "12px",
+    paddingBottom: "12px",
   },
   "& .MuiInputBase-input::placeholder": {
     color: "var(--lg-text-muted)",
@@ -99,3 +99,4 @@ export const modalSecondaryButtonSx = {
     border: "0.5px solid var(--lg-border-input)",
   },
 };
+

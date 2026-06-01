@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
   Typography,
   Box,
@@ -47,13 +47,16 @@ import { parseISO, format } from "date-fns";
 import BasicDatePicker from "../inputs/datePicker";
 import { AuthContext } from "../../contexts/AuthContext";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+const StyledTableRow = styled(TableRow)(() => ({
+  '& td': {
+    backgroundColor: 'rgba(15, 28, 60, 0.55)',
+    borderTop: '1px solid rgba(86,127,201,0.22)',
+    borderBottom: '1px solid rgba(86,127,201,0.22)',
+    paddingTop: '16px',
+    paddingBottom: '16px',
   },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
+  '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
+  '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
 }));
 
 const SwitchModal = ({ option }) => {
@@ -310,14 +313,14 @@ export default function Trips() {
               </>
             )}
 
-            <Fab
-              title="Imprimir mapa de viagens"
-              onClick={() => { tripsPDF(allTrips); }}
-              color="success"
-              aria-label="imprimir-mapa"
-              disabled={allTrips.length <= 0}
-              sx={actionFabSx}
-            >
+              <Fab
+                title="Imprimir mapa de viagens"
+                onClick={() => { tripsPDF(allTrips); }}
+                color="success"
+                aria-label="imprimir-mapa"
+                disabled={allTrips.length <= 0}
+                sx={{ ...actionFabSx, width: 44, height: 44 }}
+              >
               <FeatherIcon icon="printer" width="16" height="16" />
             </Fab>
 
@@ -325,7 +328,7 @@ export default function Trips() {
               title="Cadastrar viagem"
               onClick={() => { handleGoTrip(); }}
               icon="user-plus"
-              sx={actionFabSx}
+              sx={{ ...actionFabSx, width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
             />
           </Box>
 
@@ -378,12 +381,12 @@ export default function Trips() {
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  MOTORISTA / VEÍCULO
+                  MOTORISTA / VEÃCULO
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography color="textSecondary" variant="h6">
-                  ROTA / HORÁRIO
+                  ROTA / HORÃRIO
                 </Typography>
               </TableCell>
               <TableCell>
@@ -437,12 +440,12 @@ export default function Trips() {
                     >
                       <Box>
                         <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "15px" }}>
-                          {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO"}
+                          {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÃDO"}
                         </Typography>
                         <Typography variant="h6" sx={{ fontSize: "11px" }}>
                           {trip?.vehicle
                             ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES`
-                            : "VEÍCULO NÃO ATRIBUÍDO"}
+                            : "VEÃCULO NÃO ATRIBUÃDO"}
                         </Typography>
                       </Box>
                     </Box>
@@ -565,3 +568,5 @@ export default function Trips() {
     </Box>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import {
     Typography,
     Box,
@@ -29,13 +29,16 @@ import { parseISO, format } from 'date-fns';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        backgroundColor: 'rgba(15, 28, 60, 0.55)',
+        borderTop: '1px solid rgba(86,127,201,0.22)',
+        borderBottom: '1px solid rgba(86,127,201,0.22)',
+        paddingTop: '18px',
+        paddingBottom: '18px',
     },
-    '&:last-child td, &:last-child th': {
-        border: 0,
-    },
+    '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
+    '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
 }));
 
 const safeText = (value, max = 30) => {
@@ -122,11 +125,7 @@ export default function Clients() {
         <Box sx={modalFormRootSx}>
             <BaseCard title={`Você possui ${pagination?.total || clients.length} Clientes Cadastrados`}>
                 <AlertModal />
-                <Box sx={{
-                    '& > :not(style)': { m: 2 },
-                    display: 'flex',
-                    justifyContent: 'stretch'
-                }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4, mb: 1.2 }}>
                     <TextField
                         className="lg-search-field"
                         sx={{ width: "100%" }}
@@ -138,14 +137,14 @@ export default function Clients() {
                     />
 
                     <ClientModal>
-                        <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
+                        <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
                             <FeatherIcon icon="user-plus" />
                         </Fab>
                     </ClientModal>
                 </Box>
 
                 <TableContainer>
-                    <Table aria-label="simple table" sx={{ mt: 3, whiteSpace: "nowrap" }}>
+                    <Table aria-label="simple table" sx={{ mt: 2, whiteSpace: "nowrap" }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell><Typography color="textSecondary" variant="h6">Nome / DN</Typography></TableCell>
@@ -225,3 +224,5 @@ export default function Clients() {
         </Box>
     );
 }
+
+

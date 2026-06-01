@@ -1,4 +1,4 @@
-import dynamic from 'next/dynamic';
+﻿import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
@@ -178,7 +178,7 @@ export default function MapaVisitasPage() {
 
             {/* Cabeçalho visível apenas na impressão */}
             <Box className="print-only" sx={{ display: 'none', mb: 2, pb: 1.5, borderBottom: '1px solid #ccc' }}>
-                <Typography variant="h5" fontWeight={700} sx={{ color: '#000', mb: 0.5 }}>
+                <Typography variant="h5" fontWeight={700} sx={{ color: 'var(--lg-text-primary)', mb: 0.5 }}>
                     Mapa de Visitas ACS/TACS
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#333' }}>
@@ -349,3 +349,4 @@ export default function MapaVisitasPage() {
         </Box>
     );
 }
+

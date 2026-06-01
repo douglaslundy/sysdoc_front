@@ -1,35 +1,17 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
+import { modalFormRootSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
-
+import BaseCard from '../../../baseCard/BaseCard';
 import {
     Grid,
     Stack,
     Button,
     Typography,
 } from "@mui/material";
-
-import BaseCard from "../../../baseCard/BaseCard";
-
 import { showOrdinance } from '../../../../store/ducks/ordinances';
 import { turnModalViewLetter } from '../../../../store/ducks/Layout';
-import { parseISO, format } from 'date-fns';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    height: "98%",
-    bgcolor: 'background.paper',
-    border: '0px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflow: "scroll",
-};
-
 export default function ViewOrdinanceModal(props) {
     const [item, setItem] = useState({
         year: "",
@@ -82,7 +64,7 @@ export default function ViewOrdinanceModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenLetterModal} onClose={cleanItem}>
-                <Box sx={style}>
+                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
                             <BaseCard title={ordinance && ordinance.id ? "Portaria " + ordinance.number : "você não selecionou uma portaria válida"}>
@@ -151,8 +133,8 @@ export default function ViewOrdinanceModal(props) {
                                 </Stack>
 
                                 <br />
-                                <Box sx={{ "& button": { mx: 1 } }}>
-                                    <Button onClick={cleanItem} variant="outlined">
+                                <Box sx={{ mt: 2.2, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Button onClick={cleanItem} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Voltar
                                     </Button>
                                 </Box>
@@ -164,3 +146,7 @@ export default function ViewOrdinanceModal(props) {
         </div>
     );
 }
+
+
+
+

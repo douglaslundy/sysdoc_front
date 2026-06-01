@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+﻿import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -7,7 +7,6 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Fab,
     Button,
     styled,
     TableContainer,
@@ -23,9 +22,10 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { ActionCreateFab } from "../actions";
 import QueueModal from "../modal/queue";
 import QueueOutcomeModal from "../modal/outcomequeue";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
+import { modalFormRootSx, modalSecondaryButtonSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -56,7 +56,23 @@ const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
         backgroundColor: 'var(--lg-glass-row-hover)',
     },
-    // hide last border
+    '& td': {
+        background: 'var(--lg-glass-row)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 10,
+        paddingBottom: 10,
+    },
+    '& td:first-of-type': {
+        borderLeft: '0.5px solid var(--lg-border)',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    '& td:last-of-type': {
+        borderRight: '0.5px solid var(--lg-border)',
+        borderTopRightRadius: 14,
+        borderBottomRightRadius: 14,
+    },
     '&:last-child td, &:last-child th': {
         border: 0,
     },
@@ -434,9 +450,7 @@ export default () => {
                     <FeatherIcon icon={isPrinting ? 'loader' : 'printer'} />
                 </Fab>
 
-                <Fab onClick={() => { HandleAddQueue() }} color="primary" aria-label="add" title="inserir na fila" sx={fabControlSx}>
-                    <FeatherIcon icon="plus" />
-                </Fab>
+                <ActionCreateFab onClick={() => { HandleAddQueue() }} title="inserir na fila" sx={fabControlSx} />
             </Box>
 
             <TableContainer>
@@ -446,6 +460,8 @@ export default () => {
                     sx={{
                         mt: 3,
                         whiteSpace: "nowrap",
+                        borderCollapse: 'separate',
+                        borderSpacing: '0 10px',
                     }}
                 >
                     <TableHead>
@@ -547,7 +563,7 @@ export default () => {
                                                             fontSize: "9px",
                                                         }}
                                                     >
-                                                        <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'black' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
+                                                        <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'var(--lg-text-primary)' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
@@ -850,10 +866,11 @@ export default () => {
                     </Box>
                 )}
             </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setViewQueue(null)} variant="outlined" sx={{ height: `${controlHeight}px` }}>Fechar</Button>
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.2 }}>
+                <Button onClick={() => setViewQueue(null)} variant="outlined" sx={{ ...modalSecondaryButtonSx, height: `${controlHeight}px` }}>Fechar</Button>
             </DialogActions>
         </Dialog>
         </>
     );
 };
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * DL Sistemas - Liquid Glass Theme
  * Versao: 1.0.0
  * Data: 2026-05-16
@@ -566,20 +566,21 @@ input[type="checkbox"],
 
 /* Padronizacao global para TODOS os modais do sistema */
 .MuiModal-root > .MuiBox-root {
-  background: var(--lg-glass-modal);
-  backdrop-filter: var(--lg-blur-modal);
-  -webkit-backdrop-filter: var(--lg-blur-modal);
-  border: 0.5px solid var(--lg-border);
-  border-top: 1px solid var(--lg-border-strong);
-  box-shadow: var(--lg-shadow-modal);
-  border-radius: 18px;
-  width: min(960px, 96vw) !important;
+  background: var(--lg-glass-modal) !important;
+  backdrop-filter: var(--lg-blur-modal) !important;
+  -webkit-backdrop-filter: var(--lg-blur-modal) !important;
+  border: 0.5px solid var(--lg-border) !important;
+  border-top: 1px solid var(--lg-border-strong) !important;
+  box-shadow: var(--lg-shadow-modal) !important;
+  border-radius: 18px !important;
+  width: min(1100px, 96vw) !important;
   max-width: 96vw !important;
   max-height: 92vh !important;
+  overflow: auto !important;
 }
 
 .MuiDialog-root .MuiDialog-paper {
-  width: min(960px, 96vw) !important;
+  width: min(1100px, 96vw) !important;
   max-width: 96vw !important;
   max-height: 92vh !important;
   background: var(--lg-glass-modal);
@@ -588,7 +589,7 @@ input[type="checkbox"],
   border: 0.5px solid var(--lg-border);
   border-top: 1px solid var(--lg-border-strong);
   box-shadow: var(--lg-shadow-modal);
-  border-radius: 20px;
+  border-radius: 20px !important;
 }
 
 .MuiDialog-root .MuiBackdrop-root {
@@ -614,7 +615,7 @@ input[type="checkbox"],
 
 .MuiModal-root .MuiInputBase-root,
 .MuiDialog-root .MuiInputBase-root {
-  min-height: 44px;
+  min-height: 48px !important;
   background: var(--lg-glass-input);
   border: 0.5px solid var(--lg-border-input);
   border-radius: 10px;
@@ -640,8 +641,8 @@ input[type="checkbox"],
   border-radius: 0;
   box-shadow: none;
   background: transparent;
-  padding-top: 11px;
-  padding-bottom: 11px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .MuiModal-root .MuiSelect-select,
@@ -1299,3 +1300,4 @@ hr,
     background: rgba(255, 255, 255, 0.98) !important;
   }
 }
+

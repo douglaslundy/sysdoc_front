@@ -37,7 +37,23 @@ const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
         backgroundColor: 'var(--lg-glass-row-hover)',
     },
-    // hide last border
+    '& td': {
+        background: 'var(--lg-glass-row)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+    '& td:first-of-type': {
+        borderLeft: '0.5px solid var(--lg-border)',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    '& td:last-of-type': {
+        borderRight: '0.5px solid var(--lg-border)',
+        borderTopRightRadius: 14,
+        borderBottomRightRadius: 14,
+    },
     '&:last-child td, &:last-child th': {
         border: 0,
     },
@@ -174,6 +190,8 @@ export default () => {
                     sx={{
                         mt: 3,
                         whiteSpace: "nowrap",
+                        borderCollapse: 'separate',
+                        borderSpacing: '0 10px',
                     }}
                 >
                     <TableHead>
@@ -355,4 +373,3 @@ export default () => {
         </Box>
     );
 };
-

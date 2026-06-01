@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -7,6 +7,7 @@ import DialogActions from '@mui/material/DialogActions';
 import {
     Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
 } from '@mui/material';
+import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 
@@ -177,10 +178,11 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
                     </Stack>
                 </Box>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} variant="outlined">Cancelar</Button>
-                <Button onClick={handleSalvar} variant="contained">Gravar</Button>
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
+                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
+                <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
             </DialogActions>
         </Dialog>
     );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
     Box,
@@ -15,6 +15,7 @@ import {
     TextField,
 } from '@mui/material';
 import { registerMedicinePublicationFetch } from '../../../store/fetchActions/medicinePublications';
+import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 
 const EMPTY = {
     reference_type: 'daily',
@@ -90,10 +91,11 @@ export default function MedicinePublicationDialog({ open, onClose, onSuccess }) 
                     </Stack>
                 </Box>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} variant="outlined">Cancel</Button>
-                <Button onClick={save} variant="contained">Save</Button>
+            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
+                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancel</Button>
+                <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>Save</Button>
             </DialogActions>
         </Dialog>
     );
 }
+

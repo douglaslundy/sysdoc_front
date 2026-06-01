@@ -1,7 +1,8 @@
-import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
+import BaseCard from '../../baseCard/BaseCard';
 
 import {
     Grid,
@@ -10,8 +11,6 @@ import {
     Alert,
     Button,
 } from "@mui/material";
-
-import BaseCard from "../../baseCard/BaseCard";
 
 import { showVehicle } from '../../../store/ducks/vehicles';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
@@ -283,3 +282,4 @@ export default function VehicleModal(props) {
         </div>
     );
 }
+

@@ -7,7 +7,6 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Fab,
     Button,
     styled,
     TableContainer,
@@ -17,6 +16,7 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
+import { ActionCreateFab } from "../actions";
 import OrdinanceModal from "../modal/ordinance";
 import ViewOrdinanceModal from "../modal/ordinance/view";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
@@ -190,9 +190,7 @@ export default () => {
                 />
 
                 <OrdinanceModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add">
-                        <FeatherIcon icon="plus" />
-                    </Fab>
+                    <ActionCreateFab onClick={() => { dispatch(turnModal()) }} />
                 </OrdinanceModal>
             </Box>
 
@@ -401,5 +399,4 @@ export default () => {
         </Box>
     );
 };
-
 
