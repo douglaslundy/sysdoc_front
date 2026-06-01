@@ -507,8 +507,14 @@ export default function ConformidadeCidadao() {
                             </Button>
                         </Box>
                         {syncData.result_erros > 0 && errosDetalhe.length > 0 && (
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table size="small">
+                            <Box display="flex" flexDirection="column" gap={1.5}>
+                                <Box>
+                                    <Button variant="outlined" size="small" onClick={() => window.print()}>
+                                        Exportar erros (PDF)
+                                    </Button>
+                                </Box>
+                                <TableContainer component={Paper} variant="outlined">
+                                    <Table size="small">
                                     <TableHead>
                                         <TableRow>
                                             <TableCell>Nome (e-SUS)</TableCell>
@@ -527,8 +533,9 @@ export default function ConformidadeCidadao() {
                                             </TableRow>
                                         ))}
                                     </TableBody>
-                                </Table>
-                            </TableContainer>
+                                    </Table>
+                                </TableContainer>
+                            </Box>
                         )}
                     </Box>
                 </BaseCard>
