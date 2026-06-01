@@ -24,9 +24,59 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false }) {
+function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false, glowSide = 'left' }) {
+    const leftStrong = glowSide === 'left';
+    const nearX = leftStrong ? '0%' : '100%';
+    const farX = leftStrong ? '-22%' : '122%';
+    const nearCore = `${cor}ff`;
+    const nearSoft = `${cor}7a`;
+    const farSoft = `${cor}30`;
+    const oppSoft = `${cor}14`;
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card
+            className="dashboard-neon-kpi"
+            sx={{
+                height: '100%',
+                overflow: 'hidden',
+                position: 'relative',
+                border: `1px solid ${cor}bb`,
+                boxShadow: `
+                    0 0 0 1px ${cor}29 inset,
+                    0 0 10px ${cor}4a,
+                    0 0 20px ${cor}2b,
+                    0 22px 52px rgba(2, 8, 27, 0.62)
+                `,
+                borderRadius: 2.2,
+                background: `
+                    radial-gradient(240px 130px at 50% 118%, ${cor}1c, transparent 72%),
+                    radial-gradient(200px 120px at 50% 4%, ${cor}0f, transparent 72%),
+                    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96))
+                `,
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    background: `
+                        radial-gradient(12px 104px at ${nearX} 58%, ${nearCore}, ${nearSoft} 42%, transparent 78%),
+                        radial-gradient(180px 180px at ${farX} 60%, ${farSoft}, transparent 72%),
+                        radial-gradient(140px 100px at 50% 114%, ${cor}55, transparent 72%),
+                        radial-gradient(10px 84px at ${leftStrong ? '100%' : '0%'} 58%, ${oppSoft}, transparent 78%)
+                    `,
+                    pointerEvents: 'none',
+                },
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    background: `
+                        radial-gradient(120px 10px at 50% 100%, ${cor}d0, ${cor}3b 46%, transparent 80%),
+                        linear-gradient(to bottom, ${cor}00 0%, ${cor}10 55%, ${cor}00 100%)
+                    `,
+                    mixBlendMode: 'screen',
+                    pointerEvents: 'none',
+                },
+            }}
+        >
             <CardContent sx={{ px: '12px', py: 2 }}>
                 <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
                     <Box sx={{
@@ -84,9 +134,11 @@ function AbaBtn({ label, aba, atual, icon, onClick }) {
         <Box onClick={onClick} sx={{
             px: 2, py: 0.8, cursor: 'pointer', borderRadius: 1,
             display: 'flex', alignItems: 'center', gap: 0.8,
-            bgcolor: ativo ? '#1351B422' : 'transparent',
-            color:   ativo ? '#1351B4' : 'var(--lg-text-secondary)',
+            bgcolor: ativo ? '#0c4fa844' : 'transparent',
+            color:   ativo ? '#3aa2ff' : 'var(--lg-text-secondary)',
             fontWeight: ativo ? 700 : 400, fontSize: 14,
+            borderBottom: ativo ? '2px solid #1e90ff' : '2px solid transparent',
+            textShadow: ativo ? '0 0 10px rgba(58,162,255,.45)' : 'none',
             '&:hover': { bgcolor: '#1351B411' },
         }}>
             <FeatherIcon icon={icon} width="16" height="16" />
@@ -320,10 +372,23 @@ export default function VisitasAcs() {
         [anoAtual]
     );
 
-    const selSx = { minWidth: 130 };
+    const selSx = {
+        minWidth: 130,
+        '& .MuiOutlinedInput-root': {
+            color: '#e7f0ff',
+            background: 'rgba(5, 18, 56, 0.75)',
+            borderRadius: 1.5,
+            '& fieldset': { borderColor: 'rgba(95, 145, 220, 0.35)' },
+            '&:hover fieldset': { borderColor: 'rgba(110, 170, 255, 0.5)' },
+            '&.Mui-focused fieldset': { borderColor: '#2f97ff', boxShadow: '0 0 0 2px rgba(47,151,255,.18)' },
+        },
+        '& .MuiInputLabel-root': { color: 'var(--lg-text-secondary)' },
+        '& .MuiSvgIcon-root': { color: '#cfe2ff' },
+    };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-page">
+            <Box className="dashboard-neon-home">
             {/* Header + Filtros */}
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
@@ -335,13 +400,21 @@ export default function VisitasAcs() {
                         disabled={printLoading || !resumo}
                         onClick={handlePrint}
                         startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
-                        sx={{ textTransform: 'none', borderRadius: 1.5, whiteSpace: 'nowrap' }}
+                        sx={{
+                            textTransform: 'none',
+                            borderRadius: 1.5,
+                            whiteSpace: 'nowrap',
+                            borderColor: 'rgba(64, 152, 255, 0.55)',
+                            color: '#2da1ff',
+                            background: 'rgba(7, 29, 88, 0.48)',
+                            '&:hover': { borderColor: '#59b7ff', background: 'rgba(9, 37, 110, 0.68)' },
+                        }}
                     >
                         {printLoading ? 'Gerando...' : `PDF — ${aba === 'tabela' ? 'Visitas' : aba === 'agentes' ? 'Por Agente' : 'Mapa'}`}
                     </Button>
                 </Box>
                 <Box display="flex" gap={1.5} flexWrap="wrap">
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <FormControl size="small" sx={{ ...selSx, minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
                             onChange={e => { setIne(e.target.value); setPage(0); }}
@@ -373,7 +446,7 @@ export default function VisitasAcs() {
                             {anosDisponiveis.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                         </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
                         <InputLabel>Mês</InputLabel>
                         <Select label="Mês" value={mes}
                             onChange={e => { setMes(Number(e.target.value)); setPage(0); }}>
@@ -382,7 +455,7 @@ export default function VisitasAcs() {
                             ))}
                         </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <FormControl size="small" sx={{ ...selSx, minWidth: 160 }}>
                         <InputLabel>Agente</InputLabel>
                         <Select label="Agente" value={filtroAgente}
                             onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
@@ -392,7 +465,7 @@ export default function VisitasAcs() {
                             ))}
                         </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
                         <InputLabel>Desfecho</InputLabel>
                         <Select label="Desfecho" value={filtroDesfecho}
                             onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
@@ -402,7 +475,7 @@ export default function VisitasAcs() {
                             <MenuItem value="3">Ausente</MenuItem>
                         </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 170 }}>
+                    <FormControl size="small" sx={{ ...selSx, minWidth: 170 }}>
                         <InputLabel>Geolocalização</InputLabel>
                         <Select label="Geolocalização" value={filtroGeo}
                             onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}>
@@ -418,14 +491,14 @@ export default function VisitasAcs() {
             <Grid container columnSpacing={0.0625} rowSpacing={1} mb={3}>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="map-pin" titulo="Total de Visitas"
-                        valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4"
+                        valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4" glowSide="left"
                         sub={temDomicilios && totais.domicilios_visitados != null
                             ? `${totais.domicilios_visitados.toLocaleString('pt-BR')} domicílios visitados`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="check-circle" titulo="Realizadas"
-                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
+                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" glowSide="right"
                         sub={temDomicilios && totais.domicilios_acompanhados != null
                             ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} (${pctDomAcomp}%) - domicílios acompanhados`
                             : null}
@@ -436,27 +509,27 @@ export default function VisitasAcs() {
                 </Grid>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="x-circle" titulo="Recusadas"
-                        valor={`${totais.recusadas.toLocaleString('pt-BR')} (${pctRecusadas}%)`} cor="#E52207"
+                        valor={`${totais.recusadas.toLocaleString('pt-BR')} (${pctRecusadas}%)`} cor="#E52207" glowSide="left"
                         subFamily={temDomicilios && totais.domicilios_recusados != null
                             ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} (${pctDomRecus}%) - domicílios`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="user-x" titulo="Ausentes"
-                        valor={`${totais.ausentes.toLocaleString('pt-BR')} (${pctAusentes}%)`} cor="#FF8C00"
+                        valor={`${totais.ausentes.toLocaleString('pt-BR')} (${pctAusentes}%)`} cor="#FF8C00" glowSide="left"
                         subFamily={temDomicilios && totais.domicilios_ausentes != null
                             ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} (${pctDomAusent}%) - domicílios`
                             : null} />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="home" titulo="Domicílios Cadastrados"
-                        valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
+                        valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B" glowSide="left"
                         sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} (${pctDomMoradores}%) - com moradores` : null}
                         subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} (${pctDomCasaVazia}%) - casa vazia` : null} />
                 </Grid>
                 <Grid item xs={6} sm={4} md={3} lg={2}>
                     <MetricCard icon="home" titulo="Domicílios FA"
-                        valor={(totais.domicilios_fa ?? 0).toLocaleString('pt-BR')} cor="#555"
+                        valor={(totais.domicilios_fa ?? 0).toLocaleString('pt-BR')} cor="#555" glowSide="right"
                         sub="Fora de Área" />
                 </Grid>
             </Grid>
@@ -475,7 +548,7 @@ export default function VisitasAcs() {
                 <>
                     {/* ── ABA: Tabela de visitas ── */}
                     {aba === 'tabela' && (
-                        <Card>
+                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
                             <CardContent>
                                 <Box sx={{ overflowX: 'auto' }}>
                                     <Table size="small">
@@ -591,7 +664,7 @@ export default function VisitasAcs() {
 
                     {/* ── ABA: Por agente ── */}
                     {aba === 'agentes' && (
-                        <Card>
+                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
                             <CardContent>
                                 <Table size="small">
                                     <TableHead>
@@ -704,7 +777,7 @@ export default function VisitasAcs() {
 
                     {/* ── ABA: Mapa ── */}
                     {aba === 'mapa' && (
-                        <Card>
+                        <Card sx={{ borderRadius: 2.2, border: '1px solid rgba(47, 127, 235, 0.52)', boxShadow: '0 0 20px rgba(35,126,238,.24)' }}>
                             <CardContent>
                                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
                                     <Typography variant="subtitle1" fontWeight={700}>
@@ -745,6 +818,7 @@ export default function VisitasAcs() {
                 onClose={fecharModal}
                 visita={loadingDetalhe ? null : detalhe}
             />
+            </Box>
         </Box>
     );
 }
