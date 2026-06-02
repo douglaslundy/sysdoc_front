@@ -42,8 +42,8 @@ export default function DashboardPage() {
     }
 
     return (
-        <Box>
-            <Box sx={{ borderBottom: '1px solid var(--lg-border-row)', mb: 3 }}>
+        <Box className="dashboard-neon-page">
+            <Box className="dashboard-neon-tabs-wrap" sx={{ borderBottom: '1px solid var(--lg-border-row)', mb: 3 }}>
                 <Tabs
                     value={abaSegura}
                     onChange={(_, novaAba) => setAba(novaAba)}
@@ -66,13 +66,13 @@ export default function DashboardPage() {
                         },
                     }}
                 >
-                    {abasVisiveis.map((item, idx) => (
+                    {abasVisiveis.map((item) => (
                         <Tab key={item.permission} label={item.label} />
                     ))}
                 </Tabs>
             </Box>
 
-            <Box role="tabpanel">
+            <Box role="tabpanel" className="dashboard-neon-content">
                 {abasVisiveis[abaSegura]?.component}
             </Box>
         </Box>

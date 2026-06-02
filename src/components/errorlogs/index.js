@@ -20,12 +20,30 @@ import { getAllErrorLogs } from "../../store/fetchActions/errorlogs";
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
     },
-    '&:last-child td, &:last-child th': {
-        border: 0,
+    '& td + td': {
+        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
+    },
+    '& td:first-of-type': {
+        borderLeft: '0.5px solid var(--lg-border)',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    '& td:last-of-type': {
+        borderRight: '0.5px solid var(--lg-border)',
+        borderTopRightRadius: 14,
+        borderBottomRightRadius: 14,
+    },
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
     },
 }));
 
@@ -116,11 +134,11 @@ export default () => {
     const displayedLogs = use ? errorlogs.filter(log => log.user?.id === use) : errorlogs;
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page">
         <BaseCard title={`${total} Logs de erro Cadastrados`}>
             <AlertModal />
 
-            <Box sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between' }}>
+            <Box className="queue-page__toolbar" sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between' }}>
                 <Select
                     label="Usuario"
                     name="user"
@@ -131,17 +149,17 @@ export default () => {
                 />
             </Box>
 
-            <TableContainer>
-                <Table aria-label="simple table" sx={{ mt: 3, whiteSpace: "nowrap" }}>
+            <TableContainer className="queue-page__table-wrap">
+                <Table className="queue-page__table" aria-label="simple table" sx={{ mt: 3, whiteSpace: "nowrap" }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">ID / Usuario / Data</Typography>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">Tipo / Arquivo - Linha</Typography>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">Mensagem amigavel / Detalhe tecnico</Typography>
                             </TableCell>
                         </TableRow>
@@ -211,7 +229,7 @@ export default () => {
                         <TableCell align="center">Nenhum registro encontrado!</TableCell>
                     )}
                 </Table>
-                <TablePagination
+                <TablePagination className="queue-page__pagination"
                     component="div"
                     count={use ? displayedLogs.length : total}
                     page={page}

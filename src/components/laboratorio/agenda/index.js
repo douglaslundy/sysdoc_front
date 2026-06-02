@@ -2,12 +2,24 @@ import React, { useState } from 'react';
 import {
     Box, Card, CardContent, Chip, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Typography, Button, Alert,
-    CircularProgress,
+    CircularProgress, styled,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BasicDatePicker from '../../inputs/datePicker';
 import { api } from '../../../services/api';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
+}));
 
 const STATUS_COLORS = {
     solicitado: 'warning',
@@ -57,8 +69,8 @@ export default function AgendaColeta() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
-        <Card>
+        <Box sx={modalFormRootSx} className="queue-page lab-agenda-page">
+        <Card className="card info-card">
             <Box p={2} display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2}>
                 <Typography variant="h4">Agenda de Coleta</Typography>
                 <Box display="flex" gap={2} alignItems="center">
@@ -117,7 +129,7 @@ export default function AgendaColeta() {
                             <Alert severity="info">Nenhum pedido de coleta para esta data.</Alert>
                         ) : (
                             <TableContainer>
-                                <Table size="small">
+                                <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                                     <TableHead>
                                         <TableRow>
                                             <TableCell><Typography variant="h6">Paciente</Typography></TableCell>
@@ -129,7 +141,7 @@ export default function AgendaColeta() {
                                     </TableHead>
                                     <TableBody>
                                         {agenda.pedidos.map(pedido => (
-                                            <TableRow key={pedido.id} hover>
+                                            <StyledTableRow key={pedido.id} hover>
                                                 <TableCell>
                                                     <Typography fontWeight="bold">{pedido.paciente?.nome || '—'}</Typography>
                                                     {pedido.paciente?.cpf && (
@@ -175,7 +187,7 @@ export default function AgendaColeta() {
                                                         {pedido.observacoes || '—'}
                                                     </Typography>
                                                 </TableCell>
-                                            </TableRow>
+                                            </StyledTableRow>
                                         ))}
                                     </TableBody>
                                 </Table>

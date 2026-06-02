@@ -12,6 +12,8 @@ import Footer from "./footer/Footer";
 import { useRouter } from "next/router";
 import AuthGuard from "../components/authGuard";
 
+const SIDEBAR_WIDTH = 318;
+
 const MainWrapper = experimentalStyled("div")(() => ({
   display: "flex",
   minHeight: "100vh",
@@ -53,7 +55,7 @@ const FullLayout = ({ children }) => {
         <PageWrapper
         id="page-wrapper"
         sx={{
-          marginLeft: isDesktop && isSidebarOpen ? "265px" : 0,
+          marginLeft: isDesktop && isSidebarOpen ? `${SIDEBAR_WIDTH}px` : 0,
           paddingTop: "64px",
         }}
       >

@@ -32,11 +32,29 @@ import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 
 
 const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: 'var(--lg-glass-row-hover)',
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
     },
-    '&:last-child td, &:last-child th': {
-        border: 0,
+    '& td + td': {
+        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
+    },
+    '& td:first-of-type': {
+        borderLeft: '0.5px solid var(--lg-border)',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    '& td:last-of-type': {
+        borderRight: '0.5px solid var(--lg-border)',
+        borderTopRightRadius: 14,
+        borderBottomRightRadius: 14,
+    },
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
     },
 }));
 
@@ -97,11 +115,11 @@ export default () => {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page">
         <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
             <ViewModelModal />
 
-            <Box sx={{
+            <Box className="queue-page__toolbar" sx={{
                 '& > :not(style)': { m: 1 },
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -122,9 +140,9 @@ export default () => {
 
             </Box>
 
-            <TableContainer>
+            <TableContainer className="queue-page__table-wrap">
 
-                <Table
+                <Table className="queue-page__table"
                     aria-label="simple table"
                     sx={{
                         mt: 3,
@@ -133,24 +151,24 @@ export default () => {
                 >
                     <TableHead>
                         <TableRow>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Usuário / Data
                                 </Typography>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Remetente / Destinatário
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Resumo / Modelo Criado
                                 </Typography>
                             </TableCell>
 
-                            <TableCell align="center">
+                            <TableCell className="queue-page__th" align="center">
                                 <Typography color="textSecondary" variant="h6">
                                     Ações
                                 </Typography>
@@ -264,7 +282,7 @@ export default () => {
                             ))}
                     </TableBody>
                 </Table>
-                <TablePagination
+                <TablePagination className="queue-page__pagination"
                     component="div"
                     count={allModels.length}
                     page={page}
@@ -277,8 +295,6 @@ export default () => {
         </Box>
     );
 };
-
-
 
 
 

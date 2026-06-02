@@ -16,7 +16,7 @@ const CORES_STATUS = {
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
             <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
@@ -118,7 +118,7 @@ export default function LabDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-home">
             {/* Totalizadores */}
             <Grid container spacing={3} mb={3}>
                 <Grid item xs={6} sm={4} md={2}>

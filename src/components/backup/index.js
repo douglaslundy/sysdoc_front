@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { downloadBackup } from '../../store/fetchActions/backup';
 
 export default function Backup() {
@@ -43,6 +44,7 @@ export default function Backup() {
     };
 
     return (
+        <Box sx={modalFormRootSx} className="queue-page backup-page">
         <BaseCard title="Backup do Banco de Dados">
             <Box display="flex" flexDirection="column" gap={3} maxWidth={560}>
                 <Box display="flex" alignItems="flex-start" gap={2}>
@@ -94,5 +96,6 @@ export default function Backup() {
                 </Box>
             </Box>
         </BaseCard>
+        </Box>
     );
 }

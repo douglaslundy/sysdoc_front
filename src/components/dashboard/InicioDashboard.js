@@ -40,7 +40,7 @@ const KPI_STYLES = {
 function CardTotal({ icon, titulo, valor, variant }) {
   const s = KPI_STYLES[variant] || KPI_STYLES.blue;
   return (
-    <Card sx={{ height: '100%', border: s.border, boxShadow: s.shadow }}>
+    <Card className={`dashboard-neon-kpi dashboard-neon-kpi--${variant}`} sx={{ height: '100%', border: s.border, boxShadow: s.shadow }}>
       <CardContent>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box>
@@ -110,7 +110,7 @@ export default function InicioDashboard() {
   const chartFont = { fontFamily: "'DM Sans', sans-serif" };
 
   return (
-    <Box sx={{ mt: 1 }}>
+    <Box className="dashboard-neon-home" sx={{ mt: 1 }}>
       <Grid container spacing={3} mb={3}>
         <Grid item xs={12} sm={6} md={3}><CardTotal icon="users" titulo="Clientes" valor={totais.clientes} variant="blue" /></Grid>
         <Grid item xs={12} sm={6} md={3}><CardTotal icon="file-text" titulo="Ofícios" valor={totais.oficios} variant="orange" /></Grid>
@@ -127,25 +127,25 @@ export default function InicioDashboard() {
           height={420}
           options={{
             chart: { ...chartFont, toolbar: { show: false } },
-            colors: ['#2563eb'],
-            xaxis: { categories: chart.clientes.meses, labels: { style: { colors: '#93a7c7', fontSize: '12px' } } },
-            yaxis: { labels: { style: { colors: '#93a7c7' } } },
+            colors: ['#1b7eff'],
+            xaxis: { categories: chart.clientes.meses, labels: { style: { colors: '#8eb8ff', fontSize: '12px' } } },
+            yaxis: { labels: { style: { colors: '#8eb8ff' } } },
             fill: {
               type: 'gradient',
               gradient: {
                 type: 'vertical',
                 shadeIntensity: 1,
-                gradientToColors: ['#2563eb'],
-                opacityFrom: 0.55,
-                opacityTo: 0.04,
+                gradientToColors: ['#0f3a9d'],
+                opacityFrom: 0.52,
+                opacityTo: 0.08,
                 stops: [0, 100],
               },
             },
             stroke: { curve: 'smooth', width: 3 },
-            markers: { size: 4, colors: ['#fff'], strokeColors: '#2563eb', strokeWidth: 2 },
+            markers: { size: 4, colors: ['#cbe6ff'], strokeColors: '#1b7eff', strokeWidth: 2 },
             dataLabels: { enabled: false },
             tooltip: { theme: 'dark' },
-            grid: { borderColor: 'rgba(148,163,184,0.13)', strokeDashArray: 6 },
+            grid: { borderColor: 'rgba(88,140,230,0.20)', strokeDashArray: 6 },
           }}
           series={[{ name: 'Clientes', data: chart.clientes.valores }]}
         />

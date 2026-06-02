@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,12 +41,17 @@ const localDate = () => {
 
 export default function DailyStatusManager() {
   const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-      backgroundColor: 'var(--lg-glass-row-hover)',
+    '& td': {
+      background: 'var(--queue-row-bg)',
+      borderTop: '0.5px solid var(--lg-border)',
+      borderBottom: '0.5px solid var(--lg-border)',
+      paddingTop: 12,
+      paddingBottom: 12,
+      color: 'var(--queue-text-primary)',
     },
-    '&:last-child td, &:last-child th': {
-      border: 0,
-    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
   }));
 
   const dispatch = useDispatch();
@@ -59,6 +64,8 @@ export default function DailyStatusManager() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const searchRef = useRef(null);
+  const totalCount = Number(pagination?.total || 0);
+  const lastPageIndex = Math.max(0, Math.ceil(totalCount / perPage) - 1);
 
   const buildParams = (overrides = {}) => ({
     reference_date: referenceDate,
@@ -102,6 +109,13 @@ export default function DailyStatusManager() {
     }
   }, [pagination?.current_page]);
 
+  useEffect(() => {
+    if (page > lastPageIndex) {
+      setPage(lastPageIndex);
+      dispatch(getDailyStatuses(buildParams({ page: lastPageIndex + 1 })));
+    }
+  }, [page, lastPageIndex, dispatch]);
+
   const handleSearch = ({ target }) => {
     const value = target.value;
     setSearch(value);
@@ -140,15 +154,15 @@ export default function DailyStatusManager() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-dailystatus-page">
       <BaseCard title={`Status Diário de Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
         <AlertModal />
-        <Box
+        <Box className="queue-page__toolbar"
           sx={{
             display: 'grid',
             gridTemplateColumns: includeAll
-              ? { xs: '1fr', sm: '1fr 1fr', md: '180px minmax(200px, 1fr) 160px auto auto' }
-              : { xs: '1fr', sm: '1fr 1fr', md: '180px minmax(260px, 1fr) auto auto' },
+              ? { xs: '1fr', sm: '1fr 1fr', md: 'minmax(160px, 190px) minmax(220px, 1fr) minmax(150px, 170px) auto auto' }
+              : { xs: '1fr', sm: '1fr 1fr', md: 'minmax(160px, 190px) minmax(240px, 1fr) auto auto' },
             alignItems: 'center',
             gap: 1.5,
             mb: 2,
@@ -187,30 +201,35 @@ export default function DailyStatusManager() {
             variant={includeAll ? 'contained' : 'outlined'}
             onClick={handleToggleIncludeAll}
             startIcon={<FeatherIcon icon="list" width="16" height="16" />}
-            sx={{ whiteSpace: 'nowrap', justifySelf: { xs: 'stretch', md: 'center' } }}
+            sx={{
+              whiteSpace: 'nowrap',
+              justifySelf: { xs: 'stretch', md: 'center' },
+              height: 48,
+              minHeight: 48,
+            }}
           >
             Exibir todos
           </Button>
-          <Fab
+          <Fab className="queue-page__fab queue-page__fab--add"
             color="primary"
-            size="medium"
+            size="small"
             onClick={() => setDialogOpen(true)}
-            sx={{ justifySelf: { xs: 'flex-end', sm: 'center' } }}
+            sx={{ justifySelf: { xs: 'flex-end', sm: 'center' }, width: 48, height: 48, minHeight: 48 }}
           >
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
 
-        <TableContainer>
-          <Table sx={{ whiteSpace: 'nowrap' }}>
+        <TableContainer className="queue-page__table-wrap">
+          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell><Typography variant="h6">Concentração</Typography></TableCell>
-                <TableCell><Typography variant="h6">Status</Typography></TableCell>
-                <TableCell><Typography variant="h6">Quantidade</Typography></TableCell>
-                <TableCell><Typography variant="h6">Reposição</Typography></TableCell>
-                <TableCell><Typography variant="h6">Observação</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Concentração</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Status</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Quantidade</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Reposição</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -231,13 +250,16 @@ export default function DailyStatusManager() {
             </TableBody>
           </Table>
           <TablePagination
+            className="queue-page__pagination"
             component="div"
-            count={pagination?.total || 0}
+            count={totalCount}
             page={page}
             onPageChange={handlePage}
             rowsPerPage={perPage}
             onRowsPerPageChange={handlePerPage}
             rowsPerPageOptions={PER_PAGE_OPTIONS}
+            labelRowsPerPage="Por página:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
           />
         </TableContainer>
 
@@ -246,4 +268,3 @@ export default function DailyStatusManager() {
     </Box>
   );
 }
-

@@ -16,9 +16,18 @@ import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': { backgroundColor: theme.palette.action.hover },
-    '&:last-child td, &:last-child th': { border: 0 },
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
 }));
 
 const formatDate = (s) => {
@@ -119,10 +128,10 @@ export default function ListaEstabelecimentos() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page estabelecimentos-page">
             <BaseCard title={`Estabelecimentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
                 <AlertModal />
-                <Box
+                <Box className="queue-page__toolbar"
                     sx={{
                         '& > :not(style)': { m: 2 },
                         display: 'flex',
@@ -137,19 +146,19 @@ export default function ListaEstabelecimentos() {
                         onChange={handleBusca}
                         inputProps={{ autoComplete: 'off' }}
                     />
-                    <ActionCreateFab onClick={handleNovo} title="Novo estabelecimento" />
+                    <ActionCreateFab className="queue-page__fab queue-page__fab--add" onClick={handleNovo} title="Novo estabelecimento" />
                 </Box>
 
-                <TableContainer>
-                    <Table sx={{ mt: 3 }}>
+                <TableContainer className="queue-page__table-wrap">
+                    <Table className="queue-page__table" sx={{ mt: 3, borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                                <TableCell><Typography variant="h6" color="textSecondary">Responsavel</Typography></TableCell>
-                                <TableCell><Typography variant="h6" color="textSecondary">Endereco</Typography></TableCell>
-                                <TableCell><Typography variant="h6" color="textSecondary">CNAE</Typography></TableCell>
-                                <TableCell><Typography variant="h6" color="textSecondary">Cadastro</Typography></TableCell>
-                                <TableCell align="center"><Typography variant="h6" color="textSecondary">Acoes</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Responsavel</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Endereco</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">CNAE</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Cadastro</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Acoes</Typography></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -197,7 +206,7 @@ export default function ListaEstabelecimentos() {
                                         <Typography variant="body2">{formatDate(est.created_at)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Box
+                                        <Box className="queue-page__actions"
                                             sx={{
                                                 display: 'inline-flex',
                                                 alignItems: 'center',
@@ -206,8 +215,8 @@ export default function ListaEstabelecimentos() {
                                                 '& button': { mx: 0.5, minWidth: 40 },
                                             }}
                                         >
-                                            <ActionEditButton onClick={() => handleEditar(est)} title="Editar" />
-                                            <ActionDeleteButton onClick={() => handleExcluir(est)} title="Excluir" />
+                                            <ActionEditButton className="queue-page__action queue-page__action--success" onClick={() => handleEditar(est)} title="Editar" />
+                                            <ActionDeleteButton className="queue-page__action queue-page__action--danger" onClick={() => handleExcluir(est)} title="Excluir" />
                                         </Box>
                                     </TableCell>
                                 </StyledTableRow>
@@ -215,6 +224,7 @@ export default function ListaEstabelecimentos() {
                         </TableBody>
                     </Table>
                     <TablePagination
+                        className="queue-page__pagination"
                         component="div"
                         count={pagination?.total || 0}
                         page={page}

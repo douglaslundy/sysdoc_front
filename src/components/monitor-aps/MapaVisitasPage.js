@@ -1,4 +1,4 @@
-﻿import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
@@ -152,8 +152,8 @@ export default function MapaVisitasPage() {
     }
 
     return (
-        <Box className="dashboard-neon-page monitor-aps-page">
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-mapa-page">
+        <Box className="dashboard-neon-page monitor-aps-page queue-page">
+            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-mapa-page queue-page">
             {/* Cabeçalho — oculto na impressão (substituído pelo print-header abaixo) */}
             <Box className="no-print" display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
@@ -217,22 +217,12 @@ export default function MapaVisitasPage() {
                         {/* Busca por cidadão — só no modo Todos */}
                         {filtroModo === 'todos' && (
                             <TextField
+                                className="monitor-aps-mapa-search"
                                 size="small"
                                 placeholder="CPF, CNS ou nome (mín. 3 letras)"
                                 value={filtroSearch}
                                 onChange={e => handleSearchChange(e.target.value)}
-                                sx={{
-                                    minWidth: 280,
-                                    '& .MuiOutlinedInput-input': {
-                                        backgroundColor: 'transparent !important',
-                                    },
-                                    '& input:-webkit-autofill': {
-                                        WebkitBoxShadow: '0 0 0 100px transparent inset',
-                                        transition: 'background-color 9999s ease-out 0s',
-                                        WebkitTextFillColor: 'var(--lg-text-primary)',
-                                        caretColor: 'var(--lg-text-primary)',
-                                    },
-                                }}
+                                sx={{ minWidth: 280 }}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">

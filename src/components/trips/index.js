@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Typography,
   Box,
@@ -49,14 +49,17 @@ import { AuthContext } from "../../contexts/AuthContext";
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
-    backgroundColor: 'rgba(15, 28, 60, 0.55)',
-    borderTop: '1px solid rgba(86,127,201,0.22)',
-    borderBottom: '1px solid rgba(86,127,201,0.22)',
-    paddingTop: '16px',
-    paddingBottom: '16px',
+    background: 'var(--queue-row-bg)',
+    borderTop: '0.5px solid var(--lg-border)',
+    borderBottom: '0.5px solid var(--lg-border)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: 'var(--queue-text-primary)',
   },
-  '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
-  '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
+  '& td + td': { borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)' },
+  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderRadius: '14px 0 0 14px' },
+  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderRadius: '0 14px 14px 0' },
+  '&:hover td': { background: 'var(--queue-row-hover)' },
 }));
 
 const SwitchModal = ({ option }) => {
@@ -221,7 +224,7 @@ export default function Trips() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page">
     <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastradas`}>
       <Backdrop
         open={isOpenLoading}
@@ -241,7 +244,7 @@ export default function Trips() {
         </Typography>
       </Backdrop>
       <AlertModal />
-      <Stack sx={{ gap: 1.5, mb: 2 }}>
+      <Stack className="queue-page__toolbar" sx={{ gap: 1.5, mb: 2 }}>
         <SwitchModal option={option} />
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
@@ -359,8 +362,8 @@ export default function Trips() {
         </>
       )}
 
-      <TableContainer>
-        <Table
+      <TableContainer className="queue-page__table-wrap">
+        <Table className="queue-page__table"
           aria-label="simple table"
           sx={{
             mt: 3,
@@ -369,32 +372,32 @@ export default function Trips() {
         >
           <TableHead>
             <TableRow>
-              <TableCell>
+              <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
                   IMPRIMIR
                 </Typography>
               </TableCell>
-              <TableCell>
+              <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
                   ID
                 </Typography>
               </TableCell>
-              <TableCell>
+              <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
                   MOTORISTA / VEÃCULO
                 </Typography>
               </TableCell>
-              <TableCell>
+              <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
                   ROTA / HORÃRIO
                 </Typography>
               </TableCell>
-              <TableCell>
+              <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
                   LOTAÇÃO
                 </Typography>
               </TableCell>
-              <TableCell align="center">
+              <TableCell className="queue-page__th" align="center">
                 <Typography color="textSecondary" variant="h6">
                   Ações
                 </Typography>
@@ -516,7 +519,7 @@ export default function Trips() {
               ))}
           </TableBody>
         </Table>
-        <TablePagination
+        <TablePagination className="queue-page__pagination"
           component="div"
           count={allTrips.length}
           page={page}

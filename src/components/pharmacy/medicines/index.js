@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,12 +35,17 @@ const mapFilterValue = (value) => {
 
 export default function MedicinesManager() {
   const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-      backgroundColor: 'var(--lg-glass-row-hover)',
+    '& td': {
+      background: 'var(--queue-row-bg)',
+      borderTop: '0.5px solid var(--lg-border)',
+      borderBottom: '0.5px solid var(--lg-border)',
+      paddingTop: 12,
+      paddingBottom: 12,
+      color: 'var(--queue-text-primary)',
     },
-    '&:last-child td, &:last-child th': {
-      border: 0,
-    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
   }));
 
   const dispatch = useDispatch();
@@ -56,6 +61,8 @@ export default function MedicinesManager() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const searchRef = useRef(null);
+  const totalCount = Number(pagination?.total || 0);
+  const lastPageIndex = Math.max(0, Math.ceil(totalCount / perPage) - 1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
@@ -87,6 +94,13 @@ export default function MedicinesManager() {
       setPage(Math.max(0, pagination.current_page - 1));
     }
   }, [pagination?.current_page]);
+
+  useEffect(() => {
+    if (page > lastPageIndex) {
+      setPage(lastPageIndex);
+      dispatch(getAllMedicines(buildParams(filters, { page: lastPageIndex + 1 })));
+    }
+  }, [page, lastPageIndex, dispatch]);
 
   const handleSearch = ({ target }) => {
     const value = target.value;
@@ -125,7 +139,7 @@ export default function MedicinesManager() {
 
   const renderTags = (medicine) => {
     const tags = [];
-    if (medicine.is_free_distribution) tags.push('Distribuição Gratuita');
+    if (medicine.is_free_distribution) tags.push('DistribuiÃ§Ã£o Gratuita');
     if (medicine.is_controlled) tags.push('Controlado');
     if (medicine.is_judicial_order) tags.push('Ordem Judicial');
     if (medicine.is_high_cost) tags.push('Alto Custo');
@@ -134,10 +148,10 @@ export default function MedicinesManager() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-medicines-page">
       <BaseCard title={`Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
         <AlertModal />
-        <Box
+        <Box className="queue-page__toolbar"
           sx={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -167,24 +181,24 @@ export default function MedicinesManager() {
               <Select name={filter.name} value={filters[filter.name]} label={filter.label} onChange={handleFilterChange}>
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="1">Sim</MenuItem>
-                <MenuItem value="0">Não</MenuItem>
+                <MenuItem value="0">NÃ£o</MenuItem>
               </Select>
             </FormControl>
           ))}
-          <Fab color="primary" size="medium" onClick={() => { setEditing(null); setDialogOpen(true); }} sx={{ ml: 'auto', flexShrink: 0 }}>
+          <Fab className="queue-page__fab queue-page__fab--add" color="primary" size="medium" onClick={() => { setEditing(null); setDialogOpen(true); }} sx={{ ml: 'auto', flexShrink: 0 }}>
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
 
-        <TableContainer>
-          <Table sx={{ whiteSpace: 'nowrap' }}>
+        <TableContainer className="queue-page__table-wrap">
+          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography variant="h6">Princípio Ativo</Typography></TableCell>
-                <TableCell><Typography variant="h6">Concentração</Typography></TableCell>
-                <TableCell><Typography variant="h6">Forma</Typography></TableCell>
-                <TableCell><Typography variant="h6">Classificações</Typography></TableCell>
-                <TableCell align="center"><Typography variant="h6">Ações</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">PrincÃ­pio Ativo</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">ConcentraÃ§Ã£o</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Forma</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">ClassificaÃ§Ãµes</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography variant="h6">AÃ§Ãµes</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -195,17 +209,18 @@ export default function MedicinesManager() {
                   <TableCell>{m.pharmaceutical_form}</TableCell>
                   <TableCell title={renderTags(m)}>{truncate(renderTags(m), 60)}</TableCell>
                   <TableCell align="center">
-                    <Button size="small" variant="contained" onClick={() => { setEditing(m); setDialogOpen(true); }} sx={{ mr: 1 }}>
+                    <Button className="queue-page__action queue-page__action--success" size="small" variant="contained" onClick={() => { setEditing(m); setDialogOpen(true); }} sx={{ mr: 1 }}>
                       <FeatherIcon icon="edit" width="16" height="16" />
                     </Button>
                     <Button
+                      className="queue-page__action queue-page__action--danger"
                       size="small"
                       color="error"
                       variant="contained"
                       onClick={() => setConfirmDialog({
                         isOpen: true,
                         title: `Remover ${m.active_ingredient}?`,
-                        subTitle: 'Esta ação não pode ser desfeita.',
+                        subTitle: 'Esta aÃ§Ã£o nÃ£o pode ser desfeita.',
                         confirm: removeMedicineFetch(m.id),
                       })}
                     >
@@ -217,15 +232,26 @@ export default function MedicinesManager() {
             </TableBody>
           </Table>
           <TablePagination
+            className="queue-page__pagination"
             component="div"
-            count={pagination?.total || 0}
+            count={totalCount}
             page={page}
             onPageChange={handlePage}
             rowsPerPage={perPage}
             onRowsPerPageChange={handlePerPage}
             rowsPerPageOptions={PER_PAGE_OPTIONS}
-            labelRowsPerPage="Itens por página"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+            labelRowsPerPage="Por página:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
+            sx={{
+              '& .MuiTablePagination-toolbar': {
+                flexWrap: 'wrap',
+                rowGap: 0.5,
+                justifyContent: { xs: 'center', md: 'space-between' },
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                margin: 0,
+              },
+            }}
           />
         </TableContainer>
 

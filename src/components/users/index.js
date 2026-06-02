@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   Typography,
   Box,
@@ -7,8 +7,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Fab,
-  Button,
   styled,
   TableContainer,
   TablePagination,
@@ -31,14 +29,18 @@ import Router from "next/router";
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
-    backgroundColor: 'var(--users-row-bg, rgba(15, 28, 60, 0.55))',
-    borderTop: '1px solid var(--users-row-border, rgba(86,127,201,0.22))',
-    borderBottom: '1px solid var(--users-row-border, rgba(86,127,201,0.22))',
-    paddingTop: '18px',
-    paddingBottom: '18px',
+    background: 'var(--queue-row-bg)',
+    borderTop: '0.5px solid var(--lg-border)',
+    borderBottom: '0.5px solid var(--lg-border)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: 'var(--queue-text-primary)',
   },
-  '& td:first-of-type': { borderLeft: '1px solid var(--users-row-border, rgba(86,127,201,0.22))', borderRadius: '14px 0 0 14px' },
-  '& td:last-of-type': { borderRight: '1px solid var(--users-row-border, rgba(86,127,201,0.22))', borderRadius: '0 14px 14px 0' },
+  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderRadius: '14px 0 0 14px' },
+  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderRadius: '0 14px 14px 0' },
+  '&:hover td': {
+    background: 'var(--queue-row-hover)',
+  },
 }));
 
 export default function Users() {
@@ -109,14 +111,14 @@ export default function Users() {
   }, [profile]);
 
   return (
-    <Box className="dashboard-neon-page monitor-users-page" sx={modalFormRootSx}>
-      <Box className="dashboard-neon-home monitor-users-surface">
+    <Box className="queue-page users-page" sx={modalFormRootSx}>
+      <Box>
       <BaseCard title={`Você possui ${filteredUsers.length} Usuários Cadastrados`}>
         <AlertModal />
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.4, mb: 1.2 }}>
+        <Box className="queue-page__toolbar" sx={{ display: "flex", alignItems: "center", gap: 1.4, mb: 1.2 }}>
           <TextField
-            className="lg-search-field"
+            className="lg-search-field users-page__search"
             sx={{ width: "100%" }}
             placeholder="Pesquisar usuário: Nome / E-mail / CPF"
             name="search"
@@ -131,27 +133,29 @@ export default function Users() {
               dispatch(turnUserModal());
             }}
             sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
+            className="queue-page__fab queue-page__fab--add"
           />
         </Box>
 
-        <TableContainer className="monitor-users-table-wrap">
+        <TableContainer className="queue-page__table-wrap">
           <Table
             aria-label="tabela de usuarios"
-            sx={{ mt: 2, whiteSpace: "nowrap" }}
+            className="queue-page__table"
+            sx={{ mt: 2, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}
           >
             <TableHead>
               <TableRow>
-                <TableCell>
+                <TableCell className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">
                     Nome / Perfil
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">
                     CPF / E-mail
                   </Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">
                     Acoes
                   </Typography>
@@ -208,8 +212,9 @@ export default function Users() {
                       </TableCell>
 
                       <TableCell align="center">
-                        <Box sx={{ "& button": { mx: 1 } }}>
+                        <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
                           <ActionEditButton
+                            className="queue-page__action queue-page__action--success"
                             title="Editar usuario"
                             onClick={() => {
                               handleEditUser(user);
@@ -217,6 +222,7 @@ export default function Users() {
                           />
 
                           <ActionDeleteButton
+                            className="queue-page__action queue-page__action--danger"
                             title="Inativar usuario"
                             onClick={() => {
                               handleInactiveUser(user);
@@ -239,6 +245,7 @@ export default function Users() {
           </Table>
 
           <TablePagination
+            className="queue-page__pagination"
             component="div"
             count={filteredUsers.length}
             page={page}

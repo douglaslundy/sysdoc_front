@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -21,6 +21,7 @@ import {
   Typography,
   FormControl,
   InputLabel,
+  styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -68,6 +69,30 @@ const ICONES = [
   'cpu', 'tool', 'grid', 'monitor', 'activity', 'plus-circle', 'layout',
   'alert-triangle', 'maximize', 'settings', 'lock', 'key', 'log-in', 'package', 'check-square',
 ];
+
+const StyledTableRow = styled(TableRow)(() => ({
+  '& td': {
+    background: 'var(--queue-row-bg)',
+    borderTop: '0.5px solid var(--lg-border)',
+    borderBottom: '0.5px solid var(--lg-border)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: 'var(--queue-text-primary)',
+  },
+  '& td:first-of-type': {
+    borderLeft: '0.5px solid var(--lg-border)',
+    borderTopLeftRadius: 14,
+    borderBottomLeftRadius: 14,
+  },
+  '& td:last-of-type': {
+    borderRight: '0.5px solid var(--lg-border)',
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  '&:hover td': {
+    background: 'var(--queue-row-hover)',
+  },
+}));
 
 export default function PaginasSistema() {
   const dispatch = useDispatch();
@@ -202,10 +227,10 @@ export default function PaginasSistema() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page paginas-sistema-page">
       <BaseCard title={`Voce possui ${pages.length} Paginas Cadastradas no Sistema`}>
         <AlertModal />
-        <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="nowrap" gap={1} mb={2} sx={{ overflowX: 'auto' }}>
+        <Box className="queue-page__toolbar" display="flex" alignItems="center" justifyContent="space-between" flexWrap="nowrap" gap={1} mb={2} sx={{ overflowX: 'auto' }}>
           <Box display="flex" gap={1} flexWrap="nowrap" sx={{ minWidth: 0, flex: 1 }}>
             <TextField
               className="lg-search-field"
@@ -234,27 +259,27 @@ export default function PaginasSistema() {
               </Select>
             </FormControl>
           </Box>
-          <Fab color="primary" title="Nova Pagina" onClick={handleNova}>
+          <Fab color="primary" title="Nova Pagina" onClick={handleNova} className="queue-page__fab queue-page__fab--add">
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
 
-        <TableContainer>
-          <Table aria-label="paginas" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+        <TableContainer className="queue-page__table-wrap">
+          <Table aria-label="paginas" className="queue-page__table" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography color="textSecondary" variant="h6">Titulo</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Path</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">icone</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
-                <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell align="center"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Titulo</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Path</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">icone</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filtradas.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((pg) => (
-                <TableRow key={pg.id} hover>
+                <StyledTableRow key={pg.id} hover>
                   <TableCell>
                     <Box display="flex" alignItems="center" gap={1}>
                       {pg.icone && <FeatherIcon icon={normalizeIconName(pg.icone, 'circle')} width="16" height="16" />}
@@ -271,16 +296,16 @@ export default function PaginasSistema() {
                   <TableCell><Typography>{Number(pg.ordem ?? 999)}</Typography></TableCell>
                   <TableCell align="center"><Chip label={pg.ativo ? 'Ativa' : 'Inativa'} color={pg.ativo ? 'success' : 'error'} size="small" /></TableCell>
                   <TableCell align="center">
-                    <Box sx={{ '& button': { mx: 1 } }}>
-                      <Button title="Editar pagina" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
+                    <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
+                      <Button className="queue-page__action queue-page__action--success" title="Editar pagina" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
                         <FeatherIcon icon="edit" width="20" height="20" />
                       </Button>
-                      <Button title="Remover pagina" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
+                      <Button className="queue-page__action queue-page__action--danger" title="Remover pagina" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
                         <FeatherIcon icon="trash" width="20" height="20" />
                       </Button>
                     </Box>
                   </TableCell>
-                </TableRow>
+                </StyledTableRow>
               ))}
               {filtradas.length === 0 && (
                 <TableRow>
@@ -290,6 +315,7 @@ export default function PaginasSistema() {
             </TableBody>
           </Table>
           <TablePagination
+            className="queue-page__pagination"
             component="div"
             count={filtradas.length}
             page={page}

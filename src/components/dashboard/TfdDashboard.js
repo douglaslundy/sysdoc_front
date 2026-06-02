@@ -8,7 +8,7 @@ import Chart from '../charts/ApexChartSafe';
 
 function CardTotal({ icon, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
+        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
             <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                     <Box>
@@ -105,7 +105,7 @@ export default function TfdDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box>
+        <Box className="dashboard-neon-home">
             {/* Totalizadores */}
             <Grid container spacing={3} mb={3}>
                 <Grid item xs={12} sm={4}>

@@ -276,21 +276,21 @@ export default function PharmacyStockImportManager() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-stockimport-page">
       <BaseCard title="Importação de Estoque (CSV)">
         <AlertModal />
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <Button variant="outlined" onClick={handleDownloadCurrentStockBackup}>
+        <Box className="queue-page__toolbar" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Button className="queue-page__action queue-page__action--info" variant="outlined" onClick={handleDownloadCurrentStockBackup}>
             Baixar Backup do Estoque Atual (CSV)
           </Button>
-          <Button variant="outlined" component="label">
+          <Button className="queue-page__action queue-page__action--primary" variant="outlined" component="label">
             Selecionar CSV
             <input hidden type="file" accept=".csv,text/csv" onChange={(event) => setFile(event.target.files?.[0] || null)} />
           </Button>
           <Typography variant="body2" color="text.secondary">
             {file ? file.name : 'Nenhum arquivo selecionado'}
           </Typography>
-          <Button variant="contained" onClick={handleImport} disabled={!canImport}>
+          <Button className="queue-page__action queue-page__action--success" variant="contained" onClick={handleImport} disabled={!canImport}>
             Importar Estoque
           </Button>
         </Box>
@@ -307,18 +307,18 @@ export default function PharmacyStockImportManager() {
               {summaryChip('Ambíguos', report.ambiguous_items?.length || 0, (report.ambiguous_items?.length || 0) > 0 ? 'warning' : 'default')}
             </Box>
             <Box sx={{ mb: 2 }}>
-              <Button variant="contained" sx={{ mr: 1 }} onClick={handleDownloadImportReportPdf}>
+              <Button className="queue-page__action queue-page__action--success" variant="contained" sx={{ mr: 1 }} onClick={handleDownloadImportReportPdf}>
                 Baixar Relatório de Importação (PDF)
               </Button>
-              <Button variant="outlined" onClick={handleDownloadPendingPdf} disabled={!hasPendingItems}>
+              <Button className="queue-page__action queue-page__action--info" variant="outlined" onClick={handleDownloadPendingPdf} disabled={!hasPendingItems}>
                 Baixar Relatório de Pendências (PDF)
               </Button>
             </Box>
 
             <Typography variant="h6" sx={{ mb: 1 }}>Itens Não Conciliados</Typography>
             <Typography variant="h6" sx={{ mb: 1 }}>Itens Importados</Typography>
-            <TableContainer component={Paper} sx={{ mb: 2 }}>
-              <Table size="small">
+            <TableContainer className="queue-page__table-wrap" component={Paper} sx={{ mb: 2 }}>
+              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>ID Medicamento</TableCell>
@@ -346,8 +346,8 @@ export default function PharmacyStockImportManager() {
             </TableContainer>
 
             <Typography variant="h6" sx={{ mb: 1 }}>Itens Não Conciliados</Typography>
-            <TableContainer component={Paper} sx={{ mb: 2 }}>
-              <Table size="small">
+            <TableContainer className="queue-page__table-wrap" component={Paper} sx={{ mb: 2 }}>
+              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Medicamento CSV</TableCell>
@@ -377,8 +377,8 @@ export default function PharmacyStockImportManager() {
             </TableContainer>
 
             <Typography variant="h6" sx={{ mb: 1 }}>Itens Ambíguos</Typography>
-            <TableContainer component={Paper}>
-              <Table size="small">
+            <TableContainer className="queue-page__table-wrap" component={Paper}>
+              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Medicamento CSV</TableCell>

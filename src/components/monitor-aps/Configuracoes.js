@@ -118,8 +118,8 @@ dispatch(addMessage('Configuração salva com sucesso!'));
     const statusIcon  = status?.connected ? 'check-circle' : status?.configured ? 'alert-circle' : 'circle';
 
     return (
-        <Box className="dashboard-neon-page monitor-aps-page" sx={modalFormRootSx}>
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-config-page">
+        <Box className="dashboard-neon-page monitor-aps-page queue-page" sx={modalFormRootSx}>
+            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-config-page queue-page">
             <AlertModal />
 
             <Typography variant="h5" fontWeight={700} mt="20px" mb={3}>Configurações do Monitor APS</Typography>

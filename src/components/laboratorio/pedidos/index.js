@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, MenuItem, Select, Table, TableBody, TableCell,
     TableContainer, TableHead, TablePagination, TableRow, Typography,
-    FormControl, InputLabel, TextField,
+    FormControl, InputLabel, TextField, styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -17,6 +17,20 @@ import BaseCard from '../../baseCard/BaseCard';
 import EditarPedidoDialog from '../../modal/editarPedido';
 import ConfirmDialog from '../../confirmDialog';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
+}));
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -92,12 +106,12 @@ export default function ListaPedidos() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page lab-pedidos-page">
         <ResultadoModal>
         <PedidoModal>
             <BaseCard title={`Você possui ${pedidos.length} Pedidos Cadastrados`}>
                 <AlertModal />
-                <Box
+                <Box className="queue-page__toolbar"
                     sx={{
                         display: 'grid',
                         gridTemplateColumns: { xs: '1fr', md: '160px minmax(0,1fr) auto' },
@@ -107,22 +121,23 @@ export default function ListaPedidos() {
                     }}
                 >
                     <FormControl
-                        className="lg-search-field"
                         size="small"
                         sx={{
                             minWidth: 160,
-                            '& .MuiSelect-select, & .MuiSelect-select.MuiSelect-outlined': {
-                                display: 'flex',
-                                alignItems: 'center',
-                                minHeight: '22px',
-                                lineHeight: 1.2,
-                                paddingTop: '10px !important',
-                                paddingBottom: '10px !important',
-                            },
+                            width: '100%',
                         }}
                     >
-                        <InputLabel>Status</InputLabel>
-                        <Select value={filtroStatus} label="Status" onChange={e => setFiltroStatus(e.target.value)}>
+                        <InputLabel shrink>Status</InputLabel>
+                        <Select
+                            value={filtroStatus}
+                            label="Status"
+                            displayEmpty
+                            renderValue={(selected) => {
+                                if (!selected) return 'Todos';
+                                return String(selected).replace(/_/g, ' ').toUpperCase();
+                            }}
+                            onChange={e => setFiltroStatus(e.target.value)}
+                        >
                             <MenuItem value="">Todos</MenuItem>
                             {Object.keys(STATUS_COR).map(s => <MenuItem key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</MenuItem>)}
                         </Select>
@@ -134,12 +149,12 @@ export default function ListaPedidos() {
                         onChange={e => handleBusca(e.target.value)}
                         sx={{ minWidth: 0, width: '100%' }}
                     />
-                    <Fab color="primary" title="Novo Pedido" onClick={() => dispatch(turnModal())}>
+                    <Fab className="queue-page__fab queue-page__fab--add" color="primary" title="Novo Pedido" onClick={() => dispatch(turnModal())}>
                         <FeatherIcon icon="plus" />
                     </Fab>
                 </Box>
-                <TableContainer>
-                    <Table aria-label="pedidos" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+                <TableContainer className="queue-page__table-wrap">
+                    <Table className="queue-page__table" aria-label="pedidos" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell><Typography color="textSecondary" variant="h6">Protocolo</Typography></TableCell>
@@ -152,7 +167,7 @@ export default function ListaPedidos() {
                         </TableHead>
                         <TableBody>
                             {filtrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(pedido => (
-                                <TableRow key={pedido.id} hover>
+                                <StyledTableRow key={pedido.id} hover>
                                     <TableCell>
                                         <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: 1 }}>
                                             {pedido.resultado?.protocolo ?? '—'}
@@ -178,11 +193,12 @@ export default function ListaPedidos() {
                                         <Chip label={pedido.status} color={STATUS_COR[pedido.status] || 'default'} size="small" />
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Box sx={{ '& button': { mx: 0.5 } }}>
+                                        <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
                                             {!['liberado', 'cancelado'].includes(pedido.status) && (
                                                 <Button
                                                     title="Editar pedido"
                                                     onClick={() => dispatch(viewPedidoFetch(pedido.id, setEditarPedido))}
+                                                    className="queue-page__action queue-page__action--primary"
                                                     color="warning"
                                                     size="medium"
                                                     variant="contained"
@@ -193,6 +209,7 @@ export default function ListaPedidos() {
                                             <Button
                                                 title="Preencher resultado"
                                                 onClick={() => handleAbrirResultado(pedido)}
+                                                className="queue-page__action queue-page__action--info"
                                                 color="info"
                                                 size="medium"
                                                 variant="contained"
@@ -203,6 +220,7 @@ export default function ListaPedidos() {
                                                 <Button
                                                     title="Baixar laudo PDF"
                                                     onClick={() => handleDownloadPdf(pedido.resultado.id, pedido.resultado.protocolo)}
+                                                    className="queue-page__action queue-page__action--success"
                                                     color="success"
                                                     size="medium"
                                                     variant="contained"
@@ -214,6 +232,7 @@ export default function ListaPedidos() {
                                                 <Button
                                                     title="Remover pedido"
                                                     onClick={() => handleRemoverPedido(pedido)}
+                                                    className="queue-page__action queue-page__action--danger"
                                                     color="error"
                                                     size="medium"
                                                     variant="contained"
@@ -223,7 +242,7 @@ export default function ListaPedidos() {
                                             )}
                                         </Box>
                                     </TableCell>
-                                </TableRow>
+                                </StyledTableRow>
                             ))}
                             {filtrados.length === 0 && (
                                 <TableRow>
@@ -235,6 +254,7 @@ export default function ListaPedidos() {
                         </TableBody>
                     </Table>
                     <TablePagination
+                        className="queue-page__pagination"
                         component="div"
                         count={filtrados.length}
                         page={page}

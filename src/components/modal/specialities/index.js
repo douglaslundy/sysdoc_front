@@ -14,6 +14,7 @@ import {
 import { showSpeciality } from '../../../store/ducks/specialities';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
+import AlertModal from '../../messagesModal';
 export default function SpecialityModal(props) {
 
 

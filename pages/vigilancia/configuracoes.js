@@ -92,7 +92,7 @@ export default function ConfiguracoesVigilancia() {
     }
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page vigilancia-config-page">
             <AlertModal />
             <BaseCard title="Configurações da Vigilância Sanitária">
 

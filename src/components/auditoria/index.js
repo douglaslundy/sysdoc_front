@@ -99,6 +99,30 @@ export default function Auditoria() {
     const [page, setPage]         = useState(0);
     const [expanded, setExpanded] = useState({});
     const [usuarios, setUsuarios] = useState([]);
+    const controlHeight = 52;
+    const selectControlSx = {
+        '& .MuiOutlinedInput-root': {
+            height: controlHeight,
+            minHeight: controlHeight,
+        },
+        '& .MuiSelect-select': {
+            display: 'flex',
+            alignItems: 'center',
+            height: controlHeight,
+            minHeight: 'unset',
+            boxSizing: 'border-box',
+        },
+    };
+    const dateControlSx = {
+        '& .MuiOutlinedInput-root': {
+            height: controlHeight,
+            minHeight: controlHeight,
+        },
+        '& .MuiInputBase-input': {
+            height: controlHeight,
+            boxSizing: 'border-box',
+        },
+    };
 
     useEffect(() => {
         dispatch(getAuditLogs({}, 1));
@@ -153,11 +177,11 @@ export default function Auditoria() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page auditoria-page">
         <BaseCard title={`Auditoria — ${total} registros`}>
-            <Grid container spacing={2} mb={2} alignItems="stretch">
+            <Grid className="queue-page__toolbar" container spacing={2} mb={2} alignItems="stretch">
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl className="lg-search-field" fullWidth size="small">
+                <FormControl fullWidth size="small" sx={selectControlSx}>
                     <InputLabel>Ação</InputLabel>
                     <Select value={filters.action} label="Ação" onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
                         <MenuItem value=""><em>Todas</em></MenuItem>
@@ -167,7 +191,7 @@ export default function Auditoria() {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl className="lg-search-field" fullWidth size="small">
+                <FormControl fullWidth size="small" sx={selectControlSx}>
                     <InputLabel>Recurso</InputLabel>
                     <Select value={filters.model_type} label="Recurso" onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -179,7 +203,7 @@ export default function Auditoria() {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl className="lg-search-field" fullWidth size="small">
+                <FormControl fullWidth size="small" sx={selectControlSx}>
                     <InputLabel>Usuário</InputLabel>
                     <Select value={filters.user_name} label="Usuário" onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -192,7 +216,6 @@ export default function Auditoria() {
 
                 <Grid item xs={12} sm={6} md={2}>
                 <TextField
-                    className="lg-search-field"
                     fullWidth
                     size="small"
                     type="date"
@@ -200,11 +223,11 @@ export default function Auditoria() {
                     onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
                     title="De"
                     InputLabelProps={{ shrink: true }}
+                    sx={dateControlSx}
                 />
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                 <TextField
-                    className="lg-search-field"
                     fullWidth
                     size="small"
                     type="date"
@@ -212,6 +235,7 @@ export default function Auditoria() {
                     onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
                     title="Até"
                     InputLabelProps={{ shrink: true }}
+                    sx={dateControlSx}
                 />
                 </Grid>
 
@@ -220,7 +244,7 @@ export default function Auditoria() {
                     variant="contained"
                     onClick={handleFilter}
                     fullWidth
-                    sx={{ height: 40, minWidth: 0 }}
+                    sx={{ height: controlHeight, minHeight: controlHeight, minWidth: 0 }}
                 >
                     <FeatherIcon icon="search" width="20" height="20" />
                 </Button>
@@ -230,15 +254,15 @@ export default function Auditoria() {
                     variant="outlined"
                     onClick={handleReset}
                     fullWidth
-                    sx={{ height: 40, minWidth: 0 }}
+                    sx={{ height: controlHeight, minHeight: controlHeight, minWidth: 0 }}
                 >
                     <FeatherIcon icon="x" width="20" height="20" />
                 </Button>
                 </Grid>
             </Grid>
 
-            <TableContainer>
-                <Table size="small" sx={{ whiteSpace: 'nowrap' }}>
+            <TableContainer className="queue-page__table-wrap">
+                <Table className="queue-page__table" size="small" sx={{ whiteSpace: 'nowrap' }}>
                     <TableHead>
                         <TableRow>
                             <TableCell><Typography variant="h6" color="textSecondary">Data/Hora</Typography></TableCell>
@@ -253,7 +277,7 @@ export default function Auditoria() {
                     <TableBody>
                         {logs.map(log => (
                             <React.Fragment key={log.id}>
-                                <TableRow hover>
+                                <TableRow hover sx={{ "& td": { background: "var(--queue-row-bg)", borderTop: "0.5px solid var(--lg-border)", borderBottom: "0.5px solid var(--lg-border)" }, "& td + td": { borderLeft: "0.5px solid rgba(114, 147, 222, 0.24)" }, "& td:first-of-type": { borderLeft: "0.5px solid var(--lg-border)", borderTopLeftRadius: 14, borderBottomLeftRadius: 14 }, "& td:last-of-type": { borderRight: "0.5px solid var(--lg-border)", borderTopRightRadius: 14, borderBottomRightRadius: 14 }, "&:hover td": { background: "var(--queue-row-hover)" } }}>
                                     <TableCell sx={{ fontSize: 12 }}>
                                         {new Date(log.created_at).toLocaleString('pt-BR')}
                                     </TableCell>
@@ -330,7 +354,7 @@ export default function Auditoria() {
                         )}
                     </TableBody>
                 </Table>
-                <TablePagination
+                <TablePagination className="queue-page__pagination"
                     component="div"
                     count={total}
                     page={page}

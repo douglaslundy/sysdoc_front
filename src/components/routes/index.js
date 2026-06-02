@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -32,14 +32,21 @@ import AlertModal from "../messagesModal";
 
 const StyledTableRow = styled(TableRow)(() => ({
     '& td': {
-        backgroundColor: 'rgba(15, 28, 60, 0.55)',
-        borderTop: '1px solid rgba(86,127,201,0.22)',
-        borderBottom: '1px solid rgba(86,127,201,0.22)',
-        paddingTop: '18px',
-        paddingBottom: '18px',
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
     },
-    '& td:first-of-type': { borderLeft: '1px solid rgba(86,127,201,0.22)', borderRadius: '14px 0 0 14px' },
-    '& td:last-of-type': { borderRight: '1px solid rgba(86,127,201,0.22)', borderRadius: '0 14px 14px 0' },
+    '& td + td': {
+        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderRadius: '14px 0 0 14px' },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderRadius: '0 14px 14px 0' },
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
+    },
 }));
 
 export default () => {
@@ -97,10 +104,10 @@ export default () => {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page">
         <BaseCard title={`Você possui ${allRoutes.length} Rotas Cadastrados`}>
             <AlertModal />
-            <Box sx={{
+            <Box className="queue-page__toolbar" sx={{
                 '& > :not(style)': { m: 0 },
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -134,9 +141,9 @@ export default () => {
                 </RouteModal>
             </Box>
 
-            <TableContainer>
+            <TableContainer className="queue-page__table-wrap">
 
-                <Table
+                <Table className="queue-page__table"
                     aria-label="simple table"
                     sx={{
                         mt: 2,
@@ -146,25 +153,25 @@ export default () => {
                     <TableHead>
                         <TableRow>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     ID
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     ORIGEM X DESTINO / USUÃRIO
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     DISTÂNCIA
                                 </Typography>
                             </TableCell>
 
-                            <TableCell align="center">
+                            <TableCell className="queue-page__th" align="center">
                                 <Typography color="textSecondary" variant="h6">
                                     Ações
                                 </Typography>
@@ -275,7 +282,7 @@ export default () => {
                             ))}
                     </TableBody>
                 </Table>
-                <TablePagination
+                <TablePagination className="queue-page__pagination"
                     component="div"
                     count={allRoutes.length}
                     page={page}

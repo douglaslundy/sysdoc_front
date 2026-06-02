@@ -166,7 +166,7 @@ export default () => {
     }, [dispatch]);
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page">
         <BaseCard
             title={
                 hasClientData && reportData?.name
@@ -176,7 +176,7 @@ export default () => {
         >
             <AlertModal />
 
-            <Box
+            <Box className="queue-page__toolbar"
                 sx={{
                     display: "grid",
                     gridTemplateColumns: { xs: "1fr", sm: "1fr auto", md: "minmax(280px, 1fr) auto" },
@@ -315,8 +315,8 @@ export default () => {
                             Viagens ({reportData?.trips?.length ?? 0})
                         </Typography>
 
-                        <TableContainer>
-                            <Table aria-label="tabela de viagens" sx={{ whiteSpace: "nowrap" }}>
+                        <TableContainer className="queue-page__table-wrap">
+                            <Table className="queue-page__table" aria-label="tabela de viagens" sx={{ whiteSpace: "nowrap" }}>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>
@@ -423,8 +423,8 @@ export default () => {
                             Filas ({reportData?.queue?.length ?? 0})
                         </Typography>
 
-                        <TableContainer>
-                            <Table aria-label="tabela de filas">
+                        <TableContainer className="queue-page__table-wrap">
+                            <Table className="queue-page__table" aria-label="tabela de filas">
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>
@@ -509,8 +509,8 @@ export default () => {
                             Exames ({reportData?.pedidos_exame?.length ?? 0})
                         </Typography>
 
-                        <TableContainer>
-                            <Table aria-label="tabela de exames" sx={{ whiteSpace: 'nowrap' }}>
+                        <TableContainer className="queue-page__table-wrap">
+                            <Table className="queue-page__table" aria-label="tabela de exames" sx={{ whiteSpace: 'nowrap' }}>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>

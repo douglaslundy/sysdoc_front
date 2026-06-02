@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | DL Sistemas</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="login-page">
+    <div class="orb orb-top-left" aria-hidden="true"></div>
+    <div class="orb orb-bottom-right" aria-hidden="true"></div>
+    <div class="ambient ambient-left" aria-hidden="true"></div>
+    <div class="ambient ambient-right" aria-hidden="true"></div>
+
+    <section class="login-copy" aria-labelledby="login-copy-title">
+      <span class="eyebrow">⚡ Tecnologia que transforma</span>
+
+      <h1 id="login-copy-title">
+        Tecnologia que impulsiona<br />
+        o <span>seu negócio.</span>
+      </h1>
+
+      <p class="copy-description">
+        Há mais de 10 anos entregando soluções inteligentes e inovadoras que otimizam processos,
+        aumentam a produtividade e garantem resultados reais.
+      </p>
+
+      <div class="benefits" aria-label="Benefícios DL Sistemas">
+        <article class="benefit">
+          <div class="benefit-icon" aria-hidden="true">↗</div>
+          <div>
+            <h2>Soluções completas</h2>
+            <p>Sistemas integrados para otimizar processos e aumentar a produtividade.</p>
+          </div>
+        </article>
+
+        <article class="benefit">
+          <div class="benefit-icon" aria-hidden="true">⌾</div>
+          <div>
+            <h2>Segurança e confiabilidade</h2>
+            <p>Proteção de dados e infraestrutura robusta para o seu negócio.</p>
+          </div>
+        </article>
+
+        <article class="benefit">
+          <div class="benefit-icon" aria-hidden="true">☏</div>
+          <div>
+            <h2>Suporte especializado</h2>
+            <p>Time dedicado para garantir a melhor experiência sempre.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="login-panel" aria-label="Acesso ao sistema">
+      <form class="login-card" id="loginForm">
+        <header class="card-header">
+          <img class="brand-logo" src="../assets/logo-dl.png" alt="DL Sistemas Soluções em TI" onerror="this.style.display='none'" />
+          <h2>Bem-vindo de volta!</h2>
+          <p>Acesse sua conta para continuar.</p>
+        </header>
+
+        <div class="field-group">
+          <label for="cpf">CPF</label>
+          <div class="input-shell">
+            <span aria-hidden="true">♙</span>
+            <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="username" placeholder="Digite seu CPF" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="senha">Senha</label>
+          <div class="input-shell">
+            <span aria-hidden="true">▣</span>
+            <input id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Digite sua senha" required />
+            <button class="toggle-password" type="button" aria-label="Mostrar ou ocultar senha">◉</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="remember">
+            <input type="checkbox" name="remember" />
+            <span>Lembrar-me</span>
+          </label>
+          <a href="#" class="forgot-link">Esqueceu a senha?</a>
+        </div>
+
+        <button class="submit-button" type="submit">Entrar <span aria-hidden="true">→</span></button>
+
+        <div class="safe-access" aria-hidden="true">
+          <span></span>
+          <p>ou continue com</p>
+          <span></span>
+        </div>
+
+        <div class="security-badge" aria-label="Acesso seguro">⌾</div>
+      </form>
+
+      <footer class="login-footer">Copyright © DL Sistemas 2026 • Todos os direitos reservados.</footer>
+    </section>
+  </main>
+
+  <script src="./login.js"></script>
+</body>
+</html>

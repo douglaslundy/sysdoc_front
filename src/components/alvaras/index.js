@@ -25,8 +25,17 @@ const STATUS_OPTIONS = [
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': { backgroundColor: 'var(--lg-glass-row-hover)' },
-    '&:last-child td, &:last-child th': { border: 0 },
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
 }));
 
 const formatDate = (s) => {
@@ -135,10 +144,10 @@ export default function ListaAlvaras() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page alvaras-page">
         <BaseCard title={`Alvarás${pagination ? ` — ${pagination.total} registros` : ''}`}>
             <AlertModal />
-            <Box
+            <Box className="queue-page__toolbar"
                 sx={{
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'minmax(260px, 1fr) 160px 200px auto' },
@@ -175,23 +184,23 @@ export default function ListaAlvaras() {
                         ))}
                     </Select>
                 </FormControl>
-                <Fab color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ justifySelf: { xs: 'flex-end', md: 'center' } }}>
+                <Fab className="queue-page__fab queue-page__fab--add" color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ justifySelf: { xs: 'flex-end', md: 'center' } }}>
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
 
-            <TableContainer>
-                <Table sx={{ mt: 2, whiteSpace: 'nowrap' }}>
+            <TableContainer className="queue-page__table-wrap">
+                <Table className="queue-page__table" sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell><Typography variant="h6" color="textSecondary">Número</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Risco</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Status</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Emissão</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Vencimento</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Contato</Typography></TableCell>
-                            <TableCell align="center"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Número</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Risco</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Status</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Emissão</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Vencimento</Typography></TableCell>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Contato</Typography></TableCell>
+                            <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -227,12 +236,12 @@ export default function ListaAlvaras() {
                                     </Typography>
                                 </TableCell>
                                 <TableCell align="center">
-                                    <Box sx={{ '& button': { mx: 0.5 } }}>
-                                        <Button onClick={() => handleEditar(alv)} color="success" variant="contained" size="small" title="Editar">
+                                    <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
+                                        <Button className="queue-page__action queue-page__action--success" onClick={() => handleEditar(alv)} color="success" variant="contained" size="small" title="Editar">
                                             <FeatherIcon icon="edit" width="18" height="18" />
                                         </Button>
                                         {alv.status === 'Vigente' && (
-                                            <Button
+                                            <Button className="queue-page__action queue-page__action--info"
                                                 onClick={() => dispatch(downloadAlvaraPdf(alv.id, alv.numero_alvara))}
                                                 color="success"
                                                 variant="contained"
@@ -242,7 +251,7 @@ export default function ListaAlvaras() {
                                                 <FeatherIcon icon="download" width="18" height="18" />
                                             </Button>
                                         )}
-                                        <Button onClick={() => handleExcluir(alv)} color="error" variant="contained" size="small" title="Excluir">
+                                        <Button className="queue-page__action queue-page__action--danger" onClick={() => handleExcluir(alv)} color="error" variant="contained" size="small" title="Excluir">
                                             <FeatherIcon icon="trash" width="18" height="18" />
                                         </Button>
                                     </Box>
@@ -252,6 +261,7 @@ export default function ListaAlvaras() {
                     </TableBody>
                 </Table>
                 <TablePagination
+                    className="queue-page__pagination"
                     component="div"
                     count={pagination?.total || 0}
                     page={page}

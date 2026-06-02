@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Checkbox, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
@@ -79,7 +79,7 @@ export default function MedicinesPanelSettings() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-panelsettings-page">
       <BaseCard title="Configuração do Painel de Medicamentos">
         <AlertModal />
         <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
@@ -95,7 +95,7 @@ export default function MedicinesPanelSettings() {
           <FormControlLabel control={<Checkbox name="filter_active" checked={!!form.filter_active} disabled={!!form.filter_show_all} onChange={change} />} label="Ativo" />
         </Stack>
 
-        <Button variant="contained" onClick={save}>Salvar Configurações</Button>
+        <Button className="queue-page__action queue-page__action--success" variant="contained" onClick={save}>Salvar Configurações</Button>
       </BaseCard>
     </Box>
   );

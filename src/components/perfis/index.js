@@ -4,6 +4,7 @@ import {
     TableHead, TablePagination, TableRow, Typography, Modal, Stack,
     TextField, FormControlLabel, Switch, Checkbox, FormGroup, FormLabel,
     FormControl, Grid,
+    styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -25,6 +26,29 @@ const modalStyle = {
 };
 
 const FORM_INICIAL = { nome: '', slug: '', descricao: '', ativo: true, page_ids: [] };
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': {
+        borderLeft: '0.5px solid var(--lg-border)',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    '& td:last-of-type': {
+        borderRight: '0.5px solid var(--lg-border)',
+        borderTopRightRadius: 14,
+        borderBottomRightRadius: 14,
+    },
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
+    },
+}));
 
 function agruparPorCategoria(pages) {
     return pages.reduce((acc, page) => {
@@ -94,10 +118,10 @@ export default function Perfis() {
     );
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page perfis-page">
             <BaseCard title={`Voce possui ${profiles.length} Perfis de Acesso Cadastrados`}>
                 <AlertModal />
-                <Box display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="nowrap" mb={2} sx={{ overflowX: 'auto' }}>
+                <Box className="queue-page__toolbar" display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="nowrap" mb={2} sx={{ overflowX: 'auto' }}>
                     <TextField
                         className="lg-search-field"
                         size="small"
@@ -107,22 +131,22 @@ export default function Perfis() {
                         inputProps={{ maxLength: 80 }}
                         sx={{ minWidth: 260, flex: 1 }}
                     />
-                    <ActionCreateFab title="Novo Perfil" onClick={handleNovo} />
+                    <ActionCreateFab className="queue-page__fab queue-page__fab--add" title="Novo Perfil" onClick={handleNovo} />
                 </Box>
-                <TableContainer>
-                    <Table aria-label="perfis" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+                <TableContainer className="queue-page__table-wrap">
+                    <Table aria-label="perfis" className="queue-page__table" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell><Typography color="textSecondary" variant="h6">Nome / Slug</Typography></TableCell>
-                                <TableCell><Typography color="textSecondary" variant="h6">Descricao</Typography></TableCell>
-                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Paginas</Typography></TableCell>
-                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Nome / Slug</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Descricao</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Paginas</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {perfisFiltrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((profile) => (
-                                <TableRow key={profile.id} hover>
+                                <StyledTableRow key={profile.id} hover>
                                     <TableCell>
                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>{profile.nome}</Typography>
                                         <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{profile.slug}</Typography>
@@ -137,18 +161,20 @@ export default function Perfis() {
                                         <Chip label={profile.ativo ? 'Ativo' : 'Inativo'} color={profile.ativo ? 'success' : 'error'} size="small" />
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Box sx={{ '& button': { mx: 1 } }}>
+                                        <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
                                             <ActionEditButton
+                                                className="queue-page__action queue-page__action--success"
                                                 title="Editar perfil"
                                                 onClick={() => handleEditar(profile)}
                                             />
                                             <ActionDeleteButton
+                                                className="queue-page__action queue-page__action--danger"
                                                 title="Remover perfil"
                                                 onClick={() => dispatch(removeProfileFetch(profile.id))}
                                             />
                                         </Box>
                                     </TableCell>
-                                </TableRow>
+                                </StyledTableRow>
                             ))}
                             {perfisFiltrados.length === 0 && (
                                 <TableRow>
@@ -160,6 +186,7 @@ export default function Perfis() {
                         </TableBody>
                     </Table>
                     <TablePagination
+                        className="queue-page__pagination"
                         component="div"
                         count={perfisFiltrados.length}
                         page={page}

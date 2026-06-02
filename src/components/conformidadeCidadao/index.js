@@ -9,6 +9,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { conformidadeCidadaoApi } from '../../services/conformidadeCidadaoApi';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const CHIP_COLORS = { criar: 'success', atualizar: 'info', obito: 'error' };
 const CHIP_LABELS = { criar: 'Criar', atualizar: 'Atualizar', obito: 'Óbito' };
@@ -257,7 +258,101 @@ export default function ConformidadeCidadao() {
     const emAndamento = ['analyzing', 'applying'].includes(fase);
 
     return (
-        <Box display="flex" flexDirection="column" gap={3}>
+        <Box
+            className="conformidade-theme-surface"
+            sx={{
+                ...modalFormRootSx,
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
+                "& .MuiCard-root.card.info-card, & .MuiCard-root.info-card": {
+                    background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%) !important",
+                    border: "1px solid rgba(82, 129, 218, 0.24) !important",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05) !important",
+                    backdropFilter: "none !important",
+                    WebkitBackdropFilter: "none !important",
+                    borderRadius: "16px !important",
+                    "[data-theme='light'] &": {
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%) !important",
+                        border: "1px solid rgba(180, 210, 255, 0.35) !important",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92) !important",
+                    }
+                },
+                "& .card.info-card .card__title, & .MuiCard-root .card__title": {
+                    color: "var(--lg-text-primary)",
+                    fontWeight: 700,
+                },
+                "& .card.info-card .card__content, & .MuiCard-root .card__content": {
+                    color: "var(--lg-text-primary)",
+                },
+                "& .MuiPaper-root": {
+                    background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%) !important",
+                    border: "1px solid rgba(82, 129, 218, 0.24) !important",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05) !important",
+                    backdropFilter: "none !important",
+                    WebkitBackdropFilter: "none !important",
+                    color: "var(--lg-text-primary)",
+                    "[data-theme='light'] &": {
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%) !important",
+                        border: "1px solid rgba(180, 210, 255, 0.35) !important",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92) !important",
+                    }
+                },
+                "& .MuiTableContainer-root": {
+                    borderRadius: "14px",
+                    border: "0.5px solid var(--lg-border-input)",
+                    background: "var(--lg-glass-panel)",
+                },
+                "& .MuiAlert-root": {
+                    borderRadius: "10px",
+                    backdropFilter: "var(--lg-blur-input)",
+                    WebkitBackdropFilter: "var(--lg-blur-input)",
+                },
+                "& .MuiTableHead-root .MuiTableCell-root": {
+                    color: "var(--lg-text-secondary)",
+                    borderBottom: "1px solid var(--lg-border-row)",
+                    fontWeight: 700,
+                },
+                "& .MuiTableBody-root .MuiTableCell-root": {
+                    color: "var(--lg-text-primary)",
+                    borderBottom: "1px solid var(--lg-border-row)",
+                },
+                "& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root": {
+                    background: "var(--lg-glass-row-hover)",
+                },
+                "& .MuiChip-root": {
+                    borderRadius: "8px",
+                },
+                "& .MuiButton-contained": {
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    boxShadow: "var(--lg-shadow-btn)",
+                },
+                "& .MuiButton-outlined": {
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    background: "var(--lg-glass-input)",
+                    border: "0.5px solid var(--lg-border-input)",
+                    color: "var(--lg-text-secondary)",
+                },
+                "& .MuiButton-outlined:hover": {
+                    background: "var(--lg-glass-input-focus)",
+                    color: "var(--lg-text-primary)",
+                    border: "0.5px solid var(--lg-border-input)",
+                },
+                "& .MuiLinearProgress-root": {
+                    background: "rgba(var(--lg-accent-rgb),0.18)",
+                    borderRadius: "10px",
+                    height: 8,
+                },
+                "& .MuiLinearProgress-bar": {
+                    background: "linear-gradient(90deg, var(--lg-accent), #7c3aed)",
+                },
+                "& .MuiTablePagination-root, & .MuiTablePagination-root *": {
+                    color: "var(--lg-text-secondary)",
+                },
+            }}
+        >
             {erro && <Alert severity="error" onClose={() => setErro(null)}>{erro}</Alert>}
 
             {fase === 'idle' && (
@@ -556,8 +651,24 @@ export default function ConformidadeCidadao() {
 
             {historico.length > 0 && (
                 <BaseCard title="Histórico de Sincronizações">
-                    <TableContainer component={Paper} variant="outlined">
-                        <Table size="small">
+                    <TableContainer
+                        component={Paper}
+                        variant="outlined"
+                        sx={{
+                            mt: 1,
+                            background: "transparent !important",
+                            border: "none",
+                            boxShadow: "none",
+                            "& .MuiTableRow-root th": {
+                                borderBottom: "1px solid rgba(117, 155, 228, 0.22)",
+                                color: "var(--lg-text-secondary)",
+                            },
+                            "& .MuiTableRow-root td": {
+                                borderBottom: "none",
+                            }
+                        }}
+                    >
+                        <Table size="small" sx={{ borderCollapse: "separate", borderSpacing: "0 10px" }}>
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Data</TableCell>
@@ -571,7 +682,36 @@ export default function ConformidadeCidadao() {
                             </TableHead>
                             <TableBody>
                                 {historico.map((s, i) => (
-                                    <TableRow key={i}>
+                                    <TableRow
+                                        key={i}
+                                        sx={{
+                                            "& td": {
+                                                background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%)",
+                                                borderTop: "1px solid rgba(82, 129, 218, 0.2)",
+                                                borderBottom: "1px solid rgba(82, 129, 218, 0.2)",
+                                                color: "var(--lg-text-primary)"
+                                            },
+                                            "& td:first-of-type": {
+                                                borderLeft: "1px solid rgba(82, 129, 218, 0.2)",
+                                                borderRadius: "12px 0 0 12px"
+                                            },
+                                            "& td:last-of-type": {
+                                                borderRight: "1px solid rgba(82, 129, 218, 0.2)",
+                                                borderRadius: "0 12px 12px 0"
+                                            },
+                                            "[data-theme='light'] & td": {
+                                                background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%)",
+                                                borderTop: "1px solid rgba(180, 210, 255, 0.35)",
+                                                borderBottom: "1px solid rgba(180, 210, 255, 0.35)"
+                                            },
+                                            "[data-theme='light'] & td:first-of-type": {
+                                                borderLeft: "1px solid rgba(180, 210, 255, 0.35)"
+                                            },
+                                            "[data-theme='light'] & td:last-of-type": {
+                                                borderRight: "1px solid rgba(180, 210, 255, 0.35)"
+                                            }
+                                        }}
+                                    >
                                         <TableCell sx={{ fontSize: '0.75rem' }}>
                                             {s.created_at ? new Date(s.created_at).toLocaleString('pt-BR') : '—'}
                                         </TableCell>

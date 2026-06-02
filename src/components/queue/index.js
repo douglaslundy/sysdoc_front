@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
     Typography,
     Box,
@@ -18,6 +18,7 @@ import {
     DialogActions,
     Chip,
     Divider,
+    Fab,
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
@@ -53,15 +54,13 @@ import { addAlertMessage, addMessage } from "../../store/ducks/Layout";
 import { api } from "../../services/api";
 
 const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: 'var(--lg-glass-row-hover)',
-    },
     '& td': {
-        background: 'var(--lg-glass-row)',
+        background: 'var(--queue-row-bg)',
         borderTop: '0.5px solid var(--lg-border)',
         borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 10,
-        paddingBottom: 10,
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
     },
     '& td:first-of-type': {
         borderLeft: '0.5px solid var(--lg-border)',
@@ -75,6 +74,9 @@ const StyledTableRow = styled(TableRow)(() => ({
     },
     '&:last-child td, &:last-child th': {
         border: 0,
+    },
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
     },
 }));
 
@@ -368,7 +370,7 @@ export default () => {
 
     return (
         <>
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page">
         <BaseCard title={`Você possui ${pagination?.total ?? queues.length} especialidades Cadastradas`}>
             <AlertModal />
             {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
@@ -380,6 +382,7 @@ export default () => {
                 gap: 1,
                 flexWrap: 'wrap',
             }}
+                className="queue-page__toolbar"
             >
 
                 <TextField
@@ -446,17 +449,19 @@ export default () => {
                     title="Imprimir listagem filtrada"
                     disabled={isPrinting}
                     sx={fabControlSx}
+                    className="queue-page__fab queue-page__fab--print"
                 >
                     <FeatherIcon icon={isPrinting ? 'loader' : 'printer'} />
                 </Fab>
 
-                <ActionCreateFab onClick={() => { HandleAddQueue() }} title="inserir na fila" sx={fabControlSx} />
+                <ActionCreateFab onClick={() => { HandleAddQueue() }} title="inserir na fila" sx={fabControlSx} className="queue-page__fab queue-page__fab--add" />
             </Box>
 
-            <TableContainer>
+            <TableContainer className="queue-page__table-wrap">
 
                 <Table
                     aria-label="simple table"
+                    className="queue-page__table"
                     sx={{
                         mt: 3,
                         whiteSpace: "nowrap",
@@ -468,7 +473,7 @@ export default () => {
 
                         <TableRow>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     POSIÇÃO
                                 </Typography>
@@ -482,7 +487,7 @@ export default () => {
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Cidadão
                                 </Typography>
@@ -494,7 +499,7 @@ export default () => {
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Especialidade
                                 </Typography>
@@ -503,7 +508,7 @@ export default () => {
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Realizado?
                                 </Typography>
@@ -512,7 +517,7 @@ export default () => {
                                 </Typography>
                             </TableCell>
 
-                            <TableCell align="center">
+                            <TableCell align="center" className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Ações
                                 </Typography>
@@ -549,7 +554,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "9px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         {queue.user && queue.user.name}
@@ -560,7 +565,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "9px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'var(--lg-text-primary)' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
@@ -594,7 +599,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "8px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         {queue?.client?.mother && queue?.client?.mother.substring(0, 30).toUpperCase()}
@@ -604,7 +609,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "8px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         {queue?.client && queue?.client.cpf} / {queue?.client && queue?.client?.cns} / {queue?.client && queue?.client?.phone}
@@ -636,7 +641,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "8px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         {queue.obs && queue.obs.substring(0, 30).toUpperCase()}
@@ -669,7 +674,7 @@ export default () => {
                                                     <Typography
                                                         color="textSecondary"
                                                         sx={{
-                                                            fontSize: "8px",
+                                                            fontSize: "13px",
                                                         }}
                                                     >
                                                         {queue.date_of_realized && format(parseISO(queue.date_of_realized), 'dd/MM/yyyy')}
@@ -682,7 +687,7 @@ export default () => {
                                         </TableCell>
 
                                         <TableCell align="center">
-                                            <Box sx={{ "& button": { mx: 1 } }}>
+                                            <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
 
                                                 {Number(queue?.attachments_count || 0) > 0 && (
                                                     <Button
@@ -692,24 +697,25 @@ export default () => {
                                                         variant="contained"
                                                         disabled
                                                         sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}
+                                                        className="queue-page__action queue-page__action--muted"
                                                     >
                                                         <FeatherIcon icon="paperclip" width="20" height="20" />
                                                     </Button>
                                                 )}
 
-                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
+                                                <Button title="Visualizar" onClick={() => handleViewQueue(queue.id)} color="info" size="medium" variant="contained" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--info">
                                                     <FeatherIcon icon="eye" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
+                                                <Button title="Imprimir Comprovante" onClick={() => { protocolPDF(queue) }} color="success" size="medium" variant="contained" aria-label="add" sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--success">
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
+                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--primary">
                                                     <FeatherIcon icon="book-open" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }}>
+                                                <Button title="Excluir da fila" onClick={() => { HandleInactiveQueue(queue) }} color="error" size="medium" variant="contained" disabled={true} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--danger">
                                                     <FeatherIcon icon="trash" width="20" height="20" />
                                                 </Button>
 
@@ -731,6 +737,7 @@ export default () => {
                 </Table>
 
                 <TablePagination
+                    className="queue-page__pagination"
                     component="div"
                     count={pagination?.total ?? queues.length}
                     page={page}
@@ -748,6 +755,7 @@ export default () => {
 
         {/* Dialog de visualização do registro de fila */}
         <Dialog
+            className="queue-page__dialog"
             open={!!viewQueue}
             onClose={() => {
                 setViewQueue(null);
@@ -873,4 +881,3 @@ export default () => {
         </>
     );
 };
-

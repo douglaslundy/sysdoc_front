@@ -653,29 +653,29 @@ export default function VisitasAcs() {
                                             <TableCell align="right">Ausentes</TableCell>
                                             <TableCell align="right">Total</TableCell>
                                             <TableCell align="right">Domicílios</TableCell>
+                                            <TableCell align="right">Com moradores</TableCell>
+                                            <TableCell align="right">Casa vazia</TableCell>
                                             <TableCell align="right">Dom. Visitados</TableCell>
                                             <TableCell align="right">Dom. Ausentes</TableCell>
                                             <TableCell align="right">Dom. Recusados</TableCell>
-                                            <TableCell align="right">Com moradores</TableCell>
-                                            <TableCell align="right">Casa vazia</TableCell>
                                             <TableCell align="right">% Domicílios Acomp.</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {agentes.map((a, i) => (
                                             <TableRow key={i} hover>
-                                                <TableCell sx={{ maxWidth: 160 }}>
+                                                <TableCell sx={{ maxWidth: 240 }}>
                                                     <Typography variant="body2" fontWeight={600} noWrap
                                                         title={a.agente}
-                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
-                                                        {(a.agente ?? '').length > 20 ? (a.agente ?? '').slice(0, 20) + '…' : a.agente}
+                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 240 }}>
+                                                        {(a.agente ?? '').length > 30 ? (a.agente ?? '').slice(0, 30) + '…' : a.agente}
                                                     </Typography>
                                                     <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
                                                         {a.cbo_nome}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="body2" noWrap>{equipeLabel(a.equipe?.nome)}</Typography>
+                                                    <Typography variant="body2" noWrap title={equipeLabel(a.equipe?.nome)}>{(() => { const equipeNome = equipeLabel(a.equipe?.nome) ?? ''; const equipeVisivel = equipeNome.includes(' - ') ? equipeNome.split(' - ').slice(1).join(' - ') : equipeNome; return equipeVisivel.length > 20 ? equipeVisivel.slice(0, 20) + '…' : equipeVisivel; })()}</Typography>
                                                 </TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right" sx={{ color: '#168821' }}>
@@ -694,6 +694,12 @@ export default function VisitasAcs() {
                                                     {a.domicilios_total != null ? a.domicilios_total.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
+                                                    {a.domicilios_com_moradores != null ? a.domicilios_com_moradores.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {a.domicilios_casa_vazia != null ? a.domicilios_casa_vazia.toLocaleString('pt-BR') : '—'}
+                                                </TableCell>
+                                                <TableCell align="right">
                                                     {a.domicilios_visitados != null ? a.domicilios_visitados.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right" sx={{ color: '#FF8C00' }}>
@@ -701,12 +707,6 @@ export default function VisitasAcs() {
                                                 </TableCell>
                                                 <TableCell align="right" sx={{ color: '#E52207' }}>
                                                     {a.domicilios_recusados_visita != null ? a.domicilios_recusados_visita.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_com_moradores != null ? a.domicilios_com_moradores.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_casa_vazia != null ? a.domicilios_casa_vazia.toLocaleString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     {a.domicilios_acompanhados != null ? (

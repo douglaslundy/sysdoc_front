@@ -1,10 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { AppBar, Box, IconButton, Toolbar } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
+import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
+  const { pathname } = useRouter();
+  const pageTitle = pathname === "/dashboard" ? "Dashboard" : (pathname.split("/").filter(Boolean).pop() || "Dashboard");
+
   return (
     <AppBar
       sx={{
@@ -42,7 +46,17 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
           <FeatherIcon icon="menu" width="20" height="20" />
         </IconButton>
 
-        <Box sx={{ display: { xs: "none", md: "block" }, minWidth: 8 }} />
+        <Typography
+          sx={{
+            fontSize: { xs: "18px", md: "24px" },
+            fontWeight: 700,
+            color: "var(--lg-text-primary)",
+            textTransform: "capitalize",
+            lineHeight: 1.2,
+          }}
+        >
+          {pageTitle}
+        </Typography>
 
         <Box flexGrow={1} />
 

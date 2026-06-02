@@ -65,12 +65,30 @@ const modalStyle = {
   p: 3.2,
 };
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
+const StyledTableRow = styled(TableRow)(() => ({
+  '& td': {
+    background: 'var(--queue-row-bg)',
+    borderTop: '0.5px solid var(--lg-border)',
+    borderBottom: '0.5px solid var(--lg-border)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: 'var(--queue-text-primary)',
+  },
+  '& td:first-of-type': {
+    borderLeft: '0.5px solid var(--lg-border)',
+    borderTopLeftRadius: 14,
+    borderBottomLeftRadius: 14,
+  },
+  '& td:last-of-type': {
+    borderRight: '0.5px solid var(--lg-border)',
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
   },
   '&:last-child td, &:last-child th': {
     border: 0,
+  },
+  '&:hover td': {
+    background: 'var(--queue-row-hover)',
   },
 }));
 
@@ -156,11 +174,12 @@ export default function PaginasCategorias() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page categorias-page">
       <BaseCard title={`Voce possui ${pageCategories.length} Categorias de Paginas Cadastradas`}>
         <AlertModal />
 
         <Box
+          className="queue-page__toolbar"
           sx={{
             '& > :not(style)': { m: 2 },
             display: 'flex',
@@ -176,28 +195,28 @@ export default function PaginasCategorias() {
             onChange={(e) => setBusca(e.target.value)}
           />
 
-          <Fab color="primary" title="Nova Categoria" onClick={handleNova}>
+          <Fab color="primary" title="Nova Categoria" onClick={handleNova} className="queue-page__fab queue-page__fab--add">
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
 
-        <TableContainer>
-          <Table aria-label="categorias de paginas" sx={{ mt: 3, whiteSpace: 'nowrap' }}>
+        <TableContainer className="queue-page__table-wrap">
+          <Table aria-label="categorias de paginas" className="queue-page__table" sx={{ mt: 3, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell>
+                <TableCell className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">Nome</Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">Icone</Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">Ordem</Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">Status</Typography>
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">Acoes</Typography>
                 </TableCell>
               </TableRow>
@@ -231,13 +250,14 @@ export default function PaginasCategorias() {
                       <Chip size="small" label={cat.ativo ? 'Ativa' : 'Inativa'} color={cat.ativo ? 'success' : 'error'} />
                     </TableCell>
                     <TableCell align="center">
-                      <Box sx={{ '& button': { mx: 1 } }}>
+                      <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
                         <Button
                           title="Editar categoria"
                           onClick={() => handleEditar(cat)}
                           color="success"
                           size="medium"
                           variant="contained"
+                          className="queue-page__action queue-page__action--success"
                         >
                           <FeatherIcon icon="edit" width="20" height="20" />
                         </Button>
@@ -248,6 +268,7 @@ export default function PaginasCategorias() {
                           color="error"
                           size="medium"
                           variant="contained"
+                          className="queue-page__action queue-page__action--danger"
                         >
                           <FeatherIcon icon="trash" width="20" height="20" />
                         </Button>
@@ -265,6 +286,7 @@ export default function PaginasCategorias() {
             </TableBody>
           </Table>
           <TablePagination
+            className="queue-page__pagination"
             component="div"
             count={categoriasFiltradas.length}
             page={page}
@@ -443,4 +465,3 @@ export default function PaginasCategorias() {
     </Box>
   );
 }
-

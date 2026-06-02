@@ -60,7 +60,13 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\dougl\\\\workspace\\\\sysdoc_front\\\\pages\\\\laboratorio\" -Recurse -File)",
       "PowerShell(npm run *)",
       "PowerShell(git -C \"C:\\\\Users\\\\dougl\\\\workspace\\\\sysdoc_front\" commit -m $msg)",
-      "PowerShell($msg = \"fix\\(rbac\\): corrige sub-rotas bloqueadas, 401 handling e double BFF call`n`nAuthGuard: adiciona prefix matching para sub-rotas de laboratorio.`nAuthContext: centraliza handler de 401 \\(sessao expirada\\).`n_app.js: remove chamada BFF duplicada e imports nao utilizados.`n`nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\")"
+      "PowerShell($msg = \"fix\\(rbac\\): corrige sub-rotas bloqueadas, 401 handling e double BFF call`n`nAuthGuard: adiciona prefix matching para sub-rotas de laboratorio.`nAuthContext: centraliza handler de 401 \\(sessao expirada\\).`n_app.js: remove chamada BFF duplicada e imports nao utilizados.`n`nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\")",
+      "Bash(node *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
+      "Bash(curl -s http://localhost:3000/login)",
+      "Bash(npx --yes chromium-cli screenshot http://localhost:3000/login --output /tmp/login-split.png --width 1440 --height 900)",
+      "Bash(npm test *)",
+      "Bash(pkill -f \"next dev\")"
     ]
   }
 }

@@ -17,10 +17,12 @@ import {
     Button,
     FormGroup,
     FormControlLabel,
+    Switch,
     Typography,
     Divider,
     Box as MuiBox
 } from "@mui/material";
+import ConfirmDialog from '../../confirmDialog';
 import { showQueue, editQueue } from '../../../store/ducks/queues';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editQueueFetch, addQueueFetch } from '../../../store/fetchActions/queues';

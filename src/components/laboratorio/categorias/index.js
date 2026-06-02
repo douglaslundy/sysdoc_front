@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, Fab, Table, TableBody, TableCell, TableContainer,
     TableHead, TablePagination, TableRow, TextField, Typography,
+    styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -12,6 +13,20 @@ import CategoriaExameModal from '../../modal/categoriaExame';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+
+const StyledTableRow = styled(TableRow)(() => ({
+    '& td': {
+        background: 'var(--queue-row-bg)',
+        borderTop: '0.5px solid var(--lg-border)',
+        borderBottom: '0.5px solid var(--lg-border)',
+        paddingTop: 12,
+        paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
+}));
 
 export default function CategoriasExame() {
     const dispatch = useDispatch();
@@ -40,11 +55,11 @@ export default function CategoriasExame() {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page lab-categorias-page">
         <CategoriaExameModal>
             <BaseCard title={`Você possui ${categorias.length} Categorias Cadastradas`}>
                 <AlertModal />
-                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap={{ xs: 'wrap', md: 'nowrap' }} gap={1} mb={2}>
+                <Box className="queue-page__toolbar" display="flex" alignItems="center" justifyContent="space-between" flexWrap={{ xs: 'wrap', md: 'nowrap' }} gap={1} mb={2}>
                     <TextField
                         className="lg-search-field"
                         size="small"
@@ -54,12 +69,12 @@ export default function CategoriasExame() {
                         inputProps={{ maxLength: 80 }}
                         sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}
                     />
-                    <Fab color="primary" title="Nova Categoria" onClick={handleNova}>
+                    <Fab className="queue-page__fab queue-page__fab--add" color="primary" title="Nova Categoria" onClick={handleNova}>
                         <FeatherIcon icon="plus" />
                     </Fab>
                 </Box>
-                <TableContainer>
-                    <Table aria-label="categorias" sx={{ mt: 1, whiteSpace: 'nowrap' }}>
+                <TableContainer className="queue-page__table-wrap">
+                    <Table className="queue-page__table" aria-label="categorias" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell><Typography color="textSecondary" variant="h6">Nome</Typography></TableCell>
@@ -71,7 +86,7 @@ export default function CategoriasExame() {
                             {filtradas
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map(categoria => (
-                                    <TableRow key={categoria.id} hover>
+                                    <StyledTableRow key={categoria.id} hover>
                                         <TableCell>
                                             <Typography variant="h6" sx={{ fontWeight: 600 }}>{categoria.nome}</Typography>
                                         </TableCell>
@@ -83,10 +98,11 @@ export default function CategoriasExame() {
                                             />
                                         </TableCell>
                                         <TableCell align="center">
-                                            <Box sx={{ '& button': { mx: 1 } }}>
+                                            <Box className="queue-page__actions" sx={{ '& button': { mx: 1 } }}>
                                                 <Button
                                                     title="Editar categoria"
                                                     onClick={() => handleEditar(categoria)}
+                                                    className="queue-page__action queue-page__action--success"
                                                     color="primary"
                                                     size="medium"
                                                     variant="contained"
@@ -96,6 +112,7 @@ export default function CategoriasExame() {
                                                 <Button
                                                     title="Remover categoria"
                                                     onClick={() => dispatch(removeCategoriaFetch(categoria.id))}
+                                                    className="queue-page__action queue-page__action--danger"
                                                     color="error"
                                                     size="medium"
                                                     variant="contained"
@@ -104,7 +121,7 @@ export default function CategoriasExame() {
                                                 </Button>
                                             </Box>
                                         </TableCell>
-                                    </TableRow>
+                                    </StyledTableRow>
                                 ))}
                             {filtradas.length === 0 && (
                                 <TableRow>
@@ -116,6 +133,7 @@ export default function CategoriasExame() {
                         </TableBody>
                     </Table>
                     <TablePagination
+                        className="queue-page__pagination"
                         component="div"
                         count={filtradas.length}
                         page={page}

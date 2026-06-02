@@ -24,12 +24,17 @@ const formatUnit = (value) => {
 
 export default function MonthlyAcquisitionsManager() {
   const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-      backgroundColor: 'var(--lg-glass-row-hover)',
+    '& td': {
+      background: 'var(--queue-row-bg)',
+      borderTop: '0.5px solid var(--lg-border)',
+      borderBottom: '0.5px solid var(--lg-border)',
+      paddingTop: 12,
+      paddingBottom: 12,
+      color: 'var(--queue-text-primary)',
     },
-    '&:last-child td, &:last-child th': {
-      border: 0,
-    },
+    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
+    '&:hover td': { background: 'var(--queue-row-hover)' },
   }));
 
   const dispatch = useDispatch();
@@ -40,6 +45,8 @@ export default function MonthlyAcquisitionsManager() {
   const [referenceMonth, setReferenceMonth] = useState(defaultMaskedMonth);
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
+  const totalCount = Number(pagination?.total || 0);
+  const lastPageIndex = Math.max(0, Math.ceil(totalCount / perPage) - 1);
 
   const toApiMonth = (maskedMonth) => {
     const cleaned = String(maskedMonth || '').replace(/\D/g, '').slice(0, 6);
@@ -84,6 +91,13 @@ export default function MonthlyAcquisitionsManager() {
     }
   }, [pagination?.current_page]);
 
+  useEffect(() => {
+    if (page > lastPageIndex) {
+      setPage(lastPageIndex);
+      dispatch(getMonthlyAcquisitions(buildParams({ page: lastPageIndex + 1 })));
+    }
+  }, [page, lastPageIndex, dispatch]);
+
   const handleReferenceMonth = (event) => {
     setReferenceMonth(event.target.value);
     setPage(0);
@@ -109,10 +123,10 @@ export default function MonthlyAcquisitionsManager() {
   };
 
   return (
-    <Box sx={modalFormRootSx}>
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-monthly-page">
       <BaseCard title="Aquisições Mensais de Medicamentos">
         <AlertModal />
-        <Box
+        <Box className="queue-page__toolbar"
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: '1fr auto', md: 'minmax(240px, 1fr) auto' },
@@ -137,7 +151,7 @@ export default function MonthlyAcquisitionsManager() {
               />
             )}
           </InputMask>
-          <Fab
+          <Fab className="queue-page__fab queue-page__fab--add"
             color="primary"
             size="medium"
             onClick={() => setDialogOpen(true)}
@@ -147,15 +161,15 @@ export default function MonthlyAcquisitionsManager() {
           </Fab>
         </Box>
 
-        <TableContainer>
-          <Table sx={{ whiteSpace: 'nowrap' }}>
+        <TableContainer className="queue-page__table-wrap">
+          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell><Typography variant="h6">Qtd.</Typography></TableCell>
-                <TableCell><Typography variant="h6">Unidade</Typography></TableCell>
-                <TableCell><Typography variant="h6">Origem</Typography></TableCell>
-                <TableCell><Typography variant="h6">Observação</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Qtd.</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Unidade</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Origem</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -171,13 +185,26 @@ export default function MonthlyAcquisitionsManager() {
             </TableBody>
           </Table>
           <TablePagination
+            className="queue-page__pagination"
             component="div"
-            count={pagination?.total || 0}
+            count={totalCount}
             page={page}
             onPageChange={handlePage}
             rowsPerPage={perPage}
             onRowsPerPageChange={handlePerPage}
             rowsPerPageOptions={PER_PAGE_OPTIONS}
+            labelRowsPerPage="Por página:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
+            sx={{
+              '& .MuiTablePagination-toolbar': {
+                flexWrap: 'wrap',
+                rowGap: 0.5,
+                justifyContent: { xs: 'center', md: 'space-between' },
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                margin: 0,
+              },
+            }}
           />
         </TableContainer>
 

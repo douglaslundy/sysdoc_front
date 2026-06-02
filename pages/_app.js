@@ -7,6 +7,8 @@ import createEmotionCache from "../src/createEmotionCache";
 import FullLayout from "../src/layouts/FullLayout";
 import "../styles/style.css";
 import "../styles/theme-liquid-glass.css";
+import "../styles/dashboard-neon.css";
+import "../styles/queue-page.css";
 import "leaflet/dist/leaflet.css";
 import { Provider } from "react-redux";
 import store from "../src/store";

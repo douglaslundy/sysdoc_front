@@ -34,15 +34,16 @@ import AlertModal from "../messagesModal";
 
 
 const StyledTableRow = styled(TableRow)(() => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: 'var(--lg-glass-row-hover)',
-    },
     '& td': {
-        background: 'var(--lg-glass-row)',
+        background: 'var(--queue-row-bg)',
         borderTop: '0.5px solid var(--lg-border)',
         borderBottom: '0.5px solid var(--lg-border)',
         paddingTop: 12,
         paddingBottom: 12,
+        color: 'var(--queue-text-primary)',
+    },
+    '& td + td': {
+        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
     },
     '& td:first-of-type': {
         borderLeft: '0.5px solid var(--lg-border)',
@@ -54,8 +55,8 @@ const StyledTableRow = styled(TableRow)(() => ({
         borderTopRightRadius: 14,
         borderBottomRightRadius: 14,
     },
-    '&:last-child td, &:last-child th': {
-        border: 0,
+    '&:hover td': {
+        background: 'var(--queue-row-hover)',
     },
 }));
 
@@ -145,12 +146,12 @@ export default () => {
     };
 
     return (
-        <Box sx={modalFormRootSx}>
+        <Box sx={modalFormRootSx} className="queue-page letters-page">
         <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
             <AlertModal />
             <ViewLetterModal />
 
-            <Box sx={{
+            <Box className="queue-page__toolbar" sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
                 'display': 'flex',
                 'justify-content': 'space-between',
@@ -183,9 +184,9 @@ export default () => {
                 </LetterModal>
             </Box>
 
-            <TableContainer>
+            <TableContainer className="queue-page__table-wrap">
 
-                <Table
+                <Table className="queue-page__table"
                     aria-label="simple table"
                     sx={{
                         mt: 3,
@@ -196,24 +197,24 @@ export default () => {
                 >
                     <TableHead>
                         <TableRow>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Numero / Data
                                 </Typography>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Remetente / Destinatário
                                 </Typography>
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
                                     Usuário / Assunto
                                 </Typography>
                             </TableCell>
 
-                            <TableCell align="center">
+                            <TableCell className="queue-page__th" align="center">
                                 <Typography color="textSecondary" variant="h6">
                                     Ações
                                 </Typography>
@@ -356,7 +357,7 @@ export default () => {
                     }
 
                 </Table>
-                <TablePagination
+                <TablePagination className="queue-page__pagination"
                     component="div"
                     count={allLetters.length}
                     page={page}

@@ -1,0 +1,14 @@
+
+# Paleta Dark
+#030712
+#071122
+#0A1630
+#2563EB
+#7C3AED
+
+# Paleta Light
+#F8FAFC
+#FFFFFF
+#F1F5F9
+#2563EB
+#7C3AED
