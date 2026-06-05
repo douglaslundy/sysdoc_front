@@ -1,4 +1,4 @@
-import { differenceInYears, parseISO } from 'date-fns';
+import { differenceInYears, format, isValid, parseISO } from 'date-fns';
 
 // =============================================================================
 // REFERÊNCIA DE LAYOUT
@@ -40,6 +40,47 @@ function padAlfa(value, size) {
     .replace(/[^A-Z0-9 ]/g, '')
     .padEnd(size, ' ')
     .slice(0, size);
+}
+
+/**
+ * Normaliza datas recebidas do backend para o formato AAAAMMDD do BPA.
+ * Aceita Date, YYYY-MM-DD, ISO datetime, YYYYMMDD e DD/MM/YYYY.
+ */
+function formatarDataBpa(value) {
+  if (!value) return '';
+
+  if (value instanceof Date) {
+    return isValid(value) ? format(value, 'yyyyMMdd') : '';
+  }
+
+  const raw = String(value).trim();
+  const isoDate = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) {
+    return `${isoDate[1]}${isoDate[2]}${isoDate[3]}`;
+  }
+
+  const brDate = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (brDate) {
+    return `${brDate[3]}${brDate[2]}${brDate[1]}`;
+  }
+
+  if (/^\d{8}$/.test(raw)) {
+    return raw;
+  }
+
+  const parsed = parseISO(raw);
+  return isValid(parsed) ? format(parsed, 'yyyyMMdd') : '';
+}
+
+function resolverDataNascimento(client) {
+  return formatarDataBpa(
+    client.born_date ??
+    client.birth_date ??
+    client.date_birth ??
+    client.data_nascimento ??
+    client.nascimento ??
+    ''
+  );
 }
 
 /** CR+LF obrigatório no fim de cada linha do arquivo BPA */
@@ -224,7 +265,7 @@ function resolverIdentificadorPaciente(cns, cpf) {
 //   14   prd-ldade          003  086  088  NUM   Idade [0..130]
 //   15   prd-qt             006  089  094  NUM   Quantidade procedimentos
 //   16   prd-crt            002  095  096  NUM   Caráter: 01=Eletivo 02=Urgência
-//   17   prd-naut           013  097  109  ALFA  Número de autorização
+//   17   prd-naut           013  097  109  ALFA  Número de autorização (campo livre)
 //   18   prd-org            003  110  112  ALFA  Origem: 'BPA','EXT','PNI'…
 //   19   prd-nmpac          030  113  142  ALFA  Nome completo do paciente
 //   20   prd-dtnasc         008  143  150  NUM   Data nascimento AAAAMMDD
@@ -456,12 +497,14 @@ export default function generateBPAIFile(trips, professionalConfig = {}) {
     ...CONFIG,
     ...professionalConfig,
     competencia,
+    cnes: String(professionalConfig.cnes ?? CONFIG.cnes).replace(/\D/g, ''),
     cnsProfissional: String(professionalConfig.cnsProfissional ?? CONFIG.cnsProfissional).replace(/\D/g, ''),
     cbo: String(professionalConfig.cbo ?? CONFIG.cbo).replace(/\D/g, ''),
+    numeroAutorizacao: String(professionalConfig.numeroAutorizacao ?? '').toUpperCase().slice(0, 13),
   };
 
   trips.forEach((trip) => {
-    const dataAtendimento = trip.departure_date.replace(/-/g, '');
+    const dataAtendimento = formatarDataBpa(trip.departure_date);
     const confirmados = trip.clients.filter((c) => c.pivot?.is_confirmed);
 
     confirmados.forEach((client) => {
@@ -496,14 +539,11 @@ export default function generateBPAIFile(trips, professionalConfig = {}) {
       // Quantidade baseada na distância (fórmula original mantida; mínimo 1)
       const quantidade = Math.max(1, Math.round((trip.route.distance * 2) / 50));
 
+      const dataNascimento = resolverDataNascimento(client);
       const sexo       = client.sexo === 'FEMININE' ? 'F' : 'M';
-      const nascimento = client.born_date ? parseISO(client.born_date) : new Date();
+      const nascimento = dataNascimento ? parseISO(`${dataNascimento.slice(0, 4)}-${dataNascimento.slice(4, 6)}-${dataNascimento.slice(6, 8)}`) : new Date();
       const dataPartida= parseISO(trip.departure_date);
       const idade      = differenceInYears(dataPartida, nascimento);
-
-      const dataNascimento = client.born_date
-        ? client.born_date.replace(/-/g, '')
-        : '';
 
       const addr = client.addresses ?? {};
 
@@ -528,7 +568,7 @@ export default function generateBPAIFile(trips, professionalConfig = {}) {
         idade,
         quantidade,
         carater: '01',  // 01=Eletivo
-        naut:    '',
+        naut:    config.numeroAutorizacao,
         origem:  'BPA',
 
         // Dados nominais

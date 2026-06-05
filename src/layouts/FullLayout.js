@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Router from "next/router";
 import {
   experimentalStyled,
   useMediaQuery,
@@ -9,7 +10,6 @@ import {
 import Header from "./header/Header";
 import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
-import { useRouter } from "next/router";
 import AuthGuard from "../components/authGuard";
 
 const SIDEBAR_WIDTH = 318;
@@ -32,16 +32,31 @@ const FullLayout = ({ children }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
-  const [isSidebarOpen, setSidebarOpen] = useState(isDesktop);
-  const router = useRouter();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    setSidebarOpen(isDesktop);
-  }, [router.pathname, isDesktop]);
+    if (isDesktop) {
+      setSidebarOpen(true);
+    }
+  }, [isDesktop]);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
   };
+
+  useEffect(() => {
+    const closeMobileSidebar = () => {
+      if (!isDesktop) {
+        setSidebarOpen(false);
+      }
+    };
+
+    Router.events.on("routeChangeStart", closeMobileSidebar);
+
+    return () => {
+      Router.events.off("routeChangeStart", closeMobileSidebar);
+    };
+  }, [isDesktop]);
 
   return (
     <>

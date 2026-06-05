@@ -26,6 +26,8 @@ export const removeAlertMessage = createAction('REMOVE_ALERT_MESSAGE');
 export const clearAlertMessages = createAction('CLEAR_ALERT_MESSAGES');
 
 export const turnLoading = createAction('IS_OPEN_LOADING');
+export const openLoading = createAction('OPEN_LOADING');
+export const closeLoading = createAction('CLOSE_LOADING');
 export const turnModal = createAction('IS_OPEN_MODAL');
 export const openModal = createAction('OPEN_MODAL');
 export const closeModal = createAction('CLOSE_MODAL');
@@ -63,6 +65,12 @@ const uiReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(turnLoading, (state) => {
       state.isOpenLoading = !state.isOpenLoading;
+    })
+    .addCase(openLoading, (state) => {
+      state.isOpenLoading = true;
+    })
+    .addCase(closeLoading, (state) => {
+      state.isOpenLoading = false;
     })
     .addCase(turnModal, (state) => {
       state.isOpenModal = !state.isOpenModal;

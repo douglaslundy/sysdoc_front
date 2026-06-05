@@ -14,11 +14,16 @@ export const getAllProfiles = () => (dispatch) => {
         .catch(() => dispatch(turnLoading()));
 };
 
-export const getAllPages = () => (dispatch) => {
-    dispatch(turnLoading());
+export const getAllPages = ({ silent = false } = {}) => (dispatch) => {
+    if (!silent) dispatch(turnLoading());
     api.get('/system-pages')
-        .then(res => { dispatch(addPages(res.data)); dispatch(turnLoading()); })
-        .catch(() => dispatch(turnLoading()));
+        .then(res => {
+            dispatch(addPages(res.data));
+            if (!silent) dispatch(turnLoading());
+        })
+        .catch(() => {
+            if (!silent) dispatch(turnLoading());
+        });
 };
 
 export const getAllPageCategories = () => (dispatch) => {
@@ -174,4 +179,3 @@ export const getMyPermissions = () => (dispatch) => {
         .then(res => dispatch(setMyPermissions(res.data.paths || [])))
         .catch(() => {});
 };
-

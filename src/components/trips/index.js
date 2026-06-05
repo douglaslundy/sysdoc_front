@@ -62,6 +62,28 @@ const StyledTableRow = styled(TableRow)(() => ({
   '&:hover td': { background: 'var(--queue-row-hover)' },
 }));
 
+const BPA_AUTORIZACAO_MAX_LENGTH = 13;
+const BPA_CNES_MAX_LENGTH = 7;
+const ROUTE_TIME_MAX_LENGTH = 30;
+
+const getRouteDisplayText = (route) => {
+  const routeText = [route?.origin, route?.destination]
+    .filter(Boolean)
+    .map((value) => value.toUpperCase())
+    .join(" X ");
+
+  return (routeText || "ROTA NAO ATRIBUIDA").slice(0, ROUTE_TIME_MAX_LENGTH);
+};
+
+const getRouteTitleText = (route) => {
+  const routeText = [route?.origin, route?.destination]
+    .filter(Boolean)
+    .map((value) => value.toUpperCase())
+    .join(" X ");
+
+  return routeText || "ROTA NAO ATRIBUIDA";
+};
+
 const SwitchModal = ({ option }) => {
   switch (option) {
     case "addCli":
@@ -86,6 +108,7 @@ export default function Trips() {
   const { trips } = useSelector((state) => state.trips);
   const { isOpenLoading } = useSelector((state) => state.layout);
   const [searchValue, setSearchValue] = useState("");
+  const [searchMode, setSearchMode] = useState("include");
   const [allTrips, setAllTrips] = useState(trips);
   const [option, setOption] = useState("add");
   const [dateBegin, setDateBegin] = useState(new Date());
@@ -94,8 +117,10 @@ export default function Trips() {
   const [selectAllTrips, setSelectAllTrips] = useState(false);
   const [bpaModalOpen, setBpaModalOpen] = useState(false);
   const [bpaForm, setBpaForm] = useState({
+    cnes: "2794454",
     cnsProfissional: "",
     cbo: "",
+    numeroAutorizacao: "",
   });
   const [bpaErrors, setBpaErrors] = useState({});
 
@@ -111,11 +136,13 @@ export default function Trips() {
             const motorista = (trip.driver?.name ?? "").toLowerCase();
             const destino = (trip.route?.destination ?? "").toLowerCase();
             const placa = (trip.vehicle?.license_plate ?? "").toLowerCase();
-            return motorista.includes(term) || destino.includes(term) || placa.includes(term);
+            const matchesSearch = motorista.includes(term) || destino.includes(term) || placa.includes(term);
+
+            return searchMode === "exclude" ? !matchesSearch : matchesSearch;
           })
         : trips
     );
-  }, [searchValue, trips]);
+  }, [searchMode, searchValue, trips]);
 
   const handleInactiveTrip = async (trip) => {
     setConfirmDialog({
@@ -189,15 +216,23 @@ export default function Trips() {
   };
 
   const changeBpaForm = ({ target }) => {
-    const value = target.value.replace(/\D/g, "");
+    const value = target.name === "numeroAutorizacao"
+      ? target.value.toUpperCase().slice(0, BPA_AUTORIZACAO_MAX_LENGTH)
+      : target.value.replace(/\D/g, "");
     setBpaForm((prev) => ({ ...prev, [target.name]: value }));
     setBpaErrors((prev) => ({ ...prev, [target.name]: "" }));
   };
 
   const handleGenerateBpa = () => {
     const errors = {};
+    const cnes = bpaForm.cnes.replace(/\D/g, "");
     const cnsProfissional = bpaForm.cnsProfissional.replace(/\D/g, "");
     const cbo = bpaForm.cbo.replace(/\D/g, "");
+    const numeroAutorizacao = bpaForm.numeroAutorizacao.toUpperCase().slice(0, BPA_AUTORIZACAO_MAX_LENGTH);
+
+    if (cnes.length !== BPA_CNES_MAX_LENGTH) {
+      errors.cnes = "Informe o CNES com 7 digitos.";
+    }
 
     if (cnsProfissional.length !== 15) {
       errors.cnsProfissional = "Informe o CNS com 15 digitos.";
@@ -212,22 +247,34 @@ export default function Trips() {
       return;
     }
 
-    loteTxt(allTrips, { cnsProfissional, cbo });
+    loteTxt(allTrips, { cnes, cnsProfissional, cbo, numeroAutorizacao });
     closeBpaModal();
   };
 
   const actionFabSx = {
-    width: 40,
-    height: 40,
-    minHeight: 40,
+    width: 48,
+    height: 48,
+    minHeight: 48,
     boxShadow: "var(--lg-shadow-btn)",
+  };
+  const tripDatePickerSx = {
+    flex: "0 0 154px",
+    minWidth: 154,
+    width: 154,
+    maxWidth: 154,
+    "& .MuiInputBase-input": {
+      fontSize: "0.85rem",
+    },
+    "& .MuiInputLabel-root": {
+      fontSize: "0.85rem",
+    },
   };
 
   return (
     <Box sx={modalFormRootSx} className="queue-page">
     <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastradas`}>
       <Backdrop
-        open={isOpenLoading}
+        open={isOpenLoading && allTrips.length === 0}
         sx={{
           position: 'absolute',
           zIndex: 20,
@@ -247,17 +294,28 @@ export default function Trips() {
       <Stack className="queue-page__toolbar" sx={{ gap: 1.5, mb: 2 }}>
         <SwitchModal option={option} />
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, width: '100%' }}>
 
           {/* Filtros: todos inline na mesma linha */}
-          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 1.5, flex: '1 1 0%', minWidth: 0, width: '100%', justifyContent: 'flex-start' }}>
             <TextField
-              className="lg-search-field"
+              className="lg-search-field trips-search-field"
               placeholder="Buscar por motorista, destino ou placa"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               size="small"
-              sx={{ flex: 1, minWidth: 180 }}
+              sx={{ flex: '1 1 0%', minWidth: 0, width: '100%' }}
+            />
+
+            <FormControlLabel
+              sx={{ flexShrink: 0, whiteSpace: "nowrap", m: 0 }}
+              control={
+                <Switch
+                  checked={searchMode === "exclude"}
+                  onChange={(e) => setSearchMode(e.target.checked ? "exclude" : "include")}
+                />
+              }
+              label={searchMode === "exclude" ? "Excluir" : "Incluir"}
             />
 
             <BasicDatePicker
@@ -265,7 +323,8 @@ export default function Trips() {
               name="date_begin"
               value={dateBegin}
               setValue={setDateBegin}
-              sx={{ minWidth: 170, width: 170 }}
+              className="lg-search-field trips-date-field"
+              sx={tripDatePickerSx}
             />
 
             <BasicDatePicker
@@ -274,7 +333,8 @@ export default function Trips() {
               value={dateEnd}
               disabled={!dateBegin}
               setValue={setDateEnd}
-              sx={{ minWidth: 170, width: 170 }}
+              className="lg-search-field trips-date-field"
+              sx={tripDatePickerSx}
             />
 
             <Button
@@ -283,7 +343,7 @@ export default function Trips() {
               disabled={!dateBegin}
               color="primary"
               variant="contained"
-              sx={{ minWidth: 44, height: 40, px: 1.2, flexShrink: 0 }}
+              sx={{ minWidth: 48, height: 48, minHeight: 48, px: 1.2, flexShrink: 0 }}
             >
               <FeatherIcon icon="search" width="16" height="16" />
             </Button>
@@ -293,7 +353,7 @@ export default function Trips() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
             {profile === "admin" && (
               <>
-                <Fab
+              <Fab
                   title="Imprimir PDF com BPA-I"
                   onClick={() => { bpaTripsPdf(allTrips); }}
                   color="success"
@@ -322,7 +382,7 @@ export default function Trips() {
                 color="success"
                 aria-label="imprimir-mapa"
                 disabled={allTrips.length <= 0}
-                sx={{ ...actionFabSx, width: 44, height: 44 }}
+                sx={actionFabSx}
               >
               <FeatherIcon icon="printer" width="16" height="16" />
             </Fab>
@@ -331,7 +391,7 @@ export default function Trips() {
               title="Cadastrar viagem"
               onClick={() => { handleGoTrip(); }}
               icon="user-plus"
-              sx={{ ...actionFabSx, width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
+              sx={{ ...actionFabSx, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
             />
           </Box>
 
@@ -372,7 +432,7 @@ export default function Trips() {
         >
           <TableHead>
             <TableRow>
-              <TableCell className="queue-page__th">
+              <TableCell className="queue-page__th" sx={{ width: '1%', whiteSpace: 'nowrap' }}>
                 <Typography color="textSecondary" variant="h6">
                   IMPRIMIR
                 </Typography>
@@ -384,12 +444,12 @@ export default function Trips() {
               </TableCell>
               <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
-                  MOTORISTA / VEÃCULO
+                  MOTORISTA / VEÍCULO
                 </Typography>
               </TableCell>
               <TableCell className="queue-page__th">
                 <Typography color="textSecondary" variant="h6">
-                  ROTA / HORÃRIO
+                  ROTA / HORÁRIO
                 </Typography>
               </TableCell>
               <TableCell className="queue-page__th">
@@ -410,8 +470,9 @@ export default function Trips() {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((trip) => (
                 <StyledTableRow key={`${trip?.id}-${selectAllTrips}`} hover>
-                  <TableCell>
+                  <TableCell sx={{ width: '1%', whiteSpace: 'nowrap' }}>
                     <FormControlLabel
+                      sx={{ m: 0, whiteSpace: 'nowrap' }}
                       control={
                         <Switch
                           checked={!!printTrips.find((t) => t.id === trip.id)}
@@ -443,12 +504,12 @@ export default function Trips() {
                     >
                       <Box>
                         <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "15px" }}>
-                          {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÃDO"}
+                          {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO"}
                         </Typography>
                         <Typography variant="h6" sx={{ fontSize: "11px" }}>
                           {trip?.vehicle
                             ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES`
-                            : "VEÃCULO NÃO ATRIBUÃDO"}
+                            : "VEÍCULO NÃO ATRIBUÍDO"}
                         </Typography>
                       </Box>
                     </Box>
@@ -461,8 +522,9 @@ export default function Trips() {
                         fontWeight: "600",
                         fontSize: "15px",
                       }}
+                      title={getRouteTitleText(trip?.route)}
                     >
-                      {trip?.route?.origin.toUpperCase()} X {trip?.route?.destination.toUpperCase()}
+                      {getRouteDisplayText(trip?.route)}
                     </Typography>
 
                     <Typography variant="h6" sx={{ fontSize: "11px" }}>
@@ -531,10 +593,32 @@ export default function Trips() {
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
 
-      <Dialog open={bpaModalOpen} onClose={closeBpaModal} maxWidth="xs" fullWidth>
+      <Dialog
+        className="queue-page__dialog"
+        open={bpaModalOpen}
+        onClose={closeBpaModal}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            width: "min(440px, 96vw) !important",
+          },
+        }}
+      >
         <DialogTitle>Gerar BPA-I</DialogTitle>
         <DialogContent>
           <Stack sx={{ gap: 2, pt: 1 }}>
+            <TextField
+              label="CNES"
+              name="cnes"
+              value={bpaForm.cnes}
+              onChange={changeBpaForm}
+              inputProps={{ maxLength: BPA_CNES_MAX_LENGTH, inputMode: "numeric" }}
+              error={!!bpaErrors.cnes}
+              helperText={bpaErrors.cnes || "Obrigatorio para gerar o arquivo."}
+              fullWidth
+            />
+
             <TextField
               label="CNS do medico"
               name="cnsProfissional"
@@ -554,6 +638,16 @@ export default function Trips() {
               inputProps={{ maxLength: 6, inputMode: "numeric" }}
               error={!!bpaErrors.cbo}
               helperText={bpaErrors.cbo || "Obrigatorio para gerar o arquivo."}
+              fullWidth
+            />
+
+            <TextField
+              label="Numero de autorizacao"
+              name="numeroAutorizacao"
+              value={bpaForm.numeroAutorizacao}
+              onChange={changeBpaForm}
+              inputProps={{ maxLength: BPA_AUTORIZACAO_MAX_LENGTH }}
+              helperText={`Opcional no BPA-I. Maximo de ${BPA_AUTORIZACAO_MAX_LENGTH} caracteres.`}
               fullWidth
             />
           </Stack>

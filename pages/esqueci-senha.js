@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import {
-    Box, Button, TextField, Typography, Paper, Alert, CircularProgress, Link,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import Image from 'next/image';
+import { parseCookies } from 'nookies';
 import FeatherIcon from 'feather-icons-react';
-import NextLink from 'next/link';
 import { api } from '../src/services/api';
+import LogoDark from '../assets/images/logos/logo.png';
+import styles from '../styles/login-split.module.css';
 
 export default function EsqueciSenha() {
-    const theme = useTheme();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [sucesso, setSucesso] = useState(false);
     const [erro, setErro] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setErro('');
         setLoading(true);
+
         try {
             await api.post('/forgot-password', { email });
             setSucesso(true);
@@ -30,7 +29,7 @@ export default function EsqueciSenha() {
             } else if (lower.includes('authentication required') || lower.includes('expected response code "250" but got code "530"')) {
                 setErro('Nao foi possivel enviar o e-mail no momento por indisponibilidade do servico de envio. Tente novamente em instantes.');
             } else {
-                setErro(err.response?.data?.message || 'Erro ao enviar e-mail. Tente novamente.');
+                setErro(err?.response?.data?.message || 'Erro ao enviar e-mail. Tente novamente.');
             }
         } finally {
             setLoading(false);
@@ -38,77 +37,153 @@ export default function EsqueciSenha() {
     };
 
     return (
-        <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            minHeight="100vh"
-            bgcolor="background.default"
-            p={2}
-        >
-            <Paper
-                elevation={3}
-                sx={{
-                    p: 4,
-                    maxWidth: 440,
-                    width: '100%',
-                    borderRadius: 2,
-                    bgcolor: 'background.paper',
-                    color: 'text.primary',
-                }}
-            >
-                <Box textAlign="center" mb={3}>
-                    <FeatherIcon icon="lock" width="48" height="48" color={theme.palette.primary.main} />
-                    <Typography variant="h4" fontWeight="bold" mt={1}>
-                        Esqueceu a senha?
-                    </Typography>
-                    <Typography color="text.secondary" mt={1}>
-                        Informe seu e-mail cadastrado e enviaremos um link para redefinicao.
-                    </Typography>
-                </Box>
+        <main className={styles.loginPage}>
+            <div className={`${styles.orb} ${styles.orbTopLeft}`} aria-hidden="true" />
+            <div className={`${styles.orb} ${styles.orbBottomRight}`} aria-hidden="true" />
+            <div className={`${styles.ambient} ${styles.ambientLeft}`} aria-hidden="true" />
+            <div className={`${styles.ambient} ${styles.ambientRight}`} aria-hidden="true" />
 
-                {sucesso ? (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        <Typography fontWeight="bold">E-mail enviado!</Typography>
-                        <Typography variant="body2" mt={0.5}>
-                            Se o e-mail estiver cadastrado, voce recebera as instrucoes em breve.
-                            Verifique tambem a caixa de spam.
-                        </Typography>
-                    </Alert>
-                ) : (
-                    <form onSubmit={handleSubmit}>
-                        {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
-                        <TextField
-                            fullWidth
-                            label="E-mail"
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            required
-                            autoFocus
-                            sx={{ mb: 2 }}
+            <section className={styles.loginCopy} aria-labelledby="recovery-copy-title">
+                <span className={styles.eyebrow}>Recuperacao de acesso</span>
+
+                <h1 id="recovery-copy-title">
+                    Redefina sua senha<br />
+                    sem sair do <span>mesmo ambiente.</span>
+                </h1>
+
+                <p className={styles.copyDescription}>
+                    Informe o e-mail cadastrado para receber o link de redefinicao. O processo
+                    mantem o mesmo padrao visual da tela de login e preserva a experiencia do sistema.
+                </p>
+
+                <div className={styles.benefits} aria-label="Como funciona a recuperacao">
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">
+                            <FeatherIcon icon="mail" width="24" height="24" />
+                        </div>
+                        <div>
+                            <h2>Envio imediato</h2>
+                            <p>O link e enviado ao e-mail cadastrado assim que o formulario e validado.</p>
+                        </div>
+                    </article>
+
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">
+                            <FeatherIcon icon="shield" width="24" height="24" />
+                        </div>
+                        <div>
+                            <h2>Fluxo seguro</h2>
+                            <p>A solicitacao segue o mesmo padrao visual e de protecao usado no login.</p>
+                        </div>
+                    </article>
+
+                    <article className={styles.benefit}>
+                        <div className={styles.benefitIcon} aria-hidden="true">
+                            <FeatherIcon icon="arrow-left" width="24" height="24" />
+                        </div>
+                        <div>
+                            <h2>Retorno rapido</h2>
+                            <p>Apos redefinir a senha, voce volta ao login com apenas um clique.</p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section className={styles.loginPanel} aria-label="Recuperacao de senha">
+                <form className={styles.loginCard} onSubmit={handleSubmit}>
+                    <header className={styles.cardHeader}>
+                        <Image
+                            className={styles.brandLogo}
+                            src={LogoDark}
+                            alt="DL Sistemas Solucoes em TI"
+                            width={270}
+                            height={70}
+                            style={{ display: 'block' }}
                         />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            size="large"
-                            disabled={loading}
-                            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <FeatherIcon icon="send" width="18" height="18" />}
-                        >
-                            {loading ? 'Enviando...' : 'Enviar link de redefinicao'}
-                        </Button>
-                    </form>
-                )}
+                        <h2>Esqueceu a senha?</h2>
+                        <p>Digite o e-mail cadastrado para receber o link de redefinicao.</p>
+                    </header>
 
-                <Box textAlign="center" mt={3}>
-                    <NextLink href="/login" passHref>
-                        <Link underline="hover" color="primary">
+                    {sucesso ? (
+                        <div className={styles.statusMessage} role="status" aria-live="polite">
+                            <div className={styles.statusIcon} aria-hidden="true">
+                                <FeatherIcon icon="check-circle" width="20" height="20" />
+                            </div>
+                            <div>
+                                <strong>E-mail enviado</strong>
+                                <p>
+                                    Se o endereco estiver cadastrado, voce recebera as instrucoes em
+                                    breve. Verifique tambem a caixa de spam.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className={styles.recoveryFormWrap}>
+                            {erro ? (
+                                <div className={`${styles.statusMessage} ${styles.statusError}`} role="alert">
+                                    <div className={styles.statusIcon} aria-hidden="true">
+                                        <FeatherIcon icon="alert-triangle" width="20" height="20" />
+                                    </div>
+                                    <div>
+                                        <strong>Nao foi possivel enviar</strong>
+                                        <p>{erro}</p>
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            <div className={styles.fieldGroup}>
+                                <label htmlFor="email">E-mail</label>
+                                <div className={styles.inputShell}>
+                                    <span aria-hidden="true">@</span>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        inputMode="email"
+                                        autoComplete="email"
+                                        placeholder="Digite seu e-mail cadastrado"
+                                        value={email}
+                                        onChange={event => setEmail(event.target.value)}
+                                        autoFocus
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <button className={styles.submitButton} type="submit" disabled={loading}>
+                                {loading ? 'Enviando...' : 'Enviar link de redefinicao'}
+                            </button>
+                        </div>
+                    )}
+
+                    <div className={styles.recoveryFooter}>
+                        <a href="/login" className={styles.backLink}>
+                            <FeatherIcon icon="arrow-left" width="16" height="16" />
                             Voltar para o login
-                        </Link>
-                    </NextLink>
-                </Box>
-            </Paper>
-        </Box>
+                        </a>
+                    </div>
+                </form>
+
+                <footer className={styles.loginFooter}>
+                    Copyright © DL Sistemas {new Date().getFullYear()} • Todos os direitos reservados.
+                </footer>
+            </section>
+        </main>
     );
+}
+
+export async function getServerSideProps(context) {
+    const cookies = parseCookies(context);
+    const hasSession = cookies['sysvendas.id'] && cookies['sysvendas.profile'];
+
+    if (hasSession) {
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false,
+            },
+        };
+    }
+
+    return { props: {} };
 }

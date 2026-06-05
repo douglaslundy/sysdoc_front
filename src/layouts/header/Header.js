@@ -4,10 +4,11 @@ import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
+import { getPageTitle } from "../../utils/pageTitle";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const { pathname } = useRouter();
-  const pageTitle = pathname === "/dashboard" ? "Dashboard" : (pathname.split("/").filter(Boolean).pop() || "Dashboard");
+  const pageTitle = getPageTitle(pathname);
 
   return (
     <AppBar
@@ -48,11 +49,12 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
 
         <Typography
           sx={{
-            fontSize: { xs: "18px", md: "24px" },
+            fontSize: { xs: "14px", md: "16px" },
             fontWeight: 700,
             color: "var(--lg-text-primary)",
             textTransform: "capitalize",
-            lineHeight: 1.2,
+            lineHeight: 1.15,
+            letterSpacing: "-0.02em",
           }}
         >
           {pageTitle}

@@ -59,7 +59,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   // Aguarda o token estar disponível antes de buscar as páginas, evitando 401 na corrida de inicialização.
   useEffect(() => {
     if (!permissionsLoaded) return;
-    dispatch(getAllPages());
+    dispatch(getAllPages({ silent: true }));
   }, [dispatch, profile, myPermissions, permissionsLoaded]);
 
   const dynamicMenu = useMemo(() => {
@@ -131,10 +131,17 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
   }, [reduxPages, profile, myPermissions]);
 
-  const menuGroups = dynamicMenu.length > 0 ? dynamicMenu : Menuitems;
+  const hasRenderableDynamicMenu = dynamicMenu.some((group) =>
+    group.children.some((child) => {
+      if (child.public) return true;
+      if (profile === "admin") return true;
+      return myPermissions.includes(child.href);
+    })
+  );
+  const menuGroupsToRender = hasRenderableDynamicMenu ? dynamicMenu : Menuitems;
 
   useEffect(() => {
-    menuGroups.forEach((group) => {
+    menuGroupsToRender.forEach((group) => {
       const hasActive = group.children.some((child) => pathname === child.href);
       if (hasActive) {
         setOpenGroups((prev) =>
@@ -142,7 +149,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         );
       }
     });
-  }, [pathname, menuGroups]);
+  }, [pathname, menuGroupsToRender]);
 
   const toggleGroup = (title) => {
     setOpenGroups((prev) =>
@@ -155,6 +162,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       <ListItemButton
         onClick={onSidebarClose}
         sx={{
+          width: "100%",
           pl: 3,
           py: 1.1,
           mb: 0.6,
@@ -189,7 +197,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         </ListItemIcon>
         <ListItemText
           primary={item.title}
-          primaryTypographyProps={{ fontSize: "0.82rem" }}
+          primaryTypographyProps={{ fontSize: "0.82rem", color: "inherit" }}
         />
       </ListItemButton>
     </NextLink>
@@ -211,6 +219,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         <ListItemButton
           onClick={() => toggleGroup(group.title)}
           sx={{
+            width: "100%",
             borderRadius: "10px",
             mb: 0.6,
             color: "var(--lg-text-primary)",
@@ -269,6 +278,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       sx={{
         mt: "64px",
         position: "relative",
+        zIndex: 1,
         overflowY: "auto",
       }}
     >
@@ -285,9 +295,10 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
         <List disablePadding>
           {isDashboardVisible && (
             <NextLink href={DashboardItem.href} passHref>
-              <ListItemButton
+                <ListItemButton
                 onClick={onSidebarClose}
                 sx={{
+                  width: "100%",
                   mb: 0.8,
                   borderRadius: "12px",
                   color: "var(--lg-nav-color)",
@@ -319,99 +330,79 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
                 </ListItemIcon>
                 <ListItemText
                   primary={DashboardItem.title}
-                  primaryTypographyProps={{ fontWeight: 500, fontSize: "0.82rem" }}
+                  primaryTypographyProps={{ fontWeight: 500, fontSize: "0.82rem", color: "inherit" }}
                 />
               </ListItemButton>
             </NextLink>
           )}
 
-          {menuGroups.map((group) => renderGroup(group))}
+          {menuGroupsToRender.map((group) => renderGroup(group))}
         </List>
       </Box>
     </Box>
   );
 
   return (
-    <Drawer
-      anchor="left"
-      open={isSidebarOpen}
-      onClose={onSidebarClose}
-      variant={isDesktop ? "persistent" : "temporary"}
-      sx={{
-        ...(isDesktop && {
-          "& .MuiDrawer-paper": {
+    isDesktop ? (
+      isSidebarOpen ? (
+        <Box
+          className="lg-sidebar-paper"
+          sx={{
+            width: `${SIDEBAR_WIDTH}px`,
+            height: "100vh",
             position: "fixed",
             top: 0,
             left: 0,
-            height: "100vh",
+            zIndex: (theme) => theme.zIndex.drawer,
+            border: 0,
+            background: `
+              radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.14) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+              linear-gradient(180deg, var(--lg-glass-sidebar) 0%, var(--lg-glass-sidebar) 100%)
+            `,
+            backdropFilter: "var(--lg-blur-sidebar)",
+            WebkitBackdropFilter: "var(--lg-blur-sidebar)",
+            borderRight: "1px solid var(--lg-border-sidebar)",
+            boxShadow: "inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.12), 0 20px 38px rgba(1, 7, 26, 0.24)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {SidebarContent}
+        </Box>
+      ) : null
+    ) : (
+      <Drawer
+        anchor="left"
+        open={isSidebarOpen}
+        onClose={onSidebarClose}
+        variant="temporary"
+        ModalProps={{
+          keepMounted: false,
+        }}
+        PaperProps={{
+          className: "lg-sidebar-paper",
+          sx: {
+            width: `${SIDEBAR_WIDTH}px`,
+            border: 0,
+            background: `
+              radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.14) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+              linear-gradient(180deg, var(--lg-glass-sidebar) 0%, var(--lg-glass-sidebar) 100%)
+            `,
+            backdropFilter: "var(--lg-blur-sidebar)",
+            WebkitBackdropFilter: "var(--lg-blur-sidebar)",
+            borderRight: "1px solid var(--lg-border-sidebar)",
+            boxShadow: "inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.12), 0 20px 38px rgba(1, 7, 26, 0.24)",
+            overflow: "hidden",
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
           },
-        }),
-      }}
-      PaperProps={{
-        className: "lg-sidebar-paper",
-        sx: {
-          width: `${SIDEBAR_WIDTH}px`,
-          border: "0 !important",
-          background: `
-            radial-gradient(112% 102% at 8% 92%, rgba(var(--lg-accent-rgb), 0.14) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
-            linear-gradient(180deg, var(--lg-glass-sidebar) 0%, var(--lg-glass-sidebar) 100%)
-          `,
-          backdropFilter: "var(--lg-blur-sidebar)",
-          WebkitBackdropFilter: "var(--lg-blur-sidebar)",
-          borderRight: "1px solid var(--lg-border-sidebar)",
-          boxShadow: "inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.12), 0 20px 38px rgba(1, 7, 26, 0.24)",
-          overflow: "hidden",
-          position: "relative",
-        },
-      }}
-    >
-      {SidebarContent}
-      {/* Glow effects posicionados relativos ao Paper, contidos pelo overflow:hidden */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          height: 168,
-          pointerEvents: "none",
-          overflow: "hidden",
-          zIndex: 0,
         }}
       >
-        {/* Glow base discreto */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "-92px",
-            bottom: "-106px",
-            width: "292px",
-            height: "194px",
-            background: "radial-gradient(circle at 40% 44%, rgba(var(--lg-accent-rgb), 0.24), rgba(var(--lg-accent-rgb), 0) 62%)",
-            filter: "blur(9px)",
-            opacity: 0.66,
-          }}
-        />
-        {/* Arcos de luz no mesmo padrão da referência */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "-86px",
-            bottom: "-44px",
-            width: "312px",
-            height: "126px",
-            opacity: 0.86,
-            background: `
-              radial-gradient(134% 122% at 0% 100%, transparent 65.3%, rgba(var(--lg-accent-rgb), 0.50) 66.0%, transparent 66.7%),
-              radial-gradient(134% 122% at 0% 100%, transparent 71.2%, rgba(var(--lg-accent-rgb), 0.42) 71.9%, transparent 72.6%),
-              radial-gradient(134% 122% at 0% 100%, transparent 77.1%, rgba(var(--lg-accent-rgb), 0.34) 77.8%, transparent 78.5%)
-            `,
-            filter: "drop-shadow(0 0 6px rgba(var(--lg-accent-rgb), 0.34))",
-          }}
-        />
-      </Box>
-    </Drawer>
+        {SidebarContent}
+      </Drawer>
+    )
   );
 };
 

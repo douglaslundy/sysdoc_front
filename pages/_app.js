@@ -20,6 +20,7 @@ import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
 import Router, { useRouter } from "next/router";
 import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 import { api } from "../src/services/api";
+import { getPageTitle } from "../src/utils/pageTitle";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -68,7 +69,7 @@ export default function MyApp(props) {
   return (
     <CacheProvider value={emotionCache}>
       <Head>
-        <title>SysDoc - Controle de Documentos</title>
+        <title>{`SysDoc - ${getPageTitle(router.pathname)}`}</title>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
         <script
           dangerouslySetInnerHTML={{

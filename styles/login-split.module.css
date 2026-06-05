@@ -447,3 +447,88 @@
     width: 380px;
   }
 }
+
+.recoveryFormWrap {
+  display: grid;
+  gap: 18px;
+}
+
+.statusMessage {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(0, 183, 255, 0.10);
+  border: 1px solid rgba(0, 183, 255, 0.20);
+  color: var(--text-soft);
+}
+
+.statusMessage strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.statusMessage p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.statusError {
+  background: rgba(255, 90, 122, 0.08);
+  border-color: rgba(255, 90, 122, 0.20);
+}
+
+.statusIcon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--cyan);
+  background: rgba(0, 183, 255, 0.10);
+  border: 1px solid rgba(0, 183, 255, 0.18);
+  flex-shrink: 0;
+}
+
+.statusError .statusIcon {
+  color: #ff8da2;
+  background: rgba(255, 90, 122, 0.10);
+  border-color: rgba(255, 90, 122, 0.18);
+}
+
+.recoveryFooter {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.backLink:focus-visible {
+  outline: 3px solid rgba(0, 183, 255, 0.65);
+  outline-offset: 3px;
+}
+
+.submitButton:disabled {
+  cursor: progress;
+  opacity: 0.82;
+  transform: none;
+}

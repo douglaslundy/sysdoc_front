@@ -36,8 +36,9 @@
 
 .queue-page .card__title {
   color: var(--queue-text-primary);
-  font-size: 40px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.15;
 }
 
 .queue-page .card__content {
@@ -50,6 +51,35 @@
 
 .queue-page .queue-page__toolbar .lg-search-field {
   min-width: 320px;
+}
+
+.queue-page .queue-page__toolbar .trips-search-field {
+  min-width: 0 !important;
+  width: auto !important;
+  flex: 1 1 auto !important;
+}
+
+.queue-page .queue-page__toolbar .trips-date-field {
+  min-width: 154px !important;
+  width: 154px !important;
+  max-width: 154px !important;
+  flex: 0 0 154px !important;
+}
+
+.queue-page .queue-page__toolbar .trips-date-field .MuiInputBase-input {
+  font-size: var(--lg-search-input-font-size) !important;
+}
+
+.queue-page .queue-page__toolbar .trips-date-field .MuiInputLabel-root {
+  font-size: var(--lg-search-input-font-size) !important;
+}
+
+.queue-page .queue-page__toolbar .trips-search-field .MuiInputBase-input {
+  font-size: var(--lg-search-input-font-size) !important;
+}
+
+.queue-page .queue-page__toolbar .trips-search-field .MuiOutlinedInput-root {
+  width: 100%;
 }
 
 .queue-page.lab-pedidos-page .queue-page__toolbar .lg-search-field {
@@ -65,7 +95,7 @@
 }
 
 .queue-page.pharmacy-dailystatus-page .queue-page__toolbar .lg-search-field .MuiInputBase-input {
-  font-size: 14px;
+  font-size: var(--lg-search-input-font-size);
 }
 
 .queue-page.pharmacy-dailystatus-page .queue-page__toolbar .lg-search-field .MuiSelect-select {
@@ -107,7 +137,7 @@
 
 .queue-page .queue-page__toolbar .lg-search-field .MuiInputBase-input {
   color: var(--queue-text-primary);
-  font-size: 31px;
+  font-size: var(--lg-search-input-font-size);
 }
 
 .queue-page .queue-page__toolbar .lg-search-field .MuiInputBase-input::placeholder {
@@ -156,7 +186,7 @@
 
 .queue-page .queue-page__table .MuiTableHead-root .MuiTypography-root {
   color: var(--queue-text-muted);
-  font-size: 24px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -246,6 +276,13 @@
 .queue-page .queue-page__pagination {
   margin-top: 12px;
   color: var(--queue-text-primary);
+}
+
+.queue-page .queue-page__pagination .MuiTablePagination-selectLabel,
+.queue-page .queue-page__pagination .MuiTablePagination-displayedRows {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--queue-text-muted);
 }
 
 .queue-page .queue-page__pagination .MuiTablePagination-toolbar {
