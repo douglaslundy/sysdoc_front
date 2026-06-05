@@ -19,6 +19,9 @@ export const conformidadeCidadaoApi = {
     historico: (page = 1, perPage = 15) =>
         api.get(`${BASE}/historico`, { params: { page, per_page: perPage } }).then(r => r.data),
 
+    itens: (jobId, page = 1, perPage = 50) =>
+        api.get(`${BASE}/itens/${jobId}`, { params: { page, per_page: perPage } }).then(r => r.data),
+
     erros: (jobId, page = 1, perPage = 50) =>
         api.get(`${BASE}/erros/${jobId}`, { params: { page, per_page: perPage } }).then(r => r.data),
 };

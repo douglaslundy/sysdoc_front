@@ -4,12 +4,14 @@ import {
     Box, Typography, Button, Alert, CircularProgress,
     Table, TableBody, TableCell, TableHead, TableRow,
     TableContainer, Paper, Chip, Grid, TablePagination,
-    LinearProgress, TextField,
+    LinearProgress, TextField, Dialog, DialogTitle,
+    DialogContent, DialogActions, Tooltip,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { conformidadeCidadaoApi } from '../../services/conformidadeCidadaoApi';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { generateConformidadeHistoricoPDF } from '../../reports/conformidadeCidadao';
 
 const CHIP_COLORS = { criar: 'success', atualizar: 'info', obito: 'error' };
 const CHIP_LABELS = { criar: 'Criar', atualizar: 'Atualizar', obito: 'Óbito' };
@@ -67,13 +69,12 @@ function PageJumper({ currentPage, lastPage, onGo }) {
             {currentPage < lastPage && (
                 <Button size="small" variant="outlined" sx={{ minWidth: 0, px: 1, fontSize: 12 }}
                     onClick={() => onGo(lastPage)}>
-                    Última
+                    Ultima
                 </Button>
             )}
         </Box>
     );
 }
-
 export default function ConformidadeCidadao() {
     const [fase, setFase] = useState('idle');
     const [jobId, setJobId] = useState(null);
@@ -83,6 +84,14 @@ export default function ConformidadeCidadao() {
     const [historico, setHistorico] = useState([]);
     const [histMeta, setHistMeta] = useState({ total: 0, per_page: 15, current_page: 1, last_page: 1 });
     const [errosDetalhe, setErrosDetalhe] = useState([]);
+    const [detalhesHistorico, setDetalhesHistorico] = useState({
+        open: false,
+        loading: false,
+        row: null,
+        itens: [],
+        meta: { total: 0, per_page: 50, current_page: 1, last_page: 1 },
+    });
+    const [pdfJobId, setPdfJobId] = useState(null);
     const [erro, setErro] = useState(null);
     const [cancelando, setCancelando] = useState(false);
     const pollingRef = useRef(null);
@@ -135,7 +144,7 @@ export default function ConformidadeCidadao() {
                 const data = await conformidadeCidadaoApi.status(jid);
                 processarStatus(data, jid);
             } catch (_) {}
-        }, 3000);
+        }, 1000);
     }, [stopPolling, processarStatus]);
 
     // Na montagem: carrega histórico e reconecta a job em andamento
@@ -230,11 +239,22 @@ export default function ConformidadeCidadao() {
         }
     };
 
-    const handleDescartarPreview = () => {
-        setFase('idle');
-        setJobId(null);
-        setSyncData(null);
-        setItens([]);
+    const handleDescartarPreview = async () => {
+        if (!jobId) return;
+        setCancelando(true);
+        try {
+            await conformidadeCidadaoApi.cancelar(jobId);
+            setFase('idle');
+            setJobId(null);
+            setSyncData(null);
+            setItens([]);
+            setErro(null);
+            carregarHistorico();
+        } catch (_) {
+            setErro('Nao foi possivel descartar a previa.');
+        } finally {
+            setCancelando(false);
+        }
     };
 
     const handleItensPagina = async (_, newPage) => {
@@ -253,6 +273,63 @@ export default function ConformidadeCidadao() {
         setErrosDetalhe([]);
         setErro(null);
         carregarHistorico();
+    };
+
+    const carregarDetalhesHistorico = async (row, page = 1) => {
+        if (!row?.job_id || row.job_id === '__new__') return;
+
+        setDetalhesHistorico(prev => ({
+            ...prev,
+            open: true,
+            loading: true,
+            row,
+        }));
+
+        try {
+            const data = await conformidadeCidadaoApi.itens(row.job_id, page, detalhesHistorico.meta.per_page);
+            setDetalhesHistorico(prev => ({
+                ...prev,
+                open: true,
+                loading: false,
+                row: data.sync ?? row,
+                itens: data.data ?? [],
+                meta: data.meta ?? prev.meta,
+            }));
+        } catch (_) {
+            setDetalhesHistorico(prev => ({ ...prev, loading: false }));
+            setErro('Nao foi possivel carregar os detalhes do historico.');
+        }
+    };
+
+    const fecharDetalhesHistorico = () => {
+        setDetalhesHistorico(prev => ({
+            ...prev,
+            open: false,
+            row: null,
+            itens: [],
+        }));
+    };
+
+    const baixarPdfHistorico = async (row) => {
+        if (!row?.job_id || row.job_id === '__new__') return;
+        setPdfJobId(row.job_id);
+
+        try {
+            const primeira = await conformidadeCidadaoApi.itens(row.job_id, 1, 500);
+            let todos = primeira.data ?? [];
+            const lastPage = primeira.meta?.last_page ?? 1;
+
+            for (let page = 2; page <= lastPage; page += 1) {
+                const data = await conformidadeCidadaoApi.itens(row.job_id, page, 500);
+                todos = todos.concat(data.data ?? []);
+            }
+
+            generateConformidadeHistoricoPDF(primeira.sync ?? row, todos);
+        } catch (_) {
+            setErro('Nao foi possivel baixar o PDF do historico.');
+        } finally {
+            setPdfJobId(null);
+        }
     };
 
     const emAndamento = ['analyzing', 'applying'].includes(fase);
@@ -511,7 +588,7 @@ export default function ConformidadeCidadao() {
                             <Button variant="contained" color="primary" onClick={handleAplicar}>
                                 Aplicar alterações
                             </Button>
-                            <Button variant="outlined" color="inherit" onClick={handleDescartarPreview}>
+                            <Button variant="outlined" color="inherit" onClick={handleDescartarPreview} disabled={cancelando}>
                                 Descartar
                             </Button>
                         </Box>
@@ -678,6 +755,7 @@ export default function ConformidadeCidadao() {
                                     <TableCell>Óbitos</TableCell>
                                     <TableCell>Erros</TableCell>
                                     <TableCell>Iniciado por</TableCell>
+                                    <TableCell align="right">Acoes</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -732,6 +810,38 @@ export default function ConformidadeCidadao() {
                                         <TableCell>{s.result_obitos ?? '—'}</TableCell>
                                         <TableCell>{s.result_erros ?? '—'}</TableCell>
                                         <TableCell>{s.iniciado_por?.name ?? '—'}</TableCell>
+                                        <TableCell align="right">
+                                            <Box display="flex" justifyContent="flex-end" gap={1}>
+                                                <Tooltip title="Visualizar atualizacoes">
+                                                    <span>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            disabled={!s.job_id || s.job_id === '__new__'}
+                                                            onClick={() => carregarDetalhesHistorico(s, 1)}
+                                                            sx={{ minWidth: 36, px: 1 }}
+                                                        >
+                                                            <FeatherIcon icon="eye" width="15" />
+                                                        </Button>
+                                                    </span>
+                                                </Tooltip>
+                                                <Tooltip title="Baixar PDF">
+                                                    <span>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            disabled={!s.job_id || s.job_id === '__new__' || pdfJobId === s.job_id}
+                                                            onClick={() => baixarPdfHistorico(s)}
+                                                            sx={{ minWidth: 36, px: 1 }}
+                                                        >
+                                                            {pdfJobId === s.job_id
+                                                                ? <CircularProgress size={14} />
+                                                                : <FeatherIcon icon="download" width="15" />}
+                                                        </Button>
+                                                    </span>
+                                                </Tooltip>
+                                            </Box>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -755,6 +865,111 @@ export default function ConformidadeCidadao() {
                     </TableContainer>
                 </BaseCard>
             )}
+            <Dialog
+                open={detalhesHistorico.open}
+                onClose={fecharDetalhesHistorico}
+                maxWidth="lg"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        width: 'min(1180px, 96vw) !important',
+                        maxWidth: '96vw !important',
+                    },
+                }}
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                    <Box>
+                        <Typography variant="h6">Atualizacoes registradas</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                            Job {detalhesHistorico.row?.job_id ?? '-'}
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={pdfJobId === detalhesHistorico.row?.job_id
+                            ? <CircularProgress size={14} />
+                            : <FeatherIcon icon="download" width="15" />}
+                        disabled={!detalhesHistorico.row?.job_id || pdfJobId === detalhesHistorico.row?.job_id}
+                        onClick={() => baixarPdfHistorico(detalhesHistorico.row)}
+                    >
+                        Baixar PDF
+                    </Button>
+                </DialogTitle>
+                <DialogContent dividers>
+                    {detalhesHistorico.loading ? (
+                        <Box display="flex" alignItems="center" justifyContent="center" py={5}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : (
+                        <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Acao</TableCell>
+                                        <TableCell>Nome (e-SUS)</TableCell>
+                                        <TableCell>CPF / CNS</TableCell>
+                                        <TableCell>Campos</TableCell>
+                                        <TableCell>Resultado</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {detalhesHistorico.itens.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} align="center">
+                                                Nenhuma atualizacao registrada.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : detalhesHistorico.itens.map((item) => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>
+                                                <Chip
+                                                    label={CHIP_LABELS[item.acao] ?? item.acao}
+                                                    color={CHIP_COLORS[item.acao] ?? 'default'}
+                                                    size="small"
+                                                />
+                                            </TableCell>
+                                            <TableCell>{item.nome_esus}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.75rem' }}>
+                                                {item.cpf || '-'}<br />{item.cns || '-'}
+                                            </TableCell>
+                                            <TableCell sx={{ fontSize: '0.75rem' }}>
+                                                {item.acao === 'criar' ? 'Novo cadastro' :
+                                                 item.acao === 'obito' ? 'Inativar + filas' :
+                                                 diffToString(item.payload ?? {})}
+                                            </TableCell>
+                                            <TableCell sx={{ fontSize: '0.75rem' }}>
+                                                {item.erro || (item.aplicado ? 'Aplicado' : 'Pendente')}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Box display="flex" alignItems="center" justifyContent="flex-end" flexWrap="wrap">
+                                <PageJumper
+                                    currentPage={detalhesHistorico.meta.current_page}
+                                    lastPage={detalhesHistorico.meta.last_page}
+                                    onGo={page => carregarDetalhesHistorico(detalhesHistorico.row, page)}
+                                />
+                                <TablePagination
+                                    component="div"
+                                    count={detalhesHistorico.meta.total}
+                                    page={detalhesHistorico.meta.current_page - 1}
+                                    rowsPerPage={detalhesHistorico.meta.per_page}
+                                    rowsPerPageOptions={[]}
+                                    onPageChange={(_, p) => carregarDetalhesHistorico(detalhesHistorico.row, p + 1)}
+                                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                                />
+                            </Box>
+                        </TableContainer>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="outlined" onClick={fecharDetalhesHistorico}>
+                        Fechar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
