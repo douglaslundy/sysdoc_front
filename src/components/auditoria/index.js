@@ -37,7 +37,7 @@ const PAGE_LABELS = {
     '/dashboard': 'Dashboard',
     '/auditoria': 'Auditoria',
     '/users': 'Usuários',
-    '/clients': 'Clientes',
+    '/clients': 'Cidadãos',
     '/client_report': 'Relatório de Clientes',
     '/laboratorio/exames': 'Laboratório - Exames',
     '/laboratorio/pedidos': 'Laboratório - Pedidos',

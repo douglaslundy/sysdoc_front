@@ -298,13 +298,22 @@ export default function VisitasAcs() {
         try {
             let allVisitas = visitas;
             if (aba === 'tabela' && totalVisitas > perPage) {
-                const params = new URLSearchParams({ ano, mes, page: 1, per_page: Math.min(totalVisitas, 5000) });
-                if (ine)            params.set('ine', ine);
-                if (filtroAgente)   params.set('agente', filtroAgente);
-                if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
-                if (filtroGeo)      params.set('has_geo', filtroGeo);
-                const d = await monitorApsApi.get(`/visitas/lista?${params}`);
-                allVisitas = d.visitas ?? [];
+                const chunkSize = 100;
+                const totalPages = Math.ceil(totalVisitas / chunkSize);
+                const paramsBase = new URLSearchParams({ ano, mes, per_page: chunkSize });
+                if (ine)            paramsBase.set('ine', ine);
+                if (filtroAgente)   paramsBase.set('agente', filtroAgente);
+                if (filtroDesfecho) paramsBase.set('desfecho', filtroDesfecho);
+                if (filtroGeo)      paramsBase.set('has_geo', filtroGeo);
+
+                const pages = [];
+                for (let currentPage = 1; currentPage <= totalPages; currentPage += 1) {
+                    const params = new URLSearchParams(paramsBase);
+                    params.set('page', currentPage);
+                    const d = await monitorApsApi.get(`/visitas/lista?${params}`);
+                    pages.push(...(d.visitas ?? []));
+                }
+                allVisitas = pages;
             }
             const equipeNome = equipes.find(e => e.nu_ine === ine)?.no_equipe ?? '';
             await generateVisitasAcsPDF({

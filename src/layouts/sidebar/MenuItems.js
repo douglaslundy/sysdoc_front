@@ -24,7 +24,7 @@ const Menuitems = [
     icon: "users",
     group: true,
     children: [
-      { title: "Clientes", icon: "users", href: "/clients" },
+      { title: "Cidadãos", icon: "users", href: "/clients" },
       { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report" },
       { title: "Especialidades", icon: "award", href: "/specialities" },
     ],
