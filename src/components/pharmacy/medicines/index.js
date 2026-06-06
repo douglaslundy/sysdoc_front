@@ -139,7 +139,7 @@ export default function MedicinesManager() {
 
   const renderTags = (medicine) => {
     const tags = [];
-    if (medicine.is_free_distribution) tags.push('DistribuiÃ§Ã£o Gratuita');
+    if (medicine.is_free_distribution) tags.push('Distribuição Gratuita');
     if (medicine.is_controlled) tags.push('Controlado');
     if (medicine.is_judicial_order) tags.push('Ordem Judicial');
     if (medicine.is_high_cost) tags.push('Alto Custo');
@@ -181,7 +181,7 @@ export default function MedicinesManager() {
               <Select name={filter.name} value={filters[filter.name]} label={filter.label} onChange={handleFilterChange}>
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="1">Sim</MenuItem>
-                <MenuItem value="0">NÃ£o</MenuItem>
+                <MenuItem value="0">Não</MenuItem>
               </Select>
             </FormControl>
           ))}
@@ -194,11 +194,11 @@ export default function MedicinesManager() {
           <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">PrincÃ­pio Ativo</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">ConcentraÃ§Ã£o</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Princípio Ativo</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Concentração</Typography></TableCell>
                 <TableCell className="queue-page__th"><Typography variant="h6">Forma</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">ClassificaÃ§Ãµes</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography variant="h6">AÃ§Ãµes</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Classificações</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography variant="h6">Ações</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -220,7 +220,7 @@ export default function MedicinesManager() {
                       onClick={() => setConfirmDialog({
                         isOpen: true,
                         title: `Remover ${m.active_ingredient}?`,
-                        subTitle: 'Esta aÃ§Ã£o nÃ£o pode ser desfeita.',
+                        subTitle: 'Esta ação não pode ser desfeita.',
                         confirm: removeMedicineFetch(m.id),
                       })}
                     >

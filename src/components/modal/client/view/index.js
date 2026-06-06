@@ -70,7 +70,7 @@ export default function ClientViewModal({ open, client, loading, error, onClose 
       aria-labelledby="client-view-title"
       aria-describedby="client-view-description"
     >
-      <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+      <Box className="clients-modal-shell clients-view-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
         <BaseCard title={client?.id ? `Visualizar Cliente ${client.name || `#${client.id}`}` : 'Visualizar Cliente'}>
           {loading ? (
             <Typography sx={{ py: 2 }}>Carregando dados do cliente...</Typography>

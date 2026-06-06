@@ -720,6 +720,99 @@
   font-weight: 700;
 }
 
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root,
+[data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiOutlinedInput-root,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.10), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.97), rgba(247, 250, 255, 0.94)) !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.22) !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.86) inset !important;
+}
+
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root:hover,
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root.Mui-focused,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root:hover,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root.Mui-focused,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root:hover,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.99), rgba(241, 247, 255, 0.98)) !important;
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset !important;
+}
+
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-input,
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiSelect-select,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-input,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiSelect-select,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-input,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiSelect-select,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputBase-input,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputBase-input,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiSelect-select,
+[data-theme="light"] .attendance-page .MuiTextField-root .MuiInputBase-input,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiInputBase-input,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiSelect-select,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiInputBase-input,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiInputBase-input,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiSelect-select {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+[data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputLabel-root,
+[data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputLabel-root,
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputLabel-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputLabel-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputLabel-root,
+[data-theme="light"] .attendance-page .MuiTextField-root .MuiInputLabel-root,
+[data-theme="light"] .attendance-page .MuiFormControl-root .MuiInputLabel-root,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiInputLabel-root,
+[data-theme="light"] .monitor-aps-fila-esus-page .MuiFormControl-root .MuiInputLabel-root {
+  color: var(--lg-text-muted) !important;
+  -webkit-text-fill-color: var(--lg-text-muted) !important;
+}
+
+[data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
 .attendance-panel-page {
   min-height: 100vh;
   background: linear-gradient(120deg, #0f172a 0%, #1e293b 100%);

@@ -332,7 +332,7 @@ export default function PaginasSistema() {
       </BaseCard>
 
       <Modal keepMounted open={openModal} onClose={() => setOpenModal(false)}>
-        <Box sx={modalStyle}>
+        <Box sx={modalStyle} className="paginas-sistema-modal-shell">
           <AlertModal />
           <BaseCard title={editId ? 'Editar Pagina do Sistema' : 'Nova Pagina do Sistema'}>
             <Stack spacing={3}>
