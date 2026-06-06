@@ -91,6 +91,29 @@ const pageViewFriendlyLabel = (log) => {
     return fallback ? fallback.toUpperCase() : '/';
 };
 
+const auditDetails = (log) => {
+    const stripMeta = (values) => {
+        if (!values) return values;
+        return Object.fromEntries(Object.entries(values).filter(([key]) => !key.startsWith('__audit_')));
+    };
+
+    return {
+        oldValues: stripMeta(log.old_values),
+        newValues: stripMeta(log.new_values),
+    };
+};
+
+const citizenActionTarget = (log) => {
+    if (log.model_type !== 'Client') return null;
+
+    return log.new_values?.__audit_subject_name
+        || log.new_values?.nome
+        || log.new_values?.name
+        || log.old_values?.nome
+        || log.old_values?.name
+        || null;
+};
+
 export default function Auditoria() {
     const dispatch = useDispatch();
     const { logs, total, perPage } = useSelector(s => s.auditLogs);
@@ -142,8 +165,10 @@ export default function Auditoria() {
     const toggle       = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
     const renderDiff = (log) => {
-        if (log.action === 'UPDATE' && log.old_values && log.new_values) {
-            const keys = Object.keys(log.new_values);
+        const { oldValues, newValues } = auditDetails(log);
+
+        if (log.action === 'UPDATE' && oldValues && newValues) {
+            const keys = Object.keys(newValues);
             return (
                 <Table size="small">
                     <TableHead>
@@ -157,8 +182,8 @@ export default function Auditoria() {
                         {keys.map(k => (
                             <TableRow key={k}>
                                 <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{k}</TableCell>
-                                <TableCell sx={{ color: 'error.main', fontSize: 12 }}>{String(log.old_values[k] ?? '—')}</TableCell>
-                                <TableCell sx={{ color: 'success.main', fontSize: 12 }}>{String(log.new_values[k] ?? '—')}</TableCell>
+                                <TableCell sx={{ color: 'error.main', fontSize: 12 }}>{String(oldValues[k] ?? '—')}</TableCell>
+                                <TableCell sx={{ color: 'success.main', fontSize: 12 }}>{String(newValues[k] ?? '—')}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -166,7 +191,7 @@ export default function Auditoria() {
             );
         }
 
-        const data = log.new_values || log.old_values;
+        const data = newValues || oldValues;
         if (!data) return <Typography variant="body2" color="text.secondary">Sem dados registrados.</Typography>;
 
         return (
@@ -287,6 +312,11 @@ export default function Auditoria() {
                                     <TableCell>
                                         <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
                                             <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
+                                            {citizenActionTarget(log) && (
+                                                <Typography sx={{ fontSize: 12, color: 'success.main', fontWeight: 700 }}>
+                                                    {citizenActionTarget(log).toUpperCase()}
+                                                </Typography>
+                                            )}
                                             {['VIEW', 'VIEW_REPORT', 'READ'].includes(log.action) && (
                                                 <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
                                                     {pageViewFriendlyLabel(log) ?? endpointLabel(log.endpoint) ?? ''}

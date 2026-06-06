@@ -175,10 +175,6 @@ export default function Clients() {
   }, []);
 
   useEffect(() => {
-    api.post('/audit/page-view', { path: '/clients', label: 'Cidadãos' }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (pagination?.current_page) {
       setPage(Math.max(0, pagination.current_page - 1));
     }
