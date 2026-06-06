@@ -172,42 +172,8 @@ export default function ClientModal(props) {
         }}
       >
         <Box
-          sx={{
-            ...modalShellSx,
-            ...modalFormRootSx,
-            '& .MuiCard-root': {
-              background: 'transparent',
-              boxShadow: 'none',
-            },
-            '& .MuiCardContent-root': {
-              p: 0,
-            },
-            '& .MuiInputLabel-root': {
-              fontSize: '10px',
-              fontWeight: 700,
-              color: 'var(--lg-text-muted)',
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-            },
-            '& .MuiInputBase-root': {
-              background: 'var(--lg-glass-input)',
-              border: '0.5px solid var(--lg-border-input)',
-              borderRadius: '10px',
-              color: 'var(--lg-text-primary)',
-              boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              border: 'none',
-            },
-            '& .MuiInputBase-root.Mui-focused': {
-              background: 'var(--lg-glass-input-focus)',
-              boxShadow: 'var(--lg-focus-ring)',
-            },
-            '& .MuiInputBase-input::placeholder': {
-              color: 'var(--lg-text-muted)',
-              opacity: 1,
-            },
-          }}
+          className="clients-modal-shell"
+          sx={{ ...modalShellSx, ...modalFormRootSx }}
         >
           <AlertModal />
 

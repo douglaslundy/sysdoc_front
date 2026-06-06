@@ -196,11 +196,11 @@ export default function LetterModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-letter-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={letter && letter.id ? "Editar Ofício " : "Enviar Ofício "}>
+                            <BaseCard title={letter && letter.id ? "Editar Ofício" : "Enviar Ofício"}>
                                 {alertState.visible && (
                                     <Alert sx={{ mb: 2 }} variant="filled" severity={alertState.type} onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}>
                                         {alertState.message}

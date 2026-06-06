@@ -4,7 +4,7 @@
  * usando myPermissions carregado do banco via AuthContext.
  */
 
-export const DashboardItem = { title: "Painel", icon: "pie-chart", href: "/dashboard" };
+export const DashboardItem = { title: "Dashboard", icon: "pie-chart", href: "/dashboard" };
 
 const Menuitems = [
   {

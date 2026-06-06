@@ -6,6 +6,7 @@ import Modal from '@mui/material/Modal';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import {
   modalFormRootSx,
+  modalBackdropSx,
   modalPrimaryButtonSx,
   modalSecondaryButtonSx,
   modalShellSx,
@@ -92,7 +93,7 @@ export default function UserModal(props) {
   };
 
   const handlePostData = async () => {
-    dispatch(changeTitleAlert(`O usuario ${form.name} foi cadastrado com sucesso!`));
+    dispatch(changeTitleAlert(`O usuário ${form.name} foi cadastrado com sucesso!`));
     dispatch(addUserFetch(form, cleanForm));
   };
 
@@ -115,7 +116,7 @@ export default function UserModal(props) {
       cleanForm();
     };
 
-    dispatch(changeTitleAlert(`O usuario ${form.name} foi atualizado com sucesso!`));
+    dispatch(changeTitleAlert(`O usuário ${form.name} foi atualizado com sucesso!`));
     dispatch(editUserFetch(form, cleanFormWithEquipes));
   };
 
@@ -172,78 +173,17 @@ export default function UserModal(props) {
         onClose={handleClose}
         aria-labelledby="keep-mounted-modal-title"
         aria-describedby="keep-mounted-modal-description"
-        slotProps={{
-          backdrop: {
-            sx: {
-              background: 'var(--lg-overlay-bg)',
-              backdropFilter: 'var(--lg-blur-overlay)',
-              WebkitBackdropFilter: 'var(--lg-blur-overlay)',
-            },
-          },
-        }}
+        slotProps={{ backdrop: { sx: modalBackdropSx } }}
       >
         <Box
           className="monitor-users-modal-shell"
-          sx={{
-            ...modalShellSx,
-            ...modalFormRootSx,
-            '& .MuiCard-root': {
-              background: 'transparent',
-              boxShadow: 'none',
-            },
-            '& .MuiCardContent-root': {
-              p: 0,
-            },
-            '& .MuiInputLabel-root': {
-              fontSize: '10px',
-              fontWeight: 700,
-              color: 'var(--lg-text-muted)',
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-            },
-            '& .MuiInputBase-root': {
-              background: 'var(--lg-glass-input)',
-              border: '0.5px solid var(--lg-border-input)',
-              borderRadius: '10px',
-              color: 'var(--lg-text-primary)',
-              boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              border: 'none',
-            },
-            '& .MuiInputBase-root.Mui-focused': {
-              background: 'var(--lg-glass-input-focus)',
-              boxShadow: 'var(--lg-focus-ring)',
-            },
-            '& .MuiInputBase-input::placeholder': {
-              color: 'var(--lg-text-muted)',
-              opacity: 1,
-            },
-            '& .MuiInputBase-input': {
-              color: 'var(--lg-text-primary)',
-            },
-            '& .MuiFormControlLabel-root': {
-              m: 0,
-              px: 1.6,
-              py: 1.2,
-              borderRadius: '10px',
-              border: '0.5px solid var(--lg-border-input)',
-              background: 'rgba(var(--lg-accent-rgb), 0.04)',
-            },
-            '& .MuiFormControlLabel-label': {
-              fontSize: '13px',
-              color: 'var(--lg-text-secondary)',
-              textTransform: 'none',
-              letterSpacing: 'normal',
-              fontWeight: 400,
-            },
-          }}
+          sx={{ ...modalShellSx, ...modalFormRootSx }}
         >
           <AlertModal />
 
           <Grid container spacing={0}>
             <Grid item xs={12} lg={12}>
-              <BaseCard title={user && user.id ? 'Editar Usuario' : 'Cadastrar Usuario'}>
+              <BaseCard title={user && user.id ? 'Editar Usuário' : 'Cadastrar Usuário'}>
                 {texto && <Alert variant="filled" severity="warning">{texto}</Alert>}
 
                 <Typography
@@ -256,18 +196,18 @@ export default function UserModal(props) {
                     mb: 2,
                   }}
                 >
-                  Dados do usuario
+                  Dados do usuário
                 </Typography>
 
                 <Stack spacing={2}>
                   {userProfile === 'admin' && (
-                    <FormControl fullWidth required>
-                      <InputLabel>Perfil do Usuario</InputLabel>
-                      <Select
+                  <FormControl fullWidth required>
+                    <InputLabel>Perfil do Usuário</InputLabel>
+                    <Select
                         id="profile"
                         value={profile}
                         name="profile"
-                        label="Perfil do Usuario"
+                        label="Perfil do Usuário"
                         onChange={changeItem}
                         variant="outlined"
                         disabled={Boolean(user && user.id === userId)}
@@ -291,6 +231,7 @@ export default function UserModal(props) {
                     value={name || ''}
                     onChange={changeItem}
                     required
+                    fullWidth
                     inputProps={{
                       style: {
                         textTransform: 'uppercase',
@@ -307,6 +248,7 @@ export default function UserModal(props) {
                     value={email || ''}
                     onChange={changeItem}
                     required
+                    fullWidth
                   />
 
                   <CpfCnpj
@@ -315,6 +257,7 @@ export default function UserModal(props) {
                     name={'cpf'}
                     changeItem={changeItem}
                     disabled={Boolean(user && user.id)}
+                    fullWidth
                   />
 
                   <FormControlLabel
@@ -324,7 +267,7 @@ export default function UserModal(props) {
                         onChange={(event) => handleIsDriver(event.target.checked)}
                       />
                     }
-                    label={is_driver ? 'DIRIGE VEICULO OFICIAL' : 'NAO DIRIGE VEICULO OFICIAL'}
+                    label={is_driver ? 'DIRIGE VEÍCULO OFICIAL' : 'NÃO DIRIGE VEÍCULO OFICIAL'}
                   />
 
                   {userProfile === 'admin' && (
@@ -358,6 +301,7 @@ export default function UserModal(props) {
                       {form.is_rt_psf && !form.rt_all_teams && (
                         <Autocomplete
                           multiple
+                          fullWidth
                           options={equipesOpcoes}
                           loading={loadingEquipes}
                           getOptionLabel={opt => opt.no_equipe ?? ''}
@@ -380,6 +324,7 @@ export default function UserModal(props) {
                               label="Equipes autorizadas"
                               placeholder={equipesRt.length === 0 ? 'Selecione as equipes' : ''}
                               variant="outlined"
+                              fullWidth
                             />
                           )}
                         />

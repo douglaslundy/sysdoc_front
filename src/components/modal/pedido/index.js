@@ -163,11 +163,11 @@ export default function PedidoModal(props) {
 
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-pedido-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
-                            <BaseCard title="Novo Pedido de Exame">
+                            <BaseCard title="Cadastrar Pedido de Exame">
                                 <Stack spacing={3}>
                                     {/* Busca de paciente por CPF/CNS */}
                                     <Box>

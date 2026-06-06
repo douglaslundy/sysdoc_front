@@ -122,30 +122,6 @@ export default function Auditoria() {
     const [page, setPage]         = useState(0);
     const [expanded, setExpanded] = useState({});
     const [usuarios, setUsuarios] = useState([]);
-    const controlHeight = 52;
-    const selectControlSx = {
-        '& .MuiOutlinedInput-root': {
-            height: controlHeight,
-            minHeight: controlHeight,
-        },
-        '& .MuiSelect-select': {
-            display: 'flex',
-            alignItems: 'center',
-            height: controlHeight,
-            minHeight: 'unset',
-            boxSizing: 'border-box',
-        },
-    };
-    const dateControlSx = {
-        '& .MuiOutlinedInput-root': {
-            height: controlHeight,
-            minHeight: controlHeight,
-        },
-        '& .MuiInputBase-input': {
-            height: controlHeight,
-            boxSizing: 'border-box',
-        },
-    };
 
     useEffect(() => {
         dispatch(getAuditLogs({}, 1));
@@ -206,7 +182,7 @@ export default function Auditoria() {
         <BaseCard title={`Auditoria — ${total} registros`}>
             <Grid className="queue-page__toolbar" container spacing={2} mb={2} alignItems="stretch">
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small" sx={selectControlSx}>
+                <FormControl fullWidth size="small">
                     <InputLabel>Ação</InputLabel>
                     <Select value={filters.action} label="Ação" onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
                         <MenuItem value=""><em>Todas</em></MenuItem>
@@ -216,7 +192,7 @@ export default function Auditoria() {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small" sx={selectControlSx}>
+                <FormControl fullWidth size="small">
                     <InputLabel>Recurso</InputLabel>
                     <Select value={filters.model_type} label="Recurso" onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -228,7 +204,7 @@ export default function Auditoria() {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small" sx={selectControlSx}>
+                <FormControl fullWidth size="small">
                     <InputLabel>Usuário</InputLabel>
                     <Select value={filters.user_name} label="Usuário" onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
                         <MenuItem value=""><em>Todos</em></MenuItem>
@@ -248,7 +224,6 @@ export default function Auditoria() {
                     onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
                     title="De"
                     InputLabelProps={{ shrink: true }}
-                    sx={dateControlSx}
                 />
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
@@ -260,7 +235,6 @@ export default function Auditoria() {
                     onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
                     title="Até"
                     InputLabelProps={{ shrink: true }}
-                    sx={dateControlSx}
                 />
                 </Grid>
 
@@ -269,7 +243,6 @@ export default function Auditoria() {
                     variant="contained"
                     onClick={handleFilter}
                     fullWidth
-                    sx={{ height: controlHeight, minHeight: controlHeight, minWidth: 0 }}
                 >
                     <FeatherIcon icon="search" width="20" height="20" />
                 </Button>
@@ -279,7 +252,6 @@ export default function Auditoria() {
                     variant="outlined"
                     onClick={handleReset}
                     fullWidth
-                    sx={{ height: controlHeight, minHeight: controlHeight, minWidth: 0 }}
                 >
                     <FeatherIcon icon="x" width="20" height="20" />
                 </Button>
@@ -312,14 +284,14 @@ export default function Auditoria() {
                                     <TableCell>
                                         <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
                                             <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
-                                            {citizenActionTarget(log) && (
-                                                <Typography sx={{ fontSize: 12, color: 'success.main', fontWeight: 700 }}>
-                                                    {citizenActionTarget(log).toUpperCase()}
-                                                </Typography>
-                                            )}
                                             {['VIEW', 'VIEW_REPORT', 'READ'].includes(log.action) && (
                                                 <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
                                                     {pageViewFriendlyLabel(log) ?? endpointLabel(log.endpoint) ?? ''}
+                                                </Typography>
+                                            )}
+                                            {citizenActionTarget(log) && (
+                                                <Typography sx={{ fontSize: 12, color: 'success.main', fontWeight: 700 }}>
+                                                    {citizenActionTarget(log).toUpperCase()}
                                                 </Typography>
                                             )}
                                             {log.action === 'READ' && log.new_values?.filtros && (

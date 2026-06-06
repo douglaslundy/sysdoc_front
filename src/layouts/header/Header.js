@@ -15,16 +15,11 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
       sx={{
         ...sx,
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        background: "var(--lg-glass-topbar)",
-        backdropFilter: "var(--lg-blur-topbar)",
-        WebkitBackdropFilter: "var(--lg-blur-topbar)",
-        borderBottom: "0.5px solid var(--lg-border)",
-        boxShadow: "0 1px 0 rgba(255,255,255,0.12) inset",
         color: "var(--lg-text-primary)",
       }}
       position={position}
       elevation={0}
-      className={customClass}
+      className={`lg-topbar-paper ${customClass || ""}`.trim()}
     >
       <Toolbar sx={{ px: "22px !important", py: "13px", minHeight: "64px !important" }}>
         <IconButton

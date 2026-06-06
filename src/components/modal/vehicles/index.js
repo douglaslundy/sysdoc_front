@@ -101,13 +101,13 @@ export default function VehicleModal(props) {
                 aria-describedby="keep-mounted-modal-description"
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-vehicle-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={vehicle && vehicle.id ? "Editar Veículo " : "Cadastrar Veículo "}>
+                            <BaseCard title={vehicle && vehicle.id ? "Editar Veículo" : "Cadastrar Veículo"}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}

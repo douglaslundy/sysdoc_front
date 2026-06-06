@@ -35,7 +35,13 @@ import {
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import {
+  modalBackdropSx,
+  modalFormRootSx,
+  modalPrimaryButtonSx,
+  modalSecondaryButtonSx,
+  modalShellSx,
+} from '../modal/_shared/modalFormStyles';
 
 const FORM_INICIAL = { nome: '', icone: '', ordem: 999, ativo: true };
 const ICONES = [
@@ -45,25 +51,6 @@ const ICONES = [
   'cpu', 'tool', 'grid', 'monitor', 'activity', 'plus-circle', 'layout',
   'alert-triangle', 'maximize', 'settings', 'lock', 'key', 'log-in', 'package', 'check-square',
 ];
-
-const modalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '900px',
-  maxWidth: '96vw',
-  maxHeight: '92vh',
-  overflow: 'auto',
-  background: 'var(--lg-glass-modal)',
-  backdropFilter: 'var(--lg-blur-modal)',
-  WebkitBackdropFilter: 'var(--lg-blur-modal)',
-  border: '0.5px solid var(--lg-border)',
-  borderTop: '1px solid var(--lg-border-strong)',
-  boxShadow: 'var(--lg-shadow-modal)',
-  borderRadius: '20px',
-  p: 3.2,
-};
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
@@ -304,58 +291,16 @@ export default function PaginasCategorias() {
         keepMounted
         open={openModal}
         onClose={handleCloseModal}
-        slotProps={{
-          backdrop: {
-            sx: {
-              background: 'var(--lg-overlay-bg)',
-              backdropFilter: 'var(--lg-blur-overlay)',
-              WebkitBackdropFilter: 'var(--lg-blur-overlay)',
-            },
-          },
-        }}
+        slotProps={{ backdrop: { sx: modalBackdropSx } }}
       >
         <Box
-          sx={{
-            ...modalStyle,
-            '& .MuiCard-root': {
-              background: 'transparent',
-              boxShadow: 'none',
-            },
-            '& .MuiCardContent-root': {
-              p: 0,
-            },
-            '& .MuiInputLabel-root': {
-              fontSize: '10px',
-              fontWeight: 700,
-              color: 'var(--lg-text-muted)',
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-            },
-            '& .MuiInputBase-root': {
-              background: 'var(--lg-glass-input)',
-              border: '0.5px solid var(--lg-border-input)',
-              borderRadius: '10px',
-              color: 'var(--lg-text-primary)',
-              boxShadow: '0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255,255,255,0.1) inset',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              border: 'none',
-            },
-            '& .MuiInputBase-root.Mui-focused': {
-              background: 'var(--lg-glass-input-focus)',
-              boxShadow: 'var(--lg-focus-ring)',
-            },
-            '& .MuiInputBase-input::placeholder': {
-              color: 'var(--lg-text-muted)',
-              opacity: 1,
-            },
-          }}
+          className="paginas-categorias-modal-shell"
+          sx={{ ...modalShellSx, ...modalFormRootSx }}
         >
           <AlertModal />
           <BaseCard title={editId ? 'Editar Categoria de Pagina' : 'Nova Categoria de Pagina'}>
             <Stack spacing={2.2}>
               <TextField
-                className="lg-search-field"
                 label="Nome da Categoria"
                 value={form.nome}
                 onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
@@ -396,7 +341,6 @@ export default function PaginasCategorias() {
               </FormControl>
 
               <TextField
-                className="lg-search-field"
                 label="Ordem"
                 type="number"
                 value={form.ordem}
@@ -414,21 +358,7 @@ export default function PaginasCategorias() {
               <Button
                 onClick={handleSave}
                 variant="contained"
-                sx={{
-                  flex: 1,
-                  py: 1.2,
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)',
-                  boxShadow: 'var(--lg-shadow-btn)',
-                  textTransform: 'none',
-                  fontSize: '14px',
-                  '&:hover': {
-                    opacity: 0.92,
-                    transform: 'translateY(-1px)',
-                    boxShadow: 'var(--lg-shadow-btn-hover)',
-                    background: 'linear-gradient(135deg, var(--lg-accent-hover), #7C3AED)',
-                  },
-                }}
+                sx={modalPrimaryButtonSx}
               >
                 Gravar
               </Button>
@@ -436,20 +366,7 @@ export default function PaginasCategorias() {
               <Button
                 onClick={handleCloseModal}
                 variant="outlined"
-                sx={{
-                  py: 1.2,
-                  px: 2.2,
-                  borderRadius: '10px',
-                  background: 'var(--lg-glass-input)',
-                  border: '0.5px solid var(--lg-border-input)',
-                  color: 'var(--lg-text-secondary)',
-                  textTransform: 'none',
-                  '&:hover': {
-                    background: 'var(--lg-glass-input-focus)',
-                    color: 'var(--lg-text-primary)',
-                    border: '0.5px solid var(--lg-border-input)',
-                  },
-                }}
+                sx={modalSecondaryButtonSx}
               >
                 Cancelar
               </Button>

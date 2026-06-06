@@ -564,6 +564,172 @@ input[type="checkbox"],
   opacity: 1;
 }
 
+.lg-topbar-paper {
+  background:
+    radial-gradient(112% 102% at 8% 0%, rgba(var(--lg-accent-rgb), 0.12) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, rgba(6, 20, 56, 0.94) 0%, rgba(3, 14, 42, 0.92) 100%) !important;
+  backdrop-filter: var(--lg-blur-topbar) !important;
+  -webkit-backdrop-filter: var(--lg-blur-topbar) !important;
+  border-bottom: 1px solid rgba(var(--lg-accent-rgb), 0.16) !important;
+  box-shadow:
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(1, 7, 26, 0.18) !important;
+  color: var(--lg-text-primary) !important;
+}
+
+[data-theme="light"] .lg-topbar-paper {
+  background:
+    radial-gradient(112% 102% at 8% 0%, rgba(var(--lg-accent-rgb), 0.10) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(242, 247, 255, 0.88) 100%) !important;
+  border-bottom: 1px solid rgba(var(--lg-accent-rgb), 0.18) !important;
+  box-shadow:
+    inset 0 -1px 0 rgba(255, 255, 255, 0.7),
+    0 10px 22px rgba(37, 99, 235, 0.10) !important;
+}
+
+.theme-toggle-btn {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  border-radius: 9px !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  background: var(--lg-glass-input) !important;
+  color: var(--lg-text-secondary) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.14s ease !important;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  transform: scale(1.07);
+}
+
+.profile-dd-trigger {
+  text-transform: none !important;
+  padding: 5px 12px 5px 5px !important;
+  background: var(--lg-glass-chip) !important;
+  border: 0.5px solid var(--lg-border) !important;
+  border-radius: 40px !important;
+  backdrop-filter: var(--lg-blur-input) !important;
+  -webkit-backdrop-filter: var(--lg-blur-input) !important;
+  color: var(--lg-text-secondary) !important;
+  box-shadow: 0 1px 4px rgba(var(--lg-accent-rgb), 0.1), 0 1px 0 rgba(255, 255, 255, 0.2) inset !important;
+}
+
+.profile-dd-trigger:hover {
+  background: var(--lg-glass-panel-hover) !important;
+}
+
+.profile-dd-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--lg-accent), #7c3aed);
+  flex-shrink: 0;
+}
+
+.profile-dd-identity {
+  display: none;
+  align-items: center;
+}
+
+@media (min-width: 600px) {
+  .profile-dd-identity {
+    display: flex;
+  }
+}
+
+.profile-dd-username {
+  font-size: 12px !important;
+  color: var(--lg-text-secondary) !important;
+  margin-right: 4px !important;
+}
+
+.profile-dd-chevron {
+  opacity: 0.4;
+}
+
+.profile-dd-menu-paper {
+  width: 320px;
+  background:
+    radial-gradient(112% 102% at 8% 0%, rgba(var(--lg-accent-rgb), 0.12) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, rgba(6, 20, 56, 0.94) 0%, rgba(3, 14, 42, 0.92) 100%) !important;
+  backdrop-filter: var(--lg-blur-modal) !important;
+  -webkit-backdrop-filter: var(--lg-blur-modal) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.18) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 18px 38px rgba(1, 7, 26, 0.28) !important;
+  color: var(--lg-text-primary) !important;
+}
+
+[data-theme="light"] .profile-dd-trigger {
+  background: var(--lg-glass-input) !important;
+  color: var(--lg-text-secondary) !important;
+}
+
+[data-theme="light"] .profile-dd-avatar {
+  color: #ffffff;
+}
+
+[data-theme="light"] .profile-dd-menu-paper {
+  background:
+    radial-gradient(112% 102% at 8% 0%, rgba(var(--lg-accent-rgb), 0.10) 0%, rgba(var(--lg-accent-rgb), 0) 52%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(242, 247, 255, 0.92) 100%) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.16) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+    0 18px 38px rgba(37, 99, 235, 0.12) !important;
+}
+
+.perfis-modal-shell .MuiCardContent-root {
+  padding: 0 20px 16px !important;
+}
+
+.perfis-modal-shell .perfis-page-group {
+  margin-top: 14px;
+  padding: 14px 16px 12px;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.18);
+  border-radius: 14px;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.08), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.58), rgba(3, 11, 36, 0.48)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 24px rgba(2, 8, 27, 0.18);
+}
+
+.perfis-modal-shell .perfis-page-group + .perfis-page-group {
+  margin-top: 12px;
+}
+
+.perfis-modal-shell .perfis-page-group .MuiFormLabel-root {
+  margin-bottom: 10px;
+  display: block;
+}
+
+.perfis-modal-shell .perfis-page-group__items {
+  gap: 4px 10px;
+}
+
+.perfis-modal-shell .MuiInputBase-input,
+.perfis-modal-shell .MuiSelect-select {
+  padding-right: 10px !important;
+}
+
+.perfis-modal-shell .perfis-form-grid {
+  padding-inline: 8px;
+}
+
 .MuiModal-root > .MuiBox-root.trip-clients-modal-box {
   width: 86% !important;
   max-width: 86% !important;
@@ -611,6 +777,176 @@ input[type="checkbox"],
   color: var(--lg-text-primary);
 }
 
+.MuiModal-root .MuiCard-root,
+.MuiDialog-root .MuiCard-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
+    0 0 18px rgba(var(--lg-accent-rgb), 0.14),
+    0 18px 38px rgba(2, 8, 27, 0.55) !important;
+  margin: 0;
+  padding: 0;
+}
+
+.MuiModal-root .MuiCardContent-root,
+.MuiDialog-root .MuiCardContent-root {
+  padding: 16px !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiCardContent-root {
+  padding: 24px !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) {
+  width: min(1180px, 88vw) !important;
+  max-width: 88vw !important;
+}
+
+.MuiModal-root > .MuiBox-root:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) {
+  width: min(1180px, 88vw) !important;
+  max-width: 88vw !important;
+  max-height: 88vh !important;
+  overflow: auto !important;
+  padding: 40px !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiCard-root {
+  border-radius: 22px !important;
+  border: 1px solid rgba(var(--lg-accent-rgb), 0.34) !important;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
+    0 0 18px rgba(var(--lg-accent-rgb), 0.14),
+    0 18px 38px rgba(2, 8, 27, 0.55) !important;
+}
+
+/* Clients keeps a lighter outer shell and a darker inner block, matching the intended visual hierarchy */
+.MuiModal-root > .MuiBox-root.clients-modal-shell {
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.10), transparent 70%),
+    linear-gradient(140deg, rgba(10, 24, 58, 0.84), rgba(6, 16, 45, 0.80)) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset,
+    0 16px 34px rgba(2, 8, 27, 0.36) !important;
+}
+
+.MuiModal-root > .MuiBox-root.clients-modal-shell .MuiCard-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  border: 1px solid rgba(var(--lg-accent-rgb), 0.34) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
+    0 0 18px rgba(var(--lg-accent-rgb), 0.14),
+    0 18px 38px rgba(2, 8, 27, 0.55) !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .card.info-card {
+  padding: 20px !important;
+}
+
+[data-theme="light"] :is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiCard-root {
+  border-color: rgba(var(--lg-accent-rgb), 0.26) !important;
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86)) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset,
+    0 0 16px rgba(var(--lg-accent-rgb), 0.12),
+    0 14px 30px rgba(37, 99, 235, 0.14) !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root {
+  min-height: 42px !important;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.08), 0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+[data-theme="light"] :is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root {
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86)) !important;
+  background-color: rgba(242, 247, 255, 0.86) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root:hover,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow: 0 0 0 3px rgba(var(--lg-accent-rgb), 0.12), 0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+[data-theme="light"] :is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root:hover,
+[data-theme="light"] :is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-root.Mui-focused {
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.92)) !important;
+  background-color: rgba(247, 250, 255, 0.92) !important;
+  box-shadow: var(--lg-focus-ring) !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input::placeholder,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiSelect-select,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputLabel-root,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiFormControlLabel-label,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiTypography-root {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiSelect-select {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  min-height: 22px !important;
+}
+
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input:-webkit-autofill,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input:-webkit-autofill:hover,
+:is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiInputBase-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(3, 11, 36, 0.96) inset !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+.MuiDialog-root .MuiPaper-root:is(.lab-estabelecimento-dialog-shell, .lab-alvara-dialog-shell, .pharmacy-medicine-dialog-shell, .pharmacy-daily-status-dialog-shell, .pharmacy-monthly-acquisition-dialog-shell) {
+  width: min(1180px, 92vw) !important;
+  max-width: 92vw !important;
+  max-height: 88vh !important;
+  overflow: auto !important;
+  padding: 40px !important;
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.10), transparent 70%),
+    linear-gradient(140deg, rgba(10, 24, 58, 0.84), rgba(6, 16, 45, 0.80)) !important;
+  backdrop-filter: var(--lg-blur-modal);
+  -webkit-backdrop-filter: var(--lg-blur-modal);
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset,
+    0 16px 34px rgba(2, 8, 27, 0.36) !important;
+  border-radius: 20px !important;
+}
+
 .MuiModal-root .MuiInputLabel-root,
 .MuiDialog-root .MuiInputLabel-root {
   font-size: 10px;
@@ -623,12 +959,18 @@ input[type="checkbox"],
 .MuiModal-root .MuiInputBase-root,
 .MuiDialog-root .MuiInputBase-root {
   min-height: 48px !important;
-  background: var(--lg-glass-input);
-  border: 0.5px solid var(--lg-border-input);
-  border-radius: 10px;
-  color: var(--lg-text-primary);
-  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
   align-items: center;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
 }
 
 .MuiModal-root .MuiOutlinedInput-notchedOutline,
@@ -638,8 +980,13 @@ input[type="checkbox"],
 
 .MuiModal-root .MuiInputBase-root.Mui-focused,
 .MuiDialog-root .MuiInputBase-root.Mui-focused {
-  background: var(--lg-glass-input-focus);
-  box-shadow: var(--lg-focus-ring);
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
 }
 
 .MuiModal-root .MuiInputBase-input,
@@ -726,6 +1073,40 @@ input[type="checkbox"],
   background: var(--lg-glass-input-focus);
   color: var(--lg-text-primary);
   border: 0.5px solid var(--lg-border-input);
+}
+
+.MuiMenu-paper {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  backdrop-filter: var(--lg-blur-modal) !important;
+  -webkit-backdrop-filter: var(--lg-blur-modal) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
+    0 0 18px rgba(var(--lg-accent-rgb), 0.14),
+    0 18px 38px rgba(2, 8, 27, 0.55) !important;
+}
+
+[data-theme="light"] .MuiMenu-paper {
+  background:
+    radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.92)) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.22) !important;
+}
+
+.MuiMenu-paper .MuiMenuItem-root {
+  color: var(--lg-text-primary) !important;
+}
+
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected,
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected:hover {
+  background: rgba(var(--lg-accent-rgb), 0.14) !important;
+}
+
+.MuiMenu-paper .MuiMenuItem-root:hover {
+  background: rgba(var(--lg-accent-rgb), 0.10) !important;
 }
 
 .form-group,

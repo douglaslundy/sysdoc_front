@@ -118,13 +118,13 @@ export default function RouteModal(props) {
                 aria-describedby="keep-mounted-modal-description"
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-route-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={route && route.id ? "Editar Rota " : "Cadastrar Rota "}>
+                            <BaseCard title={route && route.id ? "Editar Rota" : "Cadastrar Rota"}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}

@@ -62,11 +62,11 @@ export default function MedicoSolicitanteModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-medico-solicitante-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
-                            <BaseCard title={isEdit ? 'Editar Médico Solicitante' : 'Novo Médico Solicitante'}>
+                            <BaseCard title={isEdit ? 'Editar Médico Solicitante' : 'Cadastrar Médico Solicitante'}>
                                 <Stack spacing={3}>
                                     <TextField
                                         label="Nome completo"

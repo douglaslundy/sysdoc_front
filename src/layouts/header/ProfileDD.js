@@ -70,21 +70,6 @@ const ProfileDD = () => {
             aria-label="Alternar tema"
             size="small"
             className="theme-toggle-btn"
-            sx={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "9px",
-              border: "0.5px solid var(--lg-border-input)",
-              background: "var(--lg-glass-input)",
-              color: "var(--lg-text-secondary)",
-              backdropFilter: "blur(8px)",
-              transition: "all 0.14s ease",
-              "&:hover": {
-                background: "var(--lg-glass-input-focus)",
-                color: "var(--lg-text-primary)",
-                transform: "scale(1.07)",
-              },
-            }}
           >
             <FeatherIcon icon={mode === "dark" ? "sun" : "moon"} width="18" height="18" />
           </IconButton>
@@ -96,52 +81,21 @@ const ProfileDD = () => {
           aria-controls="profile-menu"
           aria-haspopup="true"
           onClick={handleClick4}
-          sx={{
-            textTransform: "none",
-            padding: "5px 12px 5px 5px",
-            background: "var(--lg-glass-chip)",
-            border: "0.5px solid var(--lg-border)",
-            borderRadius: "40px",
-            backdropFilter: "var(--lg-blur-input)",
-            WebkitBackdropFilter: "var(--lg-blur-input)",
-            color: "var(--lg-text-secondary)",
-            boxShadow: "0 1px 4px rgba(var(--lg-accent-rgb), 0.1), 0 1px 0 rgba(255,255,255,0.2) inset",
-            "&:hover": {
-              background: "var(--lg-glass-panel-hover)",
-            },
-          }}
+          className="profile-dd-trigger"
         >
           <Box display="flex" alignItems="center" gap={1}>
             <Box
-              sx={{
-                width: "26px",
-                height: "26px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: "10px",
-                fontWeight: 600,
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-                flexShrink: 0,
-              }}
+              className="profile-dd-avatar"
             >
               {mounted ? getInitials(username) : ""}
             </Box>
             <Box
-              sx={{
-                display: {
-                  xs: "none",
-                  sm: "flex",
-                },
-                alignItems: "center",
-              }}
+              className="profile-dd-identity"
             >
-              <Typography sx={{ fontSize: "12px", color: "var(--lg-text-secondary)", mr: 0.5 }}>
+              <Typography className="profile-dd-username">
                 {mounted ? username : ""}
               </Typography>
-              <FeatherIcon icon="chevron-down" width="14" height="14" style={{ opacity: 0.4 }} />
+              <FeatherIcon className="profile-dd-chevron" icon="chevron-down" width="14" height="14" />
             </Box>
           </Box>
         </Button>
@@ -153,10 +107,8 @@ const ProfileDD = () => {
         keepMounted
         open={Boolean(anchorEl4)}
         onClose={handleClose4}
-        sx={{
-          "& .MuiMenu-paper": {
-            width: "320px",
-          },
+        PaperProps={{
+          className: "profile-dd-menu-paper",
         }}
       >
         <Box>

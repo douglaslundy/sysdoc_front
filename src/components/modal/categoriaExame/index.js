@@ -58,11 +58,11 @@ export default function CategoriaExameModal(props) {
                 onClose={cleanForm}
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-categoria-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
-                            <BaseCard title={isEdit ? 'Editar Categoria' : 'Nova Categoria de Exame'}>
+                            <BaseCard title={isEdit ? 'Editar Categoria' : 'Cadastrar Categoria de Exame'}>
                                 <Stack spacing={3}>
                                     <TextField
                                         label="Nome da Categoria"

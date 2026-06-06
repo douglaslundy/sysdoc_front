@@ -49,6 +49,143 @@
   align-items: center;
 }
 
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root,
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiButton-root,
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiFab-root,
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__actions .MuiButton-root,
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__dialog .MuiButton-root {
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-input,
+.queue-page:is(.queue-main-page, .pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiSelect-select {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root:hover,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiOutlinedInput-root.Mui-focused,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root:hover,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputBase-input,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiSelect-select,
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputLabel-root {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputLabel-root {
+  color: var(--queue-text-muted) !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiButton-contained {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
+  box-shadow: var(--lg-shadow-btn) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
+  box-shadow: var(--lg-shadow-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiButton-outlined {
+  background: var(--lg-glass-input) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  color: var(--lg-text-secondary) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+}
+
+.queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiFab-root {
+  box-shadow: 0 0 0 1px rgba(124, 153, 255, 0.45), 0 0 20px rgba(78, 122, 255, 0.35) !important;
+}
+
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root {
+  height: 48px !important;
+  min-height: 48px !important;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root:hover,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiOutlinedInput-root.Mui-focused,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root:hover,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-input,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiSelect-select,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputLabel-root {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputLabel-root {
+  color: var(--queue-text-muted) !important;
+}
+
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-input,
+.queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiSelect-select {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  min-height: 22px !important;
+}
+
 .queue-page .queue-page__toolbar .lg-search-field {
   min-width: 320px;
 }
@@ -122,8 +259,120 @@
   line-height: 1.05;
 }
 
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputBase-input,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputBase-input,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiSelect-select {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputLabel-root,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputLabel-root {
+  color: var(--queue-text-muted) !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-contained {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
+  box-shadow: var(--lg-shadow-btn) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
+  box-shadow: var(--lg-shadow-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-outlined {
+  background: var(--lg-glass-input) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  color: var(--lg-text-secondary) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+}
+
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFab-root {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  box-shadow: 0 0 0 1px rgba(124, 153, 255, 0.45), 0 0 20px rgba(78, 122, 255, 0.35) !important;
+}
+
 .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root {
   background: var(--lg-glass-input) !important;
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root,
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root {
+  height: 48px !important;
+  min-height: 48px !important;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root:hover,
+.queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root.Mui-focused,
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root:hover,
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
 }
 
 .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-input,
@@ -131,8 +380,56 @@
   color: var(--queue-text-primary) !important;
 }
 
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-input,
+.queue-page.auditoria-page .queue-page__toolbar .MuiSelect-select,
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputLabel-root {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
 .queue-page.auditoria-page .queue-page__toolbar .MuiInputLabel-root {
   color: var(--queue-text-muted) !important;
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-input::placeholder {
+  color: var(--lg-text-muted) !important;
+  opacity: 1 !important;
+}
+
+.queue-page.auditoria-page .queue-page__toolbar input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.85);
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiButton-contained {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
+  box-shadow: var(--lg-shadow-btn) !important;
+  text-transform: none !important;
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
+  box-shadow: var(--lg-shadow-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiButton-outlined {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 10px !important;
+  background: var(--lg-glass-input) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  color: var(--lg-text-secondary) !important;
+  text-transform: none !important;
+}
+
+.queue-page.auditoria-page .queue-page__toolbar .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
 }
 
 .queue-page .queue-page__toolbar .lg-search-field .MuiInputBase-input {
@@ -177,6 +474,12 @@
 }
 
 .queue-page .queue-page__fab {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
   box-shadow: 0 0 0 1px rgba(124, 153, 255, 0.45), 0 0 20px rgba(78, 122, 255, 0.35);
 }
 
@@ -298,4 +601,150 @@
 
 .queue-page .queue-page__dialog .MuiDialog-paper {
   border-radius: 18px !important;
+}
+
+.attendance-page .card.info-card,
+.monitor-aps-fila-esus-page .MuiCard-root {
+  background: var(--queue-panel-bg);
+  border: 1px solid rgba(var(--lg-accent-rgb), 0.22);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 20px 60px rgba(3, 12, 38, 0.45);
+  padding: 16px 16px 10px;
+}
+
+.attendance-page .card__title {
+  color: var(--queue-text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.attendance-page .card__content {
+  color: var(--queue-text-primary);
+}
+
+.attendance-page .MuiTextField-root .MuiOutlinedInput-root,
+.attendance-page .MuiFormControl-root .MuiOutlinedInput-root,
+.monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.attendance-page .MuiTextField-root .MuiOutlinedInput-root:hover,
+.attendance-page .MuiFormControl-root .MuiOutlinedInput-root:hover,
+.attendance-page .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.attendance-page .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused,
+.monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root:hover,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root:hover,
+.monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+.attendance-page .MuiTextField-root .MuiInputBase-input,
+.attendance-page .MuiFormControl-root .MuiInputBase-input,
+.attendance-page .MuiFormControl-root .MuiSelect-select,
+.monitor-aps-fila-esus-page .MuiTextField-root .MuiInputBase-input,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiInputBase-input,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiSelect-select {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.attendance-page .MuiTextField-root .MuiInputLabel-root,
+.attendance-page .MuiFormControl-root .MuiInputLabel-root,
+.monitor-aps-fila-esus-page .MuiTextField-root .MuiInputLabel-root,
+.monitor-aps-fila-esus-page .MuiFormControl-root .MuiInputLabel-root {
+  color: var(--queue-text-muted) !important;
+}
+
+.attendance-page .MuiButton-contained,
+.monitor-aps-fila-esus-page .MuiButton-contained {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
+  box-shadow: var(--lg-shadow-btn) !important;
+  text-transform: none !important;
+}
+
+.attendance-page .MuiButton-contained:hover,
+.monitor-aps-fila-esus-page .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
+  box-shadow: var(--lg-shadow-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.attendance-page .MuiButton-outlined,
+.monitor-aps-fila-esus-page .MuiButton-outlined {
+  background: var(--lg-glass-input) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  color: var(--lg-text-secondary) !important;
+  text-transform: none !important;
+}
+
+.attendance-page .MuiButton-outlined:hover,
+.monitor-aps-fila-esus-page .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+}
+
+.attendance-page .MuiTableCell-root,
+.monitor-aps-fila-esus-page .MuiTableCell-root {
+  color: var(--queue-text-primary);
+}
+
+.attendance-page .MuiTableHead-root .MuiTableCell-root,
+.monitor-aps-fila-esus-page .MuiTableHead-root .MuiTableCell-root {
+  color: var(--queue-text-muted);
+  font-weight: 700;
+}
+
+.attendance-panel-page {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+}
+
+.attendance-panel-page > .MuiBox-root {
+  min-height: 100vh;
+  padding: 40px !important;
+  background: linear-gradient(120deg, #0f172a 0%, #1e293b 100%) !important;
+  color: #f8fafc !important;
+}
+
+.attendance-panel-page > .MuiBox-root > .MuiBox-root:first-of-type {
+  padding: 24px !important;
+  border: 1px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
+    0 18px 38px rgba(2, 8, 27, 0.55) !important;
+}
+
+.attendance-panel-page .MuiTypography-root {
+  color: inherit;
 }

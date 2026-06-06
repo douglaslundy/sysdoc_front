@@ -1,7 +1,7 @@
 import Menuitems, { DashboardItem } from "../layouts/sidebar/MenuItems";
 
 const TITLE_OVERRIDES = {
-  "/dashboard": "Painel",
+  "/dashboard": "Dashboard",
   "/monitor-aps": "Painel APS",
   "/attendance/panel": "Painel Público",
   "/transparency/medicines": "Medicamentos em Transparência",

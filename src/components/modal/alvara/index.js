@@ -1,15 +1,13 @@
 ﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import {
     Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
 } from '@mui/material';
 import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
+import BaseCard from '../../baseCard/BaseCard';
 
 const STATUS_OPTIONS = [
     'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
@@ -68,120 +66,100 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
             open={open}
             onClose={onClose}
             PaperProps={{
-                sx: {
-                    width: '960px',
-                    maxWidth: '96vw',
-                    maxHeight: '92vh',
-                    overflowY: 'auto',
-                    background: 'var(--lg-glass-modal)',
-                    backdropFilter: 'var(--lg-blur-modal)',
-                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
-                    border: '0.5px solid var(--lg-border)',
-                    borderTop: '1px solid var(--lg-border-strong)',
-                    boxShadow: 'var(--lg-shadow-modal)',
-                    borderRadius: '20px',
-                },
+                className: 'lab-alvara-dialog-shell',
             }}
         >
-            <DialogTitle>
-                {alvara?.id
-                    ? `Editar Alvará — ${alvara.numero_alvara}`
-                    : 'Novo Alvará'
-                }
-            </DialogTitle>
-            <DialogContent>
-                <Box sx={{ mt: 1 }}>
-                    <Stack spacing={2}>
-                        {alvara?.id && (
-                            <Typography variant="body2" color="textSecondary">
-                                Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)
-                            </Typography>
-                        )}
+            <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
+                <Stack spacing={2}>
+                    {alvara?.id && (
+                        <Typography variant="body2" color="textSecondary">
+                            Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)
+                        </Typography>
+                    )}
 
-                        <FormControl fullWidth required>
-                            <InputLabel>Estabelecimento</InputLabel>
-                            <Select
-                                name="estabelecimento_id"
-                                value={form.estabelecimento_id}
-                                label="Estabelecimento"
-                                onChange={change}
-                                disabled={!!alvara?.id}
-                            >
-                                {selectList.map(est => (
-                                    <MenuItem key={est.id} value={est.id}>
-                                        {est.nome_estabelecimento}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth required>
-                            <InputLabel>Nível de Risco</InputLabel>
-                            <Select
-                                name="nivel_risco"
-                                value={form.nivel_risco}
-                                label="Nível de Risco"
-                                onChange={change}
-                            >
-                                <MenuItem value="1">1 — Baixo</MenuItem>
-                                <MenuItem value="2">2 — Médio</MenuItem>
-                                <MenuItem value="3">3 — Alto</MenuItem>
-                                <MenuItem value="N/A">N/A</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth>
-                            <InputLabel>Status</InputLabel>
-                            <Select
-                                name="status"
-                                value={form.status}
-                                label="Status"
-                                onChange={change}
-                            >
-                                {STATUS_OPTIONS.map(s => (
-                                    <MenuItem key={s} value={s}>{s}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <TextField
-                            label="Data do Alvará"
-                            name="data_alvara"
-                            type="date"
-                            value={form.data_alvara}
+                    <FormControl fullWidth required>
+                        <InputLabel>Estabelecimento</InputLabel>
+                        <Select
+                            name="estabelecimento_id"
+                            value={form.estabelecimento_id}
+                            label="Estabelecimento"
                             onChange={change}
-                            required
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
                             disabled={!!alvara?.id}
-                            helperText={!alvara?.id ? 'O número será gerado automaticamente com base na data' : ''}
-                        />
+                        >
+                            {selectList.map(est => (
+                                <MenuItem key={est.id} value={est.id}>
+                                    {est.nome_estabelecimento}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
-                        <TextField
-                            label="Vencimento (opcional)"
-                            name="vencimento_alvara"
-                            type="date"
-                            value={form.vencimento_alvara}
+                    <FormControl fullWidth required>
+                        <InputLabel>Nível de Risco</InputLabel>
+                        <Select
+                            name="nivel_risco"
+                            value={form.nivel_risco}
+                            label="Nível de Risco"
                             onChange={change}
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                        />
+                        >
+                            <MenuItem value="1">1 — Baixo</MenuItem>
+                            <MenuItem value="2">2 — Médio</MenuItem>
+                            <MenuItem value="3">3 — Alto</MenuItem>
+                            <MenuItem value="N/A">N/A</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                        <TextField
-                            label="Contato (opcional)"
-                            name="contato"
-                            value={form.contato}
+                    <FormControl fullWidth>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                            name="status"
+                            value={form.status}
+                            label="Status"
                             onChange={change}
-                            fullWidth
-                            inputProps={{ autoComplete: 'off', maxLength: 1000 }}
-                        />
-                    </Stack>
+                        >
+                            {STATUS_OPTIONS.map(s => (
+                                <MenuItem key={s} value={s}>{s}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <TextField
+                        label="Data do Alvará"
+                        name="data_alvara"
+                        type="date"
+                        value={form.data_alvara}
+                        onChange={change}
+                        required
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                        disabled={!!alvara?.id}
+                        helperText={!alvara?.id ? 'O número será gerado automaticamente com base na data' : ''}
+                    />
+
+                    <TextField
+                        label="Vencimento (opcional)"
+                        name="vencimento_alvara"
+                        type="date"
+                        value={form.vencimento_alvara}
+                        onChange={change}
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                    />
+
+                    <TextField
+                        label="Contato (opcional)"
+                        name="contato"
+                        value={form.contato}
+                        onChange={change}
+                        fullWidth
+                        inputProps={{ autoComplete: 'off', maxLength: 1000 }}
+                    />
+                </Stack>
+                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
+                    <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
                 </Box>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
-                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-                <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
-            </DialogActions>
+            </BaseCard>
         </Dialog>
     );
 }

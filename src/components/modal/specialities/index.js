@@ -1,7 +1,13 @@
 ﻿import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
-import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../_shared/modalFormStyles';
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalPrimaryButtonSx,
+    modalSecondaryButtonSx,
+    modalShellSx
+} from '../_shared/modalFormStyles';
 import Modal from '@mui/material/Modal';
 import BaseCard from '../../baseCard/BaseCard';
 import {
@@ -76,14 +82,15 @@ export default function SpecialityModal(props) {
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
+                slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="specialities-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <AlertModal />
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={speciality && speciality.id ? "Editar Especialidade " : "Enviar Especialidade "}>
+                            <BaseCard title={speciality && speciality.id ? "Editar Especialidade" : "Cadastrar Especialidade"}>
                                 {texto &&
                                     <Alert variant="filled" severity="warning">
                                         {texto}

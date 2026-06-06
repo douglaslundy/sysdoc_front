@@ -85,11 +85,11 @@ export default function ExameModal(props) {
                 onClose={cleanForm}
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
-                            <BaseCard title={isEdit ? 'Editar Exame' : 'Novo Exame'}>
+                            <BaseCard title={isEdit ? 'Editar Exame' : 'Cadastrar Exame'}>
                                 <Stack spacing={3}>
                                     <TextField
                                         label="Nome do Exame"

@@ -223,7 +223,7 @@ export default function OrdinanceModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-ordinance-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>

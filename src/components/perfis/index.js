@@ -200,11 +200,11 @@ export default function Perfis() {
             </BaseCard>
 
             <Modal keepMounted open={openModal} onClose={() => setOpenModal(false)}>
-                <Box sx={modalStyle}>
+                <Box sx={modalStyle} className="perfis-modal-shell">
                     <AlertModal />
                     <BaseCard title={editId ? 'Editar Perfil de Acesso' : 'Novo Perfil de Acesso'}>
                         <Stack spacing={3}>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={2} className="perfis-form-grid">
                                 <Grid item xs={12} md={6}>
                                     <TextField
                                         className="lg-search-field"
@@ -249,27 +249,29 @@ export default function Perfis() {
                             <Typography variant="h5" fontWeight="bold">Paginas com Acesso</Typography>
 
                             {Object.entries(categorias).map(([categoria, catPages]) => (
-                                <FormControl key={categoria} component="fieldset">
-                                    <FormLabel component="legend" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                                        {categoria}
-                                    </FormLabel>
-                                    <FormGroup row>
-                                        {catPages.map((pg) => (
-                                            <FormControlLabel
-                                                key={pg.id}
-                                                control={
-                                                    <Checkbox
-                                                        checked={form.page_ids.includes(pg.id)}
-                                                        onChange={() => handleTogglePage(pg.id)}
-                                                        size="small"
-                                                    />
-                                                }
-                                                label={pg.titulo}
-                                                sx={{ minWidth: 200 }}
-                                            />
-                                        ))}
-                                    </FormGroup>
-                                </FormControl>
+                                <Box key={categoria} className="perfis-page-group">
+                                    <FormControl component="fieldset" fullWidth>
+                                        <FormLabel component="legend" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                                            {categoria}
+                                        </FormLabel>
+                                        <FormGroup row className="perfis-page-group__items">
+                                            {catPages.map((pg) => (
+                                                <FormControlLabel
+                                                    key={pg.id}
+                                                    control={
+                                                        <Checkbox
+                                                            checked={form.page_ids.includes(pg.id)}
+                                                            onChange={() => handleTogglePage(pg.id)}
+                                                            size="small"
+                                                        />
+                                                    }
+                                                    label={pg.titulo}
+                                                    sx={{ minWidth: 200 }}
+                                                />
+                                            ))}
+                                        </FormGroup>
+                                    </FormControl>
+                                </Box>
                             ))}
                         </Stack>
                         <br />

@@ -419,11 +419,11 @@ export default function QueueModal(props) {
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="queue-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
 
                     <Grid container spacing={0}>
                         <Grid item xs={12} lg={12}>
-                            <BaseCard title={queue && queue.id ? "Editar Fila " : "Cadastrar na Fila "}>
+                            <BaseCard title={queue && queue.id ? "Editar Fila" : "Cadastrar na Fila"}>
                                 {alertState.visible && (
                                     <Alert
                                         sx={{ mb: 2 }}

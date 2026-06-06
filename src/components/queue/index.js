@@ -81,7 +81,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default () => {
-    const controlHeight = 40;
+    const controlHeight = 48;
     const controlSx = {
         height: `${controlHeight}px`,
         "& .MuiInputBase-root": { height: `${controlHeight}px` },
@@ -370,7 +370,7 @@ export default () => {
 
     return (
         <>
-        <Box sx={modalFormRootSx} className="queue-page">
+        <Box sx={modalFormRootSx} className="queue-page queue-main-page">
         <BaseCard title={`Você possui ${pagination?.total ?? queues.length} especialidades Cadastradas`}>
             <AlertModal />
             {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}

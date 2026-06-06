@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -149,8 +149,8 @@ export default function ListaAlvaras() {
             <AlertModal />
             <Box className="queue-page__toolbar"
                 sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'minmax(260px, 1fr) 160px 200px auto' },
+                    display: 'flex',
+                    flexWrap: 'wrap',
                     alignItems: 'center',
                     gap: 1.5,
                     mb: 2,
@@ -159,13 +159,13 @@ export default function ListaAlvaras() {
             >
                 <TextField
                     className="lg-search-field"
-                    sx={{ minWidth: 0, width: '100%' }}
+                    sx={{ flex: '1 1 320px', minWidth: 260 }}
                     placeholder="Pesquisar por número ou estabelecimento"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
-                <FormControl className="lg-search-field" sx={{ minWidth: 0, width: '100%' }}>
+                <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
                     <InputLabel>Nível de Risco</InputLabel>
                     <Select value={nivelRisco} label="Nível de Risco" onChange={handleNivelRisco}>
                         <MenuItem value="">Todos</MenuItem>
@@ -175,7 +175,7 @@ export default function ListaAlvaras() {
                         <MenuItem value="N/A">N/A</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl className="lg-search-field" sx={{ minWidth: 0, width: '100%' }}>
+                <FormControl className="lg-search-field" sx={{ flex: '0 1 180px', minWidth: 180 }}>
                     <InputLabel>Status</InputLabel>
                     <Select value={statusFiltro} label="Status" onChange={handleStatusFiltro}>
                         <MenuItem value="">Todos</MenuItem>
@@ -184,7 +184,7 @@ export default function ListaAlvaras() {
                         ))}
                     </Select>
                 </FormControl>
-                <Fab className="queue-page__fab queue-page__fab--add" color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ justifySelf: { xs: 'flex-end', md: 'center' } }}>
+                <Fab className="queue-page__fab queue-page__fab--add" color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ flex: '0 0 48px', ml: { xs: 0, md: 'auto' } }}>
                     <FeatherIcon icon="plus" />
                 </Fab>
             </Box>
@@ -284,3 +284,6 @@ export default function ListaAlvaras() {
         </Box>
     );
 }
+
+
+

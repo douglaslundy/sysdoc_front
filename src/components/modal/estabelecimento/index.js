@@ -1,13 +1,11 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import { Autocomplete, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { addEstabelecimentoFetch, editEstabelecimentoFetch } from '../../../store/fetchActions/estabelecimentos';
 import { api } from '../../../services/api';
 import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import BaseCard from '../../baseCard/BaseCard';
 
 const EMPTY = {
     nome_responsavel: '',
@@ -87,87 +85,72 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
             open={open}
             onClose={onClose}
             PaperProps={{
-                sx: {
-                    width: '960px',
-                    maxWidth: '96vw',
-                    maxHeight: '92vh',
-                    overflowY: 'auto',
-                    background: 'var(--lg-glass-modal)',
-                    backdropFilter: 'var(--lg-blur-modal)',
-                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
-                    border: '0.5px solid var(--lg-border)',
-                    borderTop: '1px solid var(--lg-border-strong)',
-                    boxShadow: 'var(--lg-shadow-modal)',
-                    borderRadius: '20px',
-                },
+                className: 'lab-estabelecimento-dialog-shell',
             }}
         >
-            <DialogTitle>{estabelecimento?.id ? 'Editar Estabelecimento' : 'Novo Estabelecimento'}</DialogTitle>
-            <DialogContent>
-                <Box sx={{ mt: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Dados principais</Typography>
-                    <Stack spacing={2}>
-                        <TextField label="Nome do Estabelecimento" name="nome_estabelecimento" value={form.nome_estabelecimento} onChange={change} required fullWidth />
-                        <TextField label="Responsável" name="nome_responsavel" value={form.nome_responsavel} onChange={change} required fullWidth />
-                        <TextField label="Endereço" name="endereco" value={form.endereco} onChange={change} required fullWidth />
-                        <Autocomplete
-                            multiple
-                            options={cnaeOptions}
-                            value={selectedOptions}
-                            inputValue={cnaeInputValue}
-                            onChange={(_, values) => setForm((f) => ({ ...f, cnaes: values.map((v) => v.codigo) }))}
-                            onInputChange={(_, value, reason) => {
-                                if (reason === 'input') {
-                                    const masked = maskCnaeInput(value);
-                                    setCnaeInputValue(masked);
-                                    setCnaeBusca(masked);
-                                }
-                                if (reason === 'clear') {
-                                    setCnaeInputValue('');
-                                    setCnaeBusca('');
-                                }
-                            }}
-                            filterOptions={(options) => options}
-                            getOptionLabel={(option) => `${option.codigo}${option.descricao ? ` - ${option.descricao}` : ''}`}
-                            isOptionEqualToValue={(a, b) => a.codigo === b.codigo}
-                            renderInput={(params) => <TextField {...params} label="CNAEs" required helperText="Selecione um ou mais CNAEs oficiais" />}
-                        />
-                    </Stack>
+            <BaseCard title={estabelecimento?.id ? 'Editar Estabelecimento' : 'Cadastrar Estabelecimento'}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Dados principais</Typography>
+                <Stack spacing={2}>
+                    <TextField label="Nome do Estabelecimento" name="nome_estabelecimento" value={form.nome_estabelecimento} onChange={change} required fullWidth />
+                    <TextField label="Responsável" name="nome_responsavel" value={form.nome_responsavel} onChange={change} required fullWidth />
+                    <TextField label="Endereço" name="endereco" value={form.endereco} onChange={change} required fullWidth />
+                    <Autocomplete
+                        multiple
+                        options={cnaeOptions}
+                        value={selectedOptions}
+                        inputValue={cnaeInputValue}
+                        onChange={(_, values) => setForm((f) => ({ ...f, cnaes: values.map((v) => v.codigo) }))}
+                        onInputChange={(_, value, reason) => {
+                            if (reason === 'input') {
+                                const masked = maskCnaeInput(value);
+                                setCnaeInputValue(masked);
+                                setCnaeBusca(masked);
+                            }
+                            if (reason === 'clear') {
+                                setCnaeInputValue('');
+                                setCnaeBusca('');
+                            }
+                        }}
+                        filterOptions={(options) => options}
+                        getOptionLabel={(option) => `${option.codigo}${option.descricao ? ` - ${option.descricao}` : ''}`}
+                        isOptionEqualToValue={(a, b) => a.codigo === b.codigo}
+                        renderInput={(params) => <TextField {...params} label="CNAEs" required helperText="Selecione um ou mais CNAEs oficiais" />}
+                    />
+                </Stack>
 
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 3, mb: 1 }}>Dados complementares</Typography>
-                    <Stack spacing={2}>
-                        <TextField label="Razão Social" name="razao_social" value={form.razao_social} onChange={change} fullWidth />
-                        <TextField label="Nome Fantasia" name="nome_fantasia" value={form.nome_fantasia} onChange={change} fullWidth />
-                        <TextField label="CNPJ" name="cnpj" value={form.cnpj} onChange={change} fullWidth helperText="Formato: 00.000.000/0000-00" />
-                        <TextField label="Telefone" name="telefone" value={form.telefone} onChange={change} fullWidth />
-                        <TextField
-                            label="Observações"
-                            name="obs"
-                            value={form.obs}
-                            onChange={change}
-                            fullWidth
-                            multiline
-                            minRows={1}
-                            sx={{
-                                '&& .MuiInputBase-root': {
-                                    minHeight: '30px !important',
-                                },
-                                '&& .MuiInputBase-inputMultiline': {
-                                    minHeight: '30px !important',
-                                    height: '30px !important',
-                                    lineHeight: '30px !important',
-                                    paddingTop: '0 !important',
-                                    paddingBottom: '0 !important',
-                                },
-                            }}
-                        />
-                    </Stack>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 3, mb: 1 }}>Dados complementares</Typography>
+                <Stack spacing={2}>
+                    <TextField label="Razão Social" name="razao_social" value={form.razao_social} onChange={change} fullWidth />
+                    <TextField label="Nome Fantasia" name="nome_fantasia" value={form.nome_fantasia} onChange={change} fullWidth />
+                    <TextField label="CNPJ" name="cnpj" value={form.cnpj} onChange={change} fullWidth helperText="Formato: 00.000.000/0000-00" />
+                    <TextField label="Telefone" name="telefone" value={form.telefone} onChange={change} fullWidth />
+                    <TextField
+                        label="Observações"
+                        name="obs"
+                        value={form.obs}
+                        onChange={change}
+                        fullWidth
+                        multiline
+                        minRows={1}
+                        sx={{
+                            '&& .MuiInputBase-root': {
+                                minHeight: '30px !important',
+                            },
+                            '&& .MuiInputBase-inputMultiline': {
+                                minHeight: '30px !important',
+                                height: '30px !important',
+                                lineHeight: '30px !important',
+                                paddingTop: '0 !important',
+                                paddingBottom: '0 !important',
+                            },
+                        }}
+                    />
+                </Stack>
+                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
+                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
+                    <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
                 </Box>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
-                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-                <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
-            </DialogActions>
+            </BaseCard>
         </Dialog>
     );
 }
