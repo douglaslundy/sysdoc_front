@@ -78,7 +78,7 @@ export default () => {
 
     const HandleInactiveRoute = async route => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${route.license_plate}`, confirm: inactiveRouteFetch(route) })
-        dispatch(changeTitleAlert(` A  rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi excluida com sucesso!`))
+        dispatch(changeTitleAlert(`A rota ${route.origin.toUpperCase()} - ${route.destination.toUpperCase()} foi excluída com sucesso!`))
     }
 
 
@@ -105,7 +105,7 @@ export default () => {
 
     return (
         <Box sx={modalFormRootSx} className="queue-page">
-        <BaseCard title={`Você possui ${allRoutes.length} Rotas Cadastrados`}>
+        <BaseCard title={`Você possui ${allRoutes.length} rotas cadastradas`}>
             <AlertModal />
             <Box className="queue-page__toolbar" sx={{
                 '& > :not(style)': { m: 0 },
@@ -161,7 +161,7 @@ export default () => {
 
                             <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
-                                    ORIGEM X DESTINO / USUÃRIO
+                                    ORIGEM X DESTINO / USUÁRIO
                                 </Typography>
                             </TableCell>
 

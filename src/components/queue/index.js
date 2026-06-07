@@ -371,7 +371,7 @@ export default () => {
     return (
         <>
         <Box sx={modalFormRootSx} className="queue-page queue-main-page">
-        <BaseCard title={`Você possui ${pagination?.total ?? queues.length} especialidades Cadastradas`}>
+        <BaseCard title={`Você possui ${pagination?.total ?? queues.length} registros cadastrados`}>
             <AlertModal />
             {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
 
@@ -764,7 +764,7 @@ export default () => {
             PaperProps={{ sx: { width: '90%', maxWidth: '90%', height: '98vh', overflowY: 'auto' } }}
         >
             <DialogTitle>
-                Registro de Fila — Posição {viewQueue?.position}
+                Registro de Fila - Posição {viewQueue?.position}
                 {viewQueue?.urgency == 1 && (
                     <Chip label="URGENTE" color="error" size="small" sx={{ ml: 1 }} />
                 )}

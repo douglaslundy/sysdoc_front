@@ -22,8 +22,8 @@ export default function RedefinirSenha() {
         e.preventDefault();
         setErro('');
 
-        if (form.password.length < 6) {
-            setErro('A senha deve ter pelo menos 6 caracteres.');
+        if (form.password.length < 8) {
+            setErro('A senha deve ter pelo menos 8 caracteres.');
             return;
         }
         if (form.password !== form.password_confirmation) {

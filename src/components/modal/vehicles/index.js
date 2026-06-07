@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -71,12 +71,12 @@ export default function VehicleModal(props) {
     }
 
     const handlePostData = async () => {
-        dispatch(changeTitleAlert(`O Veículo ${form.model.toUpperCase()} ${form.brand.toUpperCase()} PLACA ${form.license_plate.toUpperCase()} foi Cadastrado com sucesso!`));
+        dispatch(changeTitleAlert(`O Veículo ${form.model.toUpperCase()} ${form.brand.toUpperCase()} PLACA ${form.license_plate.toUpperCase()} foi cadastrado com sucesso!`));
         dispatch(addVehicleFetch(form, cleanForm));
     };
 
     const handlePutData = async () => {
-        dispatch(changeTitleAlert(`O Veículo ${form.model.toUpperCase()} ${form.brand.toUpperCase()} PLACA ${form.license_plate.toUpperCase()} foi Atualizado com sucesso!`));
+        dispatch(changeTitleAlert(`O Veículo ${form.model.toUpperCase()} ${form.brand.toUpperCase()} PLACA ${form.license_plate.toUpperCase()} foi atualizado com sucesso!`));
         dispatch(editVehicleFetch(form, cleanForm));
     };
 

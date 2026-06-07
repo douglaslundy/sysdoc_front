@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 
-const COR_DESFECHO   = { 1: '#168821', 2: '#E52207', 3: '#FF8C00', 4: '#888' };
+const COR_DESFECHO = { 1: '#168821', 2: '#E52207', 3: '#FF8C00', 4: '#888' };
 const LABEL_DESFECHO = { 1: 'Realizada', 2: 'Recusada', 3: 'Ausente', 4: 'Não informado' };
 const PALETTE = [
     '#2196F3', '#9C27B0', '#FF5722', '#009688', '#FFC107',
@@ -14,17 +14,24 @@ function buildColorMap(values) {
     return Object.fromEntries(unique.map((v, i) => [v, PALETTE[i % PALETTE.length]]));
 }
 
+function stripLegendPrefix(value) {
+    const text = String(value ?? '').trim();
+    if (!text) return '—';
+    const parts = text.split(' - ');
+    return parts.length > 1 ? parts.slice(1).join(' - ').trim() : text;
+}
+
 function Legend({ modo, colorMap }) {
     const items = useMemo(() => {
         if (modo === 'agente') {
             return Object.entries(LABEL_DESFECHO).map(([code, label]) => ({
-                label,
+                label: stripLegendPrefix(label),
                 color: COR_DESFECHO[Number(code)] ?? '#888',
             }));
         }
         if (!colorMap) return [];
         return Object.entries(colorMap).map(([key, color]) => ({
-            label: key || '—',
+            label: stripLegendPrefix(key),
             color,
         }));
     }, [modo, colorMap]);
@@ -34,19 +41,46 @@ function Legend({ modo, colorMap }) {
     const titulo = modo === 'todos' ? 'Equipe' : modo === 'equipe' ? 'Agente' : 'Desfecho';
 
     return (
-        <Box sx={{
-            position: 'absolute', bottom: 16, left: 16, zIndex: 1500,
-            bgcolor: 'rgba(255,255,255,0.93)', borderRadius: 2,
-            p: 1.5, boxShadow: 3, maxHeight: 240, overflowY: 'auto', maxWidth: 220,
-        }}>
-            <Typography variant="caption" fontWeight={700}
-                sx={{ color: '#222', display: 'block', mb: 0.5, textTransform: 'uppercase', fontSize: 10 }}>
+        <Box
+            sx={{
+                position: 'absolute',
+                bottom: 16,
+                left: 16,
+                zIndex: 1500,
+                bgcolor: 'var(--lg-glass-modal)',
+                color: 'var(--lg-text-primary)',
+                border: '1px solid var(--lg-border)',
+                borderRadius: 2,
+                p: 1.5,
+                boxShadow: 'var(--lg-shadow-modal)',
+                maxHeight: 240,
+                overflowY: 'auto',
+                maxWidth: 260,
+                backdropFilter: 'var(--lg-blur-modal)',
+                WebkitBackdropFilter: 'var(--lg-blur-modal)',
+            }}
+        >
+            <Typography
+                variant="caption"
+                fontWeight={700}
+                sx={{
+                    color: 'var(--lg-text-secondary)',
+                    display: 'block',
+                    mb: 0.5,
+                    textTransform: 'uppercase',
+                    fontSize: 10,
+                }}
+            >
                 {titulo}
             </Typography>
-            {items.map(({ label, color }) => (
-                <Box key={label} display="flex" alignItems="center" gap={1} mb={0.5}>
+            {items.map(({ label, color }, idx) => (
+                <Box key={`${label}-${color}-${idx}`} display="flex" alignItems="center" gap={1} mb={0.5}>
                     <Box sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
-                    <Typography variant="caption" sx={{ color: '#333', lineHeight: 1.3 }} noWrap>
+                    <Typography
+                        variant="caption"
+                        sx={{ color: 'var(--lg-text-primary)', lineHeight: 1.3, fontWeight: 600 }}
+                        noWrap
+                    >
                         {label}
                     </Typography>
                 </Box>
@@ -61,14 +95,14 @@ export default function MapaVisitas({
     zoom = 13,
     onPinClick,
     modoExterno = null,
-    showToggle  = true,
+    showToggle = true,
 }) {
     const [modoInterno, setModoInterno] = useState('todos');
     const modo = modoExterno ?? modoInterno;
 
     const colorMap = useMemo(() => {
-        if (modo === 'todos')  return buildColorMap(pontos.map(p => p.equipe ?? p.equipe_ine ?? ''));
-        if (modo === 'equipe') return buildColorMap(pontos.map(p => p.agente ?? ''));
+        if (modo === 'todos') return buildColorMap(pontos.map((p) => p.equipe ?? p.equipe_ine ?? ''));
+        if (modo === 'equipe') return buildColorMap(pontos.map((p) => p.agente ?? ''));
         return null;
     }, [pontos, modo]);
 
@@ -80,15 +114,20 @@ export default function MapaVisitas({
 
     if (pontos.length === 0) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height={588}
-                sx={{ bgcolor: 'var(--lg-glass)', borderRadius: 2, border: '1px dashed var(--lg-border)' }}>
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height={588}
+                sx={{ bgcolor: 'var(--lg-glass)', borderRadius: 2, border: '1px dashed var(--lg-border)' }}
+            >
                 <Typography color="textSecondary">Nenhuma visita georreferenciada no período</Typography>
             </Box>
         );
     }
 
-    const lats = pontos.map(p => p.lat);
-    const lngs = pontos.map(p => p.lng);
+    const lats = pontos.map((p) => p.lat);
+    const lngs = pontos.map((p) => p.lng);
     const centroCalc = [
         (Math.min(...lats) + Math.max(...lats)) / 2,
         (Math.min(...lngs) + Math.max(...lngs)) / 2,
@@ -99,7 +138,8 @@ export default function MapaVisitas({
             {showToggle && (
                 <Box display="flex" justifyContent="flex-end" mb={1}>
                     <ToggleButtonGroup
-                        size="small" exclusive
+                        size="small"
+                        exclusive
                         value={modoInterno}
                         onChange={(_, v) => v && setModoInterno(v)}
                         sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 12 } }}
@@ -111,10 +151,15 @@ export default function MapaVisitas({
                 </Box>
             )}
 
-            <Box sx={{
-                height: 672, width: '100%', borderRadius: 2,
-                overflow: 'hidden', position: 'relative',
-            }}>
+            <Box
+                sx={{
+                    height: 672,
+                    width: '100%',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    position: 'relative',
+                }}
+            >
                 <MapContainer
                     center={centroCalc}
                     zoom={zoom}
@@ -131,10 +176,10 @@ export default function MapaVisitas({
                             center={[p.lat, p.lng]}
                             radius={6}
                             pathOptions={{
-                                color:       getColor(p),
-                                fillColor:   getColor(p),
+                                color: getColor(p),
+                                fillColor: getColor(p),
                                 fillOpacity: 0.8,
-                                weight:      1,
+                                weight: 1,
                             }}
                             eventHandlers={onPinClick ? { click: () => onPinClick(p.id) } : undefined}
                         >
@@ -155,11 +200,15 @@ export default function MapaVisitas({
                                     </div>
                                     <div>{p.agente}</div>
                                     {p.equipe && <div style={{ fontSize: 11, color: '#555' }}>Equipe: {p.equipe}</div>}
-                                    {p.data && <div style={{ fontSize: 11 }}>{(() => {
-                                        const d = new Date(p.data.length === 10 ? p.data + 'T12:00:00' : p.data).toLocaleDateString('pt-BR');
-                                        const h = p.hora != null ? ` ${String(p.hora).padStart(2, '0')}:00` : '';
-                                        return d + h;
-                                    })()}</div>}
+                                    {p.data && (
+                                        <div style={{ fontSize: 11 }}>
+                                            {(() => {
+                                                const d = new Date(p.data.length === 10 ? `${p.data}T12:00:00` : p.data).toLocaleDateString('pt-BR');
+                                                const h = p.hora != null ? ` ${String(p.hora).padStart(2, '0')}:00` : '';
+                                                return d + h;
+                                            })()}
+                                        </div>
+                                    )}
                                 </div>
                             </Tooltip>
                         </CircleMarker>

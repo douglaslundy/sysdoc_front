@@ -78,7 +78,7 @@ export default () => {
 
     const HandleInactiveVehicle = async vehicle => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a Sala ${vehicle.license_plate}`, confirm: inactiveVehicleFetch(vehicle) })
-        dispatch(changeTitleAlert(` O Veiculo ${vehicle.brand.toUpperCase()} ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi excluida com sucesso!`))
+        dispatch(changeTitleAlert(`O Veículo ${vehicle.brand.toUpperCase()} ${vehicle.model.toUpperCase()} PLACA ${vehicle.license_plate.toUpperCase()} foi excluído com sucesso!`))
     }
 
 
@@ -161,7 +161,7 @@ export default () => {
 
                             <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">
-                                    MARCA MODELO COR CAPACIDADE / USUÃRIO
+                                    MARCA MODELO COR CAPACIDADE / USUÁRIO
                                 </Typography>
                             </TableCell>
 
