@@ -12,17 +12,24 @@ export default function AttendanceQueue() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const loadQueue = async () => {
-    const { data } = await attendanceApi.listQueue();
+  const loadQueue = async (selectedRoomId = roomId) => {
+    const { data } = await attendanceApi.listQueue({ roomId: selectedRoomId });
     setQueue(data || []);
   };
 
   useEffect(() => {
-    Promise.all([
-      loadQueue(),
-      attendanceApi.listRooms().then((res) => setRooms(res.data || [])),
-    ]).catch(() => setError("Não foi possível carregar dados da fila."));
+    attendanceApi.listRooms()
+      .then((res) => setRooms(res.data || []))
+      .catch(() => setError("Não foi possível carregar dados da fila."));
   }, []);
+
+  useEffect(() => {
+    if (!roomId) {
+      setQueue([]);
+      return;
+    }
+    loadQueue(roomId).catch(() => setError("Não foi possível carregar a fila da sala."));
+  }, [roomId]);
 
   const callNext = async () => {
     if (!roomId) return;
@@ -33,7 +40,7 @@ export default function AttendanceQueue() {
       if (typeof window !== "undefined" && data?.id) {
         localStorage.setItem("attendance.currentTicketId", String(data.id));
       }
-      await loadQueue();
+      await loadQueue(roomId);
       router.push(`/attendance/service/${data.id}`);
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao chamar próximo.");
@@ -51,7 +58,7 @@ export default function AttendanceQueue() {
       if (typeof window !== "undefined" && data?.id) {
         localStorage.setItem("attendance.currentTicketId", String(data.id));
       }
-      await loadQueue();
+      await loadQueue(roomId);
       router.push(`/attendance/service/${data.id}`);
     } catch (e) {
       setError(e?.response?.data?.message || "Erro ao chamar senha específica.");
@@ -62,8 +69,9 @@ export default function AttendanceQueue() {
 
   return (
     <BaseCard title="Fila de Atendimento">
-      <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
+      <Box className="attendance-queue__toolbar" sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
         <TextField
+          className="attendance-queue__room-select"
           select
           label="Sala"
           value={roomId}
@@ -76,12 +84,14 @@ export default function AttendanceQueue() {
             </MenuItem>
           ))}
         </TextField>
-        <Button variant="contained" onClick={callNext} disabled={loading || !roomId}>
+        <Button className="attendance-queue__call-next" variant="contained" onClick={callNext} disabled={loading || !roomId}>
           Chamar próximo
         </Button>
       </Box>
       {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
-      {queue.length === 0 ? (
+      {!roomId ? (
+        <Typography>Selecione uma sala para visualizar os cidadãos aguardando.</Typography>
+      ) : queue.length === 0 ? (
         <Typography>Nenhum cliente aguardando atendimento.</Typography>
       ) : (
         queue.map((item) => (

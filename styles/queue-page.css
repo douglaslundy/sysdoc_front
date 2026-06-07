@@ -709,6 +709,29 @@
   border: 0.5px solid var(--lg-border-input) !important;
 }
 
+.attendance-queue-page .attendance-queue__room-select .MuiOutlinedInput-root,
+.attendance-queue-page .attendance-queue__call-next,
+.attendance-tickets-page .attendance-tickets__client-field .MuiAutocomplete-inputRoot,
+.attendance-tickets-page .attendance-tickets__client-field .MuiOutlinedInput-root,
+.attendance-tickets-page .attendance-tickets__room-select .MuiOutlinedInput-root,
+.attendance-tickets-page .attendance-tickets__prefix-select .MuiOutlinedInput-root,
+.attendance-tickets-page .attendance-tickets__generate {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+}
+
+.attendance-tickets-page .attendance-tickets__client-field .MuiAutocomplete-inputRoot,
+.attendance-tickets-page .attendance-tickets__client-field .MuiOutlinedInput-root {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.attendance-tickets-page .attendance-tickets__client-field .MuiAutocomplete-input,
+.attendance-tickets-page .attendance-tickets__client-field .MuiInputBase-input {
+  min-height: 0 !important;
+}
+
 .attendance-page .MuiTableCell-root,
 .monitor-aps-fila-esus-page .MuiTableCell-root {
   color: var(--queue-text-primary);
