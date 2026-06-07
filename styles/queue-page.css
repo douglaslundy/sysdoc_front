@@ -259,8 +259,8 @@
   line-height: 1.05;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root {
   background:
     radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
     linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
@@ -275,10 +275,10 @@
   -webkit-backdrop-filter: var(--lg-blur-input);
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
   background:
     radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
     linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
@@ -288,9 +288,9 @@
     0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputBase-input,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputBase-input,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiSelect-select {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiInputBase-input,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiInputBase-input,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiSelect-select {
   color: var(--lg-text-primary) !important;
   -webkit-text-fill-color: var(--lg-text-primary) !important;
   caret-color: var(--lg-text-primary) !important;
@@ -300,37 +300,37 @@
   padding-right: 10px !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputLabel-root,
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputLabel-root {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiInputLabel-root,
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiInputLabel-root {
   color: var(--queue-text-muted) !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-contained {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiButton-contained {
   background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
   box-shadow: var(--lg-shadow-btn) !important;
   text-transform: none !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-contained:hover {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiButton-contained:hover {
   background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
   box-shadow: var(--lg-shadow-btn-hover) !important;
   transform: translateY(-1px);
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-outlined {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiButton-outlined {
   background: var(--lg-glass-input) !important;
   border: 0.5px solid var(--lg-border-input) !important;
   color: var(--lg-text-secondary) !important;
   text-transform: none !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiButton-outlined:hover {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiButton-outlined:hover {
   background: var(--lg-glass-input-focus) !important;
   color: var(--lg-text-primary) !important;
   border: 0.5px solid var(--lg-border-input) !important;
 }
 
-.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFab-root {
+.queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFab-root {
   width: 48px !important;
   height: 48px !important;
   min-width: 48px !important;
@@ -749,8 +749,8 @@
 [data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputBase-root,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root,
 [data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root,
 [data-theme="light"] .attendance-page .MuiFormControl-root .MuiOutlinedInput-root,
 [data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiOutlinedInput-root,
@@ -778,10 +778,10 @@
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiOutlinedInput-root.Mui-focused,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root:hover,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-root.Mui-focused,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused,
 [data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root:hover,
 [data-theme="light"] .attendance-page .MuiFormControl-root .MuiOutlinedInput-root:hover,
 [data-theme="light"] .attendance-page .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
@@ -805,9 +805,9 @@
 [data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiSelect-select,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputBase-input,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiSelect-select,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputBase-input,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputBase-input,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiSelect-select,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiInputBase-input,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiInputBase-input,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiSelect-select,
 [data-theme="light"] .attendance-page .MuiTextField-root .MuiInputBase-input,
 [data-theme="light"] .attendance-page .MuiFormControl-root .MuiInputBase-input,
 [data-theme="light"] .attendance-page .MuiFormControl-root .MuiSelect-select,
@@ -822,8 +822,8 @@
 [data-theme="light"] .queue-page:is(.pharmacy-dailystatus-page, .pharmacy-monthly-page, .pharmacy-medicines-page) .queue-page__toolbar .MuiInputLabel-root,
 [data-theme="light"] .queue-page .queue-page__toolbar .MuiFormControl-root:not(.lg-search-field) .MuiInputLabel-root,
 [data-theme="light"] .queue-page.auditoria-page .queue-page__toolbar .MuiInputLabel-root,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiTextField-root .MuiInputLabel-root,
-[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page) .MuiFormControl-root .MuiInputLabel-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiInputLabel-root,
+[data-theme="light"] .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiInputLabel-root,
 [data-theme="light"] .attendance-page .MuiTextField-root .MuiInputLabel-root,
 [data-theme="light"] .attendance-page .MuiFormControl-root .MuiInputLabel-root,
 [data-theme="light"] .monitor-aps-fila-esus-page .MuiTextField-root .MuiInputLabel-root,
