@@ -83,6 +83,34 @@ function resolverDataNascimento(client) {
   );
 }
 
+function resolverRacaCorBpa(value) {
+  const raw = String(value ?? '').trim();
+
+  if (!raw) {
+    return '01';
+  }
+
+  const normalized = raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+
+  const map = {
+    '01': '01',
+    BRANCA: '01',
+    '02': '02',
+    PRETA: '02',
+    '03': '03',
+    PARDA: '03',
+    '04': '04',
+    AMARELA: '04',
+    '05': '05',
+    INDIGENA: '05',
+  };
+
+  return map[normalized] ?? '01';
+}
+
 /** CR+LF obrigatório no fim de cada linha do arquivo BPA */
 const CRLF = '\r\n';
 
@@ -541,6 +569,7 @@ export default function generateBPAIFile(trips, professionalConfig = {}) {
 
       const dataNascimento = resolverDataNascimento(client);
       const sexo       = client.sexo === 'FEMININE' ? 'F' : 'M';
+      const racaCor    = resolverRacaCorBpa(client.raca_cor);
       const nascimento = dataNascimento ? parseISO(`${dataNascimento.slice(0, 4)}-${dataNascimento.slice(4, 6)}-${dataNascimento.slice(6, 8)}`) : new Date();
       const dataPartida= parseISO(trip.departure_date);
       const idade      = differenceInYears(dataPartida, nascimento);
@@ -574,7 +603,7 @@ export default function generateBPAIFile(trips, professionalConfig = {}) {
         // Dados nominais
         nomePaciente:        client.name,
         dataNascimento,
-        racaCor:             '01',   // 01=Branca (padrão; ajuste se disponível no dado)
+        racaCor:             racaCor,
         etnia:               '',
         nacionalidade:       '010',  // 010=brasileiro
         codigoServico:       '',

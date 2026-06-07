@@ -4,6 +4,34 @@ import { parseISO, format } from 'date-fns';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
+const RACA_COR_LABELS = {
+    '01': 'BRANCA',
+    '02': 'PRETA',
+    '03': 'PARDA',
+    '04': 'AMARELA',
+    '05': 'INDIGENA',
+};
+
+function resolveRacaCorLabel(value) {
+    const raw = String(value ?? '').trim();
+
+    if (!raw) {
+        return '-';
+    }
+
+    const normalized = raw
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
+
+    if (RACA_COR_LABELS[normalized]) {
+        return RACA_COR_LABELS[normalized];
+    }
+
+    const byLabel = Object.entries(RACA_COR_LABELS).find(([, label]) => label === normalized);
+    return byLabel ? byLabel[1] : normalized;
+}
+
 function generateTripsPDF(trips) {
     const content = [];
 
@@ -55,6 +83,7 @@ function generateTripsPDF(trips) {
                 { text: 'Nome', bold: true, fontSize: 10 },
                 { text: 'CNS', bold: true, fontSize: 10 },
                 { text: 'CPF', bold: true, fontSize: 10 },
+                { text: 'Raça/Cor', bold: true, fontSize: 10 },
                 { text: 'Endereço', bold: true, fontSize: 10 },
                 { text: 'Procedimento', bold: true, fontSize: 10 },
                 { text: 'QTD', bold: true, fontSize: 10 },
@@ -69,6 +98,7 @@ function generateTripsPDF(trips) {
                 { text: client.name?.toUpperCase() || '', fontSize: 9 },
                 { text: client.cns || '-', fontSize: 9 },
                 { text: client.cpf || '-', fontSize: 9 },
+                { text: resolveRacaCorLabel(client.raca_cor), fontSize: 9 },
                 {
                     text: client.addresses?.street && client.addresses?.number
                         ? `${client.addresses.street?.toUpperCase()}, ${client.addresses.number}`
@@ -84,7 +114,7 @@ function generateTripsPDF(trips) {
             style: 'tableStyle',
             table: {
                 headerRows: 1,
-                widths: ['25%', '15%', '15%', '25%', '15%', '5%'],
+                widths: ['21%', '13%', '13%', '12%', '23%', '12%', '6%'],
                 body: tableBody
             },
             layout: 'lightHorizontalLines',
