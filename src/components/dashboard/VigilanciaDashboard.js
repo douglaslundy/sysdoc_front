@@ -123,48 +123,60 @@ export default function VigilanciaDashboard() {
 
   return (
     <Box className="dashboard-neon-home">
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={6} sm={4} md={2}>
-          <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
-        </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
-        </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
-        </Grid>
-        <Grid item xs={6} sm={4} md={3}>
-          <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
-        </Grid>
-        <Grid item xs={12} sm={4} md={3}>
-          <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: 'repeat(2, minmax(0, 1fr))',
+            md: 'repeat(5, minmax(0, 1fr))',
+          },
+          gap: 1,
+          mb: 3,
+          '& > *': {
+            minWidth: 0,
+          },
+        }}
+      >
+        <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
+        <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
+        <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
+        <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
+        <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
+      </Box>
 
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          gap: 3,
-          minHeight: { xs: 'auto', md: 'calc((100vh - 320px) * 0.8)' },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+          gap: 2,
+          minHeight: { xs: 'auto', md: 'calc((100vh - 320px) * 0.56)' },
           mb: 3,
+          alignItems: 'stretch',
           '& .vigi-fill-card .card': {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             m: '0 !important',
             width: '100%',
+            minWidth: 0,
           },
           '& .vigi-fill-card .card__content': {
             flex: 1,
             display: 'flex',
             alignItems: 'center',
+            minWidth: 0,
           },
           '& .vigi-fill-card.risk .card__content': {
             justifyContent: 'center',
             alignItems: 'center',
             paddingTop: '8px !important',
             paddingBottom: '8px !important',
+          },
+          '& .vigi-fill-card': {
+            minWidth: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
           },
         }}
       >
@@ -173,7 +185,7 @@ export default function VigilanciaDashboard() {
             {chart.statusLabels.length > 0 ? (
               <Chart
                 type="bar"
-                height="100%"
+                height="70%"
                 options={{
                   chart: { ...chartFont, ...toolbarOff },
                   plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
@@ -201,9 +213,10 @@ export default function VigilanciaDashboard() {
               <Box
                 className="vigi-risk-donut-wrap"
                 sx={{
-                  width: { xs: '100%', md: '80%' },
-                  height: { xs: 360, md: '80%' },
-                  minHeight: { xs: 340, md: 380 },
+                  width: '100%',
+                  maxWidth: '100%',
+                  height: { xs: 280, md: '70%' },
+                  minHeight: { xs: 240, md: 260 },
                   mx: 'auto',
                   display: 'flex',
                   alignItems: 'center',
@@ -217,7 +230,7 @@ export default function VigilanciaDashboard() {
               >
                 <Chart
                   type="donut"
-                  height="92%"
+                  height="82%"
                   options={{
                     chart: { ...chartFont, width: '100%' },
                     labels: chart.riscoLabels,

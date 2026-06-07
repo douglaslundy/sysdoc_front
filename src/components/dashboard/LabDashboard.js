@@ -120,25 +120,28 @@ export default function LabDashboard() {
     return (
         <Box className="dashboard-neon-home">
             {/* Totalizadores */}
-            <Grid container spacing={3} mb={3}>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="thermometer" titulo="Exames" valor={totais.exames} cor="#2196f3" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="clipboard" titulo="Pedidos" valor={totais.pedidos} cor="#ff9800" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="user-check" titulo="Médicos" valor={totais.medicos} cor="#9c27b0" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="tag" titulo="Categorias" valor={totais.categorias} cor="#f44336" />
-                </Grid>
-                <Grid item xs={6} sm={4} md={2}>
-                    <CardTotal icon="user" titulo="Usuários" valor={totais.usuarios} cor="#607d8b" />
-                </Grid>
-            </Grid>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                        xs: 'repeat(2, minmax(0, 1fr))',
+                        md: 'repeat(5, minmax(0, 1fr))',
+                    },
+                    gap: 1,
+                    mb: 3,
+                    '& > *': {
+                        minWidth: 0,
+                    },
+                }}
+            >
+                <CardTotal icon="thermometer" titulo="Exames" valor={totais.exames} cor="#2196f3" />
+                <CardTotal icon="clipboard" titulo="Pedidos" valor={totais.pedidos} cor="#ff9800" />
+                <CardTotal icon="user-check" titulo="Médicos" valor={totais.medicos} cor="#9c27b0" />
+                <CardTotal icon="tag" titulo="Categorias" valor={totais.categorias} cor="#f44336" />
+                <CardTotal icon="user" titulo="Usuários" valor={totais.usuarios} cor="#607d8b" />
+            </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
                 {/* Pedidos por status - Velocímetro */}
                 <Grid item xs={12} md={4}>
                     <BaseCard title="Pedidos por Status">
@@ -364,7 +367,7 @@ export default function LabDashboard() {
                 </Grid>
 
                 {/* Top 10 exames */}
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12} md={6}>
                     <BaseCard title="Top 10 Exames Mais Solicitados">
                         {chart.topExameNomes.length > 0 ? (
                             <Chart
@@ -394,7 +397,7 @@ export default function LabDashboard() {
                 </Grid>
 
                 {/* Pedidos por categoria */}
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={6}>
                     <BaseCard title="Pedidos por Categoria de Exame">
                         {chart.catNomes.length > 0 ? (
                             <Chart
