@@ -21,6 +21,8 @@ import ConfirmDialog from "../../confirmDialog";
 import InputSelectClient from '../../inputs/inputSelectClient';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
+import BasicDatePicker from "../../inputs/datePicker";
+
 export default function QueueModal(props) {
     const controlHeight = 40;
     const controlSx = {
@@ -152,7 +154,7 @@ export default function QueueModal(props) {
                                         id="Obs"
                                         label={obsConclusion && obsConclusion.length > 0 ? `Observações: ${200 - obsConclusion.length} caracteres restantes` : 'Observações'}
                                         multiline
-                                        rows={2}
+                                        rows={1}
                                         sx={controlSx}
                                         value={obsConclusion ? obsConclusion : ''}
                                         name="obsConclusion"
