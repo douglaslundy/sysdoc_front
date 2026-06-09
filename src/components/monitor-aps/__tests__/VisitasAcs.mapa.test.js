@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-it('mapa useEffect passes filtroAgente, filtroDesfecho, filtroGeo params', () => {
+it('MapaVisitasPage passes search and team params to mapa endpoint', () => {
     const src = fs.readFileSync(
-        path.join(__dirname, '../VisitasAcs.js'), 'utf8'
+        path.join(__dirname, '../MapaVisitasPage.js'), 'utf8'
     );
-    expect(src).toMatch(/\[aba, ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo\]/);
-    expect(src).toMatch(/params\.set\('agente', filtroAgente\)/);
-    expect(src).toMatch(/params\.set\('desfecho', filtroDesfecho\)/);
-    expect(src).toMatch(/params\.set\('has_geo', filtroGeo\)/);
+    expect(src).toMatch(/searchAtivo/);
+    expect(src).toMatch(/params\.set\('busca', searchAtivo\)/);
+    expect(src).toMatch(/params\.set\('ine', equipeIne\)/);
+    expect(src).toMatch(/params\.set\('agente', agenteNome\)/);
 });
