@@ -91,6 +91,7 @@ const Menuitems = [
     icon: "package",
     group: true,
     children: [
+      { title: "Consulta de Medicamentos", icon: "search", href: "/pharmacy/consulta-medicamentos" },
       { title: "Medicamentos", icon: "archive", href: "/pharmacy/medicines" },
       { title: "Status Diário", icon: "calendar", href: "/pharmacy/daily-status" },
       { title: "Importar Estoque", icon: "upload", href: "/pharmacy/stock-import" },

@@ -46,6 +46,7 @@ const PAGE_LABELS = {
     '/tfd': 'TFD',
     '/estabelecimentos': 'Vigilância - Estabelecimentos',
     '/alvaras': 'Vigilância - Alvarás',
+    '/pharmacy/consulta-medicamentos': 'Farmácia - Consulta de Medicamentos',
     '/pharmacy/medicines': 'Farmácia - Medicamentos',
     '/pharmacy/daily-status': 'Farmácia - Status Diário',
     '/pharmacy/monthly-acquisitions': 'Farmácia - Aquisições Mensais',
