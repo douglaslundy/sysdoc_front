@@ -227,8 +227,12 @@ export default function MedicinesManager() {
                   return (
                     <StyledTableRow key={medicine.id} hover>
                       <TableCell>
-                        <Typography variant="h6" sx={{ fontSize: 14 }}>
-                          {medicine.active_ingredient}
+                        <Typography
+                          variant="h6"
+                          sx={{ fontSize: 14 }}
+                          title={medicine.active_ingredient || ''}
+                        >
+                          {truncate(medicine.active_ingredient, 30)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {medicine.concentration || '-'}
