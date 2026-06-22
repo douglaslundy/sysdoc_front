@@ -246,6 +246,9 @@ export default function AgendaColeta() {
                                 className="agenda-day__body"
                                 sx={{
                                     fontWeight: 700,
+                                    pb: '3px',
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
