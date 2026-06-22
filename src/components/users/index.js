@@ -153,7 +153,7 @@ export default function Users() {
             onChange={handleSearchUsers}
           />
 
-          <FormControl className="lg-search-field" size="small" sx={{ minWidth: 54, width: 54, flex: "0 0 54px" }}>
+          <FormControl className="lg-search-field" size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Status</InputLabel>
             <Select value={presenceFilter} label="Status" onChange={handlePresenceFilter}>
               <MenuItem value="all">Todos</MenuItem>
