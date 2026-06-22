@@ -11,6 +11,7 @@ import Header from "./header/Header";
 import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
 import AuthGuard from "../components/authGuard";
+import NoticeModal from "../components/systemNotices/NoticeModal";
 
 const SIDEBAR_WIDTH = 318;
 
@@ -83,6 +84,7 @@ const FullLayout = ({ children }) => {
         >
           <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
             <AuthGuard>
+              <NoticeModal />
               {children}
             </AuthGuard>
           </Box>
