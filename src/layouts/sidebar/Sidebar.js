@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
-import Menuitems, { DashboardItem } from "./MenuItems";
+import { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -133,42 +133,9 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       })
       .sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
 
-    const existingPaths = new Set(groups.flatMap((g) => g.children.map((c) => c.href)));
-    const fallbackGroups = Menuitems.map((g) => ({ ...g, children: [...g.children] }));
-    fallbackGroups.forEach((g) => {
-      const missingChildren = g.children.filter((c) => {
-        if (existingPaths.has(c.href)) return false;
-        if (profile === "admin") return true;
-        return hasPermissionForPath(myPermissions, c.href);
-      });
-      if (missingChildren.length === 0) return;
-
-      const group = groups.find((x) => x.title === g.title);
-      if (group) {
-        group.children = [...group.children, ...missingChildren]
-          .sort((a, b) => ((a.order ?? 999) - (b.order ?? 999)) || a.title.localeCompare(b.title));
-      } else {
-        groups.push({
-          title: g.title,
-          icon: g.icon,
-          order: 999,
-          group: true,
-          children: missingChildren.sort((a, b) => a.title.localeCompare(b.title)),
-        });
-      }
-    });
-
     return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
   }, [reduxPages, reduxPageCategories, profile, myPermissions]);
-
-  const hasRenderableDynamicMenu = dynamicMenu.some((group) =>
-    group.children.some((child) => {
-      if (child.public) return true;
-      if (profile === "admin") return true;
-      return hasPermissionForPath(myPermissions, child.href);
-    })
-  );
-  const menuGroupsToRender = hasRenderableDynamicMenu ? dynamicMenu : Menuitems;
+  const menuGroupsToRender = dynamicMenu;
 
   useEffect(() => {
     menuGroupsToRender.forEach((group) => {
