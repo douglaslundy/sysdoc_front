@@ -253,7 +253,16 @@ export default function TripClientsModal(props) {
                                 }
 
                                 <Box sx={{ mt: 2.2, mb: 2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
+                                    <Button
+                                        onClick={handleSaveData}
+                                        variant="contained"
+                                        sx={{
+                                            ...modalPrimaryButtonSx,
+                                            flex: '0 0 auto',
+                                            minWidth: 260,
+                                            maxWidth: '100%',
+                                        }}
+                                    >
                                         <FeatherIcon icon="user-plus" width="18" height="18" style={{ marginRight: 8 }} />
                                         Inserir acompanhante/passageiro
                                     </Button>
@@ -344,6 +353,15 @@ export default function TripClientsModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
+                                <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap', justifyContent: 'flex-end', mt: 2.2 }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: '0 0 180px' }}>
+                                        Gravar
+                                    </Button>
+
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ ...modalSecondaryButtonSx, flex: '0 0 180px' }}>
+                                        Cancelar
+                                    </Button>
+                                </Box>
 
                                 <TableContainer>
 
@@ -547,6 +565,5 @@ export default function TripClientsModal(props) {
         </div >
     );
 }
-
 
 
