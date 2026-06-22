@@ -17,6 +17,12 @@ const Menuitems = [
       { title: "Páginas do Sistema", icon: "layout", href: "/paginas-sistema" },
       { title: "Categorias de Páginas", icon: "tag", href: "/paginas-categorias" },
       { title: "Backup do Banco", icon: "database", href: "/backup" },
+      { title: "Modelos IA", icon: "cpu", href: "/models" },
+      { title: "Auditoria", icon: "eye", href: "/auditoria" },
+      { title: "Logs de Erro", icon: "alert-triangle", href: "/errorlogs" },
+      { title: "Logs de QRCODE", icon: "maximize", href: "/qrcodelogs" },
+      { title: "Avisos", icon: "bell", href: "/avisos" },
+      { title: "Status dos Painéis", icon: "monitor", href: "/painel-esus/statuses" },
     ],
   },
   {
@@ -25,8 +31,15 @@ const Menuitems = [
     group: true,
     children: [
       { title: "Cidadãos", icon: "users", href: "/clients" },
-      { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report" },
       { title: "Especialidades", icon: "award", href: "/specialities" },
+    ],
+  },
+  {
+    title: "Relatórios",
+    icon: "bar-chart-2",
+    group: true,
+    children: [
+      { title: "Cliente Report", icon: "bar-chart-2", href: "/client_report" },
     ],
   },
   {
@@ -73,7 +86,6 @@ const Menuitems = [
     children: [
       { title: "Ofícios", icon: "send", href: "/letters" },
       { title: "Portarias", icon: "file-text", href: "/ordinance" },
-      { title: "Modelos IA", icon: "cpu", href: "/models" },
     ],
   },
   {
@@ -114,18 +126,6 @@ const Menuitems = [
       { title: "Evolução Anual", icon: "trending-up", href: "/monitor-aps/visitas/evolucao" },
       { title: "Cidadãos", icon: "users", href: "/monitor-aps/cidadaos" },
       { title: "Configurações APS", icon: "settings", href: "/monitor-aps/configuracoes", profile: ["admin"] },
-    ],
-  },
-  {
-    title: "Sistema",
-    icon: "settings",
-    group: true,
-    children: [
-      { title: "Auditoria", icon: "eye", href: "/auditoria" },
-      { title: "Logs de Erro", icon: "alert-triangle", href: "/errorlogs" },
-      { title: "Logs de QRCODE", icon: "maximize", href: "/qrcodelogs" },
-      { title: "Status dos Painéis", icon: "monitor", href: "/painel-esus/statuses" },
-      { title: "Avisos", icon: "bell", href: "/avisos" },
     ],
   },
 ];
