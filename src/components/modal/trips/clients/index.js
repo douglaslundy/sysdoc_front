@@ -2,7 +2,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
+import { modalFormRootSx, modalShellSx } from '../../_shared/modalFormStyles';
 import {
     Grid,
     Stack,
@@ -234,7 +234,7 @@ export default function TripClientsModal(props) {
                         <Grid item xs={12} lg={12}>
                             <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
                             
-                                ${trip?.vehicle?.brand ? `${" - VEÃCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
+                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
                                 ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
                                 ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
@@ -252,22 +252,12 @@ export default function TripClientsModal(props) {
                                     </Alert>
                                 }
 
-                                <Box sx={{ mt: 2.2, mb: 2, display: 'flex', gap: 1.2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                    <Button
-                                        onClick={handleSaveData}
-                                        variant="contained"
-                                        sx={{
-                                          ...modalPrimaryButtonSx,
-                                            flex: '0 0 180px',
-                                            minWidth: 180,
-                                            maxWidth: '100%',
-                                        }}
-                                    >
-                                        <FeatherIcon icon="user-plus" width="18" height="18" style={{ marginRight: 8 }} />
-                                        Inserir acompanhante/passageiro
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
+                                        Gravar
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
                                         Limpar dados
                                     </Button>
                                 </Box>
@@ -304,6 +294,7 @@ export default function TripClientsModal(props) {
                                                 clients={clients}
                                                 setClient={setClient}
                                                 wd="100%"
+                                                size="small"
                                             />
                                         )}
 
@@ -313,6 +304,7 @@ export default function TripClientsModal(props) {
                                             name={'person_type'}
                                             store={typesOfPerson}
                                             changeItem={changeItem}
+                                            size="small"
                                         />
 
                                         <Phone value={phone ? phone : ''}
@@ -326,7 +318,7 @@ export default function TripClientsModal(props) {
                                         <TextField
                                             className="lg-search-field"
                                             id="departure_location"
-                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÃDA:${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÃDA'}
+                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA: ${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
                                             value={departure_location ? departure_location : ''}
                                             name="departure_location"
                                             onChange={changeItem}
@@ -390,7 +382,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        SAÃDA
+                                                        SAÍDA
                                                     </Typography>
                                                 </TableCell>
 
@@ -402,7 +394,7 @@ export default function TripClientsModal(props) {
 
                                                 <TableCell>
                                                     <Typography color="textSecondary" variant="h6">
-                                                        HORÃRIO
+                                                        HORÁRIO
                                                     </Typography>
                                                 </TableCell>
 
@@ -528,11 +520,7 @@ export default function TripClientsModal(props) {
                                     </Table>
                                     <br />
                                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
-                                        <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: '0 0 180px', mt: 2 }}>
-                                            Gravar
-                                        </Button>
-
-                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" sx={{ mt: 2, flex: '0 0 180px' }}>
+                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" sx={{ mt: 2 }}>
                                             Cancelar
                                         </Button>
                                     </Box>
