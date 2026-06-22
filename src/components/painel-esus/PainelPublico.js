@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { painelEsusPublicApi } from '../../services/painelEsusApi';
+import { AuthContext } from '../../contexts/AuthContext';
+import { painelEsusApi, painelEsusPublicApi } from '../../services/painelEsusApi';
 
 function Relogio() {
     const [hora, setHora] = useState('--:--:--');
@@ -144,40 +145,41 @@ function FormCnes({ onConfirmar, initialCnes = '' }) {
 }
 
 const s = {
-    root:       { minHeight: '100vh', background: '#060d1f', color: '#fff', fontFamily: "'Segoe UI', Arial, sans-serif", display: 'flex', flexDirection: 'column' },
-    header:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)' },
+    root:       { minHeight: '100vh', background: 'var(--lg-bg-app-from)', color: 'var(--lg-text-primary)', fontFamily: "'Segoe UI', Arial, sans-serif", display: 'flex', flexDirection: 'column' },
+    header:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', background: 'var(--lg-glass-topbar)', borderBottom: '1px solid var(--lg-border)' },
     unidadeNome:{ fontSize: 22, fontWeight: 700, letterSpacing: 0.5 },
-    unidadeSub: { fontSize: 13, color: '#7ba4d9', marginTop: 2 },
-    relogio:    { fontSize: 32, fontWeight: 300, fontVariantNumeric: 'tabular-nums', color: '#7ba4d9' },
+    unidadeSub: { fontSize: 13, color: 'var(--lg-text-secondary)', marginTop: 2 },
+    relogio:    { fontSize: 32, fontWeight: 300, fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-secondary)' },
     mainSection:{ padding: '32px 40px 16px', flex: '0 0 auto' },
-    sectionLabel:{ fontSize: 11, letterSpacing: 3, color: '#4a7ab5', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' },
-    emAtendimentoCard: { background: 'linear-gradient(135deg, #0d2a4a 0%, #1a3f6a 100%)', border: '1px solid #2a5a9a', borderRadius: 16, padding: '32px 40px', minHeight: 120 },
+    sectionLabel:{ fontSize: 11, letterSpacing: 3, color: 'var(--lg-text-muted)', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' },
+    emAtendimentoCard: { background: 'var(--lg-glass-panel)', border: '1px solid var(--lg-border)', borderRadius: 16, padding: '32px 40px', minHeight: 120, boxShadow: 'var(--lg-shadow-panel)' },
     cidadaoNome:{ fontSize: 48, fontWeight: 800, letterSpacing: -1, lineHeight: 1.1, textTransform: 'uppercase' },
     profissionalRow: { marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 },
-    profissionalNome:{ fontSize: 20, color: '#90bfe8', fontWeight: 500 },
-    hrBadge:    { fontSize: 14, color: '#4a7ab5', background: 'rgba(74,122,181,0.15)', borderRadius: 8, padding: '3px 10px', fontVariantNumeric: 'tabular-nums' },
-    semDados:   { fontSize: 22, color: '#4a7ab5', fontStyle: 'italic' },
+    profissionalNome:{ fontSize: 20, color: 'var(--lg-text-secondary)', fontWeight: 500 },
+    hrBadge:    { fontSize: 14, color: 'var(--lg-text-accent)', background: 'rgba(var(--lg-accent-rgb),0.12)', borderRadius: 8, padding: '3px 10px', fontVariantNumeric: 'tabular-nums' },
+    semDados:   { fontSize: 22, color: 'var(--lg-text-muted)', fontStyle: 'italic' },
     ultimosSection: { padding: '8px 40px 32px', flex: 1 },
     ultimosGrid:{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 8 },
-    ultimoCard: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', minWidth: 220, flex: '1 1 200px', maxWidth: 300 },
+    ultimoCard: { background: 'var(--lg-glass-panel)', border: '1px solid var(--lg-border)', borderRadius: 12, padding: '16px 20px', minWidth: 220, flex: '1 1 200px', maxWidth: 300, boxShadow: 'var(--lg-shadow-panel)' },
     ultimoCidadao: { fontSize: 16, fontWeight: 600, marginBottom: 4 },
-    ultimoProf: { fontSize: 13, color: '#7ba4d9', marginBottom: 6 },
-    ultimoHr:   { fontSize: 12, color: '#4a7ab5', fontVariantNumeric: 'tabular-nums' },
+    ultimoProf: { fontSize: 13, color: 'var(--lg-text-secondary)', marginBottom: 6 },
+    ultimoHr:   { fontSize: 12, color: 'var(--lg-text-accent)', fontVariantNumeric: 'tabular-nums' },
     filaSection: { padding: '8px 40px 24px' },
     filaGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, marginTop: 8 },
-    filaCard: { background: 'rgba(26,86,219,0.10)', border: '1px solid rgba(74,122,181,0.35)', borderRadius: 12, padding: '14px 18px' },
+    filaCard: { background: 'var(--lg-glass-panel)', border: '1px solid var(--lg-border)', borderRadius: 12, padding: '14px 18px', boxShadow: 'var(--lg-shadow-panel)' },
     filaNome: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
-    erroBar:    { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#7f1d1d', color: '#fca5a5', padding: '10px 24px', fontSize: 13 },
-    formRoot:   { minHeight: '100vh', background: '#060d1f', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "'Segoe UI', Arial, sans-serif" },
-    formBox:    { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '48px', maxWidth: 480, width: '90%', textAlign: 'center' },
+    erroBar:    { position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(var(--lg-danger-rgb),0.90)', color: '#fff', padding: '10px 24px', fontSize: 13 },
+    formRoot:   { minHeight: '100vh', background: 'var(--lg-bg-app-from)', color: 'var(--lg-text-primary)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "'Segoe UI', Arial, sans-serif" },
+    formBox:    { background: 'var(--lg-glass-modal)', border: '1px solid var(--lg-border)', borderRadius: 20, padding: '48px', maxWidth: 480, width: '90%', textAlign: 'center', boxShadow: 'var(--lg-shadow-modal)' },
     formTitle:  { fontSize: 28, fontWeight: 700, margin: '0 0 8px' },
-    formSub:    { color: '#7ba4d9', margin: '0 0 32px', fontSize: 15 },
-    input:      { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, color: '#fff', fontSize: 20, padding: '12px 16px', flex: 1, outline: 'none', letterSpacing: 2 },
-    btnPrimary: { background: '#1a56db', color: '#fff', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 600, padding: '12px 24px', cursor: 'pointer' },
+    formSub:    { color: 'var(--lg-text-secondary)', margin: '0 0 32px', fontSize: 15 },
+    input:      { background: 'var(--lg-glass-input)', border: '1px solid var(--lg-border-input)', borderRadius: 10, color: 'var(--lg-text-primary)', fontSize: 20, padding: '12px 16px', flex: 1, outline: 'none', letterSpacing: 2, boxShadow: 'var(--lg-shadow-panel)' },
+    btnPrimary: { background: 'linear-gradient(135deg, var(--lg-accent), #6D28D9)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 600, padding: '12px 24px', cursor: 'pointer', boxShadow: 'var(--lg-shadow-btn)' },
 };
 
 export default function PainelPublico() {
     const router              = useRouter();
+    const { isAuthenticated, profile, permissionsLoaded } = useContext(AuthContext);
     const [cnes, setCnes]     = useState('');
     const [dados, setDados]   = useState(null);
     const [erro, setErro]     = useState(null);
@@ -187,6 +189,7 @@ export default function PainelPublico() {
     const anunciadosRef    = useRef(new Set()); // IDs já anunciados
     const filaRef          = useRef([]);         // fila de chamadas pendentes
     const processandoRef   = useRef(false);      // mutex da fila
+    const autoCnesRef      = useRef(false);
 
     const handleConfirmar = useCallback((cnesConfirmado) => {
         primeiraCargaRef.current = true;
@@ -196,6 +199,23 @@ export default function PainelPublico() {
         router.push({ pathname: '/painel-esus', query: { cnes: cnesConfirmado } }, undefined, { shallow: true });
         setCnes(cnesConfirmado);
     }, [router]);
+
+    useEffect(() => {
+        if (!permissionsLoaded || !isAuthenticated || profile === 'admin' || cnes || autoCnesRef.current) {
+            return;
+        }
+
+        autoCnesRef.current = true;
+        painelEsusApi.defaultCnes()
+            .then((data) => {
+                if (data?.cnes) {
+                    handleConfirmar(String(data.cnes));
+                }
+            })
+            .catch(() => {
+                autoCnesRef.current = false;
+            });
+    }, [permissionsLoaded, isAuthenticated, profile, cnes, handleConfirmar]);
 
     // Processa a fila de chamadas sequencialmente: campainha → fala → próxima
     const processarFila = useCallback(async () => {

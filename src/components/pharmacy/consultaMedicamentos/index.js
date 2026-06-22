@@ -165,7 +165,7 @@ export default function ConsultaMedicamentos() {
   const isEmpty = !loading && items.length === 0;
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-consulta-medicamentos-page">
+    <Box sx={modalFormRootSx} className="queue-page pharmacy-consulta-medicamentos-page pharmacy-medicines-page">
       <BaseCard title="Consulta de Medicamentos">
         <Box
           sx={{
