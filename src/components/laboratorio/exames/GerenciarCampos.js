@@ -219,7 +219,7 @@ export default function GerenciarCampos() {
 
             {/* Modal - Novo/Editar Campo */}
             <Modal keepMounted open={openCampo} onClose={() => setOpenCampo(false)}>
-                <Box sx={modalStyle}>
+                <Box className="lab-campo-exame-modal-shell" sx={modalStyle}>
                     <AlertModal />
                     <BaseCard title={campoEditId ? 'Editar Campo' : 'Novo Campo do Exame'}>
                         <Stack spacing={3}>
@@ -287,7 +287,7 @@ export default function GerenciarCampos() {
 
             {/* Modal - Valores de Referência */}
             <Modal keepMounted open={openRef} onClose={() => setOpenRef(false)}>
-                <Box sx={modalStyle}>
+                <Box className="lab-referencia-campo-modal-shell" sx={modalStyle}>
                     <AlertModal />
                     <BaseCard title="Valores de Referência do Campo">
                         <Stack spacing={3}>
@@ -399,7 +399,6 @@ export default function GerenciarCampos() {
         </>
     );
 }
-
 
 
 
