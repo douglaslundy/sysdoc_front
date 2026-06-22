@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   Typography,
   Box,
+  Chip,
   Table,
   TableBody,
   TableCell,
@@ -26,6 +27,7 @@ import AlertModal from "../messagesModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
 import Router from "next/router";
+import TableLoadingRows from "../tableLoadingRows";
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
@@ -43,6 +45,16 @@ const StyledTableRow = styled(TableRow)(() => ({
   },
 }));
 
+const formatRelativeDays = (value) => {
+  if (!value) return 'Sem registro';
+  const date = new Date(String(value).replace(' ', 'T'));
+  if (Number.isNaN(date.getTime())) return 'Sem registro';
+  const diffDays = Math.max(0, Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24)));
+  if (diffDays === 0) return 'há menos de 1 dia';
+  if (diffDays === 1) return 'há 1 dia';
+  return `há ${diffDays} dias`;
+};
+
 export default function Users() {
   const { profile } = useContext(AuthContext);
 
@@ -54,6 +66,7 @@ export default function Users() {
 
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
+  const { isOpenLoading } = useSelector((state) => state.layout);
   const [searchValue, setSearchValue] = useState("");
 
   const [page, setPage] = useState(0);
@@ -155,6 +168,11 @@ export default function Users() {
                     CPF / E-mail
                   </Typography>
                 </TableCell>
+                <TableCell className="queue-page__th">
+                  <Typography color="textSecondary" variant="h6">
+                    Presença
+                  </Typography>
+                </TableCell>
                 <TableCell align="center" className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">
                     Acoes
@@ -163,83 +181,99 @@ export default function Users() {
               </TableRow>
             </TableHead>
 
-            {filteredUsers.length >= 1 ? (
+            {isOpenLoading ? (
+              <TableLoadingRows columns={4} rows={5} />
+            ) : (
               <TableBody>
-                {filteredUsers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((user) => (
-                    <StyledTableRow key={user?.id} hover>
-                      <TableCell>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              variant="h6"
-                              sx={{
-                                fontWeight: "600",
-                              }}
-                            >
-                              {user?.name ? user.name.toUpperCase() : ""}
-                            </Typography>
-                            <Typography
-                              color="textSecondary"
-                              sx={{
-                                fontSize: "12px",
-                              }}
-                            >
-                              {(user?.profile || "user").toUpperCase()}
-                            </Typography>
+                {filteredUsers.length >= 1 ? (
+                  filteredUsers
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((user) => (
+                      <StyledTableRow key={user?.id} hover>
+                        <TableCell>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Box>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontWeight: "600",
+                                }}
+                              >
+                                {user?.name ? user.name.toUpperCase() : ""}
+                              </Typography>
+                              <Typography
+                                color="textSecondary"
+                                sx={{
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {(user?.profile || "user").toUpperCase()}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      </TableCell>
+                        </TableCell>
 
                       <TableCell>
                         <Typography
                           color="textSecondary"
                           sx={{
                             fontSize: "12px",
-                          }}
-                        >
-                          {user?.cpf || "-"}
-                        </Typography>
+                            }}
+                          >
+                            {user?.cpf || "-"}
+                          </Typography>
                         <Typography variant="h6" sx={{ fontSize: "12px" }}>
                           {user?.email || "-"}
                         </Typography>
                       </TableCell>
 
-                      <TableCell align="center">
-                        <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
-                          <ActionEditButton
-                            className="queue-page__action queue-page__action--success"
-                            title="Editar usuario"
-                            onClick={() => {
-                              handleEditUser(user);
-                            }}
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                          <Chip
+                            size="small"
+                            color={user?.is_online ? 'success' : 'error'}
+                            label={user?.is_online ? 'Online' : 'Offline'}
+                            sx={{ width: 'fit-content' }}
                           />
-
-                          <ActionDeleteButton
-                            className="queue-page__action queue-page__action--danger"
-                            title="Inativar usuario"
-                            onClick={() => {
-                              handleInactiveUser(user);
-                            }}
-                          />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
+                            {user?.is_online ? 'Online agora' : `Última vez online ${formatRelativeDays(user?.last_seen_at)}`}
+                          </Typography>
                         </Box>
                       </TableCell>
-                    </StyledTableRow>
-                  ))}
-              </TableBody>
-            ) : (
-              <TableBody>
+
+                      <TableCell align="center">
+                        <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
+                            <ActionEditButton
+                              className="queue-page__action queue-page__action--success"
+                              title="Editar usuario"
+                              onClick={() => {
+                                handleEditUser(user);
+                              }}
+                            />
+
+                            <ActionDeleteButton
+                              className="queue-page__action queue-page__action--danger"
+                              title="Inativar usuario"
+                              onClick={() => {
+                                handleInactiveUser(user);
+                              }}
+                            />
+                          </Box>
+                        </TableCell>
+                      </StyledTableRow>
+                    ))
+                ) : (
                 <TableRow>
-                  <TableCell colSpan={3} align="center">
+                  <TableCell colSpan={4} align="center">
                     Nenhum registro encontrado!
                   </TableCell>
                 </TableRow>
+                )}
               </TableBody>
             )}
           </Table>
@@ -261,5 +295,3 @@ export default function Users() {
     </Box>
   );
 }
-
-

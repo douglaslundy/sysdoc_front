@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import MedicineDailyStatusDialog from '../../modal/medicineDailyStatus';
+import TableLoadingRows from '../../tableLoadingRows';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 import { getDailyStatuses } from '../../../store/fetchActions/medicineDailyStatuses';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
@@ -56,6 +57,7 @@ export default function DailyStatusManager() {
 
   const dispatch = useDispatch();
   const { dailyStatuses, pagination } = useSelector((state) => state.medicineDailyStatuses);
+  const { isOpenLoading } = useSelector((state) => state.layout);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [referenceDate, setReferenceDate] = useState(localDate());
   const [search, setSearch] = useState('');
@@ -232,22 +234,33 @@ export default function DailyStatusManager() {
                 <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
-              {dailyStatuses.map((s) => (
-                <StyledTableRow key={s.id || `medicine-${s.medicine_item_id}`} hover>
-                  <TableCell title={s.medicine_item?.active_ingredient || ''}>
-                    {truncate(s.medicine_item?.active_ingredient, 40)}
-                  </TableCell>
-                  <TableCell title={s.medicine_item?.concentration || ''}>
-                    {truncate(s.medicine_item?.concentration, 30) || '-'}
-                  </TableCell>
-                  <TableCell>{statusLabel(s.availability_status)}</TableCell>
-                  <TableCell>{s.available_quantity ?? '-'}</TableCell>
-                  <TableCell>{formatDate(s.restock_forecast_date)}</TableCell>
-                  <TableCell>{s.public_note || '-'}</TableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
+            {isOpenLoading ? (
+              <TableLoadingRows columns={6} rows={5} />
+            ) : (
+              <TableBody>
+                {dailyStatuses.map((s) => (
+                  <StyledTableRow key={s.id || `medicine-${s.medicine_item_id}`} hover>
+                    <TableCell title={s.medicine_item?.active_ingredient || ''}>
+                      {truncate(s.medicine_item?.active_ingredient, 40)}
+                    </TableCell>
+                    <TableCell title={s.medicine_item?.concentration || ''}>
+                      {truncate(s.medicine_item?.concentration, 30) || '-'}
+                    </TableCell>
+                    <TableCell>{statusLabel(s.availability_status)}</TableCell>
+                    <TableCell>{s.available_quantity ?? '-'}</TableCell>
+                    <TableCell>{formatDate(s.restock_forecast_date)}</TableCell>
+                    <TableCell>{s.public_note || '-'}</TableCell>
+                  </StyledTableRow>
+                ))}
+                {!dailyStatuses.length && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      Nenhum registro encontrado!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            )}
           </Table>
           <TablePagination
             className="queue-page__pagination"

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import MedicineMonthlyAcquisitionDialog from '../../modal/medicineMonthlyAcquisition';
+import TableLoadingRows from '../../tableLoadingRows';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 import { getMonthlyAcquisitions } from '../../../store/fetchActions/medicineMonthlyAcquisitions';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
@@ -39,6 +40,7 @@ export default function MonthlyAcquisitionsManager() {
 
   const dispatch = useDispatch();
   const { monthlyAcquisitions, pagination } = useSelector((state) => state.medicineMonthlyAcquisitions);
+  const { isOpenLoading } = useSelector((state) => state.layout);
   const [dialogOpen, setDialogOpen] = useState(false);
   const now = new Date();
   const defaultMaskedMonth = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
@@ -172,17 +174,28 @@ export default function MonthlyAcquisitionsManager() {
                 <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
-              {monthlyAcquisitions.map((s) => (
-                <StyledTableRow key={s.id} hover>
-                  <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
-                  <TableCell>{s.acquired_quantity}</TableCell>
-                  <TableCell>{formatUnit(s.unit_measure)}</TableCell>
-                  <TableCell>{s.source_document || '-'}</TableCell>
-                  <TableCell>{s.note || '-'}</TableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
+            {isOpenLoading ? (
+              <TableLoadingRows columns={5} rows={5} />
+            ) : (
+              <TableBody>
+                {monthlyAcquisitions.map((s) => (
+                  <StyledTableRow key={s.id} hover>
+                    <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
+                    <TableCell>{s.acquired_quantity}</TableCell>
+                    <TableCell>{formatUnit(s.unit_measure)}</TableCell>
+                    <TableCell>{s.source_document || '-'}</TableCell>
+                    <TableCell>{s.note || '-'}</TableCell>
+                  </StyledTableRow>
+                ))}
+                {!monthlyAcquisitions.length && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      Nenhum registro encontrado!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            )}
           </Table>
           <TablePagination
             className="queue-page__pagination"
