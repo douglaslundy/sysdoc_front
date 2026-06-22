@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Chip, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import BaseCard from '../../baseCard/BaseCard';
 import { api } from '../../../services/api';
@@ -21,6 +21,7 @@ export default function PainelEsusStatuses() {
   const theme = useTheme();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     let mounted = true;
@@ -42,12 +43,35 @@ export default function PainelEsusStatuses() {
     };
   }, []);
 
+  const filteredItems = items.filter((item) => {
+    if (statusFilter === 'online') return Boolean(item.is_online);
+    if (statusFilter === 'offline') return !item.is_online;
+    return true;
+  });
+
   return (
     <Box sx={{ py: 2 }}>
       <BaseCard title="Status dos Painéis de Senha">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Lista de CNES com indicador visual de conectividade.
         </Typography>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="painel-esus-status-filter-label">Status</InputLabel>
+            <Select
+              labelId="painel-esus-status-filter-label"
+              id="painel-esus-status-filter"
+              value={statusFilter}
+              label="Status"
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="online">Online</MenuItem>
+              <MenuItem value="offline">Offline</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
         <TableContainer className="queue-page__table-wrap">
           <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
@@ -63,7 +87,7 @@ export default function PainelEsusStatuses() {
               <TableLoadingRows columns={4} rows={6} />
             ) : (
               <TableBody>
-                {items.map((item) => (
+                {filteredItems.map((item) => (
                   <TableRow key={item.cnes} hover>
                     <TableCell>{item.cnes}</TableCell>
                     <TableCell>{item.panel_name || item.nome || '-'}</TableCell>
@@ -79,10 +103,10 @@ export default function PainelEsusStatuses() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!items.length && (
+                {!filteredItems.length && (
                   <TableRow>
                     <TableCell colSpan={4} align="center">
-                      Nenhum CNES encontrado.
+                      Nenhum CNES encontrado para o filtro selecionado.
                     </TableCell>
                   </TableRow>
                 )}
