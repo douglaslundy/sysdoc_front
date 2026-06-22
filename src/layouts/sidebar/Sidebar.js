@@ -68,12 +68,35 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const resolveCategory = (pg) => {
     const category = pg?.category || null;
     const title = category?.nome || pg?.categoria || "Outros";
+    const normalizedTitle = normalizeCategory(title);
+    const fallbackOrder = category?.ordem ?? null;
     return {
       title,
       icon: category?.icone,
-      order: category?.ordem ?? 999,
+      order: Number.isFinite(Number(fallbackOrder))
+        ? Number(fallbackOrder)
+        : (categoryOrderByName.get(normalizedTitle) ?? 999),
     };
   };
+
+  const categoryOrderByName = useMemo(() => {
+    const map = new Map();
+
+    (Array.isArray(authorizedPages) ? authorizedPages : []).forEach((pg) => {
+      const category = pg?.category || null;
+      const title = normalizeCategory(category?.nome || pg?.categoria || "Outros");
+      const order = Number(category?.ordem);
+
+      if (!Number.isFinite(order)) return;
+
+      const current = map.get(title);
+      if (current == null || order < current) {
+        map.set(title, order);
+      }
+    });
+
+    return map;
+  }, [authorizedPages]);
 
   const dynamicMenu = useMemo(() => {
     const pages = Array.isArray(authorizedPages) ? authorizedPages : [];
