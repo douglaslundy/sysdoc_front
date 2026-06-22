@@ -36,7 +36,6 @@ import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
 import Phone from '../../../../components/inputs/textFields/phone';
 import { format, parseISO } from 'date-fns';
-import FeatherIcon from 'feather-icons-react';
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -252,17 +251,6 @@ export default function TripClientsModal(props) {
                                     </Alert>
                                 }
 
-                                <Box sx={{ mt: 2.2, mb: 2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
-                                        <FeatherIcon icon="user-plus" width="18" height="18" style={{ marginRight: 8 }} />
-                                        Inserir acompanhante/passageiro
-                                    </Button>
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Limpar dados
-                                    </Button>
-                                </Box>
-
                                 <br />
 
                                 {/* <FormGroup > */}
@@ -344,6 +332,16 @@ export default function TripClientsModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
+                                        Gravar
+                                    </Button>
+
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
+                                        Limpar dados
+                                    </Button>
+                                </Box>
+
                                 <TableContainer>
 
                                     <Table
