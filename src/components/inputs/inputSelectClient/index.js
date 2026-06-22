@@ -46,23 +46,23 @@ export default function index(props) {
         width: wd || "100%",
         "& .MuiInputBase-root": {
           width: "100%",
-          minHeight: "40px !important",
-          height: "40px !important",
-          maxHeight: "40px !important",
+          minHeight: "48px !important",
+          height: "48px !important",
+          maxHeight: "48px !important",
         },
         "& .MuiAutocomplete-inputRoot": {
           background: "transparent !important",
           boxShadow: "none !important",
-          minHeight: "40px !important",
-          height: "40px !important",
+          minHeight: "48px !important",
+          height: "48px !important",
         },
         "& .MuiInputBase-input": {
           background: "transparent !important",
           border: "none",
           boxShadow: "none",
-          paddingTop: "0 !important",
-          paddingBottom: "0 !important",
-          height: "40px !important",
+          paddingTop: "12px !important",
+          paddingBottom: "12px !important",
+          height: "48px !important",
           boxSizing: "border-box",
         },
         "& .MuiAutocomplete-endAdornment": {
@@ -88,7 +88,6 @@ export default function index(props) {
         <TextField
           {...params}
           label={label}
-          size="small"
           InputProps={{ ...params.InputProps }}
         />
       )}
