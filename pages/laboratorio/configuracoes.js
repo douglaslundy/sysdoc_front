@@ -23,6 +23,7 @@ const emptyForm = {
     rodape1: '',
     rodape2: '',
     email_habilitado: false,
+    imprimir_rascunho_exame: false,
 };
 
 export default function ConfiguracoesLaboratorio() {
@@ -51,6 +52,7 @@ export default function ConfiguracoesLaboratorio() {
                 rodape1:              config.rodape1              ?? '',
                 rodape2:              config.rodape2              ?? '',
                 email_habilitado:     config.email_habilitado     ?? false,
+                imprimir_rascunho_exame: config.imprimir_rascunho_exame ?? false,
             });
         }
     }, [config]);
@@ -238,6 +240,33 @@ export default function ConfiguracoesLaboratorio() {
                                     <Typography variant="caption" color="text.secondary">
                                         Quando habilitado, envia e-mail ao paciente ao liberar resultado.
                                         Requer e-mail do paciente cadastrado.
+                                    </Typography>
+                                </Box>
+                            }
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card variant="outlined" sx={{ maxWidth: 480, mt: 2 }}>
+                    <CardContent>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={form.imprimir_rascunho_exame}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({ ...prev, imprimir_rascunho_exame: e.target.checked }))
+                                    }
+                                    disabled={loading}
+                                    color="primary"
+                                />
+                            }
+                            label={
+                                <Box>
+                                    <Typography variant="body1">
+                                        {form.imprimir_rascunho_exame ? 'Imprimir rascunho habilitado' : 'Imprimir rascunho desabilitado'}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Permite baixar o rascunho do laudo antes da liberação final do resultado.
                                     </Typography>
                                 </Box>
                             }

@@ -15,6 +15,7 @@ import { turnResultadoModal } from '../../../store/ducks/Layout';
 import { clearResultado } from '../../../store/ducks/resultadoExames';
 import { salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
 import { getAllPedidos } from '../../../store/fetchActions/pedidosExame';
+import { getLabConfig } from '../../../store/fetchActions/labConfig';
 import {
     modalBackdropSx,
     modalFormRootSx,
@@ -32,6 +33,7 @@ export default function ResultadoModal(props) {
     const dispatch = useDispatch();
     const { isOpenResultadoModal } = useSelector(state => state.layout);
     const { resultado } = useSelector(state => state.resultadoExames);
+    const { config: labConfig } = useSelector(state => state.labConfig);
 
     const [valoresCampos, setValoresCampos] = useState({});
     const [openConfirm, setOpenConfirm] = useState(false);
@@ -52,6 +54,12 @@ export default function ResultadoModal(props) {
             setValoresCampos(init);
         }
     }, [resultado?.id]);
+
+    useEffect(() => {
+        if (isOpenResultadoModal && !labConfig) {
+            dispatch(getLabConfig());
+        }
+    }, [dispatch, isOpenResultadoModal, labConfig]);
 
     const setCampoValor = (campoId, exameId, field, value) => {
         setValoresCampos(prev => ({
@@ -117,7 +125,7 @@ export default function ResultadoModal(props) {
         <div>
             {props.children}
             <Modal keepMounted open={isOpenResultadoModal} onClose={handleClose} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
+                <Box className="lab-resultado-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>
                         <Grid item xs={12}>
@@ -246,26 +254,36 @@ export default function ResultadoModal(props) {
 
                                 {!jaLiberado && (
                                     <Box mt={2}>
-                                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                                        <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
                                             <Button
                                                 variant="outlined"
                                                 onClick={handleSalvar}
                                                 disabled={!temCampoPreenchido}
-                                                sx={modalSecondaryButtonSx}
+                                                sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
                                             >
                                                 Salvar Rascunho
                                             </Button>
+                                            {!jaLiberado && temCampoSalvo && labConfig?.imprimir_rascunho_exame && (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<FeatherIcon icon="download" size={14} />}
+                                                    onClick={handleDownloadPdf}
+                                                    sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
+                                                >
+                                                    Baixar Rascunho
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="contained"
                                                 color="success"
                                                 onClick={() => setOpenConfirm(true)}
                                                 disabled={!temCampoSalvo}
                                                 title={!temCampoSalvo ? 'Salve o rascunho antes de liberar' : ''}
-                                                sx={modalPrimaryButtonSx}
+                                                sx={{ ...modalPrimaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
                                             >
                                                 Liberar Resultado
                                             </Button>
-                                            <Button variant="outlined" onClick={handleClose} sx={modalSecondaryButtonSx}>
+                                            <Button variant="outlined" onClick={handleClose} sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 120 }}>
                                                 Fechar
                                             </Button>
                                         </Box>
@@ -328,4 +346,3 @@ export default function ResultadoModal(props) {
         </div>
     );
 }
-
