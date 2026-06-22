@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Button, Card, CardContent, Chip, CircularProgress, Skeleton,
+    Box, Button, Card, CardContent, Chip, CircularProgress, LinearProgress,
     FormControl, Grid, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableHead, TableRow,
     TablePagination, Typography,
@@ -95,23 +95,6 @@ function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = f
     );
 }
 
-function MetricCardSkeleton() {
-    return (
-        <Card className="monitor-visitas-metric-card" sx={{ height: '100%', borderRadius: 2.2 }}>
-            <CardContent sx={{ px: '12px', py: 2 }}>
-                <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
-                    <Skeleton variant="circular" width={52} height={52} />
-                    <Box sx={{ width: '100%', textAlign: 'center' }}>
-                        <Skeleton variant="text" width="70%" sx={{ mx: 'auto' }} />
-                        <Skeleton variant="text" width="60%" height={42} sx={{ mx: 'auto' }} />
-                        <Skeleton variant="text" width="85%" sx={{ mx: 'auto' }} />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
-}
-
 function AbaBtn({ label, aba, atual, icon, onClick }) {
     const ativo = aba === atual;
     return (
@@ -164,6 +147,7 @@ export default function VisitasAcs() {
     const [detalhe, setDetalhe]           = useState(null);
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]   = useState(false);
+    const anySectionLoading = loadingResumo || loadingAgentes || loadingVisitas;
 
     useMonitorApsAudit('/monitor-aps/visitas', 'Monitor APS - Visitas ACS', {
         ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
@@ -378,8 +362,6 @@ export default function VisitasAcs() {
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
         [anoAtual]
     );
-    const showLoadingShell = loadingResumo || loadingAgentes || loadingVisitas;
-
     const selSx = {
         minWidth: 130,
         '& .MuiOutlinedInput-root': {
@@ -396,41 +378,7 @@ export default function VisitasAcs() {
 
     return (
         <Box className="dashboard-neon-page monitor-visitas-page">
-            <Box className="dashboard-neon-home monitor-visitas-surface" sx={{ position: 'relative' }}>
-            {showLoadingShell && (
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        zIndex: 3,
-                        bgcolor: 'var(--lg-surface, var(--queue-page-bg, #fff))',
-                        borderRadius: 2,
-                        p: 0,
-                        pointerEvents: 'none',
-                    }}
-                >
-                    <Box sx={{ p: 2 }}>
-                        <Grid container columnSpacing={0.0625} rowSpacing={1} mb={3}>
-                            {Array.from({ length: 6 }).map((_, index) => (
-                                <Grid key={`loading-metric-${index}`} item xs={6} sm={4} md={3} lg={2}>
-                                    <MetricCardSkeleton />
-                                </Grid>
-                            ))}
-                        </Grid>
-                        <Grid container spacing={1}>
-                            {Array.from({ length: 5 }).map((_, rowIndex) => (
-                                <Grid key={`loading-table-${rowIndex}`} item xs={12}>
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 1 }}>
-                                        {Array.from({ length: 8 }).map((__, cellIndex) => (
-                                            <Skeleton key={`loading-table-cell-${rowIndex}-${cellIndex}`} variant="rounded" height={28} />
-                                        ))}
-                                    </Box>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
-                </Box>
-            )}
+        <Box className="dashboard-neon-home monitor-visitas-surface">
             {/* Header + Filtros */}
             <Box display="flex" justifyContent="space-between" alignItems="center"
                 mb={3} mt="20px" flexWrap="wrap" gap={2}>
@@ -529,6 +477,10 @@ export default function VisitasAcs() {
                     </FormControl>
                 </Box>
             </Box>
+
+            {anySectionLoading ? (
+                <LinearProgress sx={{ mb: 2, borderRadius: 999 }} />
+            ) : null}
 
             {/* Cards de métricas */}
             <Grid container columnSpacing={0.0625} rowSpacing={1} mb={3}>
