@@ -2,7 +2,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { modalFormRootSx, modalShellSx } from '../../_shared/modalFormStyles';
+import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
 import {
     Grid,
     Stack,
@@ -252,12 +252,13 @@ export default function TripClientsModal(props) {
                                     </Alert>
                                 }
 
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ mt: 2 }}>
-                                        Gravar
+                                <Box sx={{ mt: 2.2, mb: 2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
+                                        <FeatherIcon icon="user-plus" width="18" height="18" style={{ marginRight: 8 }} />
+                                        Inserir acompanhante/passageiro
                                     </Button>
 
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ mt: 2 }}>
+                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
                                         Limpar dados
                                     </Button>
                                 </Box>
@@ -294,7 +295,6 @@ export default function TripClientsModal(props) {
                                                 clients={clients}
                                                 setClient={setClient}
                                                 wd="100%"
-                                                size="small"
                                             />
                                         )}
 
@@ -304,7 +304,6 @@ export default function TripClientsModal(props) {
                                             name={'person_type'}
                                             store={typesOfPerson}
                                             changeItem={changeItem}
-                                            size="small"
                                         />
 
                                         <Phone value={phone ? phone : ''}

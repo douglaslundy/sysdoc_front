@@ -8,10 +8,9 @@ export default function index(props) {
   const [inputValue, setInputValue] = useState("");
   const [remoteClients, setRemoteClients] = useState([]);
   const searchRef = useRef(null);
-  const { label, name, setClient, clients, wd, value, size = "medium" } = props;
+  const { label, name, setClient, clients, wd, value } = props;
   const safeClients = Array.isArray(clients) ? clients : [];
   const options = remoteClients.length > 0 ? remoteClients : safeClients;
-  const isSmall = size === "small";
 
   const selectedClient = useMemo(
     () => options.find((cli) => Number(cli.id) === Number(value)) || null,
@@ -47,7 +46,6 @@ export default function index(props) {
         width: wd || "100%",
         "& .MuiInputBase-root": {
           width: "100%",
-          minHeight: isSmall ? 40 : 48,
         },
         "& .MuiAutocomplete-inputRoot": {
           background: "transparent !important",
@@ -57,8 +55,6 @@ export default function index(props) {
           background: "transparent !important",
           border: "none",
           boxShadow: "none",
-          paddingTop: isSmall ? "8px" : undefined,
-          paddingBottom: isSmall ? "8px" : undefined,
         },
         "& .MuiAutocomplete-endAdornment": {
           background: "transparent",
@@ -83,7 +79,6 @@ export default function index(props) {
         <TextField
           {...params}
           label={label}
-          size={size}
           InputProps={{ ...params.InputProps }}
         />
       )}
