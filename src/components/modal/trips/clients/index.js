@@ -36,6 +36,7 @@ import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
 import Phone from '../../../../components/inputs/textFields/phone';
 import { format, parseISO } from 'date-fns';
+import FeatherIcon from 'feather-icons-react';
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -333,7 +334,7 @@ export default function TripClientsModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
+                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, minHeight: 38, height: 38 }}>
                                         Gravar
                                     </Button>
 
