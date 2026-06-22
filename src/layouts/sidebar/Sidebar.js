@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
-import { DashboardItem } from "./MenuItems";
+import Menuitems, { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -135,7 +135,18 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
 
     return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
   }, [reduxPages, reduxPageCategories, profile, myPermissions]);
-  const menuGroupsToRender = dynamicMenu;
+
+  const fallbackMenu = useMemo(() => {
+    if (profile === "admin") return Menuitems;
+    return Menuitems
+      .map((group) => ({
+        ...group,
+        children: group.children.filter((child) => hasPermissionForPath(myPermissions, child.href)),
+      }))
+      .filter((group) => group.children.length > 0);
+  }, [profile, myPermissions]);
+
+  const menuGroupsToRender = dynamicMenu.length > 0 ? dynamicMenu : fallbackMenu;
 
   useEffect(() => {
     menuGroupsToRender.forEach((group) => {
