@@ -197,7 +197,7 @@ export default function AgendaColeta() {
                 }}
             >
                 <Box
-                    p={0.4}
+                    p={0.2}
                     display="flex"
                     flexDirection="column"
                     gap="3px"
@@ -229,10 +229,10 @@ export default function AgendaColeta() {
                         }}
                         sx={{
                             alignSelf: 'flex-start',
-                            py: 0.2,
-                            px: 0.5,
+                            py: 0.1,
+                            px: 0.25,
                             fontSize: '0.58rem',
-                            minWidth: 88,
+                            minWidth: 82,
                             mb: '3px',
                         }}
                     >
