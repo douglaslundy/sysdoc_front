@@ -1,23 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  Fab,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TextField,
+  Typography,
+  styled,
+} from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import ConfirmDialog from '../../confirmDialog';
 import MedicineDialog from '../../modal/medicine';
+import TableLoadingRows from '../../tableLoadingRows';
 import { getAllMedicines, removeMedicineFetch } from '../../../store/fetchActions/medicines';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
 import { clearAlertMessages, clearMessages } from '../../../store/ducks/Layout';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
-const PER_PAGE_OPTIONS = [10, 25, 50, 100];
-const FILTER_SELECTS = [
-  { name: 'is_free_distribution', label: 'Gratuito' },
-  { name: 'is_controlled', label: 'Controlado' },
-  { name: 'is_judicial_order', label: 'Ordem Judicial' },
-  { name: 'is_high_cost', label: 'Alto Custo' },
-  { name: 'active', label: 'Ativo' },
+const PER_PAGE_OPTIONS = [15, 50, 100];
+
+const availabilityOptions = [
+  { value: 'available', label: 'Disponíveis' },
+  { value: 'unavailable', label: 'Indisponíveis' },
 ];
 
 const truncate = (value, max = 30) => {
@@ -26,11 +44,22 @@ const truncate = (value, max = 30) => {
   return text.length > max ? `${text.substring(0, max)}...` : text;
 };
 
-const mapFilterValue = (value) => {
-  if (value === '') return undefined;
-  if (value === '1') return 1;
-  if (value === '0') return 0;
-  return value;
+const availabilityMeta = (value) => {
+  if (value === 'available') {
+    return { label: 'Disponível', color: 'success' };
+  }
+
+  return { label: 'Indisponível', color: 'error' };
+};
+
+const renderTags = (medicine) => {
+  const tags = [];
+  if (medicine.is_free_distribution) tags.push('Distribuição Gratuita');
+  if (medicine.is_controlled) tags.push('Controlado');
+  if (medicine.is_judicial_order) tags.push('Ordem Judicial');
+  if (medicine.is_high_cost) tags.push('Alto Custo');
+  if (medicine.active) tags.push('Ativo');
+  return tags.length ? tags.join(' | ') : '-';
 };
 
 export default function MedicinesManager() {
@@ -50,16 +79,11 @@ export default function MedicinesManager() {
 
   const dispatch = useDispatch();
   const { medicines, pagination } = useSelector((state) => state.medicines);
+  const { isOpenLoading } = useSelector((state) => state.layout);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({
-    is_free_distribution: '',
-    is_controlled: '',
-    is_judicial_order: '',
-    is_high_cost: '',
-    active: '',
-  });
+  const [filters, setFilters] = useState({ availability_status: 'available' });
   const [page, setPage] = useState(0);
-  const [perPage, setPerPage] = useState(10);
+  const [perPage, setPerPage] = useState(15);
   const searchRef = useRef(null);
   const totalCount = Number(pagination?.total || 0);
   const lastPageIndex = Math.max(0, Math.ceil(totalCount / perPage) - 1);
@@ -71,16 +95,12 @@ export default function MedicinesManager() {
     page: page + 1,
     per_page: perPage,
     search: search || undefined,
-    is_free_distribution: mapFilterValue(currentFilters.is_free_distribution),
-    is_controlled: mapFilterValue(currentFilters.is_controlled),
-    is_judicial_order: mapFilterValue(currentFilters.is_judicial_order),
-    is_high_cost: mapFilterValue(currentFilters.is_high_cost),
-    active: mapFilterValue(currentFilters.active),
+    availability_status: currentFilters.availability_status || undefined,
     ...overrides,
   });
 
   useEffect(() => {
-    dispatch(getAllMedicines({ page: 1, per_page: perPage }));
+    dispatch(getAllMedicines(buildParams({ availability_status: 'available' }, { page: 1 })));
     return () => {
       if (searchRef.current) clearTimeout(searchRef.current);
       dispatch(clearMedicinesState());
@@ -119,6 +139,13 @@ export default function MedicinesManager() {
     dispatch(getAllMedicines(buildParams(filters, { per_page: value, page: 1 })));
   };
 
+  const handleAvailabilityChange = (event) => {
+    const next = { ...filters, availability_status: event.target.value };
+    setFilters(next);
+    setPage(0);
+    dispatch(getAllMedicines(buildParams(next, { page: 1 })));
+  };
+
   const handlePage = (_, newPage) => {
     setPage(newPage);
     dispatch(getAllMedicines(buildParams(filters, { page: newPage + 1 })));
@@ -129,29 +156,12 @@ export default function MedicinesManager() {
     dispatch(getAllMedicines(buildParams(filters)));
   };
 
-  const handleFilterChange = (event) => {
-    const { name, value } = event.target;
-    const next = { ...filters, [name]: value };
-    setFilters(next);
-    setPage(0);
-    dispatch(getAllMedicines(buildParams(next, { page: 1 })));
-  };
-
-  const renderTags = (medicine) => {
-    const tags = [];
-    if (medicine.is_free_distribution) tags.push('Distribuição Gratuita');
-    if (medicine.is_controlled) tags.push('Controlado');
-    if (medicine.is_judicial_order) tags.push('Ordem Judicial');
-    if (medicine.is_high_cost) tags.push('Alto Custo');
-    if (medicine.active) tags.push('Ativo');
-    return tags.length ? tags.join(' | ') : '-';
-  };
-
   return (
     <Box sx={modalFormRootSx} className="queue-page pharmacy-medicines-page">
       <BaseCard title={`Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
         <AlertModal />
-        <Box className="queue-page__toolbar"
+        <Box
+          className="queue-page__toolbar"
           sx={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -163,29 +173,35 @@ export default function MedicinesManager() {
         >
           <TextField
             className="lg-search-field"
-            placeholder="Buscar medicamento"
+            placeholder="Pesquisar medicamento pelo nome"
             value={search}
             onChange={handleSearch}
-            sx={{ flex: '1 1 260px', minWidth: 220 }}
+            sx={{ flex: '1 1 280px', minWidth: 220 }}
           />
-          {FILTER_SELECTS.map((filter) => (
-            <FormControl
-              key={filter.name}
-              size="small"
-              sx={{
-                flex: '1 1 145px',
-                minWidth: 135,
-              }}
-            >
-              <InputLabel>{filter.label}</InputLabel>
-              <Select name={filter.name} value={filters[filter.name]} label={filter.label} onChange={handleFilterChange}>
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="1">Sim</MenuItem>
-                <MenuItem value="0">Não</MenuItem>
-              </Select>
-            </FormControl>
-          ))}
-          <Fab className="queue-page__fab queue-page__fab--add" color="primary" size="medium" onClick={() => { setEditing(null); setDialogOpen(true); }} sx={{ ml: 'auto', flexShrink: 0 }}>
+          <FormControl
+            className="lg-search-field"
+            size="small"
+            sx={{ flex: '0 1 185px', minWidth: 175 }}
+          >
+            <InputLabel>Disponibilidade</InputLabel>
+            <Select value={filters.availability_status} label="Disponibilidade" onChange={handleAvailabilityChange}>
+              {availabilityOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Fab
+            className="queue-page__fab queue-page__fab--add"
+            color="primary"
+            size="medium"
+            onClick={() => {
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+            sx={{ ml: 'auto', flexShrink: 0 }}
+          >
             <FeatherIcon icon="plus" />
           </Fab>
         </Box>
@@ -194,42 +210,82 @@ export default function MedicinesManager() {
           <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
             <TableHead>
               <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Princípio Ativo</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Concentração</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Forma</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Estoque</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography variant="h6">Disponibilidade</Typography></TableCell>
                 <TableCell className="queue-page__th"><Typography variant="h6">Classificações</Typography></TableCell>
                 <TableCell align="center" className="queue-page__th"><Typography variant="h6">Ações</Typography></TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
-              {medicines.map((m) => (
-                <StyledTableRow key={m.id} hover>
-                  <TableCell>{m.active_ingredient}</TableCell>
-                  <TableCell title={m.concentration}>{truncate(m.concentration, 30)}</TableCell>
-                  <TableCell>{m.pharmaceutical_form}</TableCell>
-                  <TableCell title={renderTags(m)}>{truncate(renderTags(m), 60)}</TableCell>
-                  <TableCell align="center">
-                    <Button className="queue-page__action queue-page__action--success" size="small" variant="contained" onClick={() => { setEditing(m); setDialogOpen(true); }} sx={{ mr: 1 }}>
-                      <FeatherIcon icon="edit" width="16" height="16" />
-                    </Button>
-                    <Button
-                      className="queue-page__action queue-page__action--danger"
-                      size="small"
-                      color="error"
-                      variant="contained"
-                      onClick={() => setConfirmDialog({
-                        isOpen: true,
-                        title: `Remover ${m.active_ingredient}?`,
-                        subTitle: 'Esta ação não pode ser desfeita.',
-                        confirm: removeMedicineFetch(m.id),
-                      })}
-                    >
-                      <FeatherIcon icon="trash" width="16" height="16" />
-                    </Button>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
+            {isOpenLoading ? (
+              <TableLoadingRows columns={5} rows={5} />
+            ) : (
+              <TableBody>
+                {medicines.map((medicine) => {
+                  const meta = availabilityMeta(medicine.availability_status);
+
+                  return (
+                    <StyledTableRow key={medicine.id} hover>
+                      <TableCell>
+                        <Typography variant="h6" sx={{ fontSize: 14 }}>
+                          {medicine.active_ingredient}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {medicine.concentration || '-'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="h6" sx={{ fontSize: 14 }}>
+                          {medicine.available_quantity ?? '-'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {medicine.last_status_updated_at ? `Atualizado em ${medicine.last_status_updated_at}` : 'Sem lançamento'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip size="small" color={meta.color} label={meta.label} />
+                      </TableCell>
+                      <TableCell title={renderTags(medicine)}>{truncate(renderTags(medicine), 60)}</TableCell>
+                      <TableCell align="center">
+                        <Button
+                          className="queue-page__action queue-page__action--success"
+                          size="small"
+                          variant="contained"
+                          onClick={() => {
+                            setEditing(medicine);
+                            setDialogOpen(true);
+                          }}
+                          sx={{ mr: 1 }}
+                        >
+                          <FeatherIcon icon="edit" width="16" height="16" />
+                        </Button>
+                        <Button
+                          className="queue-page__action queue-page__action--danger"
+                          size="small"
+                          color="error"
+                          variant="contained"
+                          onClick={() => setConfirmDialog({
+                            isOpen: true,
+                            title: `Remover ${medicine.active_ingredient}?`,
+                            subTitle: 'Esta ação não pode ser desfeita.',
+                            confirm: removeMedicineFetch(medicine.id),
+                          })}
+                        >
+                          <FeatherIcon icon="trash" width="16" height="16" />
+                        </Button>
+                      </TableCell>
+                    </StyledTableRow>
+                  );
+                })}
+                {!medicines.length && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      Nenhum medicamento encontrado com esse filtro.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            )}
           </Table>
           <TablePagination
             className="queue-page__pagination"
@@ -261,4 +317,3 @@ export default function MedicinesManager() {
     </Box>
   );
 }
-
