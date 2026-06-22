@@ -46,18 +46,24 @@ export default function index(props) {
         width: wd || "100%",
         "& .MuiInputBase-root": {
           width: "100%",
-          minHeight: 40,
+          minHeight: "40px !important",
+          height: "40px !important",
+          maxHeight: "40px !important",
         },
         "& .MuiAutocomplete-inputRoot": {
           background: "transparent !important",
           boxShadow: "none !important",
+          minHeight: "40px !important",
+          height: "40px !important",
         },
         "& .MuiInputBase-input": {
           background: "transparent !important",
           border: "none",
           boxShadow: "none",
-          paddingTop: "8px",
-          paddingBottom: "8px",
+          paddingTop: "0 !important",
+          paddingBottom: "0 !important",
+          height: "40px !important",
+          boxSizing: "border-box",
         },
         "& .MuiAutocomplete-endAdornment": {
           background: "transparent",
