@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import { parseCookies, destroyCookie } from 'nookies';
 import Router from 'next/router';
-import { setAuthToken } from '../services/api';
+import { api, setAuthToken } from '../services/api';
 
 export const AuthContext = createContext({});
 
@@ -53,6 +53,19 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         loadAuth();
     }, [loadAuth]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return undefined;
+
+        const pingPresence = () => {
+            api.post('/users/presence/ping', { path: Router.pathname }).catch(() => {});
+        };
+
+        pingPresence();
+        const intervalId = setInterval(pingPresence, 5 * 60 * 1000);
+
+        return () => clearInterval(intervalId);
+    }, [isAuthenticated]);
 
     return (
         <AuthContext.Provider
