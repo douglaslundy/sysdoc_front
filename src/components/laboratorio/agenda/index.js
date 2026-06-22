@@ -240,14 +240,14 @@ export default function AgendaColeta() {
                     </Button>
 
                     <Stack spacing="3px" sx={{ flex: 1, minHeight: 0 }}>
-                        {dayPedidos.map((pedido) => (
+                        {dayPedidos.map((pedido, index) => (
                             <Typography
                                 key={pedido.id}
                                 className="agenda-day__body"
                                 sx={{
                                     fontWeight: 700,
-                                    pb: '3px',
-                                    borderBottom: '1px solid',
+                                    pb: index < dayPedidos.length - 1 ? '3px' : 0,
+                                    borderBottom: index < dayPedidos.length - 1 ? '1px solid' : 'none',
                                     borderColor: 'divider',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
