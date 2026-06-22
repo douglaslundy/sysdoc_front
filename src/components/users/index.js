@@ -56,7 +56,7 @@ const formatRelativeDays = (value) => {
 };
 
 export default function Users() {
-  const { profile } = useContext(AuthContext);
+  const { profile, permissionsLoaded } = useContext(AuthContext);
 
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -73,8 +73,9 @@ export default function Users() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
+    if (!permissionsLoaded) return;
     dispatch(getAllUsers());
-  }, [dispatch]);
+  }, [dispatch, permissionsLoaded]);
 
   const filteredUsers = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
