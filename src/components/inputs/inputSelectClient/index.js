@@ -46,6 +46,7 @@ export default function index(props) {
         width: wd || "100%",
         "& .MuiInputBase-root": {
           width: "100%",
+          minHeight: 40,
         },
         "& .MuiAutocomplete-inputRoot": {
           background: "transparent !important",
@@ -55,6 +56,8 @@ export default function index(props) {
           background: "transparent !important",
           border: "none",
           boxShadow: "none",
+          paddingTop: "8px",
+          paddingBottom: "8px",
         },
         "& .MuiAutocomplete-endAdornment": {
           background: "transparent",
@@ -79,6 +82,7 @@ export default function index(props) {
         <TextField
           {...params}
           label={label}
+          size="small"
           InputProps={{ ...params.InputProps }}
         />
       )}
