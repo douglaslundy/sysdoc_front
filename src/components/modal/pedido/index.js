@@ -37,6 +37,11 @@ const FORM_INICIAL = {
     exames: [],
 };
 
+const formatExamLabel = (name) => {
+    const value = name || '—';
+    return value.length > 30 ? `${value.slice(0, 27)}...` : value;
+};
+
 export default function PedidoModal(props) {
     const dispatch = useDispatch();
     const { isOpenModal } = useSelector(state => state.layout);
@@ -109,6 +114,7 @@ export default function PedidoModal(props) {
     const handleSave = () => {
         dispatch(addPedidoFetch(form, (_pedido, protocolo, senha) => {
             setCredenciais({ protocolo, senha });
+            props.onSaved && props.onSaved(_pedido);
         }));
     };
 
@@ -305,7 +311,7 @@ export default function PedidoModal(props) {
                                             </Typography>
                                             <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5}>
                                                 {exames.filter(e => form.exames.includes(e.id)).map(e => (
-                                                    <Chip key={e.id} label={e.codigo} size="small" onDelete={() => toggleExame(e.id)} />
+                                                    <Chip key={e.id} label={formatExamLabel(e.nome)} size="small" onDelete={() => toggleExame(e.id)} title={e.codigo} />
                                                 ))}
                                             </Box>
                                         </Box>
@@ -332,4 +338,3 @@ export default function PedidoModal(props) {
         </div>
     );
 }
-
