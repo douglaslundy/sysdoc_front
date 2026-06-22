@@ -73,6 +73,7 @@ export default function AdminSystemNotices() {
   }), [theme]);
 
   const load = async () => {
+    setError('');
     const [usersRes, noticesRes] = await Promise.allSettled([
       api.get('/users'),
       api.get('/system-notices'),
@@ -110,9 +111,12 @@ export default function AdminSystemNotices() {
     setError('');
 
     try {
+      const targetUserId = form.target_user_id === '' ? null : Number(form.target_user_id);
       await api.post('/system-notices', {
         ...form,
-        target_user_id: form.target_user_id || null,
+        times_per_day: Number(form.times_per_day),
+        interval_minutes: Number(form.interval_minutes),
+        target_user_id: Number.isFinite(targetUserId) ? targetUserId : null,
         valid_until: form.valid_until || null,
       });
       setForm(EMPTY);
