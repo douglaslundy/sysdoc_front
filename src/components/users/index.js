@@ -119,10 +119,11 @@ export default function Users() {
   };
 
   useEffect(() => {
+    if (!permissionsLoaded) return;
     if (profile !== "admin" && profile !== "user") {
       Router.push("/");
     }
-  }, [profile]);
+  }, [profile, permissionsLoaded]);
 
   return (
     <Box className="queue-page users-page" sx={modalFormRootSx}>
