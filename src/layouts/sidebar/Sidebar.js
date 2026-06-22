@@ -47,6 +47,19 @@ const normalizeCategory = (value) => {
     .trim();
 };
 
+const normalizePath = (value) => String(value || "").split("?")[0].replace(/\/+$/, "");
+
+const hasPermissionForPath = (allowedPaths, targetPath) => {
+  const normalizedTarget = normalizePath(targetPath);
+  return (Array.isArray(allowedPaths) ? allowedPaths : []).some((allowed) => {
+    const normalizedAllowed = normalizePath(allowed);
+    return (
+      normalizedAllowed === normalizedTarget ||
+      normalizedTarget.startsWith(`${normalizedAllowed}/`)
+    );
+  });
+};
+
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const dispatch = useDispatch();
   const reduxPages = useSelector((state) => state.accessProfiles.pages);
@@ -87,7 +100,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       if (pg.path === DashboardItem.href) return false;
       if (resolveCategory(pg).title === 'Dashboard') return false;
       if (profile === "admin") return true;
-      return myPermissions.includes(pg.path);
+      return hasPermissionForPath(myPermissions, pg.path);
     });
 
     if (visiblePages.length === 0) return [];
@@ -126,7 +139,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       const missingChildren = g.children.filter((c) => {
         if (existingPaths.has(c.href)) return false;
         if (profile === "admin") return true;
-        return myPermissions.includes(c.href);
+        return hasPermissionForPath(myPermissions, c.href);
       });
       if (missingChildren.length === 0) return;
 
@@ -152,7 +165,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     group.children.some((child) => {
       if (child.public) return true;
       if (profile === "admin") return true;
-      return myPermissions.includes(child.href);
+      return hasPermissionForPath(myPermissions, child.href);
     })
   );
   const menuGroupsToRender = hasRenderableDynamicMenu ? dynamicMenu : Menuitems;
@@ -224,7 +237,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     const visibleChildren = group.children.filter((child) => {
       if (child.public) return true;
       if (profile === "admin") return true;
-      return myPermissions.includes(child.href);
+      return hasPermissionForPath(myPermissions, child.href);
     });
     if (visibleChildren.length === 0) return null;
 
