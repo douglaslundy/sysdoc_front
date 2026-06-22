@@ -19,6 +19,11 @@ const FORM_INICIAL = {
     exames: [],
 };
 
+const formatExamLabel = (name) => {
+    const value = name || '—';
+    return value.length > 30 ? `${value.slice(0, 27)}...` : value;
+};
+
 export default function NovoPedido() {
     const dispatch = useDispatch();
     const router   = useRouter();
@@ -104,7 +109,7 @@ export default function NovoPedido() {
                             <Typography variant="caption" color="text.secondary">{form.exames.length} exame(s) selecionado(s):</Typography>
                             <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5}>
                                 {exames.filter(e => form.exames.includes(e.id)).map(e => (
-                                    <Chip key={e.id} label={e.codigo} size="small" onDelete={() => toggleExame(e.id)} />
+                                    <Chip key={e.id} label={formatExamLabel(e.nome)} size="small" onDelete={() => toggleExame(e.id)} title={e.codigo} />
                                 ))}
                             </Box>
                         </Box>

@@ -24,6 +24,11 @@ const initFromPedido = (pedido) => ({
     exames: pedido?.exames?.map(e => e.id) || [],
 });
 
+const formatExamLabel = (name) => {
+    const value = name || '—';
+    return value.length > 30 ? `${value.slice(0, 27)}...` : value;
+};
+
 export default function EditarPedidoDialog({ open, onClose, pedido }) {
     const dispatch = useDispatch();
     const { exames } = useSelector(state => state.exames);
@@ -180,9 +185,10 @@ export default function EditarPedidoDialog({ open, onClose, pedido }) {
                                 {exames.filter(e => form.exames.includes(e.id)).map(e => (
                                     <Chip
                                         key={e.id}
-                                        label={e.codigo}
+                                        label={formatExamLabel(e.nome)}
                                         size="small"
                                         onDelete={bloqueado ? undefined : () => toggleExame(e.id)}
+                                        title={e.codigo}
                                     />
                                 ))}
                             </Box>
@@ -207,4 +213,3 @@ export default function EditarPedidoDialog({ open, onClose, pedido }) {
         </Dialog>
     );
 }
-
