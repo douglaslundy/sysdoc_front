@@ -12,6 +12,10 @@ import {
   TableContainer,
   TablePagination,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
@@ -68,6 +72,7 @@ export default function Users() {
   const { users } = useSelector((state) => state.users);
   const { isOpenLoading } = useSelector((state) => state.layout);
   const [searchValue, setSearchValue] = useState("");
+  const [presenceFilter, setPresenceFilter] = useState("all");
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -79,15 +84,16 @@ export default function Users() {
 
   const filteredUsers = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
-    if (!term) return users;
-
     return users.filter((u) => {
+      if (presenceFilter === "online" && !u?.is_online) return false;
+      if (presenceFilter === "offline" && u?.is_online) return false;
+      if (!term) return true;
       const name = (u?.name || "").toLowerCase();
       const email = (u?.email || "").toLowerCase();
       const cpf = (u?.cpf || "").toLowerCase();
       return name.includes(term) || email.includes(term) || cpf.includes(term);
     });
-  }, [users, searchValue]);
+  }, [users, searchValue, presenceFilter]);
 
   const handleEditUser = async (user) => {
     dispatch(showUser(user));
@@ -106,6 +112,11 @@ export default function Users() {
 
   const handleSearchUsers = ({ target }) => {
     setSearchValue(target.value || "");
+    setPage(0);
+  };
+
+  const handlePresenceFilter = ({ target }) => {
+    setPresenceFilter(target.value || "all");
     setPage(0);
   };
 
@@ -141,6 +152,15 @@ export default function Users() {
             value={searchValue}
             onChange={handleSearchUsers}
           />
+
+          <FormControl className="lg-search-field" size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>Status</InputLabel>
+            <Select value={presenceFilter} label="Status" onChange={handlePresenceFilter}>
+              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="online">Online</MenuItem>
+              <MenuItem value="offline">Offline</MenuItem>
+            </Select>
+          </FormControl>
 
           <ActionCreateFab
             icon="user-plus"
