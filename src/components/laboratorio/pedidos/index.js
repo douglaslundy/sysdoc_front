@@ -36,6 +36,20 @@ const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
 };
 
+const getStatusInfo = (pedido) => {
+    const resultado = pedido?.resultado;
+    const temRascunhoSalvo = !!resultado && !resultado.data_liberacao && (resultado.campos?.length || 0) > 0;
+
+    if (temRascunhoSalvo) {
+        return { label: 'RASCUNHO', color: 'secondary' };
+    }
+
+    return {
+        label: pedido?.status?.replace(/_/g, ' ').toUpperCase() || '—',
+        color: STATUS_COR[pedido?.status] || 'default',
+    };
+};
+
 const formatDate = (s) => {
     if (!s) return '—';
     const [y, m, d] = s.substring(0, 10).split('-');
@@ -190,7 +204,10 @@ export default function ListaPedidos() {
                                         {pedido.exames?.length > 2 && <Typography variant="caption">+{pedido.exames.length - 2}</Typography>}
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Chip label={pedido.status} color={STATUS_COR[pedido.status] || 'default'} size="small" />
+                                        {(() => {
+                                            const { label, color } = getStatusInfo(pedido);
+                                            return <Chip label={label} color={color} size="small" />;
+                                        })()}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
