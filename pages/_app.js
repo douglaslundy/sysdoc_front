@@ -24,7 +24,7 @@ import { getPageTitle } from "../src/utils/pageTitle";
 
 const clientSideEmotionCache = createEmotionCache();
 
-const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
+const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/painel-esus", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
 
 function AuditPageView() {
   const { permissionsLoaded } = useContext(AuthContext);
