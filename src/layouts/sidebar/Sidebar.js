@@ -14,11 +14,9 @@ import {
 } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import LogoIcon from "../logo/LogoIcon";
-import Menuitems, { DashboardItem } from "./MenuItems";
+import { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
-import { getAllPages, getAllPageCategories } from "../../store/fetchActions/accessProfiles";
 import { normalizeIconName } from "../../utils/iconResolver";
 
 const SIDEBAR_WIDTH = 318;
@@ -61,29 +59,14 @@ const hasPermissionForPath = (allowedPaths, targetPath) => {
 };
 
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
-  const dispatch = useDispatch();
-  const reduxPages = useSelector((state) => state.accessProfiles.pages);
-  const reduxPageCategories = useSelector((state) => state.accessProfiles.pageCategories);
-  const { profile, myPermissions, permissionsLoaded } = useContext(AuthContext);
+  const { profile, myPermissions, authorizedPages } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
 
-  // Aguarda o token estar disponível antes de buscar as páginas, evitando 401 na corrida de inicialização.
-  useEffect(() => {
-    if (!permissionsLoaded) return;
-    dispatch(getAllPages({ silent: true }));
-    dispatch(getAllPageCategories());
-  }, [dispatch, profile, myPermissions, permissionsLoaded]);
-
-  const pageCategoryById = useMemo(() => {
-    return new Map((Array.isArray(reduxPageCategories) ? reduxPageCategories : []).map((category) => [String(category.id), category]));
-  }, [reduxPageCategories]);
-
   const resolveCategory = (pg) => {
-    const byId = pg?.category_id ? pageCategoryById.get(String(pg.category_id)) : null;
-    const category = byId || pg?.category || null;
+    const category = pg?.category || null;
     const title = category?.nome || pg?.categoria || "Outros";
     return {
       title,
@@ -93,7 +76,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   };
 
   const dynamicMenu = useMemo(() => {
-    const pages = Array.isArray(reduxPages) ? reduxPages : [];
+    const pages = Array.isArray(authorizedPages) ? authorizedPages : [];
 
     const visiblePages = pages.filter((pg) => {
       if (!pg?.ativo) return false;
@@ -134,19 +117,9 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       .sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
 
     return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
-  }, [reduxPages, reduxPageCategories, profile, myPermissions]);
+  }, [authorizedPages, profile, myPermissions]);
 
-  const fallbackMenu = useMemo(() => {
-    if (profile === "admin") return Menuitems;
-    return Menuitems
-      .map((group) => ({
-        ...group,
-        children: group.children.filter((child) => hasPermissionForPath(myPermissions, child.href)),
-      }))
-      .filter((group) => group.children.length > 0);
-  }, [profile, myPermissions]);
-
-  const menuGroupsToRender = dynamicMenu.length > 0 ? dynamicMenu : fallbackMenu;
+  const menuGroupsToRender = dynamicMenu;
 
   useEffect(() => {
     menuGroupsToRender.forEach((group) => {

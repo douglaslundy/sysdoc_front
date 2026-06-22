@@ -45,6 +45,7 @@ export default async function handler(req, res) {
             user: validateData.user,
             token,
             permissions: permissionsData.paths || [],
+            pages: permissionsData.pages || [],
         });
     } catch (_) {
         return res.status(503).json({ message: 'Backend indisponível ou URL de API inválida.' });

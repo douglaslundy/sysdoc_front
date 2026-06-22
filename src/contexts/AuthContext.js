@@ -14,6 +14,7 @@ function isPublicPath(pathname) {
 export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [myPermissions, setMyPermissions] = useState([]);
+    const [authorizedPages, setAuthorizedPages] = useState([]);
     // Starts false; flips to true once the BFF responds (success or failure).
     // AuthGuard waits for this before rendering any access decision.
     const [permissionsLoaded, setPermissionsLoaded] = useState(false);
@@ -42,6 +43,7 @@ export function AuthProvider({ children }) {
                     setAuthToken(data.token);
                     setIsAuthenticated(true);
                     setMyPermissions(data.permissions || []);
+                    setAuthorizedPages(data.pages || []);
                 }
             })
             .catch(() => {})
@@ -76,6 +78,8 @@ export function AuthProvider({ children }) {
                 user,
                 myPermissions,
                 setMyPermissions,
+                authorizedPages,
+                setAuthorizedPages,
                 permissionsLoaded,
                 loadAuth,
             }}
