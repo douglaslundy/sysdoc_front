@@ -11,6 +11,8 @@ const TITLE_OVERRIDES = {
   "/showqueue/[...uuid]": "Consulta de Senha",
   "/showqueue/[[...uuid]]": "Consulta de Senha",
   "/painel-esus": "Painel eSUS",
+  "/painel-esus/statuses": "Status dos Painéis",
+  "/avisos": "Avisos",
 };
 
 const SEGMENT_OVERRIDES = {

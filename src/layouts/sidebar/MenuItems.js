@@ -123,6 +123,8 @@ const Menuitems = [
       { title: "Auditoria", icon: "eye", href: "/auditoria" },
       { title: "Logs de Erro", icon: "alert-triangle", href: "/errorlogs" },
       { title: "Logs de QRCODE", icon: "maximize", href: "/qrcodelogs" },
+      { title: "Status dos Painéis", icon: "monitor", href: "/painel-esus/statuses" },
+      { title: "Avisos", icon: "bell", href: "/avisos" },
     ],
   },
 ];
