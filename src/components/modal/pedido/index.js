@@ -47,6 +47,7 @@ export default function PedidoModal(props) {
     const { isOpenModal } = useSelector(state => state.layout);
     const { exames } = useSelector(state => state.exames);
     const { medicos } = useSelector(state => state.medicosSolicitantes);
+    const defaultDataColeta = props.defaultDataColeta || '';
 
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
@@ -60,8 +61,11 @@ export default function PedidoModal(props) {
         if (isOpenModal) {
             dispatch(getAllExames({ ativo: true, per_page: 200 }));
             dispatch(getAllMedicos({ all: true, ativo: true }));
+            if (defaultDataColeta) {
+                setForm(f => ({ ...f, data_coleta: defaultDataColeta }));
+            }
         }
-    }, [isOpenModal]);
+    }, [isOpenModal, defaultDataColeta]);
 
     const buscarPaciente = async () => {
         const termo = cpfCns.replace(/\D/g, '');
