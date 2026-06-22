@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Box, Button, Chip, Fab, Table, TableBody, TableCell, TableContainer,
     TableHead, TablePagination, TableRow, Typography, Modal, Stack,
@@ -9,7 +9,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
-import { getAllProfiles, getAllPages, addProfileFetch, editProfileFetch, removeProfileFetch } from '../../store/fetchActions/accessProfiles';
+import { getAllProfiles, getAllPages, getAllPageCategories, addProfileFetch, editProfileFetch, removeProfileFetch } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
@@ -50,9 +50,9 @@ const StyledTableRow = styled(TableRow)(() => ({
     },
 }));
 
-function agruparPorCategoria(pages) {
+function agruparPorCategoria(pages, pageCategoryById) {
     return pages.reduce((acc, page) => {
-        const cat = page.categoria || 'Outros';
+        const cat = (page?.category_id && pageCategoryById.get(String(page.category_id))?.nome) || page?.category?.nome || page.categoria || 'Outros';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(page);
         return acc;
@@ -61,7 +61,7 @@ function agruparPorCategoria(pages) {
 
 export default function Perfis() {
     const dispatch = useDispatch();
-    const { profiles, pages } = useSelector((state) => state.accessProfiles);
+    const { profiles, pages, pageCategories } = useSelector((state) => state.accessProfiles);
 
     const [openModal, setOpenModal] = useState(false);
     const [editId, setEditId] = useState(null);
@@ -73,7 +73,12 @@ export default function Perfis() {
     useEffect(() => {
         dispatch(getAllProfiles());
         dispatch(getAllPages());
+        dispatch(getAllPageCategories());
     }, [dispatch]);
+
+    const pageCategoryById = useMemo(() => {
+        return new Map((Array.isArray(pageCategories) ? pageCategories : []).map((category) => [String(category.id), category]));
+    }, [pageCategories]);
 
     const handleNovo = () => {
         setEditId(null);
@@ -110,7 +115,7 @@ export default function Perfis() {
         }
     };
 
-    const categorias = agruparPorCategoria(pages);
+    const categorias = agruparPorCategoria(pages, pageCategoryById);
     const perfisFiltrados = profiles.filter((profile) =>
         profile.nome?.toLowerCase().includes(busca.toLowerCase()) ||
         profile.slug?.toLowerCase().includes(busca.toLowerCase()) ||

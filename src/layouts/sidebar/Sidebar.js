@@ -18,7 +18,7 @@ import Menuitems, { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
-import { getAllPages } from "../../store/fetchActions/accessProfiles";
+import { getAllPages, getAllPageCategories } from "../../store/fetchActions/accessProfiles";
 import { normalizeIconName } from "../../utils/iconResolver";
 
 const SIDEBAR_WIDTH = 318;
@@ -50,6 +50,7 @@ const normalizeCategory = (value) => {
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const dispatch = useDispatch();
   const reduxPages = useSelector((state) => state.accessProfiles.pages);
+  const reduxPageCategories = useSelector((state) => state.accessProfiles.pageCategories);
   const { profile, myPermissions, permissionsLoaded } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
@@ -60,7 +61,23 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   useEffect(() => {
     if (!permissionsLoaded) return;
     dispatch(getAllPages({ silent: true }));
+    dispatch(getAllPageCategories());
   }, [dispatch, profile, myPermissions, permissionsLoaded]);
+
+  const pageCategoryById = useMemo(() => {
+    return new Map((Array.isArray(reduxPageCategories) ? reduxPageCategories : []).map((category) => [String(category.id), category]));
+  }, [reduxPageCategories]);
+
+  const resolveCategory = (pg) => {
+    const byId = pg?.category_id ? pageCategoryById.get(String(pg.category_id)) : null;
+    const category = byId || pg?.category || null;
+    const title = category?.nome || pg?.categoria || "Outros";
+    return {
+      title,
+      icon: category?.icone,
+      order: category?.ordem ?? 999,
+    };
+  };
 
   const dynamicMenu = useMemo(() => {
     const pages = Array.isArray(reduxPages) ? reduxPages : [];
@@ -68,7 +85,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     const visiblePages = pages.filter((pg) => {
       if (!pg?.ativo) return false;
       if (pg.path === DashboardItem.href) return false;
-      if ((pg.category?.nome || pg.categoria) === 'Dashboard') return false;
+      if (resolveCategory(pg).title === 'Dashboard') return false;
       if (profile === "admin") return true;
       return myPermissions.includes(pg.path);
     });
@@ -76,12 +93,12 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     if (visiblePages.length === 0) return [];
 
     const grouped = visiblePages.reduce((acc, pg) => {
-      const category = pg.category?.nome || pg.categoria || "Outros";
-      if (!acc[category]) {
-        acc[category] = { children: [], icon: pg.category?.icone, order: pg.category?.ordem ?? 999 };
+      const category = resolveCategory(pg);
+      if (!acc[category.title]) {
+        acc[category.title] = { children: [], icon: category.icon, order: category.order };
       }
-      if (!acc[category].icon && pg.category?.icone) acc[category].icon = pg.category.icone;
-      acc[category].children.push({
+      if (!acc[category.title].icon && category.icon) acc[category.title].icon = category.icon;
+      acc[category.title].children.push({
         title: pg.titulo,
         icon: normalizeIconName(pg.icone, "circle"),
         href: pg.path,
@@ -129,7 +146,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     });
 
     return groups.sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
-  }, [reduxPages, profile, myPermissions]);
+  }, [reduxPages, reduxPageCategories, profile, myPermissions]);
 
   const hasRenderableDynamicMenu = dynamicMenu.some((group) =>
     group.children.some((child) => {

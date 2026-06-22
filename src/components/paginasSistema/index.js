@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -116,16 +116,25 @@ export default function PaginasSistema() {
     dispatch(getAllPageCategories());
   }, [dispatch]);
 
+  const pageCategoryById = useMemo(() => {
+    return new Map((Array.isArray(pageCategories) ? pageCategories : []).map((category) => [String(category.id), category]));
+  }, [pageCategories]);
+
+  const resolveCategory = (page) => {
+    const category = (page?.category_id && pageCategoryById.get(String(page.category_id))) || page?.category || null;
+    return category?.nome || page?.categoria || '';
+  };
+
   const filtradas = pages
-    .filter(
-      (p) =>
-        p.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
-        p.path?.toLowerCase().includes(busca.toLowerCase()) ||
-        p.categoria?.toLowerCase().includes(busca.toLowerCase())
-    )
-    .filter((p) => !filtroCategoria || String(p.category_id || '') === String(filtroCategoria))
-    .sort((a, b) => {
-      const catCmp = (a.categoria || '').localeCompare(b.categoria || '');
+      .filter(
+        (p) =>
+          p.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
+          p.path?.toLowerCase().includes(busca.toLowerCase()) ||
+          resolveCategory(p).toLowerCase().includes(busca.toLowerCase())
+      )
+      .filter((p) => !filtroCategoria || String(p.category_id || '') === String(filtroCategoria))
+      .sort((a, b) => {
+      const catCmp = resolveCategory(a).localeCompare(resolveCategory(b));
       if (catCmp !== 0) return catCmp;
       const orderCmp = Number(a.ordem ?? 999) - Number(b.ordem ?? 999);
       if (orderCmp !== 0) return orderCmp;
@@ -151,7 +160,7 @@ export default function PaginasSistema() {
       titulo: pg.titulo,
       path: pg.path,
       icone: pg.icone || '-',
-      categoria: pg.categoria || '',
+      categoria: resolveCategory(pg),
       category_id: pg.category_id || pg.category?.id || '',
       ordem: Number(pg.ordem ?? 1),
       ativo: pg.ativo,
@@ -292,7 +301,7 @@ export default function PaginasSistema() {
                     </Typography>
                   </TableCell>
                   <TableCell><Typography color="textSecondary" sx={{ fontSize: '12px' }}>{pg.icone || '-'}</Typography></TableCell>
-                  <TableCell>{pg.categoria ? <Chip label={pg.categoria} size="small" variant="outlined" /> : <Typography color="textSecondary" sx={{ fontSize: '12px' }}>-</Typography>}</TableCell>
+                  <TableCell>{resolveCategory(pg) ? <Chip label={resolveCategory(pg)} size="small" variant="outlined" /> : <Typography color="textSecondary" sx={{ fontSize: '12px' }}>-</Typography>}</TableCell>
                   <TableCell><Typography>{Number(pg.ordem ?? 999)}</Typography></TableCell>
                   <TableCell align="center"><Chip label={pg.ativo ? 'Ativa' : 'Inativa'} color={pg.ativo ? 'success' : 'error'} size="small" /></TableCell>
                   <TableCell align="center">
@@ -429,8 +438,6 @@ export default function PaginasSistema() {
     </Box>
   );
 }
-
-
 
 
 
