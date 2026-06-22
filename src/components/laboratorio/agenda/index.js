@@ -179,9 +179,11 @@ export default function AgendaColeta() {
                 className="card info-card"
                 onClick={clickToOpen ? () => openPedidoForDate(day) : undefined}
                 sx={{
+                    m: 0,
+                    p: 0,
                     display: 'flex',
                     flexDirection: 'column',
-                    minHeight: monthCell ? 156 : 182,
+                    minHeight: monthCell ? 170 : 190,
                     height: '100%',
                     cursor: clickToOpen ? 'pointer' : 'default',
                     transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
@@ -198,7 +200,7 @@ export default function AgendaColeta() {
                     p={1.5}
                     display="flex"
                     flexDirection="column"
-                    gap={0.2}
+                    gap="3px"
                     sx={{
                         flex: 1,
                         '& .agenda-day__title': { fontSize: '0.75rem', fontWeight: 700, lineHeight: 1.1 },
@@ -231,13 +233,13 @@ export default function AgendaColeta() {
                             px: 1.1,
                             fontSize: '0.58rem',
                             minWidth: 102,
-                            mb: 0.15,
+                            mb: '3px',
                         }}
                     >
                         {buttonLabel}
                     </Button>
 
-                    <Stack spacing={0.15} sx={{ flex: 1, minHeight: 0 }}>
+                    <Stack spacing="3px" sx={{ flex: 1, minHeight: 0 }}>
                         {dayPedidos.map((pedido) => (
                             <Typography
                                 key={pedido.id}
@@ -342,7 +344,7 @@ export default function AgendaColeta() {
                                     sx={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
-                                        gap: 2,
+                                        gap: '3px',
                                     }}
                                 >
                                     {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((label) => (
@@ -364,7 +366,7 @@ export default function AgendaColeta() {
                                 gridTemplateColumns: viewMode === 'month'
                                     ? 'repeat(7, minmax(0, 1fr))'
                                     : { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))', xl: 'repeat(7, minmax(0, 1fr))' },
-                                gap: 2,
+                                gap: '3px',
                                 alignItems: 'stretch',
                             }}
                         >
