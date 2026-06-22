@@ -333,7 +333,7 @@ export default function TripClientsModal(props) {
                                 </Stack>
                                 {/* </FormGroup> */}
                                 <br />
-                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                     <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: 'unset', minWidth: 'unset', width: 'auto' }}>
                                         Gravar
                                     </Button>
