@@ -10,22 +10,6 @@ import { api } from '../../../services/api';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 import { openModal } from '../../../store/ducks/Layout';
 
-const STATUS_COLORS = {
-    solicitado: 'warning',
-    coletado: 'info',
-    em_analise: 'primary',
-    liberado: 'success',
-    cancelado: 'error',
-};
-
-const STATUS_LABELS = {
-    solicitado: 'Solicitado',
-    coletado: 'Coletado',
-    em_analise: 'Em análise',
-    liberado: 'Liberado',
-    cancelado: 'Cancelado',
-};
-
 const addDays = (date, days) => {
     const value = new Date(date);
     value.setDate(value.getDate() + days);
@@ -74,11 +58,6 @@ const formatDayLabel = (date) =>
         day: '2-digit',
         month: '2-digit',
     });
-
-const truncateExamName = (name) => {
-    const value = name || '—';
-    return value.length > 30 ? `${value.slice(0, 27)}...` : value;
-};
 
 const buildMonthCells = (baseDate) => {
     const firstDay = startOfMonth(baseDate);
@@ -192,7 +171,7 @@ export default function AgendaColeta() {
 
         const dayKey = toIsoDate(day);
         const dayPedidos = pedidosPorDia.get(dayKey) || [];
-        const buttonLabel = monthCell ? '+ Agendar' : '+ Agendar';
+        const buttonLabel = 'Agendar';
 
         return (
             <Card
@@ -219,14 +198,12 @@ export default function AgendaColeta() {
                     p={1.5}
                     display="flex"
                     flexDirection="column"
-                    gap={1}
+                    gap={0.2}
                     sx={{
                         flex: 1,
                         '& .agenda-day__title': { fontSize: '0.75rem', fontWeight: 700, lineHeight: 1.1 },
                         '& .agenda-day__meta': { fontSize: '0.56rem', lineHeight: 1.2 },
                         '& .agenda-day__body': { fontSize: '0.62rem', lineHeight: 1.25 },
-                        '& .MuiChip-root': { height: 20 },
-                        '& .MuiChip-label': { px: 0.75, fontSize: '0.55rem' },
                     }}
                 >
                     <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
@@ -240,60 +217,6 @@ export default function AgendaColeta() {
                         />
                     </Box>
 
-                    <Stack spacing={0.85} sx={{ flex: 1, minHeight: 0 }}>
-                        {dayPedidos.map((pedido) => (
-                            <Box
-                                key={pedido.id}
-                                sx={{
-                                    p: 1,
-                                    borderRadius: 2,
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    backgroundColor: 'background.paper',
-                                }}
-                            >
-                                <Typography className="agenda-day__body" fontWeight={700}>
-                                    {pedido.paciente?.nome || 'Paciente não informado'}
-                                </Typography>
-                                <Typography className="agenda-day__meta" color="text.secondary" display="block" mb={0.25}>
-                                    {pedido.medico?.nome
-                                        ? `Dr(a). ${pedido.medico.nome}`
-                                        : 'Sem médico solicitante'}
-                                </Typography>
-
-                                <Box display="flex" flexWrap="wrap" gap={0.4} mb={0.5}>
-                                    {(pedido.exames || []).slice(0, 3).map((exame) => (
-                                        <Chip
-                                            key={exame.id}
-                                            label={truncateExamName(exame.nome)}
-                                            size="small"
-                                            title={exame.nome}
-                                        />
-                                    ))}
-                                    {(pedido.exames || []).length > 3 && (
-                                        <Chip
-                                            label={`+${pedido.exames.length - 3}`}
-                                            size="small"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                </Box>
-
-                                <Chip
-                                    label={STATUS_LABELS[pedido.status] || pedido.status}
-                                    color={STATUS_COLORS[pedido.status] || 'default'}
-                                    size="small"
-                                />
-                            </Box>
-                        ))}
-
-                        {dayPedidos.length === 0 && (
-                            <Typography className="agenda-day__meta" color="text.secondary">
-                                Sem pedidos.
-                            </Typography>
-                        )}
-                    </Stack>
-
                     <Button
                         variant="outlined"
                         size="small"
@@ -304,15 +227,38 @@ export default function AgendaColeta() {
                         }}
                         sx={{
                             alignSelf: 'flex-start',
-                            mt: 'auto',
-                            py: 0.6,
-                            px: 1.2,
+                            py: 0.5,
+                            px: 1.1,
                             fontSize: '0.58rem',
-                            minWidth: 118,
+                            minWidth: 102,
+                            mb: 0.15,
                         }}
                     >
                         {buttonLabel}
                     </Button>
+
+                    <Stack spacing={0.15} sx={{ flex: 1, minHeight: 0 }}>
+                        {dayPedidos.map((pedido) => (
+                            <Typography
+                                key={pedido.id}
+                                className="agenda-day__body"
+                                sx={{
+                                    fontWeight: 700,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {pedido.paciente?.nome || 'Paciente não informado'}
+                            </Typography>
+                        ))}
+
+                        {dayPedidos.length === 0 && (
+                            <Typography className="agenda-day__meta" color="text.secondary">
+                                Sem pedidos.
+                            </Typography>
+                        )}
+                    </Stack>
                 </Box>
             </Card>
         );
