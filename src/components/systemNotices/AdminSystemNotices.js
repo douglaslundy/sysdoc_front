@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -19,8 +19,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
+import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 
 const EMPTY = {
@@ -36,26 +38,59 @@ const EMPTY = {
 };
 
 export default function AdminSystemNotices() {
+  const theme = useTheme();
+  const { permissionsLoaded } = useContext(AuthContext);
   const [form, setForm] = useState(EMPTY);
   const [users, setUsers] = useState([]);
   const [notices, setNotices] = useState([]);
   const [error, setError] = useState('');
 
-  const load = () => {
-    Promise.all([
+  const fieldSx = useMemo(() => ({
+    '& .MuiOutlinedInput-root': {
+      color: theme.palette.text.primary,
+      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.35 : 0.72),
+      borderRadius: 2,
+      '& fieldset': {
+        borderColor: alpha(theme.palette.divider, 0.9),
+      },
+      '&:hover fieldset': {
+        borderColor: alpha(theme.palette.primary.main, 0.55),
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main,
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`,
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary,
+    },
+    '& .MuiSelect-icon': {
+      color: theme.palette.text.secondary,
+    },
+    '& .MuiInputBase-inputMultiline': {
+      lineHeight: 1.7,
+    },
+  }), [theme]);
+
+  const load = async () => {
+    const [usersRes, noticesRes] = await Promise.allSettled([
       api.get('/users'),
       api.get('/system-notices'),
-    ])
-      .then(([usersRes, noticesRes]) => {
-        setUsers(usersRes.data || []);
-        setNotices(noticesRes.data || []);
-      })
-      .catch(() => setError('Não foi possível carregar usuários ou avisos.'));
+    ]);
+
+    setUsers(usersRes.status === 'fulfilled' ? (usersRes.value.data || []) : []);
+    setNotices(noticesRes.status === 'fulfilled' ? (noticesRes.value.data || []) : []);
+
+    const failures = [];
+    if (usersRes.status === 'rejected') failures.push('usuários');
+    if (noticesRes.status === 'rejected') failures.push('avisos');
+    setError(failures.length === 2 ? 'Não foi possível carregar usuários ou avisos.' : '');
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!permissionsLoaded) return;
+    load().catch(() => setError('Não foi possível carregar usuários ou avisos.'));
+  }, [permissionsLoaded]);
 
   const change = ({ target }) => {
     const value = target.type === 'checkbox' ? target.checked : target.value;
@@ -100,16 +135,17 @@ export default function AdminSystemNotices() {
 
         <Box component="form" onSubmit={submit} sx={{ mb: 3 }}>
           <Stack spacing={2}>
-            <TextField name="title" label="Título" value={form.title} onChange={change} required fullWidth />
-            <TextField name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} fullWidth />
-            <TextField name="body" label="Texto do aviso" value={form.body} onChange={change} required fullWidth multiline minRows={4} />
-            <Button component="label" variant="outlined" startIcon={<FeatherIcon icon="image" width="16" height="16" />}>
+            <TextField sx={fieldSx} name="title" label="Título" value={form.title} onChange={change} required fullWidth />
+            <TextField sx={fieldSx} name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} fullWidth />
+            <TextField sx={fieldSx} name="body" label="Texto do aviso" value={form.body} onChange={change} required fullWidth multiline minRows={4} />
+            <Button component="label" variant="outlined" startIcon={<FeatherIcon icon="image" width="16" height="16" />} sx={{ alignSelf: 'flex-start' }}>
               Inserir imagem
               <input hidden type="file" accept="image/*" onChange={handleImage} />
             </Button>
-            {form.image_data ? <img src={form.image_data} alt="Pré-visualização" style={{ maxWidth: 360, borderRadius: 12 }} /> : null}
+            {form.image_data ? <img src={form.image_data} alt="Pré-visualização" style={{ maxWidth: 360, borderRadius: 12, border: `1px solid ${alpha(theme.palette.divider, 0.8)}` }} /> : null}
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <TextField
+                sx={fieldSx}
                 name="times_per_day"
                 label="Vezes por dia"
                 type="number"
@@ -119,6 +155,7 @@ export default function AdminSystemNotices() {
                 fullWidth
               />
               <TextField
+                sx={fieldSx}
                 name="interval_minutes"
                 label="Intervalo em minutos"
                 type="number"
@@ -128,6 +165,7 @@ export default function AdminSystemNotices() {
                 fullWidth
               />
               <TextField
+                sx={fieldSx}
                 name="valid_until"
                 label="Válido até"
                 type="date"
@@ -138,7 +176,7 @@ export default function AdminSystemNotices() {
               />
             </Stack>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={fieldSx}>
                 <InputLabel>Destinatário</InputLabel>
                 <Select name="target_user_id" value={form.target_user_id} label="Destinatário" onChange={change}>
                   <MenuItem value="">Todos</MenuItem>
