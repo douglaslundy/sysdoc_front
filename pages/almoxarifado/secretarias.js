@@ -1,11 +1,11 @@
 import { Grid } from '@mui/material';
-import AlmoxarifadoHome from '../../src/components/almoxarifado';
+import SecretariasPage from '../../src/components/almoxarifado/SecretariasPage';
 
 export default function AlmoxarifadoSecretariasPage() {
   return (
     <Grid container spacing={0}>
       <Grid item xs={12}>
-        <AlmoxarifadoHome />
+        <SecretariasPage />
       </Grid>
     </Grid>
   );
