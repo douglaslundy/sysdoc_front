@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Chip, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import BaseCard from '../../baseCard/BaseCard';
 import { api } from '../../../services/api';
 import TableLoadingRows from '../../tableLoadingRows';
@@ -23,6 +23,33 @@ export default function PainelEsusStatuses() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const pageSx = {
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary,
+    },
+    '& .MuiOutlinedInput-root': {
+      color: theme.palette.text.primary,
+      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.96),
+      '& fieldset': {
+        borderColor: theme.palette.divider,
+      },
+      '&:hover fieldset': {
+        borderColor: theme.palette.primary.main,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main,
+      },
+    },
+    '& .MuiSelect-icon': {
+      color: theme.palette.text.secondary,
+    },
+    '& .queue-page__th': {
+      color: theme.palette.text.secondary,
+    },
+    '& .queue-page__table .MuiTableCell-root': {
+      borderBottomColor: theme.palette.divider,
+    },
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -51,7 +78,7 @@ export default function PainelEsusStatuses() {
   });
 
   return (
-    <Box className="queue-page painel-esus-statuses-page" sx={[{ py: 2 }, modalFormRootSx]}>
+    <Box className="queue-page painel-esus-statuses-page" sx={[{ py: 2 }, modalFormRootSx, pageSx]}>
       <BaseCard title="Status dos Painéis de Senha">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Lista de CNES com indicador visual de conectividade.
@@ -107,7 +134,7 @@ export default function PainelEsusStatuses() {
                     {index < filteredItems.length - 1 ? (
                       <TableRow>
                         <TableCell colSpan={4} sx={{ py: 0, borderBottom: 'none' }}>
-                          <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}` }} />
+                          <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, opacity: 0.95 }} />
                         </TableCell>
                       </TableRow>
                     ) : null}
