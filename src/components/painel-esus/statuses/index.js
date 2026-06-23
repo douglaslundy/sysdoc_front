@@ -27,6 +27,9 @@ export default function PainelEsusStatuses() {
     '& .MuiCardContent-root': {
       p: 0,
     },
+    '& .MuiTypography-root': {
+      color: theme.palette.text.primary,
+    },
     '& .MuiInputLabel-root': {
       color: theme.palette.text.secondary,
     },
@@ -66,10 +69,12 @@ export default function PainelEsusStatuses() {
       fontWeight: 700,
       background: 'transparent',
       borderBottom: `1px solid ${theme.palette.divider}`,
+      py: 1.6,
     },
     '& .MuiTableBody-root .MuiTableCell-root': {
       color: theme.palette.text.primary,
       borderBottom: `1px solid ${theme.palette.divider}`,
+      py: 1.6,
     },
     '& .MuiTableRow-root:hover .MuiTableCell-root': {
       backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.06 : 0.04),
@@ -82,6 +87,14 @@ export default function PainelEsusStatuses() {
     },
     '& .MuiChip-root': {
       fontWeight: 700,
+    },
+    '& .MuiChip-colorSuccess': {
+      color: theme.palette.mode === 'dark' ? theme.palette.success.light : theme.palette.success.dark,
+      backgroundColor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
+    },
+    '& .MuiChip-colorError': {
+      color: theme.palette.mode === 'dark' ? theme.palette.error.light : theme.palette.error.dark,
+      backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
     },
   };
 
@@ -120,7 +133,7 @@ export default function PainelEsusStatuses() {
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel id="painel-esus-status-filter-label">Status</InputLabel>
+            <InputLabel id="painel-esus-status-filter-label" shrink>Status</InputLabel>
             <Select
               labelId="painel-esus-status-filter-label"
               id="painel-esus-status-filter"
@@ -166,7 +179,7 @@ export default function PainelEsusStatuses() {
                       </TableCell>
                     </TableRow>
                     {index < filteredItems.length - 1 ? (
-                      <TableRow>
+                    <TableRow>
                         <TableCell colSpan={4} sx={{ py: 0, borderBottom: 'none' }}>
                           <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, opacity: 0.95 }} />
                         </TableCell>

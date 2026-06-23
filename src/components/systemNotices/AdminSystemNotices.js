@@ -181,7 +181,7 @@ export default function AdminSystemNotices() {
             </Stack>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
               <FormControl fullWidth sx={fieldSx}>
-                <InputLabel>Destinatário</InputLabel>
+                <InputLabel shrink>Destinatário</InputLabel>
                 <Select
                   name="target_user_id"
                   value={form.target_user_id}
