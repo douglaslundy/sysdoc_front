@@ -17,6 +17,7 @@ import LogoIcon from "../logo/LogoIcon";
 import { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { AuthContext } from "../../contexts/AuthContext";
+import { api } from "../../services/api";
 import { normalizeIconName } from "../../utils/iconResolver";
 
 const SIDEBAR_WIDTH = 318;
@@ -64,23 +65,66 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [openGroups, setOpenGroups] = useState([]);
+  const [adminCategories, setAdminCategories] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (profile !== "admin") {
+      setAdminCategories([]);
+      return undefined;
+    }
+
+    api.get("/page-categories")
+      .then((res) => {
+        if (isMounted) {
+          setAdminCategories(Array.isArray(res.data) ? res.data : []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setAdminCategories([]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [profile]);
 
   const resolveCategory = (pg) => {
     const category = pg?.category || null;
     const title = category?.nome || pg?.categoria || "Outros";
     const normalizedTitle = normalizeCategory(title);
     const fallbackOrder = category?.ordem ?? null;
+    const mappedOrder = categoryOrderByName.get(normalizedTitle);
     return {
       title,
       icon: category?.icone,
-      order: Number.isFinite(Number(fallbackOrder))
-        ? Number(fallbackOrder)
-        : (categoryOrderByName.get(normalizedTitle) ?? 999),
+      order: Number.isFinite(Number(mappedOrder))
+        ? Number(mappedOrder)
+        : (Number.isFinite(Number(fallbackOrder)) ? Number(fallbackOrder) : 999),
     };
   };
 
   const categoryOrderByName = useMemo(() => {
     const map = new Map();
+
+    const sourceCategories = profile === "admin" && Array.isArray(adminCategories) && adminCategories.length > 0
+      ? adminCategories
+      : [];
+
+    sourceCategories.forEach((category) => {
+      const title = normalizeCategory(category?.nome || "Outros");
+      const order = Number(category?.ordem);
+
+      if (!Number.isFinite(order)) return;
+
+      const current = map.get(title);
+      if (current == null || order < current) {
+        map.set(title, order);
+      }
+    });
 
     (Array.isArray(authorizedPages) ? authorizedPages : []).forEach((pg) => {
       const category = pg?.category || null;
@@ -96,7 +140,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     });
 
     return map;
-  }, [authorizedPages]);
+  }, [adminCategories, authorizedPages, profile]);
 
   const dynamicMenu = useMemo(() => {
     const pages = Array.isArray(authorizedPages) ? authorizedPages : [];
