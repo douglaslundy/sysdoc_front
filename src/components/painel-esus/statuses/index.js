@@ -94,7 +94,7 @@ export default function PainelEsusStatuses() {
                     hover
                     sx={{
                       '& td': {
-                        borderBottom: '0.5px solid var(--lg-border-row)',
+                        borderBottom: `1px solid ${theme.palette.divider}`,
                       },
                     }}
                   >
@@ -116,7 +116,7 @@ export default function PainelEsusStatuses() {
                   <TableRow
                     sx={{
                       '& td': {
-                        borderBottom: '0.5px solid var(--lg-border-row)',
+                        borderBottom: `1px solid ${theme.palette.divider}`,
                       },
                     }}
                   >
