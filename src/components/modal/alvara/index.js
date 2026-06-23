@@ -4,7 +4,7 @@ import Dialog from '@mui/material/Dialog';
 import {
     Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
 } from '@mui/material';
-import { modalBackdropSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { modalBackdropSx, modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 import BaseCard from '../../baseCard/BaseCard';
@@ -72,12 +72,15 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
                 sx: {
                     display: 'flex',
                     flexDirection: 'column',
-                    overflowY: 'auto',
+                    overflow: 'hidden',
+                    maxHeight: '92vh',
+                    width: 'min(1100px, 96vw)',
                 },
             }}
         >
-            <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
-                <Stack spacing={2}>
+            <Box sx={{ ...modalFormRootSx, overflowY: 'auto', p: 3.2 }}>
+                <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
+                    <Stack spacing={2}>
                     {alvara?.id && (
                         <Typography variant="body2" color="textSecondary">
                             Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)
@@ -161,12 +164,13 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
                         fullWidth
                         inputProps={{ autoComplete: 'off', maxLength: 1000 }}
                     />
-                </Stack>
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-                    <Button onClick={handleSalvar} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
-                </Box>
-            </BaseCard>
+                    </Stack>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2.2, justifyContent: 'flex-end' }}>
+                        <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
+                        <Button onClick={handleSalvar} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: '0 0 auto', width: 'auto', px: 2.2 }}>Gravar</Button>
+                    </Box>
+                </BaseCard>
+            </Box>
         </Dialog>
     );
 }
