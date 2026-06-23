@@ -88,29 +88,30 @@ export default function PainelEsusStatuses() {
               <TableLoadingRows columns={4} rows={6} />
             ) : (
               <TableBody>
-                {filteredItems.map((item) => (
-                  <TableRow
-                    key={item.cnes}
-                    hover
-                    sx={{
-                      '& td': {
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                      },
-                    }}
-                  >
-                    <TableCell>{item.cnes}</TableCell>
-                    <TableCell>{item.panel_name || item.nome || '-'}</TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        label={item.is_online ? 'Online' : 'Offline'}
-                        color={item.is_online ? 'success' : 'error'}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.secondary }}>
-                      {formatRelativeTime(item.last_seen_at)}
-                    </TableCell>
-                  </TableRow>
+                {filteredItems.map((item, index) => (
+                  <React.Fragment key={item.cnes}>
+                    <TableRow hover>
+                      <TableCell>{item.cnes}</TableCell>
+                      <TableCell>{item.panel_name || item.nome || '-'}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={item.is_online ? 'Online' : 'Offline'}
+                          color={item.is_online ? 'success' : 'error'}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: theme.palette.text.secondary }}>
+                        {formatRelativeTime(item.last_seen_at)}
+                      </TableCell>
+                    </TableRow>
+                    {index < filteredItems.length - 1 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} sx={{ py: 0, borderBottom: 'none' }}>
+                          <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}` }} />
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </React.Fragment>
                 ))}
                 {!filteredItems.length && (
                   <TableRow
