@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -46,32 +46,11 @@ export default function AdminSystemNotices() {
   const [notices, setNotices] = useState([]);
   const [error, setError] = useState('');
 
-  const fieldSx = useMemo(() => ({
-    '& .MuiOutlinedInput-root': {
-      color: theme.palette.text.primary,
-      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.35 : 0.72),
-      borderRadius: 2,
-      '& fieldset': {
-        borderColor: alpha(theme.palette.divider, 0.9),
-      },
-      '&:hover fieldset': {
-        borderColor: alpha(theme.palette.primary.main, 0.55),
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`,
-      },
-    },
-    '& .MuiInputLabel-root': {
-      color: theme.palette.text.secondary,
-    },
-    '& .MuiSelect-icon': {
-      color: theme.palette.text.secondary,
-    },
+  const fieldSx = {
     '& .MuiInputBase-inputMultiline': {
       lineHeight: 1.7,
     },
-  }), [theme]);
+  };
 
   const load = async () => {
     setError('');
@@ -197,7 +176,7 @@ export default function AdminSystemNotices() {
                 <Typography>Ativo</Typography>
               </Stack>
               <Button type="submit" variant="contained" startIcon={<FeatherIcon icon="save" width="16" height="16" />}>
-                Salvar aviso
+                Salvar
               </Button>
             </Stack>
           </Stack>
