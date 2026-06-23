@@ -13,6 +13,12 @@ const TITLE_OVERRIDES = {
   "/painel-esus": "Painel eSUS",
   "/painel-esus/statuses": "Status dos Painéis",
   "/avisos": "Avisos",
+  "/protocolo": "Protocolo",
+  "/protocolo/caixa-entrada": "Caixa de Entrada",
+  "/protocolo/novo": "Novo Protocolo",
+  "/protocolo/estrutura": "Estrutura Organizacional",
+  "/protocolo/alertas": "Alertas",
+  "/protocolo/configuracoes": "Configurações do Protocolo",
 };
 
 const SEGMENT_OVERRIDES = {

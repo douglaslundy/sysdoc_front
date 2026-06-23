@@ -89,6 +89,19 @@ const Menuitems = [
     ],
   },
   {
+    title: "Protocolo",
+    icon: "inbox",
+    group: true,
+    children: [
+      { title: "Protocolo", icon: "inbox", href: "/protocolo" },
+      { title: "Caixa de Entrada", icon: "mail", href: "/protocolo/caixa-entrada" },
+      { title: "Novo Protocolo", icon: "plus-circle", href: "/protocolo/novo" },
+      { title: "Estrutura Organizacional", icon: "layers", href: "/protocolo/estrutura" },
+      { title: "Alertas", icon: "bell", href: "/protocolo/alertas" },
+      { title: "Configurações", icon: "settings", href: "/protocolo/configuracoes", profile: ["admin"] },
+    ],
+  },
+  {
     title: "Vigilância Sanitária",
     icon: "shield",
     group: true,
