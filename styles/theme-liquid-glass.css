@@ -777,24 +777,6 @@ input[type="checkbox"],
   color: var(--lg-text-primary);
 }
 
-.MuiModal-root .MuiCard-root,
-.MuiDialog-root .MuiCard-root {
-  background:
-    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
-    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
-  box-shadow:
-    0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset,
-    0 0 18px rgba(var(--lg-accent-rgb), 0.14),
-    0 18px 38px rgba(2, 8, 27, 0.55) !important;
-  margin: 0;
-  padding: 0;
-}
-
-.MuiModal-root .MuiCardContent-root,
-.MuiDialog-root .MuiCardContent-root {
-  padding: 16px !important;
-}
-
 :is(.monitor-users-modal-shell, .paginas-categorias-modal-shell, .clients-modal-shell, .specialities-modal-shell, .queue-modal-shell, .lab-categoria-exame-modal-shell, .lab-exame-modal-shell, .lab-medico-solicitante-modal-shell, .lab-pedido-exame-modal-shell, .lab-campo-exame-modal-shell, .lab-referencia-campo-modal-shell, .lab-resultado-modal-shell, .lab-route-modal-shell, .lab-vehicle-modal-shell, .lab-trip-modal-shell, .lab-letter-modal-shell, .lab-ordinance-modal-shell) .MuiCardContent-root {
   padding: 24px !important;
 }
@@ -1861,4 +1843,3 @@ hr,
   border-right: 1px solid rgba(var(--lg-accent-rgb), 0.22) !important;
   box-shadow: inset -1px 0 0 rgba(var(--lg-accent-rgb), 0.10), 0 16px 30px rgba(37, 99, 235, 0.16) !important;
 }
-
