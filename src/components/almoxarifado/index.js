@@ -7,6 +7,11 @@ import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const AREAS = [
   { title: 'Produtos', href: '/almoxarifado/produtos', icon: 'archive', text: 'Cadastro e consulta de materiais.' },
+  { title: 'Categorias', href: '/almoxarifado/categorias', icon: 'tag', text: 'Categorias dos produtos.' },
+  { title: 'Espécies', href: '/almoxarifado/especies', icon: 'grid', text: 'Espécies e tipos de item.' },
+  { title: 'Unidades', href: '/almoxarifado/unidades-medida', icon: 'maximize', text: 'Unidades de medida.' },
+  { title: 'Fornecedores', href: '/almoxarifado/fornecedores', icon: 'truck', text: 'Cadastro de fornecedores.' },
+  { title: 'Localizações', href: '/almoxarifado/localizacoes', icon: 'map-pin', text: 'Endereçamento físico.' },
   { title: 'Secretarias', href: '/almoxarifado/secretarias', icon: 'users', text: 'Unidades atendidas pelo estoque.' },
   { title: 'Estoque', href: '/almoxarifado/estoque', icon: 'layers', text: 'Saldo por produto e secretaria.' },
   { title: 'Requisições', href: '/almoxarifado/requisicoes', icon: 'clipboard', text: 'Solicitações, aprovações e entrega.' },
