@@ -89,7 +89,15 @@ export default function PainelEsusStatuses() {
             ) : (
               <TableBody>
                 {filteredItems.map((item) => (
-                  <TableRow key={item.cnes} hover>
+                  <TableRow
+                    key={item.cnes}
+                    hover
+                    sx={{
+                      '& td': {
+                        borderBottom: '0.5px solid var(--lg-border-row)',
+                      },
+                    }}
+                  >
                     <TableCell>{item.cnes}</TableCell>
                     <TableCell>{item.panel_name || item.nome || '-'}</TableCell>
                     <TableCell>
@@ -105,7 +113,13 @@ export default function PainelEsusStatuses() {
                   </TableRow>
                 ))}
                 {!filteredItems.length && (
-                  <TableRow>
+                  <TableRow
+                    sx={{
+                      '& td': {
+                        borderBottom: '0.5px solid var(--lg-border-row)',
+                      },
+                    }}
+                  >
                     <TableCell colSpan={4} align="center">
                       Nenhum CNES encontrado para o filtro selecionado.
                     </TableCell>
