@@ -9,7 +9,6 @@ import {
   MenuItem,
   Select,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -192,10 +191,6 @@ export default function AdminSystemNotices() {
                   ))}
                 </Select>
               </FormControl>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Switch checked={form.is_active} onChange={change} name="is_active" />
-                <Typography>Ativo</Typography>
-              </Stack>
               <Button type="submit" variant="contained" startIcon={<FeatherIcon icon="save" width="16" height="16" />}>
                 Salvar
               </Button>
