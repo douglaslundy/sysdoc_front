@@ -32,7 +32,7 @@ const EMPTY = {
   image_data: '',
   times_per_day: 1,
   interval_minutes: 60,
-  target_user_id: '',
+  target_user_id: 'all',
   valid_until: '',
   is_active: true,
 };
@@ -69,6 +69,14 @@ export default function AdminSystemNotices() {
     },
     '& .MuiInputBase-inputMultiline': {
       lineHeight: 1.7,
+      color: theme.palette.text.primary,
+      WebkitTextFillColor: theme.palette.text.primary,
+      backgroundColor: 'transparent',
+    },
+    '& textarea.MuiInputBase-inputMultiline': {
+      color: theme.palette.text.primary,
+      WebkitTextFillColor: theme.palette.text.primary,
+      backgroundColor: 'transparent',
     },
   };
 
@@ -111,7 +119,7 @@ export default function AdminSystemNotices() {
     setError('');
 
     try {
-      const targetUserId = form.target_user_id === '' ? null : Number(form.target_user_id);
+      const targetUserId = form.target_user_id === 'all' ? null : Number(form.target_user_id);
       await api.post('/system-notices', {
         ...form,
         times_per_day: Number(form.times_per_day),
@@ -187,14 +195,13 @@ export default function AdminSystemNotices() {
                   value={form.target_user_id}
                   label="Destinatário"
                   onChange={change}
-                  displayEmpty
                   renderValue={(selected) => {
-                    if (selected === '') return 'Todos';
+                    if (selected === 'all') return 'Todos';
                     const selectedUser = users.find((user) => String(user.id) === String(selected));
                     return selectedUser?.name || 'Todos';
                   }}
                 >
-                  <MenuItem value="">Todos</MenuItem>
+                  <MenuItem value="all">Todos</MenuItem>
                   {users.map((user) => (
                     <MenuItem key={user.id} value={user.id}>
                       {user.name}

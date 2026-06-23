@@ -56,6 +56,11 @@ export default function PainelEsusStatuses() {
       paddingTop: '12px',
       paddingBottom: '12px',
     },
+    '& .MuiInputBase-inputMultiline': {
+      color: theme.palette.text.primary,
+      WebkitTextFillColor: theme.palette.text.primary,
+      backgroundColor: 'transparent',
+    },
     '& .MuiSelect-select': {
       color: theme.palette.text.primary,
       display: 'flex',
@@ -91,10 +96,12 @@ export default function PainelEsusStatuses() {
     '& .MuiChip-colorSuccess': {
       color: theme.palette.mode === 'dark' ? theme.palette.success.light : theme.palette.success.dark,
       backgroundColor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
+      border: `1px solid ${alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.3 : 0.2)}`,
     },
     '& .MuiChip-colorError': {
       color: theme.palette.mode === 'dark' ? theme.palette.error.light : theme.palette.error.dark,
       backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
+      border: `1px solid ${alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.3 : 0.2)}`,
     },
   };
 
