@@ -40,14 +40,15 @@ export default function AlmoxarifadoHome() {
                   <Typography variant="body2" color="text.secondary" sx={{ minHeight: 48 }}>
                     {area.text}
                   </Typography>
-                  <Button
-                    component={NextLink}
-                    href={area.href}
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                  >
-                    Abrir
-                  </Button>
+                  <NextLink href={area.href} passHref legacyBehavior>
+                    <Button
+                      component="a"
+                      variant="contained"
+                      sx={{ mt: 2 }}
+                    >
+                      Abrir
+                    </Button>
+                  </NextLink>
                 </CardContent>
               </Card>
             </Grid>
