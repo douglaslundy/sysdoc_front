@@ -24,6 +24,7 @@ import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
+import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
 const EMPTY = {
   title: '',
@@ -133,7 +134,7 @@ export default function AdminSystemNotices() {
   };
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Box className="queue-page avisos-page" sx={[{ py: 2 }, modalFormRootSx]}>
       <BaseCard title="Cadastro de Avisos">
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 

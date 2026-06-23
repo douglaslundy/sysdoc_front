@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import BaseCard from '../../baseCard/BaseCard';
 import { api } from '../../../services/api';
 import TableLoadingRows from '../../tableLoadingRows';
+import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 
 const formatRelativeTime = (value) => {
   if (!value) return 'Sem atualização';
@@ -50,7 +51,7 @@ export default function PainelEsusStatuses() {
   });
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Box className="queue-page painel-esus-statuses-page" sx={[{ py: 2 }, modalFormRootSx]}>
       <BaseCard title="Status dos Painéis de Senha">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Lista de CNES com indicador visual de conectividade.

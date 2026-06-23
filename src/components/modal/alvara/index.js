@@ -4,7 +4,7 @@ import Dialog from '@mui/material/Dialog';
 import {
     Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
 } from '@mui/material';
-import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { modalBackdropSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 import BaseCard from '../../baseCard/BaseCard';
@@ -65,8 +65,15 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
         <Dialog
             open={open}
             onClose={onClose}
+            scroll="paper"
+            slotProps={{ backdrop: { sx: modalBackdropSx } }}
             PaperProps={{
                 className: 'lab-alvara-dialog-shell',
+                sx: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'auto',
+                },
             }}
         >
             <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
@@ -163,4 +170,3 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
         </Dialog>
     );
 }
-

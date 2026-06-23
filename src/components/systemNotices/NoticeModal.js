@@ -4,6 +4,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import { useRouter } from 'next/router';
 import { api } from '../../services/api';
+import { modalBackdropSx } from '../modal/_shared/modalFormStyles';
 
 export default function NoticeModal() {
   const theme = useTheme();
@@ -60,14 +61,15 @@ export default function NoticeModal() {
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
+      slotProps={{ backdrop: { sx: modalBackdropSx } }}
       PaperProps={{
         sx: {
           borderRadius: 4,
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(180deg, rgba(10,15,30,0.98), rgba(15,23,42,0.96))'
-            : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))',
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.32)',
+          background: 'var(--lg-glass-modal)',
+          backdropFilter: 'var(--lg-blur-modal)',
+          WebkitBackdropFilter: 'var(--lg-blur-modal)',
+          border: '0.5px solid var(--lg-border)',
+          boxShadow: 'var(--lg-shadow-modal)',
         },
       }}
     >
