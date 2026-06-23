@@ -182,7 +182,18 @@ export default function AdminSystemNotices() {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
               <FormControl fullWidth sx={fieldSx}>
                 <InputLabel>Destinatário</InputLabel>
-                <Select name="target_user_id" value={form.target_user_id} label="Destinatário" onChange={change}>
+                <Select
+                  name="target_user_id"
+                  value={form.target_user_id}
+                  label="Destinatário"
+                  onChange={change}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (selected === '') return 'Todos';
+                    const selectedUser = users.find((user) => String(user.id) === String(selected));
+                    return selectedUser?.name || 'Todos';
+                  }}
+                >
                   <MenuItem value="">Todos</MenuItem>
                   {users.map((user) => (
                     <MenuItem key={user.id} value={user.id}>

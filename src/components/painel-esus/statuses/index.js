@@ -24,12 +24,16 @@ export default function PainelEsusStatuses() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const pageSx = {
+    '& .MuiCardContent-root': {
+      p: 0,
+    },
     '& .MuiInputLabel-root': {
       color: theme.palette.text.secondary,
     },
     '& .MuiOutlinedInput-root': {
       color: theme.palette.text.primary,
-      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.96),
+      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.92),
+      borderRadius: 2,
       '& fieldset': {
         borderColor: theme.palette.divider,
       },
@@ -40,14 +44,44 @@ export default function PainelEsusStatuses() {
         borderColor: theme.palette.primary.main,
       },
     },
+    '& .MuiInputBase-root': {
+      minHeight: 48,
+      alignItems: 'center',
+    },
+    '& .MuiInputBase-input': {
+      color: theme.palette.text.primary,
+      paddingTop: '12px',
+      paddingBottom: '12px',
+    },
+    '& .MuiSelect-select': {
+      color: theme.palette.text.primary,
+      display: 'flex',
+      alignItems: 'center',
+    },
     '& .MuiSelect-icon': {
       color: theme.palette.text.secondary,
+    },
+    '& .MuiTableHead-root .MuiTableCell-root': {
+      color: theme.palette.text.secondary,
+      fontWeight: 700,
+      background: 'transparent',
+      borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+    '& .MuiTableBody-root .MuiTableCell-root': {
+      color: theme.palette.text.primary,
+      borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+    '& .MuiTableRow-root:hover .MuiTableCell-root': {
+      backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.06 : 0.04),
     },
     '& .queue-page__th': {
       color: theme.palette.text.secondary,
     },
     '& .queue-page__table .MuiTableCell-root': {
       borderBottomColor: theme.palette.divider,
+    },
+    '& .MuiChip-root': {
+      fontWeight: 700,
     },
   };
 
