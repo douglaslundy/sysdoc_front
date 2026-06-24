@@ -98,7 +98,14 @@ const Menuitems = [
       { title: "Novo Protocolo", icon: "plus-circle", href: "/protocolo/novo" },
       { title: "Estrutura Organizacional", icon: "layers", href: "/protocolo/estrutura" },
       { title: "Alertas", icon: "bell", href: "/protocolo/alertas" },
-      { title: "Configurações", icon: "settings", href: "/protocolo/configuracoes", profile: ["admin"] },
+    ],
+  },
+  {
+    title: "Sistema",
+    icon: "settings",
+    group: true,
+    children: [
+      { title: "Configurações WhatsApp", icon: "message-circle", href: "/configuracoes/whatsapp", profile: ["admin"] },
     ],
   },
   {
