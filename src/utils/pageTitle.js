@@ -75,6 +75,10 @@ const registerMenuItem = (item) => {
 registerMenuItem(DashboardItem);
 Menuitems.forEach(registerMenuItem);
 
+const EXTRA_TITLE_OVERRIDES = {
+  "/kanban": "Kanban Geral",
+};
+
 const formatSegment = (segment) => {
   const decoded = decodeURIComponent(segment || "");
   const compact = decoded
@@ -134,6 +138,9 @@ export const getPageTitle = (pathname) => {
 
   const override = TITLE_OVERRIDES[normalizePath(pathname)];
   if (override) return override;
+
+  const extraOverride = EXTRA_TITLE_OVERRIDES[normalizePath(pathname)];
+  if (extraOverride) return extraOverride;
 
   const normalized = normalizePath(pathname);
   if (normalized.startsWith("/showqueue")) return "Consulta de Senha";
