@@ -609,13 +609,6 @@ export default function ProtocoloPage() {
       </BaseCard>
     </Box>
   );
-}
-    </Box>
-  );
-}
-    </Box>
-  );
-
   const renderDetail = () => {
     const p = protocolDetail || {};
     const movements = Array.isArray(p.movements) ? p.movements : [];
