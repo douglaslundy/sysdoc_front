@@ -29,7 +29,7 @@ import AlertModal from "../../src/components/messagesModal";
 import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
 
-const modes = {
+const routes = {
   "caixa-entrada": "inbox",
   novo: "novo",
   estrutura: "estrutura",
@@ -123,6 +123,13 @@ const formatDate = (value) => {
   return date.toLocaleDateString("pt-BR");
 };
 
+const formatDateTime = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("pt-BR");
+};
+
 const flattenUnits = (items, level = 0) =>
   (Array.isArray(items) ? items : []).reduce((acc, item) => {
     acc.push({ ...item, level });
@@ -143,7 +150,7 @@ export default function ProtocoloPage() {
     const first = slug[0];
     if (!first) return "home";
     if (/^\d+$/.test(first)) return "detail";
-    return modes[first] || "home";
+    return routes[first] || "home";
   }, [slug]);
 
   const protocolId = useMemo(() => (mode === "detail" ? Number(slug[0]) : null), [mode, slug]);
@@ -151,7 +158,7 @@ export default function ProtocoloPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [countInfo, setCountInfo] = useState({});
+  const [countInfo, setCountInfo] = useState({ recentes: [] });
   const [protocols, setProtocols] = useState([]);
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
@@ -165,6 +172,10 @@ export default function ProtocoloPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [detailForwardUnit, setDetailForwardUnit] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [commentPrivate, setCommentPrivate] = useState(false);
+  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [attachmentDescription, setAttachmentDescription] = useState("");
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
 
@@ -180,7 +191,12 @@ export default function ProtocoloPage() {
       }),
     ]);
 
-    setCountInfo(countsRes.data || {});
+    setCountInfo({
+      novos: Number(countsRes.data?.novos ?? 0),
+      vence_em_breve: Number(countsRes.data?.vence_em_breve ?? 0),
+      vencidos: Number(countsRes.data?.vencidos ?? 0),
+      recentes: Array.isArray(countsRes.data?.recentes) ? countsRes.data.recentes : [],
+    });
     setProtocols(Array.isArray(inboxRes.data?.data) ? inboxRes.data.data : []);
     setTotal(Number(inboxRes.data?.total ?? inboxRes.data?.meta?.total ?? 0));
   };
@@ -189,6 +205,9 @@ export default function ProtocoloPage() {
     const { data } = await api.get(`/protocolos/${id}`);
     setProtocolDetail(data || null);
     setDetailForwardUnit(String(data?.destino_unit_id || ""));
+    setCommentText("");
+    setAttachmentFile(null);
+    setAttachmentDescription("");
   };
 
   const loadData = async () => {
@@ -201,11 +220,12 @@ export default function ProtocoloPage() {
       } else if (mode === "estrutura" || mode === "novo" || mode === "detail") {
         const { data } = await api.get("/protocolos/unidades-organizacionais");
         setUnits(Array.isArray(data) ? data : []);
+        if (mode === "detail" && protocolId) {
+          await loadDetail(protocolId);
+        }
       } else if (mode === "alertas") {
         const { data } = await api.get("/protocolos/alertas");
         setAlerts(Array.isArray(data) ? data : []);
-      } else if (mode === "detail" && protocolId) {
-        await loadDetail(protocolId);
       } else {
         await loadList();
       }
@@ -340,6 +360,65 @@ export default function ProtocoloPage() {
     }
   };
 
+  const handleSubmitComment = async (event) => {
+    event.preventDefault();
+    if (!protocolId || !commentText.trim()) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.post(`/protocolos/${protocolId}/comentarios`, {
+        conteudo: commentText.trim(),
+        privado: commentPrivate,
+        tipo: "comentario",
+      });
+      setMessage("Comentário adicionado com sucesso.");
+      await refreshDetail();
+    } catch (error) {
+      setMessage("Não foi possível salvar o comentário.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmitAttachment = async (event) => {
+    event.preventDefault();
+    if (!protocolId || !attachmentFile) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("arquivo", attachmentFile);
+      formData.append("descricao", attachmentDescription || "");
+
+      await api.post(`/protocolos/${protocolId}/anexos`, formData);
+      setMessage("Anexo enviado com sucesso.");
+      await refreshDetail();
+    } catch (error) {
+      setMessage("Não foi possível enviar o anexo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDownloadAttachment = async (attachment) => {
+    try {
+      const response = await api.get(`/protocolos/anexos/${attachment.id}/download`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] || "application/octet-stream" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = attachment.nome_original || "anexo";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setMessage("Não foi possível baixar o anexo.");
+    }
+  };
+
   const renderHome = () => (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Grid container spacing={2}>
@@ -438,6 +517,7 @@ export default function ProtocoloPage() {
     const p = protocolDetail || {};
     const movements = Array.isArray(p.movements) ? p.movements : [];
     const comments = Array.isArray(p.comments) ? p.comments : [];
+    const attachments = Array.isArray(p.attachments) ? p.attachments : [];
 
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -499,32 +579,106 @@ export default function ProtocoloPage() {
           </FormControl>
         </BaseCard>
 
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <BaseCard title="Comentário">
+              <Box component="form" onSubmit={handleSubmitComment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={4}
+                  label="Escreva um comentário"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                />
+                <FormControlLabel
+                  control={<Switch checked={commentPrivate} onChange={(e) => setCommentPrivate(e.target.checked)} />}
+                  label="Comentário privado"
+                />
+                <Stack direction="row" justifyContent="flex-end">
+                  <Button type="submit" variant="contained" disabled={saving || !commentText.trim()}>
+                    {saving ? "Salvando..." : "Comentar"}
+                  </Button>
+                </Stack>
+              </Box>
+            </BaseCard>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <BaseCard title="Anexar documento">
+              <Box component="form" onSubmit={handleSubmitAttachment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Descrição do anexo"
+                  value={attachmentDescription}
+                  onChange={(e) => setAttachmentDescription(e.target.value)}
+                />
+                <Button variant="outlined" component="label">
+                  {attachmentFile ? attachmentFile.name : "Selecionar arquivo"}
+                  <input
+                    hidden
+                    type="file"
+                    onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
+                  />
+                </Button>
+                <Stack direction="row" justifyContent="flex-end">
+                  <Button type="submit" variant="contained" disabled={saving || !attachmentFile}>
+                    {saving ? "Enviando..." : "Enviar anexo"}
+                  </Button>
+                </Stack>
+              </Box>
+            </BaseCard>
+          </Grid>
+        </Grid>
+
         <BaseCard title="Histórico e observações">
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ mb: 1 }}>Movimentações</Typography>
               <Stack spacing={1}>
                 {movements.length > 0 ? movements.map((movement) => (
                   <Box key={movement.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{movement.acao}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {movement.user?.name || "—"} • {formatDate(movement.created_at)}
+                      {movement.user?.name || "—"} • {formatDateTime(movement.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhuma movimentação registrada.</Typography>}
               </Stack>
             </Grid>
-            <Grid item xs={12} md={6}>
+
+            <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ mb: 1 }}>Comentários</Typography>
               <Stack spacing={1}>
                 {comments.length > 0 ? comments.map((comment) => (
                   <Box key={comment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2">{comment.conteudo}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {comment.user?.name || "—"} • {formatDate(comment.created_at)}
+                      {comment.user?.name || "—"} • {formatDateTime(comment.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhum comentário registrado.</Typography>}
+              </Stack>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Anexos</Typography>
+              <Stack spacing={1}>
+                {attachments.length > 0 ? attachments.map((attachment) => (
+                  <Box key={attachment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {attachment.nome_original}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
+                    </Typography>
+                    <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
+                      <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
+                        Baixar
+                      </Button>
+                    </Stack>
+                  </Box>
+                )) : <Typography color="text.secondary">Nenhum anexo enviado.</Typography>}
               </Stack>
             </Grid>
           </Grid>
