@@ -631,7 +631,6 @@ export default function ProtocoloPage() {
             </Stack>
           </Stack>
 
-        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "â€”"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "â€”"}</Typography></Grid>
