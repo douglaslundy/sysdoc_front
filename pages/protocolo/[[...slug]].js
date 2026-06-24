@@ -12,6 +12,7 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Drawer,
   Select,
   Stack,
   Switch,
@@ -176,6 +177,9 @@ export default function ProtocoloPage() {
   const [commentPrivate, setCommentPrivate] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentDescription, setAttachmentDescription] = useState("");
+  const [visualizationOpen, setVisualizationOpen] = useState(false);
+  const [visualizations, setVisualizations] = useState([]);
+  const [loadingVisualizations, setLoadingVisualizations] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
 
@@ -220,6 +224,20 @@ export default function ProtocoloPage() {
     setCommentText("");
     setAttachmentFile(null);
     setAttachmentDescription("");
+    setVisualizations([]);
+  };
+
+  const loadVisualizations = async () => {
+    if (!protocolId) return;
+    setLoadingVisualizations(true);
+    try {
+      const { data } = await api.get(`/protocolos/${protocolId}/visualizacoes`);
+      setVisualizations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setMessage("Não foi possível carregar as visualizações do protocolo.");
+    } finally {
+      setLoadingVisualizations(false);
+    }
   };
 
   const loadData = async () => {
@@ -274,6 +292,9 @@ export default function ProtocoloPage() {
     setLoading(true);
     try {
       await loadDetail(protocolId);
+      if (visualizationOpen) {
+        await loadVisualizations();
+      }
     } catch (error) {
       setMessage("Não foi possível recarregar o protocolo.");
     } finally {
@@ -549,6 +570,19 @@ export default function ProtocoloPage() {
               <Chip label={p.prioridade || "normal"} />
             </Stack>
           </Stack>
+
+        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={async () => {
+              setVisualizationOpen(true);
+              await loadVisualizations();
+            }}
+            disabled={!protocolId}
+          >
+            Visualizações
+          </Button>
+        </Stack>
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "—"}</Typography></Grid>
@@ -941,6 +975,59 @@ export default function ProtocoloPage() {
           </Box>
         ) : renderContent()}
       </BaseCard>
+
+      <Drawer
+        anchor="right"
+        open={visualizationOpen}
+        onClose={() => setVisualizationOpen(false)}
+        PaperProps={{ sx: { width: { xs: "100%", sm: 420 }, p: 2 } }}
+      >
+        <Stack spacing={2} sx={{ height: "100%" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Visualizações do protocolo
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Histórico de acesso ao registro.
+              </Typography>
+            </Box>
+            <Button variant="outlined" onClick={() => setVisualizationOpen(false)}>
+              Fechar
+            </Button>
+          </Stack>
+
+          <Divider />
+
+          {loadingVisualizations ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+              <CircularProgress size={22} />
+              <Typography variant="body2">Carregando visualizações...</Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5} sx={{ overflowY: "auto", pr: 1 }}>
+              {visualizations.length > 0 ? visualizations.map((view) => (
+                <Box
+                  key={view.id}
+                  sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {view.user?.name || "Usuário não identificado"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                    {view.departamento || "Departamento não informado"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                    {formatDateTime(view.visualized_at)}
+                  </Typography>
+                </Box>
+              )) : (
+                <Typography color="text.secondary">Nenhuma visualização registrada.</Typography>
+              )}
+            </Stack>
+          )}
+        </Stack>
+      </Drawer>
     </Box>
   );
 }
