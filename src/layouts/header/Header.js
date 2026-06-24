@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useContext } from "react";
 import PropTypes from "prop-types";
-import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
+import { AppBar, Badge, Box, IconButton, Toolbar, Typography } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 import { getPageTitle } from "../../utils/pageTitle";
 import ProtocolBell from "../../components/protocolo/ProtocolBell";
+import { ChatContext } from "../../contexts/ChatContext";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const { pathname } = useRouter();
   const pageTitle = getPageTitle(pathname);
+  const { setIsOpen, unreadTotal } = useContext(ChatContext);
 
   return (
     <AppBar
@@ -58,6 +60,21 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
 
         <Box flexGrow={1} />
 
+        <IconButton
+          aria-label="Abrir chat interno"
+          onClick={() => setIsOpen(true)}
+          sx={{
+            mr: 0.5,
+            color: "inherit",
+            background: "var(--lg-glass-chip)",
+            border: "0.5px solid var(--lg-border)",
+            borderRadius: "10px",
+          }}
+        >
+          <Badge badgeContent={unreadTotal} color="error" max={99}>
+            <FeatherIcon icon="message-circle" width="20" height="20" />
+          </Badge>
+        </IconButton>
         <ProtocolBell />
         <ProfileDD />
       </Toolbar>

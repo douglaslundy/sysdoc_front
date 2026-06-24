@@ -12,6 +12,7 @@ import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
 import AuthGuard from "../components/authGuard";
 import NoticeModal from "../components/systemNotices/NoticeModal";
+import ChatPanel from "../components/chat/ChatPanel";
 
 const SIDEBAR_WIDTH = 318;
 
@@ -65,6 +66,7 @@ const FullLayout = ({ children }) => {
         isSidebarOpen={isSidebarOpen}
         onSidebarClose={() => setSidebarOpen(false)}
       />
+      <ChatPanel />
       <MainWrapper>
         <Header toggleSidebar={toggleSidebar} />
 

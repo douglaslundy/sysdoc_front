@@ -21,6 +21,7 @@ import Router, { useRouter } from "next/router";
 import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 import { api } from "../src/services/api";
 import { getPageTitle } from "../src/utils/pageTitle";
+import { ChatProvider } from "../src/contexts/ChatContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -79,22 +80,24 @@ export default function MyApp(props) {
       </Head>
       <Provider store={store}>
         <AuthProvider>
-          <AuditPageView />
-          <CustomThemeProvider>
-            {showLayout ? (
-              <>
-                <CssBaseline />
-                <FullLayout>
-                  <Loading />
-                  <AlertDialog />
-                  <Messages />
-                  <Component {...pageProps} />
-                </FullLayout>
-              </>
-            ) : (
-              <Component {...pageProps} />
-            )}
-          </CustomThemeProvider>
+          <ChatProvider>
+            <AuditPageView />
+            <CustomThemeProvider>
+              {showLayout ? (
+                <>
+                  <CssBaseline />
+                  <FullLayout>
+                    <Loading />
+                    <AlertDialog />
+                    <Messages />
+                    <Component {...pageProps} />
+                  </FullLayout>
+                </>
+              ) : (
+                <Component {...pageProps} />
+              )}
+            </CustomThemeProvider>
+          </ChatProvider>
         </AuthProvider>
       </Provider>
     </CacheProvider>

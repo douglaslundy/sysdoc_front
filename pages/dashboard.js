@@ -8,6 +8,7 @@ import TfdDashboard from '../src/components/dashboard/TfdDashboard';
 import FarmaciaDashboard from '../src/components/dashboard/FarmaciaDashboard';
 import LogsDashboard from '../src/components/dashboard/LogsDashboard';
 import VigilanciaDashboard from '../src/components/dashboard/VigilanciaDashboard';
+import ChatDashboard from '../src/components/dashboard/ChatDashboard';
 import { AuthContext } from '../src/contexts/AuthContext';
 
 const ABAS = [
@@ -19,6 +20,7 @@ const ABAS = [
     { label: 'TFD',                  permission: '/dashboard/tfd',         component: <TfdDashboard /> },
     { label: 'Farmácia',             permission: '/dashboard/farmacia',    component: <FarmaciaDashboard /> },
     { label: 'Logs/QR',             permission: '/dashboard/logs',        component: <LogsDashboard /> },
+    { label: 'Chat',                permission: '/dashboard/chat',        component: <ChatDashboard /> },
 ];
 
 export default function DashboardPage() {
