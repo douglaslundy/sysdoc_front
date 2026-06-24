@@ -20,6 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
+import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
 
 const emptyForm = {
@@ -113,7 +114,7 @@ export default function ProtocolTypesPage() {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box sx={{ ...modalFormRootSx, display: "flex", flexDirection: "column", gap: 3 }} className="queue-page protocolo-page">
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between">
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
@@ -182,7 +183,7 @@ export default function ProtocolTypesPage() {
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{editingId ? "Editar tipo" : "Novo tipo"}</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
+        <DialogContent sx={{ ...modalFormRootSx, pt: 1 }}>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>

@@ -122,7 +122,7 @@ const protocolTypeFallbackOptions = [
 const alertModuleOptions = [
   { value: "protocolo", label: "Protocolo" },
   { value: "queue", label: "Fila" },
-  { value: "laboratorio", label: "Laborat�rio" },
+  { value: "laboratorio", label: "Laboratório" },
   { value: "cadastros", label: "Cadastros" },
   { value: "sistema", label: "Sistema" },
 ];
@@ -146,11 +146,11 @@ const alertTriggerOptions = {
     { value: "resultado_liberado", label: "Resultado liberado" },
   ],
   cadastros: [
-    { value: "usuario_cadastrado", label: "Usu�rio cadastrado" },
+    { value: "usuario_cadastrado", label: "Usuário cadastrado" },
     { value: "cliente_cadastrado", label: "Cliente cadastrado" },
   ],
   sistema: [
-    { value: "config_alterada", label: "Configura��o alterada" },
+    { value: "config_alterada", label: "Configuração alterada" },
     { value: "alerta_gerado", label: "Alerta gerado" },
   ],
 };
@@ -162,7 +162,7 @@ const alertChannelOptions = [
 const alertRecipientOptions = [
   { value: "administrador", label: "Administrador" },
   { value: "gestor", label: "Gestor" },
-  { value: "usuario", label: "Usu�rio" },
+  { value: "usuario", label: "Usuário" },
   { value: "tfd", label: "TFD" },
   { value: "motorista", label: "Motorista" },
   { value: "todos", label: "Todos" },
@@ -173,7 +173,7 @@ const alertConditionOptions = [
   { value: "aguardando_resposta", label: "Aguardando resposta" },
   { value: "vencendo", label: "Vencendo" },
   { value: "vencido", label: "Vencido" },
-  { value: "concluido", label: "Conclu�do" },
+  { value: "concluido", label: "Concluído" },
 ];
 
 const getAlertTriggerOptions = (module) => alertTriggerOptions[module] || alertTriggerOptions.protocolo;
@@ -958,7 +958,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Box key={movement.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{movement.acao}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {movement.user?.name || "—"} â�,�¢ {formatDateTime(movement.created_at)}
+                      {movement.user?.name || "—"} • {formatDateTime(movement.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhuma movimentação registrada.</Typography>}
@@ -972,7 +972,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Box key={comment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2">{comment.conteudo}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {comment.user?.name || "—"} â�,�¢ {formatDateTime(comment.created_at)}
+                      {comment.user?.name || "—"} • {formatDateTime(comment.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhum comentário registrado.</Typography>}
@@ -988,7 +988,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                       {attachment.nome_original}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {attachment.user?.name || "—"} â�,�¢ {formatDateTime(attachment.created_at)}
+                      {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
                     </Typography>
                     <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
                       <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
@@ -1058,7 +1058,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Grid>
             <Grid item xs={12} md={4}>
               <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>�sltima visualização</Typography>
+                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Última visualização</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {lastVisualization ? formatDateTime(lastVisualization.visualized_at) : "—"}
                 </Typography>
@@ -1161,7 +1161,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                         {String(item.acao || "ação").replace(/_/g, " ")}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                        {item.user?.name || "—"} �?� {formatDateTime(item.created_at)}
+                        {item.user?.name || "—"} • {formatDateTime(item.created_at)}
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -1412,7 +1412,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Frequ�ncia"
+                label="Frequência"
                 value={alertForm.frequencia}
                 onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))}
               />
@@ -1420,7 +1420,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Grid item xs={12} md={4}>
               <MultiSelectField
                 label="Motores de envio"
-                helperText="WhatsApp e e-mail s�o configurados em suas p�ginas pr�prias."
+                helperText="WhatsApp e e-mail são configurados em suas páginas próprias."
                 value={alertForm.canais}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, canais: value }))}
                 options={alertChannelOptions}
@@ -1429,8 +1429,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Grid>
             <Grid item xs={12} md={4}>
               <MultiSelectField
-                label="Destinat�rios"
-                helperText="Selecione destinat�rios predefinidos."
+                label="Destinatários"
+                helperText="Selecione destinatários predefinidos."
                 value={alertForm.destinatarios}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, destinatarios: value }))}
                 options={alertRecipientOptions}
@@ -1439,8 +1439,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Grid>
             <Grid item xs={12} md={4}>
               <MultiSelectField
-                label="Condi��es"
-                helperText="Selecione condi��es predefinidas."
+                label="Condições"
+                helperText="Selecione condições predefinidas."
                 value={alertForm.condicoes}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, condicoes: value }))}
                 options={alertConditionOptions}
@@ -1453,7 +1453,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 multiline
                 minRows={4}
                 label="Template"
-                placeholder="Ex.: Ol� {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
+                placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
                 value={alertForm.template}
                 onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
               />
@@ -1571,7 +1571,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           >
             <Tab value="detalhes" label="Detalhes" />
             <Tab value="visualizacoes" label={`Visualizações (${detailVisualizations.length})`} />
-            <Tab value="historico" label={`Hist�f³rico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
+            <Tab value="historico" label={`Histórico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
           </Tabs>
 
           <BaseCard title={`Resumo - ${protocolDetail?.numero || "Protocolo"}`}>
@@ -1595,7 +1595,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </Grid>
               <Grid item xs={12} md={4}>
                 <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Typography variant="overline">�sltima visualização</Typography>
+                  <Typography variant="overline">Última visualização</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
                     {lastView ? formatDateTime(lastView.visualized_at) : "—"}
                   </Typography>
@@ -1619,7 +1619,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   };
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page">
+    <Box sx={modalFormRootSx} className="queue-page protocolo-page">
       <BaseCard title={currentTitle}>
         <AlertModal />
         {message ? (

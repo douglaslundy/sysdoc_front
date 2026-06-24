@@ -63,6 +63,16 @@ export const modalFormRootSx = {
     paddingTop: "12px",
     paddingBottom: "12px",
   },
+  "& .MuiInputBase-input:-webkit-autofill, & .MuiInputBase-input:-webkit-autofill:hover, & .MuiInputBase-input:-webkit-autofill:focus, & .MuiInputBase-input:-webkit-autofill:active": {
+    WebkitBoxShadow: "0 0 0 1000px var(--lg-glass-input) inset !important",
+    WebkitTextFillColor: "var(--lg-text-primary) !important",
+    caretColor: "var(--lg-text-primary) !important",
+    borderRadius: 0,
+    transition: "background-color 9999s ease-out 0s",
+  },
+  "& .MuiInputBase-root.Mui-focused .MuiInputBase-input:-webkit-autofill, & .MuiInputBase-root.Mui-focused .MuiInputBase-input:-webkit-autofill:hover, & .MuiInputBase-root.Mui-focused .MuiInputBase-input:-webkit-autofill:focus, & .MuiInputBase-root.Mui-focused .MuiInputBase-input:-webkit-autofill:active": {
+    WebkitBoxShadow: "0 0 0 1000px var(--lg-glass-input-focus) inset !important",
+  },
   "& .MuiInputBase-input::placeholder": {
     color: "var(--lg-text-muted)",
     opacity: 1,
@@ -99,4 +109,3 @@ export const modalSecondaryButtonSx = {
     border: "0.5px solid var(--lg-border-input)",
   },
 };
-

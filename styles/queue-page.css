@@ -259,6 +259,115 @@
   line-height: 1.05;
 }
 
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96)) !important;
+  background-color: rgba(3, 11, 36, 0.96) !important;
+  border: 0.5px solid rgba(var(--lg-accent-rgb), 0.28) !important;
+  border-radius: 11px !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow:
+    0 1px 3px rgba(var(--lg-accent-rgb), 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.10) inset !important;
+  backdrop-filter: var(--lg-blur-input);
+  -webkit-backdrop-filter: var(--lg-blur-input);
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background:
+    radial-gradient(880px 360px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%),
+    linear-gradient(140deg, rgba(4, 16, 50, 0.98), rgba(3, 11, 36, 0.97)) !important;
+  background-color: rgba(3, 11, 36, 0.97) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--lg-accent-rgb), 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiInputBase-input,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiInputBase-input,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiSelect-select {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiInputLabel-root,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiInputLabel-root {
+  color: var(--queue-text-muted) !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiButton-contained {
+  background: linear-gradient(135deg, var(--lg-accent), #6d28d9) !important;
+  box-shadow: var(--lg-shadow-btn) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--lg-accent-hover), #7c3aed) !important;
+  box-shadow: var(--lg-shadow-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiButton-outlined {
+  background: var(--lg-glass-input) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+  color: var(--lg-text-secondary) !important;
+  text-transform: none !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiButton-outlined:hover {
+  background: var(--lg-glass-input-focus) !important;
+  color: var(--lg-text-primary) !important;
+  border: 0.5px solid var(--lg-border-input) !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFab-root {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  box-shadow: 0 0 0 1px rgba(124, 153, 255, 0.45), 0 0 20px rgba(78, 122, 255, 0.35) !important;
+}
+
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiInputBase-input:-webkit-autofill,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiInputBase-input:-webkit-autofill:hover,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiInputBase-input:-webkit-autofill:focus,
+.queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiInputBase-input:-webkit-autofill:active {
+  WebkitBoxShadow: 0 0 0 1000px var(--lg-glass-input) inset !important;
+  WebkitTextFillColor: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root,
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root {
+  background: var(--lg-glass-input) !important;
+  background-color: var(--lg-glass-input) !important;
+  border-color: var(--lg-border-input) !important;
+  color: var(--lg-text-primary) !important;
+  box-shadow: 0 1px 3px rgba(var(--lg-accent-rgb), 0.06) !important;
+}
+
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root:hover,
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+[data-theme="light"] .queue-page:is(.protocolo-page, .almoxarifado-page, .almoxarifado-configuracoes-page, .almoxarifado-estoque-page, .almoxarifado-crud-page, .almoxarifado-relatorios-page, .almoxarifado-requisicoes-page, .almoxarifado-movimentacoes-page) .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  background: var(--lg-glass-input-focus) !important;
+  background-color: var(--lg-glass-input-focus) !important;
+  box-shadow: var(--lg-focus-ring) !important;
+}
+
 .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiTextField-root .MuiOutlinedInput-root,
 .queue-page:is(.alvaras-page, .lab-config-page, .vigilancia-config-page, .monitor-aps-config-page) .MuiFormControl-root .MuiOutlinedInput-root {
   background:

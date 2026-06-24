@@ -76,7 +76,7 @@ export default function EmailConfigPage() {
 
   useEffect(() => {
     loadConfig()
-      .catch(() => notify("danger", "N�o foi poss�vel carregar a configura��o de e-mail."))
+      .catch(() => notify("danger", "Não foi possível carregar a configuração de e-mail."))
       .finally(() => setLoading(false));
   }, [loadConfig]);
 
@@ -95,9 +95,9 @@ export default function EmailConfigPage() {
         from_name: data?.from_name || prev.from_name,
         email_ativo: Boolean(data?.email_ativo),
       }));
-      notify("success", "Configura��o de e-mail salva.");
+      notify("success", "Configuração de e-mail salva.");
     } catch (error) {
-      notify("danger", error?.response?.data?.message || "Erro ao salvar a configura��o de e-mail.");
+      notify("danger", error?.response?.data?.message || "Erro ao salvar a configuração de e-mail.");
     } finally {
       setSaving(false);
     }
@@ -106,7 +106,7 @@ export default function EmailConfigPage() {
   const testar = async () => {
     const destinatario = String(testRecipient || "").trim();
     if (!destinatario) {
-      notify("danger", "Informe um destinat�rio de teste.");
+      notify("danger", "Informe um destinatário de teste.");
       return;
     }
 
@@ -130,10 +130,10 @@ export default function EmailConfigPage() {
       <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 16px 40px", color: "var(--lg-text-primary)" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
-          Configura��es E-mail
+          Configurações E-mail
         </h1>
         <p style={{ margin: "6px 0 0", color: "var(--lg-text-muted)", fontSize: 14 }}>
-          Configura��o do motor de envio por e-mail usado pelos alertas do sistema.
+          Configuração do motor de envio por e-mail usado pelos alertas do sistema.
         </p>
       </div>
 
@@ -173,7 +173,7 @@ export default function EmailConfigPage() {
           </div>
 
           <div>
-            <label style={labelStyle}>Usu�rio</label>
+            <label style={labelStyle}>Usuário</label>
             <input value={form.smtp_username} onChange={(e) => setForm((prev) => ({ ...prev, smtp_username: e.target.value }))} style={fieldStyle} placeholder="usuario@exemplo.com" />
           </div>
 
@@ -206,7 +206,7 @@ export default function EmailConfigPage() {
               onChange={(e) => setForm((prev) => ({ ...prev, email_ativo: e.target.checked }))}
               style={{ width: 16, height: 16, accentColor: "var(--lg-accent)" }}
             />
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Ativar integra��o de e-mail</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Ativar integração de e-mail</span>
           </label>
 
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -222,7 +222,7 @@ export default function EmailConfigPage() {
                 minWidth: 150,
               }}
             >
-              {saving ? "Salvando..." : "Salvar configura��o"}
+              {saving ? "Salvando..." : "Salvar configuração"}
             </button>
           </div>
         </div>
@@ -232,13 +232,13 @@ export default function EmailConfigPage() {
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--lg-border)" }}>
           <div style={{ fontSize: 16, fontWeight: 800 }}>Teste de envio</div>
           <div style={{ fontSize: 13, color: "var(--lg-text-muted)", marginTop: 3 }}>
-            Informe um destinat�rio para validar o servidor SMTP.
+            Informe um destinatário para validar o servidor SMTP.
           </div>
         </div>
         <div style={{ padding: 22 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 260px" }}>
-              <label style={labelStyle}>E-mail destinat�rio</label>
+              <label style={labelStyle}>E-mail destinatário</label>
               <input
                 value={testRecipient}
                 onChange={(e) => setTestRecipient(e.target.value)}

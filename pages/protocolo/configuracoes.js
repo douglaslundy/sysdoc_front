@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Box, Button, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
+import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
 
 const initialForm = {
@@ -71,7 +72,7 @@ export default function ProtocoloConfiguracoesPage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1120, mx: "auto", p: { xs: 2, md: 3 } }}>
+    <Box sx={{ ...modalFormRootSx, maxWidth: 1120, mx: "auto", p: { xs: 2, md: 3 } }} className="queue-page protocolo-page">
       <BaseCard
         title="Configurações do Protocolo"
         subtitle="Apenas regras do fluxo de protocolo, sem integração de envio."
