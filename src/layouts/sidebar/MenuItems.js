@@ -97,7 +97,6 @@ const Menuitems = [
       { title: "Caixa de Entrada", icon: "mail", href: "/protocolo/caixa-entrada" },
       { title: "Novo Protocolo", icon: "plus-circle", href: "/protocolo/novo" },
       { title: "Estrutura Organizacional", icon: "layers", href: "/protocolo/estrutura" },
-      { title: "Alertas", icon: "bell", href: "/protocolo/alertas" },
     ],
   },
   {
@@ -105,6 +104,7 @@ const Menuitems = [
     icon: "settings",
     group: true,
     children: [
+      { title: "Alertas", icon: "bell", href: "/sistema/alertas" },
       { title: "Configurações WhatsApp", icon: "message-circle", href: "/configuracoes/whatsapp", profile: ["admin"] },
     ],
   },

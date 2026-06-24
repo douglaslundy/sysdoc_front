@@ -18,6 +18,7 @@ const TITLE_OVERRIDES = {
   "/protocolo/novo": "Novo Protocolo",
   "/protocolo/estrutura": "Estrutura Organizacional",
   "/protocolo/alertas": "Alertas",
+  "/sistema/alertas": "Alertas",
   "/configuracoes/whatsapp": "Configurações WhatsApp",
 };
 
