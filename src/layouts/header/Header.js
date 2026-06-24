@@ -5,6 +5,7 @@ import FeatherIcon from "feather-icons-react";
 import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 import { getPageTitle } from "../../utils/pageTitle";
+import ProtocolBell from "../../components/protocolo/ProtocolBell";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const { pathname } = useRouter();
@@ -57,6 +58,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
 
         <Box flexGrow={1} />
 
+        <ProtocolBell />
         <ProfileDD />
       </Toolbar>
     </AppBar>
