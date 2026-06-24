@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Box } from "@mui/material";
+import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
 
 const panelStyle = {
@@ -251,7 +253,8 @@ export default function WhatsappConfigPage() {
   }
 
   return (
-    <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 16px 40px", color: "var(--lg-text-primary)" }}>
+    <Box className="queue-page system-config-page whatsapp-config-page" sx={modalFormRootSx}>
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 16px 40px", color: "var(--lg-text-primary)" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
           Configurações WhatsApp
@@ -573,6 +576,7 @@ export default function WhatsappConfigPage() {
       >
         ℹ️ A integração usa a Evolution API configurada nesta tela. O QR code e o status dependem da instância salva.
       </div>
-    </div>
+      </div>
+    </Box>
   );
 }

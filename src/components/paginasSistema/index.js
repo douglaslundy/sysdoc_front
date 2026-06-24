@@ -36,20 +36,16 @@ import {
 import AlertModal from '../messagesModal';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import {
+  modalFormRootSx,
+  modalPrimaryButtonSx,
+  modalSecondaryButtonSx,
+  modalShellSx,
+} from '../modal/_shared/modalFormStyles';
 
 const modalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '90%',
-  height: '98%',
-  bgcolor: 'background.paper',
-  border: '0px solid transparent',
-  boxShadow: 24,
-  p: 4,
-  overflow: 'scroll',
+  ...modalShellSx,
+  ...modalFormRootSx,
 };
 
 const FORM_INICIAL = {
@@ -427,8 +423,8 @@ export default function PaginasSistema() {
             </Stack>
             <br />
             <Box sx={{ '& button': { mx: 1 } }}>
-              <Button variant="contained" onClick={handleSave}>Gravar</Button>
-              <Button variant="outlined" onClick={() => setOpenModal(false)}>Cancelar</Button>
+              <Button variant="contained" sx={modalPrimaryButtonSx} onClick={handleSave}>Gravar</Button>
+              <Button variant="outlined" sx={modalSecondaryButtonSx} onClick={() => setOpenModal(false)}>Cancelar</Button>
             </Box>
           </BaseCard>
         </Box>
@@ -438,7 +434,6 @@ export default function PaginasSistema() {
     </Box>
   );
 }
-
 
 
 

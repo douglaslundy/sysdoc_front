@@ -9,6 +9,8 @@ import FarmaciaDashboard from '../src/components/dashboard/FarmaciaDashboard';
 import LogsDashboard from '../src/components/dashboard/LogsDashboard';
 import VigilanciaDashboard from '../src/components/dashboard/VigilanciaDashboard';
 import ChatDashboard from '../src/components/dashboard/ChatDashboard';
+import AlmoxarifadoDashboard from '../src/components/dashboard/AlmoxarifadoDashboard';
+import ArquivoDashboard from '../src/components/dashboard/ArquivoDashboard';
 import { AuthContext } from '../src/contexts/AuthContext';
 
 const ABAS = [
@@ -21,16 +23,25 @@ const ABAS = [
     { label: 'Farmácia',             permission: '/dashboard/farmacia',    component: <FarmaciaDashboard /> },
     { label: 'Logs/QR',             permission: '/dashboard/logs',        component: <LogsDashboard /> },
     { label: 'Chat',                permission: '/dashboard/chat',        component: <ChatDashboard /> },
+    { label: 'Almoxarifado',        permission: '/dashboard/almoxarifado', component: <AlmoxarifadoDashboard /> },
+    { label: 'Arquivo',             permission: '/dashboard/arquivo',      component: <ArquivoDashboard /> },
 ];
 
 export default function DashboardPage() {
-    const { myPermissions, profile } = useContext(AuthContext);
+    const { myPermissions, authorizedPages, profile } = useContext(AuthContext);
     const [aba, setAba] = useState(0);
 
     const abasVisiveis = useMemo(() => {
-        if (profile === 'admin') return ABAS;
-        return ABAS.filter(a => myPermissions.includes(a.permission));
-    }, [myPermissions, profile]);
+        const visible = profile === 'admin'
+            ? ABAS
+            : ABAS.filter(a => myPermissions.includes(a.permission));
+        const orderByPath = new Map(
+            (authorizedPages || []).map((page) => [page.path, Number(page.ordem ?? 999)])
+        );
+        return [...visible].sort(
+            (a, b) => (orderByPath.get(a.permission) ?? 999) - (orderByPath.get(b.permission) ?? 999)
+        );
+    }, [authorizedPages, myPermissions, profile]);
 
     // Garante que o índice selecionado não fique fora dos limites após mudança de perfil
     const abaSegura = Math.min(aba, Math.max(0, abasVisiveis.length - 1));

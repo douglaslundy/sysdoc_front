@@ -19,6 +19,10 @@ import {
   Typography,
 } from "@mui/material";
 import BaseCard from "../src/components/baseCard/BaseCard";
+import {
+  modalFormRootSx,
+  modalShellSx,
+} from "../src/components/modal/_shared/modalFormStyles";
 import { api } from "../src/services/api";
 
 const BOARD_COLUMNS = [
@@ -79,18 +83,21 @@ const fieldStyle = {
   borderRadius: 12,
 };
 
-function KanbanCard({ item, onOpen }) {
+function KanbanCard({ item, onOpen, onDragStart, dragging }) {
   const column = BOARD_COLUMNS.find((entry) => entry.value === String(item.status || "").toLowerCase()) || BOARD_COLUMNS[0];
 
   return (
     <Box
+      draggable
+      onDragStart={(event) => onDragStart(event, item)}
       onClick={() => onOpen(item)}
       sx={{
         p: 1.5,
         borderRadius: 2,
         border: "1px solid var(--lg-border)",
         bgcolor: "var(--lg-glass-panel)",
-        cursor: "pointer",
+        cursor: dragging ? "grabbing" : "grab",
+        opacity: dragging ? 0.55 : 1,
         transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
         "&:hover": {
           transform: "translateY(-2px)",
@@ -148,7 +155,22 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        className: "kanban-modal-shell",
+        sx: {
+          ...modalShellSx,
+          ...modalFormRootSx,
+          position: "relative",
+          transform: "none",
+          inset: "auto",
+        },
+      }}
+    >
       <DialogTitle>{item ? "Editar item do kanban" : "Novo item do kanban"}</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ display: "grid", gap: 2 }}>
@@ -250,6 +272,8 @@ export default function KanbanPage() {
   const [items, setItems] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [draggedItemId, setDraggedItemId] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState("");
 
   const loadItems = useCallback(async () => {
     setRefreshing(true);
@@ -356,8 +380,46 @@ export default function KanbanPage() {
     }
   };
 
+  const handleDragStart = (event, item) => {
+    setDraggedItemId(item.id);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(item.id));
+  };
+
+  const handleDrop = async (event, status) => {
+    event.preventDefault();
+    const itemId = Number(event.dataTransfer.getData("text/plain") || draggedItemId);
+    const item = items.find((entry) => Number(entry.id) === itemId);
+    setDraggedItemId(null);
+    setDragOverColumn("");
+    if (!item || item.status === status) return;
+
+    const previousStatus = item.status;
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id ? { ...entry, status, updated_at: new Date().toISOString() } : entry
+      )
+    );
+    try {
+      const { data } = await api.put(`/kanban/${item.id}`, { status });
+      setItems((current) =>
+        current.map((entry) => (entry.id === item.id ? data : entry))
+      );
+    } catch (error) {
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === item.id ? { ...entry, status: previousStatus } : entry
+        )
+      );
+      setMessage(error?.response?.data?.message || "Não foi possível mover o item.");
+    }
+  };
+
   return (
-    <Box sx={{ maxWidth: 1600, mx: "auto", p: { xs: 2, md: 3 }, color: "var(--lg-text-primary)" }}>
+    <Box
+      className="queue-page kanban-page"
+      sx={{ ...modalFormRootSx, maxWidth: 1600, mx: "auto", p: { xs: 2, md: 3 }, color: "var(--lg-text-primary)" }}
+    >
       <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2} sx={{ mb: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.1 }}>
@@ -463,11 +525,25 @@ export default function KanbanPage() {
             {columns.map((column) => (
               <Box
                 key={column.value}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setDragOverColumn(column.value);
+                }}
+                onDragLeave={() => setDragOverColumn("")}
+                onDrop={(event) => handleDrop(event, column.value)}
                 sx={{
                   flex: "0 0 280px",
                   borderRadius: 3,
                   border: "1px solid var(--lg-border)",
-                  bgcolor: "var(--lg-glass-panel)",
+                  bgcolor:
+                    dragOverColumn === column.value
+                      ? "var(--lg-glass-input-focus)"
+                      : "var(--lg-glass-panel)",
+                  boxShadow:
+                    dragOverColumn === column.value
+                      ? "var(--lg-focus-ring)"
+                      : "var(--lg-shadow-panel)",
                   overflow: "hidden",
                 }}
               >
@@ -487,7 +563,15 @@ export default function KanbanPage() {
                 </Box>
                 <Box sx={{ p: 1.5, display: "grid", gap: 1.25, minHeight: 320 }}>
                   {column.items.length ? (
-                    column.items.map((item) => <KanbanCard key={item.id} item={item} onOpen={openEdit} />)
+                    column.items.map((item) => (
+                      <KanbanCard
+                        key={item.id}
+                        item={item}
+                        onOpen={openEdit}
+                        onDragStart={handleDragStart}
+                        dragging={draggedItemId === item.id}
+                      />
+                    ))
                   ) : (
                     <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                       Nenhum item nesta etapa.

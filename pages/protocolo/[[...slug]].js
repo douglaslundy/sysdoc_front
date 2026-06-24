@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import { useContext } from "react";
 import {
   Alert,
   Box,
@@ -35,6 +36,7 @@ import {
 import BaseCard from "../../src/components/baseCard/BaseCard";
 import AlertModal from "../../src/components/messagesModal";
 import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { AuthContext } from "../../src/contexts/AuthContext";
 import { api } from "../../src/services/api";
 
 const routes = {
@@ -61,8 +63,7 @@ const initialProtocolForm = {
   solicitante_tipo: "interno",
   solicitante_nome: "",
   solicitante_documento: "",
-  origem_unit_id: "",
-  destino_unit_id: "",
+  destino_user_id: "",
   prazo_atendimento: "",
 };
 
@@ -270,6 +271,7 @@ const flattenUnits = (items, level = 0) =>
   }, []);
 
 export default function ProtocoloPage({ forcedMode = null } = {}) {
+  const { username } = useContext(AuthContext);
   const router = useRouter();
   const slug = useMemo(() => {
     const raw = router.query.slug;
@@ -582,8 +584,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     try {
       await api.post("/protocolos", {
         ...protocolForm,
-        origem_unit_id: protocolForm.origem_unit_id || null,
-        destino_unit_id: protocolForm.destino_unit_id || null,
+        destino_user_id: protocolForm.destino_user_id || null,
         prazo_atendimento: protocolForm.prazo_atendimento || null,
       });
       setMessage("Protocolo criado com sucesso.");
@@ -1247,20 +1248,28 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <TextField fullWidth type="date" label="Prazo de atendimento" InputLabelProps={{ shrink: true }} value={protocolForm.prazo_atendimento} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prazo_atendimento: e.target.value }))} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel>Origem</InputLabel>
-              <Select value={protocolForm.origem_unit_id} label="Origem" onChange={(e) => setProtocolForm((prev) => ({ ...prev, origem_unit_id: e.target.value }))}>
-                <MenuItem value="">Nenhuma</MenuItem>
-                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
-              </Select>
-            </FormControl>
+            <TextField
+              fullWidth
+              label="Origem"
+              value={username || "Usuário logado"}
+              InputProps={{ readOnly: true }}
+            />
           </Grid>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
               <InputLabel>Destino</InputLabel>
-              <Select value={protocolForm.destino_unit_id} label="Destino" onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_unit_id: e.target.value }))}>
-                <MenuItem value="">Nenhuma</MenuItem>
-                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
+              <Select
+                value={protocolForm.destino_user_id}
+                label="Destino"
+                onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_user_id: e.target.value }))}
+                required
+              >
+                <MenuItem value="">Selecione um usuário</MenuItem>
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={String(user.id)}>
+                    {user.name}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
