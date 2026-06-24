@@ -609,6 +609,12 @@ export default function ProtocoloPage() {
       </BaseCard>
     </Box>
   );
+}
+    </Box>
+  );
+}
+    </Box>
+  );
 
   const renderDetail = () => {
     const p = protocolDetail || {};
@@ -1207,3 +1213,6 @@ export default function ProtocoloPage() {
           </Box>
         ) : renderContent()}
       </BaseCard>
+    </Box>
+  );
+}
