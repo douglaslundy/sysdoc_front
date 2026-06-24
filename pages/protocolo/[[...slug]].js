@@ -45,7 +45,7 @@ const modeLabels = {
   novo: "Novo Protocolo",
   estrutura: "Estrutura Organizacional",
   alertas: "Alertas",
-  configuracoes: "ConfiguraÃ§Ãµes",
+  configuracoes: "Configurações",
   detail: "Detalhes do Protocolo",
 };
 
@@ -244,7 +244,7 @@ export default function ProtocoloPage() {
       setVisualizationDateFrom("");
       setVisualizationDateTo("");
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel carregar as visualizaÃ§Ãµes do protocolo.");
+      setMessage("Não foi possível carregar as visualizações do protocolo.");
     } finally {
       setLoadingVisualizations(false);
     }
@@ -324,7 +324,7 @@ export default function ProtocoloPage() {
         await loadList();
       }
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel carregar os dados do protocolo.");
+      setMessage("Não foi possível carregar os dados do protocolo.");
     } finally {
       setLoading(false);
     }
@@ -339,10 +339,10 @@ export default function ProtocoloPage() {
   useEffect(() => {
     if (!router.isReady) return;
     if (mode === "inbox") {
-      loadList().catch(() => setMessage("NÃ£o foi possÃ­vel carregar a caixa de entrada."));
+      loadList().catch(() => setMessage("Não foi possível carregar a caixa de entrada."));
     }
     if (mode === "home") {
-      loadOverview().catch(() => setMessage("NÃ£o foi possÃ­vel carregar o painel do protocolo."));
+      loadOverview().catch(() => setMessage("Não foi possível carregar o painel do protocolo."));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, search, router.isReady, mode]);
@@ -355,7 +355,7 @@ export default function ProtocoloPage() {
     try {
       await loadDetail(protocolId);
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel recarregar o protocolo.");
+      setMessage("Não foi possível recarregar o protocolo.");
     } finally {
       setLoading(false);
     }
@@ -368,9 +368,9 @@ export default function ProtocoloPage() {
     try {
       await api.post(`/protocolos/${protocolId}/${action}`, payload);
       await refreshDetail();
-      setMessage("AÃ§Ã£o executada com sucesso.");
+      setMessage("Ação executada com sucesso.");
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel executar a aÃ§Ã£o.");
+      setMessage("Não foi possível executar a ação.");
     } finally {
       setSaving(false);
     }
@@ -391,7 +391,7 @@ export default function ProtocoloPage() {
       setProtocolForm(initialProtocolForm);
       await router.push("/protocolo/caixa-entrada");
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel criar o protocolo.");
+      setMessage("Não foi possível criar o protocolo.");
     } finally {
       setSaving(false);
     }
@@ -403,9 +403,9 @@ export default function ProtocoloPage() {
     setMessage("");
     try {
       await api.put("/protocolos/configuracoes", configForm);
-      setMessage("ConfiguraÃ§Ãµes salvas com sucesso.");
+      setMessage("Configurações salvas com sucesso.");
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel salvar as configuraÃ§Ãµes.");
+      setMessage("Não foi possível salvar as configurações.");
     } finally {
       setSaving(false);
     }
@@ -424,7 +424,7 @@ export default function ProtocoloPage() {
       setUnitForm(initialUnitForm);
       await loadData();
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel cadastrar a unidade.");
+      setMessage("Não foi possível cadastrar a unidade.");
     } finally {
       setSaving(false);
     }
@@ -451,7 +451,7 @@ export default function ProtocoloPage() {
       setAlertForm(initialAlertForm);
       await loadData();
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel cadastrar o alerta.");
+      setMessage("Não foi possível cadastrar o alerta.");
     } finally {
       setSaving(false);
     }
@@ -468,10 +468,10 @@ export default function ProtocoloPage() {
         privado: commentPrivate,
         tipo: "comentario",
       });
-      setMessage("ComentÃ¡rio adicionado com sucesso.");
+      setMessage("Comentário adicionado com sucesso.");
       await refreshDetail();
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel salvar o comentÃ¡rio.");
+      setMessage("Não foi possível salvar o comentário.");
     } finally {
       setSaving(false);
     }
@@ -491,7 +491,7 @@ export default function ProtocoloPage() {
       setMessage("Anexo enviado com sucesso.");
       await refreshDetail();
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel enviar o anexo.");
+      setMessage("Não foi possível enviar o anexo.");
     } finally {
       setSaving(false);
     }
@@ -512,7 +512,7 @@ export default function ProtocoloPage() {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      setMessage("NÃ£o foi possÃ­vel baixar o anexo.");
+      setMessage("Não foi possível baixar o anexo.");
     }
   };
 
@@ -556,12 +556,12 @@ export default function ProtocoloPage() {
         <Table sx={{ whiteSpace: "nowrap" }}>
           <TableHead>
             <TableRow>
-              <TableCell>NÃºmero</TableCell>
+              <TableCell>Número</TableCell>
               <TableCell>Assunto</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Prazo</TableCell>
-              <TableCell align="right">AÃ§Ãµes</TableCell>
+              <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -621,12 +621,12 @@ export default function ProtocoloPage() {
           <Stack direction="row" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 2 }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>{p.assunto || "Sem assunto"}</Typography>
-              <Typography variant="body2" color="text.secondary">{p.descricao || "Sem descriÃ§Ã£o"}</Typography>
+              <Typography variant="body2" color="text.secondary">{p.descricao || "Sem descrição"}</Typography>
             </Box>
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip label={String(p.status || "â€”").replace(/_/g, " ")} color={statusColor(p.status)} />
               <Chip label={p.prioridade || "normal"} />
-              <Chip label={`${Array.isArray(p.visualizations) ? p.visualizations.length : 0} visualizaÃ§Ãµes`} variant="outlined" />
+              <Chip label={`${Array.isArray(p.visualizations) ? p.visualizations.length : 0} visualizações`} variant="outlined" />
             </Stack>
           </Stack>
 
@@ -636,7 +636,7 @@ export default function ProtocoloPage() {
             <Grid item xs={12} md={4}><Typography variant="caption">Prazo</Typography><Typography variant="body1">{formatDate(p.prazo_atendimento)}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography variant="body1">{p.origem_unit?.nome || "â€”"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Destino</Typography><Typography variant="body1">{p.destino_unit?.nome || "â€”"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">ResponsÃ¡vel</Typography><Typography variant="body1">{p.responsavel_atual?.name || "â€”"}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption">Responsável</Typography><Typography variant="body1">{p.responsavel_atual?.name || "—"}</Typography></Grid>
           </Grid>
 
           <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 3, mb: 1 }}>
@@ -651,7 +651,7 @@ export default function ProtocoloPage() {
             >
               Encaminhar
             </Button>
-            <Button variant="contained" color="error" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuÃ¡rio" })}>
+            <Button variant="contained" color="error" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuário" })}>
               Encerrar
             </Button>
             <Button variant="outlined" onClick={() => handleDetailAction("reabrir")} disabled={p.status !== "encerrado"}>
@@ -678,19 +678,19 @@ export default function ProtocoloPage() {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <BaseCard title="ComentÃ¡rio">
+            <BaseCard title="Comentário">
               <Box component="form" onSubmit={handleSubmitComment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <TextField
                   fullWidth
                   multiline
                   minRows={4}
-                  label="Escreva um comentÃ¡rio"
+                  label="Escreva um comentário"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                 />
                 <FormControlLabel
                   control={<Switch checked={commentPrivate} onChange={(e) => setCommentPrivate(e.target.checked)} />}
-                  label="ComentÃ¡rio privado"
+                  label="Comentário privado"
                 />
                 <Stack direction="row" justifyContent="flex-end">
                   <Button type="submit" variant="contained" disabled={saving || !commentText.trim()}>
@@ -706,7 +706,7 @@ export default function ProtocoloPage() {
               <Box component="form" onSubmit={handleSubmitAttachment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <TextField
                   fullWidth
-                  label="DescriÃ§Ã£o do anexo"
+                  label="Descrição do anexo"
                   value={attachmentDescription}
                   onChange={(e) => setAttachmentDescription(e.target.value)}
                 />
@@ -728,10 +728,10 @@ export default function ProtocoloPage() {
           </Grid>
         </Grid>
 
-        <BaseCard title="HistÃ³rico e observaÃ§Ãµes">
+        <BaseCard title="Histórico e observações">
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 1 }}>MovimentaÃ§Ãµes</Typography>
+              <Typography variant="h6" sx={{ mb: 1 }}>Movimentações</Typography>
               <Stack spacing={1}>
                 {movements.length > 0 ? movements.map((movement) => (
                   <Box key={movement.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
@@ -740,12 +740,12 @@ export default function ProtocoloPage() {
                       {movement.user?.name || "â€”"} â€¢ {formatDateTime(movement.created_at)}
                     </Typography>
                   </Box>
-                )) : <Typography color="text.secondary">Nenhuma movimentaÃ§Ã£o registrada.</Typography>}
+                )) : <Typography color="text.secondary">Nenhuma movimentação registrada.</Typography>}
               </Stack>
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 1 }}>ComentÃ¡rios</Typography>
+              <Typography variant="h6" sx={{ mb: 1 }}>Comentários</Typography>
               <Stack spacing={1}>
                 {comments.length > 0 ? comments.map((comment) => (
                   <Box key={comment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
@@ -754,7 +754,7 @@ export default function ProtocoloPage() {
                       {comment.user?.name || "â€”"} â€¢ {formatDateTime(comment.created_at)}
                     </Typography>
                   </Box>
-                )) : <Typography color="text.secondary">Nenhum comentÃ¡rio registrado.</Typography>}
+                )) : <Typography color="text.secondary">Nenhum comentário registrado.</Typography>}
               </Stack>
             </Grid>
 
@@ -949,7 +949,7 @@ export default function ProtocoloPage() {
             </FormControl>
           </Grid>
           <Grid item xs={12}>
-            <TextField fullWidth multiline minRows={4} label="DescriÃ§Ã£o" value={protocolForm.descricao} onChange={(e) => setProtocolForm((prev) => ({ ...prev, descricao: e.target.value }))} />
+            <TextField fullWidth multiline minRows={4} label="Descrição" value={protocolForm.descricao} onChange={(e) => setProtocolForm((prev) => ({ ...prev, descricao: e.target.value }))} />
           </Grid>
         </Grid>
 
@@ -962,18 +962,18 @@ export default function ProtocoloPage() {
   );
 
   const renderConfig = () => (
-    <BaseCard title="ConfiguraÃ§Ãµes do protocolo">
+    <BaseCard title="Configurações do protocolo">
       <Box component="form" onSubmit={handleSubmitConfig} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Alert severity="info">A integraÃ§Ã£o com Evolution API e os canais do protocolo sÃ£o controlados por esta tela.</Alert>
+        <Alert severity="info">A integração com Evolution API e os canais do protocolo são controlados por esta tela.</Alert>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Prioridade padrÃ£o" value={configForm.default_priority} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_priority: e.target.value }))} />
+            <TextField fullWidth label="Prioridade padrão" value={configForm.default_priority} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_priority: e.target.value }))} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth type="number" label="Prazo padrÃ£o em dias" value={configForm.default_due_days} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_due_days: e.target.value }))} />
+            <TextField fullWidth type="number" label="Prazo padrão em dias" value={configForm.default_due_days} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_due_days: e.target.value }))} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth label="SessÃ£o padrÃ£o" value={configForm.evolution_default_session} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_default_session: e.target.value }))} />
+            <TextField fullWidth label="Sessão padrão" value={configForm.evolution_default_session} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_default_session: e.target.value }))} />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField fullWidth label="URL base Evolution" value={configForm.evolution_base_url} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_base_url: e.target.value }))} />
@@ -982,13 +982,13 @@ export default function ProtocoloPage() {
             <TextField fullWidth label="Chave Evolution" value={configForm.evolution_api_key} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_api_key: e.target.value }))} />
           </Grid>
           <Grid item xs={12}>
-            <TextField fullWidth multiline minRows={4} label="ObservaÃ§Ãµes" value={configForm.observacoes} onChange={(e) => setConfigForm((prev) => ({ ...prev, observacoes: e.target.value }))} />
+            <TextField fullWidth multiline minRows={4} label="Observações" value={configForm.observacoes} onChange={(e) => setConfigForm((prev) => ({ ...prev, observacoes: e.target.value }))} />
           </Grid>
           <Grid item xs={12}>
             <Stack direction="row" spacing={2} flexWrap="wrap">
               <FormControlLabel control={<Switch checked={Boolean(configForm.allow_external_protocols)} onChange={(e) => setConfigForm((prev) => ({ ...prev, allow_external_protocols: e.target.checked }))} />} label="Permitir protocolos externos" />
               <FormControlLabel control={<Switch checked={Boolean(configForm.allow_reopen)} onChange={(e) => setConfigForm((prev) => ({ ...prev, allow_reopen: e.target.checked }))} />} label="Permitir reabertura" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.notify_internal)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_internal: e.target.checked }))} />} label="NotificaÃ§Ã£o interna" />
+              <FormControlLabel control={<Switch checked={Boolean(configForm.notify_internal)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_internal: e.target.checked }))} />} label="Notificação interna" />
               <FormControlLabel control={<Switch checked={Boolean(configForm.notify_email)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_email: e.target.checked }))} />} label="E-mail" />
               <FormControlLabel control={<Switch checked={Boolean(configForm.notify_whatsapp)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_whatsapp: e.target.checked }))} />} label="WhatsApp" />
               <FormControlLabel control={<Switch checked={Boolean(configForm.evolution_enabled)} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_enabled: e.target.checked }))} />} label="Evolution habilitada" />
@@ -1020,13 +1020,13 @@ export default function ProtocoloPage() {
               <TextField fullWidth label="Tipo" value={unitForm.tipo} onChange={(e) => setUnitForm((prev) => ({ ...prev, tipo: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="CÃ³digo" value={unitForm.codigo} onChange={(e) => setUnitForm((prev) => ({ ...prev, codigo: e.target.value }))} />
+              <TextField fullWidth label="Código" value={unitForm.codigo} onChange={(e) => setUnitForm((prev) => ({ ...prev, codigo: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth label="Nome" value={unitForm.nome} onChange={(e) => setUnitForm((prev) => ({ ...prev, nome: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="DescriÃ§Ã£o" value={unitForm.descricao} onChange={(e) => setUnitForm((prev) => ({ ...prev, descricao: e.target.value }))} />
+              <TextField fullWidth label="Descrição" value={unitForm.descricao} onChange={(e) => setUnitForm((prev) => ({ ...prev, descricao: e.target.value }))} />
             </Grid>
           </Grid>
           <Stack direction="row" justifyContent="flex-end">
@@ -1041,7 +1041,7 @@ export default function ProtocoloPage() {
             <TableRow>
               <TableCell>Nome</TableCell>
               <TableCell>Tipo</TableCell>
-              <TableCell>CÃ³digo</TableCell>
+              <TableCell>Código</TableCell>
               <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
@@ -1070,14 +1070,14 @@ export default function ProtocoloPage() {
         <Box component="form" onSubmit={handleSubmitAlert} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}><TextField fullWidth label="Nome" value={alertForm.nome} onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={6}><TextField fullWidth label="MÃ³dulo" value={alertForm.modulo} onChange={(e) => setAlertForm((prev) => ({ ...prev, modulo: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth label="Módulo" value={alertForm.modulo} onChange={(e) => setAlertForm((prev) => ({ ...prev, modulo: e.target.value }))} /></Grid>
             <Grid item xs={12} md={6}><TextField fullWidth label="Gatilho" value={alertForm.gatilho} onChange={(e) => setAlertForm((prev) => ({ ...prev, gatilho: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={6}><TextField fullWidth label="FrequÃªncia" value={alertForm.frequencia} onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="Canais" helperText="Separar por vÃ­rgula" value={alertForm.canais} onChange={(e) => setAlertForm((prev) => ({ ...prev, canais: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="DestinatÃ¡rios" helperText="Separar por vÃ­rgula" value={alertForm.destinatarios} onChange={(e) => setAlertForm((prev) => ({ ...prev, destinatarios: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="CondiÃ§Ãµes" helperText="Separar por vÃ­rgula" value={alertForm.condicoes} onChange={(e) => setAlertForm((prev) => ({ ...prev, condicoes: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth label="Frequência" value={alertForm.frequencia} onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth label="Canais" helperText="Separar por vírgula" value={alertForm.canais} onChange={(e) => setAlertForm((prev) => ({ ...prev, canais: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth label="Destinatários" helperText="Separar por vírgula" value={alertForm.destinatarios} onChange={(e) => setAlertForm((prev) => ({ ...prev, destinatarios: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth label="Condições" helperText="Separar por vírgula" value={alertForm.condicoes} onChange={(e) => setAlertForm((prev) => ({ ...prev, condicoes: e.target.value }))} /></Grid>
             <Grid item xs={12}><TextField fullWidth multiline minRows={4} label="Template" value={alertForm.template} onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))} /></Grid>
-            <Grid item xs={12}><TextField fullWidth multiline minRows={3} label="DescriÃ§Ã£o" value={alertForm.descricao} onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))} /></Grid>
+            <Grid item xs={12}><TextField fullWidth multiline minRows={3} label="Descrição" value={alertForm.descricao} onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))} /></Grid>
             <Grid item xs={12}>
               <Stack direction="row" spacing={2} flexWrap="wrap">
                 <FormControlLabel control={<Switch checked={Boolean(alertForm.ativo)} onChange={(e) => setAlertForm((prev) => ({ ...prev, ativo: e.target.checked }))} />} label="Ativo" />
@@ -1096,7 +1096,7 @@ export default function ProtocoloPage() {
           <TableHead>
             <TableRow>
               <TableCell>Nome</TableCell>
-              <TableCell>MÃ³dulo</TableCell>
+              <TableCell>Módulo</TableCell>
               <TableCell>Gatilho</TableCell>
               <TableCell>Status</TableCell>
             </TableRow>
@@ -1195,7 +1195,7 @@ export default function ProtocoloPage() {
       <BaseCard title={currentTitle}>
         <AlertModal />
         {message ? (
-          <Alert severity={message.toLowerCase().includes("nÃ£o foi possÃ­vel") ? "error" : "success"} sx={{ mb: 2 }}>
+          <Alert severity={message.toLowerCase().includes("não foi possível") ? "error" : "success"} sx={{ mb: 2 }}>
             {message}
           </Alert>
         ) : null}
