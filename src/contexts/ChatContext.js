@@ -30,6 +30,8 @@ const createConnectionId = () => {
   });
 };
 
+const createClientMessageId = () => `pending-${createConnectionId()}`;
+
 export function ChatProvider({ children }) {
   const { isAuthenticated, user } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
@@ -44,11 +46,13 @@ export function ChatProvider({ children }) {
   const [typing, setTyping] = useState({});
   const [loading, setLoading] = useState(false);
   const [syncError, setSyncError] = useState("");
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [realtimeVersion, setRealtimeVersion] = useState(0);
   const echoRef = useRef(null);
   const connectionIdRef = useRef(createConnectionId());
   const activeConversationRef = useRef(null);
   const isOpenRef = useRef(false);
+  const soundEnabledRef = useRef(false);
 
   useEffect(() => {
     activeConversationRef.current = activeConversation;
@@ -57,6 +61,42 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     isOpenRef.current = isOpen;
   }, [isOpen]);
+
+  useEffect(() => {
+    const enabled = window.localStorage.getItem("chat.notificationSound") === "true";
+    setSoundEnabled(enabled);
+    soundEnabledRef.current = enabled;
+  }, []);
+
+  const toggleSound = useCallback(() => {
+    setSoundEnabled((current) => {
+      const next = !current;
+      soundEnabledRef.current = next;
+      window.localStorage.setItem("chat.notificationSound", String(next));
+      return next;
+    });
+  }, []);
+
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabledRef.current) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const audio = new AudioContext();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.frequency.value = 720;
+      gain.gain.setValueAtTime(0.08, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.18);
+      oscillator.connect(gain);
+      gain.connect(audio.destination);
+      oscillator.start();
+      oscillator.stop(audio.currentTime + 0.18);
+      oscillator.addEventListener("ended", () => audio.close());
+    } catch {
+      // Browsers may block audio until the user interacts with the page.
+    }
+  }, []);
 
   const refreshLists = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -175,21 +215,76 @@ export function ChatProvider({ children }) {
   );
 
   const sendMessage = useCallback(
-    async ({ body, file }) => {
+    async ({ body, file, clientMessageId }) => {
       if (!activeConversation) return null;
+      const pendingId = clientMessageId || createClientMessageId();
+      const pendingMessage = {
+        id: pendingId,
+        conversation_id: activeConversation.id,
+        sender_id: user,
+        body: body || null,
+        display_body: body || (file ? file.name : ""),
+        status: "sending",
+        created_at: new Date().toISOString(),
+        attachments: [],
+        pending_attachment_name: file?.name || null,
+        retry_payload: { body, file },
+      };
+
+      setMessages((current) => {
+        const exists = current.some((message) => message.id === pendingId);
+        return exists
+          ? current.map((message) =>
+              message.id === pendingId ? pendingMessage : message
+            )
+          : [...current, pendingMessage];
+      });
+
       const formData = new FormData();
       if (body) formData.append("body", body);
       if (file) formData.append("file", file);
-      const response = await api.post(
-        `/chat/conversations/${activeConversation.id}/messages`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      setMessages((current) => [...current, response.data]);
-      await refreshLists();
-      return response.data;
+      try {
+        const response = await api.post(
+          `/chat/conversations/${activeConversation.id}/messages`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === pendingId ? response.data : message
+          )
+        );
+        await refreshLists();
+        return response.data;
+      } catch (error) {
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === pendingId
+              ? {
+                  ...message,
+                  status: "failed",
+                  error_message:
+                    error?.response?.data?.message ||
+                    "Não foi possível enviar a mensagem.",
+                }
+              : message
+          )
+        );
+        throw error;
+      }
     },
-    [activeConversation, refreshLists]
+    [activeConversation, refreshLists, user]
+  );
+
+  const retryMessage = useCallback(
+    async (message) => {
+      if (!message?.retry_payload) return null;
+      return sendMessage({
+        ...message.retry_payload,
+        clientMessageId: message.id,
+      });
+    },
+    [sendMessage]
   );
 
   const deleteMessage = useCallback(async (messageId) => {
@@ -320,6 +415,7 @@ export function ChatProvider({ children }) {
           markRead(message.conversation_id).catch(() => {});
         } else {
           setUnreadTotal((current) => current + 1);
+          playNotificationSound();
         }
         refreshLists().catch(() => {});
       });
@@ -402,6 +498,7 @@ export function ChatProvider({ children }) {
   }, [
     isAuthenticated,
     markRead,
+    playNotificationSound,
     realtimeVersion,
     refreshLists,
     user,
@@ -446,16 +543,19 @@ export function ChatProvider({ children }) {
         typing,
         loading,
         syncError,
+        soundEnabled,
         refreshLists,
         openConversation,
         loadOlderMessages,
         searchMessages,
         startConversation,
         sendMessage,
+        retryMessage,
         deleteMessage,
         deleteConversation,
         closeConversation,
         sendTyping,
+        toggleSound,
       }}
     >
       {children}

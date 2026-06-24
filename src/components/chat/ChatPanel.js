@@ -104,6 +104,24 @@ function Attachment({ attachment }) {
 }
 
 function StatusIcon({ status }) {
+  if (status === "sending") {
+    return (
+      <Tooltip title="Enviando">
+        <Box component="span" sx={{ display: "inline-flex", ml: 0.5 }}>
+          <CircularProgress size={11} />
+        </Box>
+      </Tooltip>
+    );
+  }
+  if (status === "failed") {
+    return (
+      <Tooltip title="Falha no envio">
+        <Box component="span" sx={{ display: "inline-flex", color: "error.main", ml: 0.5 }}>
+          <FeatherIcon icon="alert-circle" width="13" />
+        </Box>
+      </Tooltip>
+    );
+  }
   const read = status === "read";
   const double = status === "delivered" || read;
   return (
@@ -138,15 +156,18 @@ export default function ChatPanel() {
     typing,
     loading,
     syncError,
+    soundEnabled,
     openConversation,
     loadOlderMessages,
     searchMessages,
     startConversation,
     sendMessage,
+    retryMessage,
     deleteMessage,
     deleteConversation,
     closeConversation,
     sendTyping,
+    toggleSound,
   } = useContext(ChatContext);
   const [body, setBody] = useState("");
   const [file, setFile] = useState(null);
@@ -176,13 +197,15 @@ export default function ChatPanel() {
 
   const handleSend = async () => {
     if ((!body.trim() && !file) || sending) return;
+    const messageBody = body.trim();
+    const messageFile = file;
     setSending(true);
     setError("");
+    setBody("");
+    setFile(null);
+    sendTyping(false);
     try {
-      await sendMessage({ body: body.trim(), file });
-      setBody("");
-      setFile(null);
-      sendTyping(false);
+      await sendMessage({ body: messageBody, file: messageFile });
     } catch (sendError) {
       setError(
         sendError?.response?.data?.message ||
@@ -190,6 +213,18 @@ export default function ChatPanel() {
       );
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleRetry = async (message) => {
+    setError("");
+    try {
+      await retryMessage(message);
+    } catch (retryError) {
+      setError(
+        retryError?.response?.data?.message ||
+          "Não foi possível reenviar a mensagem."
+      );
     }
   };
 
@@ -289,6 +324,15 @@ export default function ChatPanel() {
           </Typography>
         </Box>
         <Box flexGrow={1} />
+        <Tooltip title={soundEnabled ? "Desativar som" : "Ativar som"}>
+          <IconButton
+            aria-label={soundEnabled ? "Desativar som do chat" : "Ativar som do chat"}
+            onClick={toggleSound}
+            sx={{ color: "inherit" }}
+          >
+            <FeatherIcon icon={soundEnabled ? "volume-2" : "volume-x"} width="18" />
+          </IconButton>
+        </Tooltip>
         <IconButton
           aria-label="Fechar chat"
           onClick={() => setIsOpen(false)}
@@ -509,6 +553,27 @@ export default function ChatPanel() {
                           {(message.attachments || []).map((attachment) => (
                             <Attachment key={attachment.id} attachment={attachment} />
                           ))}
+                          {message.pending_attachment_name && (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, mt: 1 }}>
+                              <FeatherIcon icon="paperclip" width="13" />
+                              <Typography variant="caption">
+                                {message.pending_attachment_name}
+                              </Typography>
+                            </Box>
+                          )}
+                          {mine && message.status === "failed" && (
+                            <Box sx={{ mt: 0.7 }}>
+                              <Button
+                                size="small"
+                                color="error"
+                                variant="text"
+                                startIcon={<FeatherIcon icon="refresh-cw" width="13" />}
+                                onClick={() => handleRetry(message)}
+                              >
+                                Tentar novamente
+                              </Button>
+                            </Box>
+                          )}
                           <Box
                             sx={{
                               display: "flex",
@@ -524,7 +589,9 @@ export default function ChatPanel() {
                               {formatTime(message.created_at)}
                             </Typography>
                             {mine && <StatusIcon status={message.status} />}
-                            {mine && !message.is_deleted && (
+                            {mine &&
+                              !message.is_deleted &&
+                              !["sending", "failed"].includes(message.status) && (
                               <IconButton
                                 size="small"
                                 aria-label="Apagar mensagem"
