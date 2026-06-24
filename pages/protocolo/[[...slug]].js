@@ -12,10 +12,10 @@ import {
   Grid,
   InputLabel,
   MenuItem,
-  Drawer,
   Select,
   Stack,
   Switch,
+  Tab,
   Table,
   TableBody,
   TableCell,
@@ -23,6 +23,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tabs,
   Typography,
 } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
@@ -177,14 +178,15 @@ export default function ProtocoloPage() {
   const [commentPrivate, setCommentPrivate] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentDescription, setAttachmentDescription] = useState("");
-  const [visualizationOpen, setVisualizationOpen] = useState(false);
   const [visualizations, setVisualizations] = useState([]);
-  const [loadingVisualizations, setLoadingVisualizations] = useState(false);
   const [visualizationUserFilter, setVisualizationUserFilter] = useState("");
   const [visualizationTeamFilter, setVisualizationTeamFilter] = useState("");
+  const [visualizationDateFrom, setVisualizationDateFrom] = useState("");
+  const [visualizationDateTo, setVisualizationDateTo] = useState("");
+  const [detailTab, setDetailTab] = useState("detalhes");
+  const [loadingVisualizations, setLoadingVisualizations] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
-
   const loadList = async () => {
     const [countsRes, inboxRes] = await Promise.all([
       api.get("/protocolos/contadores"),
@@ -235,8 +237,11 @@ export default function ProtocoloPage() {
     try {
       const { data } = await api.get(`/protocolos/${protocolId}/visualizacoes`);
       setVisualizations(Array.isArray(data) ? data : []);
+      setProtocolDetail((prev) => (prev ? { ...prev, visualizations: Array.isArray(data) ? data : [] } : prev));
       setVisualizationUserFilter("");
       setVisualizationTeamFilter("");
+      setVisualizationDateFrom("");
+      setVisualizationDateTo("");
     } catch (error) {
       setMessage("NÃ£o foi possÃ­vel carregar as visualizaÃ§Ãµes do protocolo.");
     } finally {
@@ -270,9 +275,15 @@ export default function ProtocoloPage() {
       const matchesUser = !visualizationUserFilter || String(view?.user?.id || "") === visualizationUserFilter;
       const teamValue = view?.departamento || view?.equipe || "";
       const matchesTeam = !visualizationTeamFilter || teamValue === visualizationTeamFilter;
-      return matchesUser && matchesTeam;
+      const visualizedAt = view?.visualized_at ? new Date(view.visualized_at) : null;
+      const viewDate = visualizedAt && !Number.isNaN(visualizedAt.getTime())
+        ? visualizedAt.toISOString().slice(0, 10)
+        : "";
+      const matchesDateFrom = !visualizationDateFrom || (viewDate && viewDate >= visualizationDateFrom);
+      const matchesDateTo = !visualizationDateTo || (viewDate && viewDate <= visualizationDateTo);
+      return matchesUser && matchesTeam && matchesDateFrom && matchesDateTo;
     })
-  ), [visualizations, visualizationUserFilter, visualizationTeamFilter]);
+  ), [visualizations, visualizationUserFilter, visualizationTeamFilter, visualizationDateFrom, visualizationDateTo]);
 
   const loadData = async () => {
     setLoading(true);
@@ -326,9 +337,6 @@ export default function ProtocoloPage() {
     setLoading(true);
     try {
       await loadDetail(protocolId);
-      if (visualizationOpen) {
-        await loadVisualizations();
-      }
     } catch (error) {
       setMessage("NÃ£o foi possÃ­vel recarregar o protocolo.");
     } finally {
@@ -607,18 +615,6 @@ export default function ProtocoloPage() {
           </Stack>
 
         <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={async () => {
-              setVisualizationOpen(true);
-              await loadVisualizations();
-            }}
-            disabled={!protocolId}
-          >
-            VisualizaÃ§Ãµes
-          </Button>
-        </Stack>
-
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "â€”"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "â€”"}</Typography></Grid>
@@ -768,6 +764,113 @@ export default function ProtocoloPage() {
               </Stack>
             </Grid>
           </Grid>
+        </BaseCard>
+      </Box>
+    );
+  };
+
+  const renderVisualizationsPanel = () => {
+    const p = protocolDetail || {};
+    const protocolVisualizations = Array.isArray(p.visualizations) ? p.visualizations : [];
+    const orderedVisualizations = [...protocolVisualizations].sort((a, b) => {
+      const left = new Date(a?.visualized_at || a?.created_at || 0).getTime();
+      const right = new Date(b?.visualized_at || b?.created_at || 0).getTime();
+      return left - right;
+    });
+    const firstVisualization = orderedVisualizations[0] || null;
+    const lastVisualization = orderedVisualizations[orderedVisualizations.length - 1] || null;
+
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <BaseCard title={`Visualizações - ${p.numero || ""}`}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap" sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>Resumo de acesso</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Quem abriu, quando abriu e qual foi a primeira e a última visualização.
+              </Typography>
+            </Box>
+            <Chip label={`${filteredVisualizations.length} registros`} variant="outlined" />
+          </Stack>
+
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="overline">Total</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>{protocolVisualizations.length}</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="overline">Primeira visualização</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {firstVisualization ? formatDateTime(firstVisualization.visualized_at) : "—"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {firstVisualization?.user?.name || "Nenhum registro"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="overline">Última visualização</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {lastVisualization ? formatDateTime(lastVisualization.visualized_at) : "—"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {lastVisualization?.user?.name || "Nenhum registro"}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Filtrar por usuário</InputLabel>
+              <Select value={visualizationUserFilter} label="Filtrar por usuário" onChange={(event) => setVisualizationUserFilter(event.target.value)}>
+                <MenuItem value="">Todos</MenuItem>
+                {visualizationUsers.map((user) => (
+                  <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth size="small">
+              <InputLabel>Filtrar por equipe</InputLabel>
+              <Select value={visualizationTeamFilter} label="Filtrar por equipe" onChange={(event) => setVisualizationTeamFilter(event.target.value)}>
+                <MenuItem value="">Todas</MenuItem>
+                {visualizationTeams.map((team) => (
+                  <MenuItem key={team} value={team}>{team}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField fullWidth size="small" type="date" label="De" value={visualizationDateFrom} onChange={(event) => setVisualizationDateFrom(event.target.value)} InputLabelProps={{ shrink: true }} />
+            <TextField fullWidth size="small" type="date" label="Até" value={visualizationDateTo} onChange={(event) => setVisualizationDateTo(event.target.value)} InputLabelProps={{ shrink: true }} />
+          </Stack>
+
+          {loadingVisualizations ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+              <CircularProgress size={22} />
+              <Typography variant="body2">Carregando visualizações...</Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5}>
+              {filteredVisualizations.length > 0 ? filteredVisualizations.map((view) => (
+                <Box key={view.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {view.user?.name || "Usuário não identificado"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                    {view.departamento || "Departamento não informado"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                    {formatDateTime(view.visualized_at)}
+                  </Typography>
+                </Box>
+              )) : (
+                <Typography color="text.secondary">Nenhuma visualização registrada.</Typography>
+              )}
+            </Stack>
+          )}
         </BaseCard>
       </Box>
     );
@@ -990,7 +1093,68 @@ export default function ProtocoloPage() {
     if (mode === "estrutura") return renderStructure();
     if (mode === "alertas") return renderAlerts();
     if (mode === "configuracoes") return renderConfig();
-    if (mode === "detail") return renderDetail();
+    if (mode === "detail") {
+      const detailVisualizations = Array.isArray(protocolDetail?.visualizations) ? protocolDetail.visualizations : [];
+      const ordered = [...detailVisualizations].sort((a, b) => {
+        const left = new Date(a?.visualized_at || a?.created_at || 0).getTime();
+        const right = new Date(b?.visualized_at || b?.created_at || 0).getTime();
+        return left - right;
+      });
+      const firstView = ordered[0] || null;
+      const lastView = ordered[ordered.length - 1] || null;
+
+      return (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Tabs
+            value={detailTab}
+            onChange={async (_, next) => {
+              setDetailTab(next);
+              if (next === "visualizacoes") {
+                await loadVisualizations();
+              }
+            }}
+          >
+            <Tab value="detalhes" label="Detalhes" />
+            <Tab value="visualizacoes" label={`Visualizações (${detailVisualizations.length})`} />
+          </Tabs>
+
+          <BaseCard title={`Resumo - ${protocolDetail?.numero || "Protocolo"}`}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                  <Typography variant="overline">Total</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>{detailVisualizations.length}</Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                  <Typography variant="overline">Primeira visualização</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {firstView ? formatDateTime(firstView.visualized_at) : "—"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {firstView?.user?.name || "Nenhum registro"}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                  <Typography variant="overline">Última visualização</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {lastView ? formatDateTime(lastView.visualized_at) : "—"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {lastView?.user?.name || "Nenhum registro"}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </BaseCard>
+
+          {detailTab === "visualizacoes" ? renderVisualizationsPanel() : renderDetail()}
+        </Box>
+      );
+    }
     return renderHome();
   };
 
@@ -1010,93 +1174,3 @@ export default function ProtocoloPage() {
           </Box>
         ) : renderContent()}
       </BaseCard>
-
-      <Drawer
-        anchor="right"
-        open={visualizationOpen}
-        onClose={() => setVisualizationOpen(false)}
-        PaperProps={{ sx: { width: { xs: "100%", sm: 420 }, p: 2 } }}
-      >
-        <Stack spacing={2} sx={{ height: "100%" }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Visualizações do protocolo
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Histórico de acesso ao registro.
-              </Typography>
-            </Box>
-            <Button variant="outlined" onClick={() => setVisualizationOpen(false)}>
-              Fechar
-            </Button>
-          </Stack>
-
-          <Divider />
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Filtrar por usuário</InputLabel>
-              <Select
-                value={visualizationUserFilter}
-                label="Filtrar por usuário"
-                onChange={(event) => setVisualizationUserFilter(event.target.value)}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {visualizationUsers.map((user) => (
-                  <MenuItem key={user.id} value={user.id}>
-                    {user.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Filtrar por equipe</InputLabel>
-              <Select
-                value={visualizationTeamFilter}
-                label="Filtrar por equipe"
-                onChange={(event) => setVisualizationTeamFilter(event.target.value)}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {visualizationTeams.map((team) => (
-                  <MenuItem key={team} value={team}>
-                    {team}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-
-          {loadingVisualizations ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
-              <CircularProgress size={22} />
-              <Typography variant="body2">Carregando visualizações...</Typography>
-            </Box>
-          ) : (
-            <Stack spacing={1.5} sx={{ overflowY: "auto", pr: 1 }}>
-              {filteredVisualizations.length > 0 ? filteredVisualizations.map((view) => (
-                <Box
-                  key={view.id}
-                  sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}
-                >
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {view.user?.name || "Usuário não identificado"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                    {view.departamento || "Departamento não informado"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                    {formatDateTime(view.visualized_at)}
-                  </Typography>
-                </Box>
-              )) : (
-                <Typography color="text.secondary">Nenhuma visualização registrada.</Typography>
-              )}
-            </Stack>
-          )}
-        </Stack>
-      </Drawer>
-    </Box>
-  );
-}
