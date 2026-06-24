@@ -70,10 +70,13 @@ export default function ResultadoModal(props) {
 
     const buildPayload = () => Object.values(valoresCampos).filter(c => c.exame_campo_id);
 
-    const handleDownloadPdf = async () => {
+    const handleDownloadPdf = async (draft = false) => {
         if (!resultado?.id) return;
         try {
-            const res = await api.get(`/laboratorio/resultados/${resultado.id}/pdf`, { responseType: 'blob' });
+            const res = await api.get(`/laboratorio/resultados/${resultado.id}/pdf`, {
+                responseType: 'blob',
+                params: draft ? { rascunho: 1 } : undefined,
+            });
             const url = URL.createObjectURL(res.data);
             const a = document.createElement('a');
             a.href = url;
@@ -267,7 +270,7 @@ export default function ResultadoModal(props) {
                                                 <Button
                                                     variant="outlined"
                                                     startIcon={<FeatherIcon icon="download" size={14} />}
-                                                    onClick={handleDownloadPdf}
+                                                    onClick={() => handleDownloadPdf(true)}
                                                     sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
                                                 >
                                                     Baixar Rascunho

@@ -97,7 +97,7 @@ export default function NovoPedido() {
                             <FormControlLabel
                                 key={exame.id}
                                 control={<Checkbox checked={form.exames.includes(exame.id)} onChange={() => toggleExame(exame.id)} />}
-                                label={<Box><Typography>{exame.nome}</Typography><Typography variant="caption" color="text.secondary">{exame.codigo}</Typography></Box>}
+                                label={<Box><Typography>{exame.nome}</Typography><Typography variant="caption" color="text.secondary">{formatExamLabel(exame.nome)}</Typography></Box>}
                                 sx={{ display: 'flex', mb: 0.5 }}
                             />
                         ))}
