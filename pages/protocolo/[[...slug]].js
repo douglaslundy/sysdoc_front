@@ -183,6 +183,7 @@ export default function ProtocoloPage() {
   const [visualizationTeamFilter, setVisualizationTeamFilter] = useState("");
   const [visualizationDateFrom, setVisualizationDateFrom] = useState("");
   const [visualizationDateTo, setVisualizationDateTo] = useState("");
+  const [visualizationSort, setVisualizationSort] = useState("recentes");
   const [detailTab, setDetailTab] = useState("detalhes");
   const [loadingVisualizations, setLoadingVisualizations] = useState(false);
 
@@ -284,6 +285,22 @@ export default function ProtocoloPage() {
       return matchesUser && matchesTeam && matchesDateFrom && matchesDateTo;
     })
   ), [visualizations, visualizationUserFilter, visualizationTeamFilter, visualizationDateFrom, visualizationDateTo]);
+
+  const sortedVisualizations = useMemo(() => {
+    const sorted = [...filteredVisualizations];
+    sorted.sort((a, b) => {
+      const leftDate = new Date(a?.visualized_at || a?.created_at || 0).getTime();
+      const rightDate = new Date(b?.visualized_at || b?.created_at || 0).getTime();
+      if (visualizationSort === "antigos") {
+        return leftDate - rightDate;
+      }
+      if (visualizationSort === "usuario") {
+        return String(a?.user?.name || "").localeCompare(String(b?.user?.name || ""), "pt-BR");
+      }
+      return rightDate - leftDate;
+    });
+    return sorted;
+  }, [filteredVisualizations, visualizationSort]);
 
   const loadData = async () => {
     setLoading(true);
@@ -779,6 +796,12 @@ export default function ProtocoloPage() {
     });
     const firstVisualization = orderedVisualizations[0] || null;
     const lastVisualization = orderedVisualizations[orderedVisualizations.length - 1] || null;
+    const activeFilters = [
+      visualizationUserFilter,
+      visualizationTeamFilter,
+      visualizationDateFrom,
+      visualizationDateTo,
+    ].filter(Boolean).length;
 
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -790,19 +813,22 @@ export default function ProtocoloPage() {
                 Quem abriu, quando abriu e qual foi a primeira e a última visualização.
               </Typography>
             </Box>
-            <Chip label={`${filteredVisualizations.length} registros`} variant="outlined" />
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Chip label={`${filteredVisualizations.length} registros`} variant="outlined" />
+              <Chip label={`${activeFilters} filtros`} variant="outlined" color={activeFilters > 0 ? "primary" : "default"} />
+            </Stack>
           </Stack>
 
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="overline">Total</Typography>
-                <Typography variant="h4" sx={{ fontWeight: 700 }}>{protocolVisualizations.length}</Typography>
+              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Total</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>{protocolVisualizations.length}</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="overline">Primeira visualização</Typography>
+              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Primeira visualização</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {firstVisualization ? formatDateTime(firstVisualization.visualized_at) : "—"}
                 </Typography>
@@ -812,8 +838,8 @@ export default function ProtocoloPage() {
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="overline">Última visualização</Typography>
+              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Última visualização</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {lastVisualization ? formatDateTime(lastVisualization.visualized_at) : "—"}
                 </Typography>
@@ -845,6 +871,14 @@ export default function ProtocoloPage() {
             </FormControl>
             <TextField fullWidth size="small" type="date" label="De" value={visualizationDateFrom} onChange={(event) => setVisualizationDateFrom(event.target.value)} InputLabelProps={{ shrink: true }} />
             <TextField fullWidth size="small" type="date" label="Até" value={visualizationDateTo} onChange={(event) => setVisualizationDateTo(event.target.value)} InputLabelProps={{ shrink: true }} />
+            <FormControl fullWidth size="small">
+              <InputLabel>Ordenação</InputLabel>
+              <Select value={visualizationSort} label="Ordenação" onChange={(event) => setVisualizationSort(event.target.value)}>
+                <MenuItem value="recentes">Mais recentes</MenuItem>
+                <MenuItem value="antigos">Mais antigos</MenuItem>
+                <MenuItem value="usuario">Usuário</MenuItem>
+              </Select>
+            </FormControl>
           </Stack>
 
           {loadingVisualizations ? (
@@ -854,7 +888,7 @@ export default function ProtocoloPage() {
             </Box>
           ) : (
             <Stack spacing={1.5}>
-              {filteredVisualizations.length > 0 ? filteredVisualizations.map((view) => (
+              {sortedVisualizations.length > 0 ? sortedVisualizations.map((view) => (
                 <Box key={view.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
                     {view.user?.name || "Usuário não identificado"}
