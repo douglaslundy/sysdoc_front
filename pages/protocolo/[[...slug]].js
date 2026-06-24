@@ -7,6 +7,10 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControl,
   FormControlLabel,
@@ -245,6 +249,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [protocols, setProtocols] = useState([]);
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
+  const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [configForm, setConfigForm] = useState(initialConfigForm);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
@@ -255,6 +260,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [detailForwardUnit, setDetailForwardUnit] = useState("");
+  const [detailForwardUser, setDetailForwardUser] = useState("");
+  const [detailForwardObservation, setDetailForwardObservation] = useState("");
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [commentPrivate, setCommentPrivate] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState(null);
@@ -309,6 +317,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     const { data } = await api.get(`/protocolos/${id}`);
     setProtocolDetail(data || null);
     setDetailForwardUnit(String(data?.destino_unit_id || ""));
+    setDetailForwardUser(String(data?.responsavel_atual_id || ""));
+    setDetailForwardObservation("");
+    setForwardDialogOpen(false);
     setCommentText("");
     setAttachmentFile(null);
     setAttachmentDescription("");
@@ -407,8 +418,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         const { data } = await api.get("/protocolos/configuracoes");
         setConfigForm((prev) => ({ ...prev, ...(data || {}) }));
       } else if (mode === "estrutura" || mode === "novo" || mode === "detail") {
-        const { data } = await api.get("/protocolos/unidades-organizacionais");
-        setUnits(Array.isArray(data) ? data : []);
+        const [unitsRes, usersRes] = await Promise.all([
+          api.get("/protocolos/unidades-organizacionais"),
+          api.get("/users"),
+        ]);
+        setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
+        setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
         if (mode === "detail" && protocolId) {
           await loadDetail(protocolId);
         }
@@ -471,6 +486,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmitForward = async () => {
+    await handleDetailAction("encaminhar", {
+      destino_unit_id: detailForwardUnit || null,
+      destino_user_id: detailForwardUser || null,
+      observacao: detailForwardObservation || null,
+    });
+    setForwardDialogOpen(false);
   };
 
   const handleSubmitProtocol = async (event) => {
@@ -733,13 +757,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 3, mb: 1 }}>
             <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>Voltar</Button>
             {!p.recebido_em && <Button variant="contained" onClick={() => handleDetailAction("receber")}>Receber</Button>}
-            <Button
-              variant="outlined"
-              onClick={() => handleDetailAction("encaminhar", {
-                destino_unit_id: detailForwardUnit || null,
-              })}
-              disabled={!detailForwardUnit}
-            >
+            <Button variant="outlined" onClick={() => setForwardDialogOpen(true)}>
               Encaminhar
             </Button>
             <Button variant="contained" color="error" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuário" })}>
@@ -750,22 +768,66 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Button>
           </Stack>
 
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Destino para encaminhamento</InputLabel>
-            <Select
-              value={detailForwardUnit}
-              label="Destino para encaminhamento"
-              onChange={(e) => setDetailForwardUnit(e.target.value)}
-            >
-              <MenuItem value="">Selecione</MenuItem>
-              {unitOptions.map((unit) => (
-                <MenuItem key={unit.id} value={String(unit.id)}>
-                  {`${"â€”".repeat(unit.level)} ${unit.nome}`}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
         </BaseCard>
+
+        <Dialog open={forwardDialogOpen} onClose={() => setForwardDialogOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Encaminhar protocolo</DialogTitle>
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+            <FormControl fullWidth sx={{ mt: 1 }}>
+              <InputLabel>Destino para encaminhamento</InputLabel>
+              <Select
+                value={detailForwardUnit}
+                label="Destino para encaminhamento"
+                onChange={(e) => setDetailForwardUnit(e.target.value)}
+              >
+                <MenuItem value="">Selecione</MenuItem>
+                {unitOptions.map((unit) => (
+                  <MenuItem key={unit.id} value={String(unit.id)}>
+                    {`${"â€”".repeat(unit.level)} ${unit.nome}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel>Responsável opcional</InputLabel>
+              <Select
+                value={detailForwardUser}
+                label="Responsável opcional"
+                onChange={(e) => setDetailForwardUser(e.target.value)}
+              >
+                <MenuItem value="">Nenhum</MenuItem>
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={String(user.id)}>
+                    {user.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              label="Observação"
+              placeholder="Opcional: informe uma justificativa ou orientação para quem receber o protocolo."
+              value={detailForwardObservation}
+              onChange={(e) => setDetailForwardObservation(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setForwardDialogOpen(false)} variant="outlined">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitForward}
+              variant="contained"
+              disabled={saving || !detailForwardUnit}
+            >
+              {saving ? "Encaminhando..." : "Encaminhar"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
