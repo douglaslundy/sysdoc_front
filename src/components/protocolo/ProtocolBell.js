@@ -92,17 +92,18 @@ const ProtocolBell = () => {
             border: "1px solid var(--lg-border)",
             background: "var(--lg-glass-panel)",
             backdropFilter: "var(--lg-blur-panel)",
+            color: "var(--lg-text-primary)",
           },
         }}
       >
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "var(--lg-text-primary)" }}>
             Protocolos novos
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
-            <Typography variant="caption">Novos: {data.novos}</Typography>
-            <Typography variant="caption">Breve: {data.vence_em_breve}</Typography>
-            <Typography variant="caption">Vencidos: {data.vencidos}</Typography>
+            <Typography variant="caption" color="text.secondary">Novos: {data.novos}</Typography>
+            <Typography variant="caption" color="text.secondary">Breve: {data.vence_em_breve}</Typography>
+            <Typography variant="caption" color="text.secondary">Vencidos: {data.vencidos}</Typography>
           </Stack>
         </Box>
 
@@ -117,12 +118,15 @@ const ProtocolBell = () => {
                   handleClose();
                   router.push(`/protocolo/${protocol.id}`);
                 }}
-                sx={{
-                  alignItems: "flex-start",
-                  py: 1.3,
-                  borderBottom: "1px solid var(--lg-border)",
-                }}
-              >
+              sx={{
+                alignItems: "flex-start",
+                py: 1.3,
+                borderBottom: "1px solid var(--lg-border)",
+                "&:hover": {
+                  background: "var(--lg-glass-panel-hover)",
+                },
+              }}
+            >
                 <ListItemText
                   primary={
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
@@ -159,7 +163,13 @@ const ProtocolBell = () => {
               handleClose();
               router.push("/protocolo/caixa-entrada");
             }}
-            sx={{ borderRadius: 2 }}
+            sx={{
+              borderRadius: 2,
+              color: "var(--lg-text-primary)",
+              "&:hover": {
+                background: "var(--lg-glass-panel-hover)",
+              },
+            }}
           >
             <ListItemText primary="Ver caixa de entrada" />
           </ListItemButton>

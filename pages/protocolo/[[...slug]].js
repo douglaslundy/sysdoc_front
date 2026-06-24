@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import {
-  Autocomplete,
   Alert,
   Box,
   Button,
@@ -12,10 +11,12 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  Checkbox,
   FormControl,
   FormControlLabel,
   Grid,
   InputLabel,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -41,7 +42,6 @@ const routes = {
   novo: "novo",
   estrutura: "estrutura",
   alertas: "alertas",
-  configuracoes: "configuracoes",
 };
 
 const modeLabels = {
@@ -50,7 +50,6 @@ const modeLabels = {
   novo: "Novo Protocolo",
   estrutura: "Estrutura Organizacional",
   alertas: "Alertas",
-  configuracoes: "Configurações",
   detail: "Detalhes do Protocolo",
 };
 
@@ -65,21 +64,6 @@ const initialProtocolForm = {
   origem_unit_id: "",
   destino_unit_id: "",
   prazo_atendimento: "",
-};
-
-const initialConfigForm = {
-  allow_external_protocols: true,
-  allow_reopen: true,
-  notify_internal: true,
-  notify_email: false,
-  notify_whatsapp: false,
-  default_priority: "normal",
-  default_due_days: 5,
-  evolution_base_url: "",
-  evolution_api_key: "",
-  evolution_default_session: "",
-  evolution_enabled: false,
-  observacoes: "",
 };
 
 const initialUnitForm = {
@@ -97,7 +81,7 @@ const initialAlertForm = {
   modulo: "protocolo",
   gatilho: "protocolo_criado",
   condicoes: [],
-  canais: ["interna"],
+  canais: ["whatsapp"],
   destinatarios: [],
   template: "",
   frequencia: "",
@@ -105,10 +89,39 @@ const initialAlertForm = {
   prevenir_duplicidade: true,
 };
 
+const protocolPriorityOptions = [
+  { value: "normal", label: "Normal" },
+  { value: "baixa", label: "Baixa" },
+  { value: "alta", label: "Alta" },
+  { value: "urgente", label: "Urgente" },
+];
+
+const protocolRequesterTypeOptions = [
+  { value: "interno", label: "Interno" },
+  { value: "externo", label: "Externo" },
+];
+
+const protocolUnitTypeOptions = [
+  { value: "secretaria", label: "Secretaria" },
+  { value: "departamento", label: "Departamento" },
+  { value: "subdepartamento", label: "Subdepartamento" },
+];
+
+const protocolTypeFallbackOptions = [
+  { codigo: "administrativo", nome: "Administrativo" },
+  { codigo: "interno", nome: "Interno" },
+  { codigo: "externo", nome: "Externo" },
+  { codigo: "oficio", nome: "Oficio" },
+  { codigo: "memorando", nome: "Memorando" },
+  { codigo: "requerimento", nome: "Requerimento" },
+  { codigo: "solicitacao", nome: "Solicitacao" },
+  { codigo: "encaminhamento", nome: "Encaminhamento" },
+];
+
 const alertModuleOptions = [
   { value: "protocolo", label: "Protocolo" },
-  { value: "queue", label: "Queue" },
-  { value: "laboratorio", label: "Laboratório" },
+  { value: "queue", label: "Fila" },
+  { value: "laboratorio", label: "Laborat�rio" },
   { value: "cadastros", label: "Cadastros" },
   { value: "sistema", label: "Sistema" },
 ];
@@ -132,24 +145,34 @@ const alertTriggerOptions = {
     { value: "resultado_liberado", label: "Resultado liberado" },
   ],
   cadastros: [
-    { value: "usuario_cadastrado", label: "Usuário cadastrado" },
+    { value: "usuario_cadastrado", label: "Usu�rio cadastrado" },
     { value: "cliente_cadastrado", label: "Cliente cadastrado" },
   ],
   sistema: [
-    { value: "config_alterada", label: "Configuração alterada" },
+    { value: "config_alterada", label: "Configura��o alterada" },
     { value: "alerta_gerado", label: "Alerta gerado" },
   ],
 };
 
-const alertChannelOptions = ["interna", "email", "sms", "whatsapp", "dashboard"];
-const alertRecipientOptions = ["admin", "manager", "user", "tfd", "driver", "all"];
+const alertChannelOptions = [
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "email", label: "E-mail" },
+];
+const alertRecipientOptions = [
+  { value: "administrador", label: "Administrador" },
+  { value: "gestor", label: "Gestor" },
+  { value: "usuario", label: "Usu�rio" },
+  { value: "tfd", label: "TFD" },
+  { value: "motorista", label: "Motorista" },
+  { value: "todos", label: "Todos" },
+];
 const alertConditionOptions = [
-  "novo",
-  "em_andamento",
-  "aguardando_resposta",
-  "vencendo",
-  "vencido",
-  "concluido",
+  { value: "novo", label: "Novo" },
+  { value: "em_andamento", label: "Em andamento" },
+  { value: "aguardando_resposta", label: "Aguardando resposta" },
+  { value: "vencendo", label: "Vencendo" },
+  { value: "vencido", label: "Vencido" },
+  { value: "concluido", label: "Conclu�do" },
 ];
 
 const getAlertTriggerOptions = (module) => alertTriggerOptions[module] || alertTriggerOptions.protocolo;
@@ -163,24 +186,45 @@ const normalizeStringList = (values) =>
     )
   );
 
-function MultiFreeSelect({ label, helperText, value, onChange, options, placeholder }) {
+function MultiSelectField({ label, helperText, value, onChange, options, placeholder }) {
+  const selected = normalizeStringList(value);
+  const labelMap = new Map(options.map((option) => [option.value, option.label]));
+
   return (
-    <Autocomplete
-      multiple
-      freeSolo
-      options={options}
-      value={value}
-      onChange={(_, next) => onChange(normalizeStringList(next))}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          fullWidth
-          label={label}
-          helperText={helperText}
-          placeholder={placeholder}
-        />
-      )}
-    />
+    <FormControl fullWidth>
+      <InputLabel>{label}</InputLabel>
+      <Select
+        multiple
+        value={selected}
+        label={label}
+        onChange={(event) => onChange(normalizeStringList(event.target.value))}
+        renderValue={(selectedValues) => {
+          if (!selectedValues.length) {
+            return <Typography color="text.secondary">{placeholder || "Selecione"}</Typography>;
+          }
+
+          return (
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+              {selectedValues.map((entry) => (
+                <Chip key={entry} size="small" label={labelMap.get(entry) || entry} />
+              ))}
+            </Stack>
+          );
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            <Checkbox checked={selected.indexOf(option.value) > -1} />
+            <ListItemText primary={option.label} />
+          </MenuItem>
+        ))}
+      </Select>
+      {helperText ? (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75 }}>
+          {helperText}
+        </Typography>
+      ) : null}
+    </FormControl>
   );
 }
 
@@ -203,16 +247,16 @@ const statusColor = (status) => {
 };
 
 const formatDate = (value) => {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleDateString("pt-BR");
 };
 
 const formatDateTime = (value) => {
-  if (!value) return "â€”";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleString("pt-BR");
 };
 
@@ -249,9 +293,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [protocols, setProtocols] = useState([]);
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
+  const [protocolTypes, setProtocolTypes] = useState([]);
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
-  const [configForm, setConfigForm] = useState(initialConfigForm);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
   const [unitForm, setUnitForm] = useState(initialUnitForm);
   const [alertForm, setAlertForm] = useState(initialAlertForm);
@@ -279,6 +323,13 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [loadingHistorico, setLoadingHistorico] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
+  const protocolTypeOptions = useMemo(
+    () => {
+      const activeTypes = protocolTypes.filter((type) => type?.ativo !== false);
+      return activeTypes.length > 0 ? activeTypes : protocolTypeFallbackOptions;
+    },
+    [protocolTypes]
+  );
   const loadList = async () => {
     const [countsRes, inboxRes] = await Promise.all([
       api.get("/protocolos/contadores"),
@@ -368,6 +419,24 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [visualizations]);
 
+  const filteredRecentProtocols = useMemo(() => {
+    const items = Array.isArray(countInfo?.recentes) ? countInfo.recentes : [];
+    const query = search.trim().toLowerCase();
+    if (!query) return items;
+
+    return items.filter((protocol) => {
+      const haystack = [
+        protocol?.numero,
+        protocol?.assunto,
+        protocol?.solicitante_nome,
+        protocol?.solicitante_documento,
+      ]
+        .map((value) => String(value || "").toLowerCase())
+        .join(" ");
+      return haystack.includes(query);
+    });
+  }, [countInfo?.recentes, search]);
+
   const visualizationTeams = useMemo(() => {
     const map = new Map();
     visualizations.forEach((view) => {
@@ -414,24 +483,36 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setLoading(true);
     setMessage("");
     try {
-      if (mode === "configuracoes") {
-        const { data } = await api.get("/protocolos/configuracoes");
-        setConfigForm((prev) => ({ ...prev, ...(data || {}) }));
-      } else if (mode === "estrutura" || mode === "novo" || mode === "detail") {
-        const [unitsRes, usersRes] = await Promise.all([
+      if (mode === "home") {
+        await router.replace("/protocolo/caixa-entrada");
+        return;
+      }
+
+      if (mode === "estrutura" || mode === "novo" || mode === "detail") {
+        const requests = [
           api.get("/protocolos/unidades-organizacionais"),
           api.get("/users"),
-        ]);
+        ];
+        if (mode === "novo") {
+          requests.push(api.get("/protocolos/tipos"));
+        }
+        const responses = await Promise.all(requests);
+        const [unitsRes, usersRes, typesRes] = responses;
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
         setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+        if (mode === "novo") {
+          setProtocolTypes(Array.isArray(typesRes?.data) ? typesRes.data : []);
+        }
         if (mode === "detail" && protocolId) {
           await loadDetail(protocolId);
         }
       } else if (mode === "alertas") {
+        if (!forcedMode) {
+          await router.replace("/sistema/alertas");
+          return;
+        }
         const { data } = await api.get("/protocolos/alertas");
         setAlerts(Array.isArray(data) ? data : []);
-      } else if (mode === "home") {
-        await loadOverview();
       } else {
         await loadList();
       }
@@ -452,9 +533,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     if (!router.isReady) return;
     if (mode === "inbox") {
       loadList().catch(() => setMessage("Não foi possível carregar a caixa de entrada."));
-    }
-    if (mode === "home") {
-      loadOverview().catch(() => setMessage("Não foi possível carregar o painel do protocolo."));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, search, router.isReady, mode]);
@@ -513,20 +591,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       await router.push("/protocolo/caixa-entrada");
     } catch (error) {
       setMessage("Não foi possível criar o protocolo.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSubmitConfig = async (event) => {
-    event.preventDefault();
-    setSaving(true);
-    setMessage("");
-    try {
-      await api.put("/protocolos/configuracoes", configForm);
-      setMessage("Configurações salvas com sucesso.");
-    } catch (error) {
-      setMessage("Não foi possível salvar as configurações.");
     } finally {
       setSaving(false);
     }
@@ -661,11 +725,13 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             placeholder="Pesquisar protocolo"
             value={search}
             onChange={(e) => {
-              setPage(0);
               setSearch(e.target.value);
             }}
             sx={{ minWidth: 280, flex: 1 }}
           />
+          <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>
+            Ver caixa de entrada
+          </Button>
         </Box>
 
         <Table sx={{ whiteSpace: "nowrap" }}>
@@ -680,7 +746,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {protocols.length > 0 ? protocols.map((protocol) => (
+            {filteredRecentProtocols.length > 0 ? filteredRecentProtocols.map((protocol) => (
               <TableRow
                 key={protocol.id}
                 hover
@@ -693,7 +759,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Chip size="small" label={protocol.prioridade || "normal"} />
                 </TableCell>
                 <TableCell>
-                  <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "â€”"} />
+                  <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "—"} />
                 </TableCell>
                 <TableCell>{formatDate(protocol.prazo_atendimento)}</TableCell>
                 <TableCell align="right">
@@ -710,17 +776,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </TableBody>
         </Table>
 
-        <TablePagination
-          component="div"
-          count={total}
-          page={page}
-          onPageChange={(_, nextPage) => setPage(nextPage)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(event) => {
-            setRowsPerPage(parseInt(event.target.value, 10));
-            setPage(0);
-          }}
-        />
       </BaseCard>
     </Box>
   );
@@ -739,18 +794,18 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <Typography variant="body2" color="text.secondary">{p.descricao || "Sem descrição"}</Typography>
             </Box>
             <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip label={String(p.status || "â€”").replace(/_/g, " ")} color={statusColor(p.status)} />
+              <Chip label={String(p.status || "—").replace(/_/g, " ")} color={statusColor(p.status)} />
               <Chip label={p.prioridade || "normal"} />
               <Chip label={`${Array.isArray(p.visualizations) ? p.visualizations.length : 0} visualizações`} variant="outlined" />
             </Stack>
           </Stack>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "â€”"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "â€”"}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "—"}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "—"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Prazo</Typography><Typography variant="body1">{formatDate(p.prazo_atendimento)}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography variant="body1">{p.origem_unit?.nome || "â€”"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Destino</Typography><Typography variant="body1">{p.destino_unit?.nome || "â€”"}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography variant="body1">{p.origem_unit?.nome || "—"}</Typography></Grid>
+            <Grid item xs={12} md={4}><Typography variant="caption">Destino</Typography><Typography variant="body1">{p.destino_unit?.nome || "—"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Responsável</Typography><Typography variant="body1">{p.responsavel_atual?.name || "—"}</Typography></Grid>
           </Grid>
 
@@ -770,9 +825,21 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
         </BaseCard>
 
-        <Dialog open={forwardDialogOpen} onClose={() => setForwardDialogOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>Encaminhar protocolo</DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+        <Dialog
+          open={forwardDialogOpen}
+          onClose={() => setForwardDialogOpen(false)}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              border: "1px solid var(--lg-border)",
+              background: "var(--lg-glass-panel)",
+              backdropFilter: "var(--lg-blur-panel)",
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 700 }}>Encaminhar protocolo</DialogTitle>
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1, bgcolor: "transparent" }}>
             <FormControl fullWidth sx={{ mt: 1 }}>
               <InputLabel>Destino para encaminhamento</InputLabel>
               <Select
@@ -783,7 +850,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 <MenuItem value="">Selecione</MenuItem>
                 {unitOptions.map((unit) => (
                   <MenuItem key={unit.id} value={String(unit.id)}>
-                    {`${"â€”".repeat(unit.level)} ${unit.nome}`}
+                    {`${"  ".repeat(unit.level)}${unit.nome}`}
                   </MenuItem>
                 ))}
               </Select>
@@ -890,7 +957,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Box key={movement.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{movement.acao}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {movement.user?.name || "â€”"} â€¢ {formatDateTime(movement.created_at)}
+                      {movement.user?.name || "—"} â�,�¢ {formatDateTime(movement.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhuma movimentação registrada.</Typography>}
@@ -904,7 +971,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Box key={comment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
                     <Typography variant="body2">{comment.conteudo}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {comment.user?.name || "â€”"} â€¢ {formatDateTime(comment.created_at)}
+                      {comment.user?.name || "—"} â�,�¢ {formatDateTime(comment.created_at)}
                     </Typography>
                   </Box>
                 )) : <Typography color="text.secondary">Nenhum comentário registrado.</Typography>}
@@ -920,7 +987,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                       {attachment.nome_original}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {attachment.user?.name || "â€”"} â€¢ {formatDateTime(attachment.created_at)}
+                      {attachment.user?.name || "—"} â�,�¢ {formatDateTime(attachment.created_at)}
                     </Typography>
                     <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
                       <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
@@ -990,7 +1057,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Grid>
             <Grid item xs={12} md={4}>
               <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Última visualização</Typography>
+                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>�sltima visualização</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {lastVisualization ? formatDateTime(lastVisualization.visualized_at) : "—"}
                 </Typography>
@@ -1093,7 +1160,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                         {String(item.acao || "ação").replace(/_/g, " ")}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                        {item.user?.name || "—"} • {formatDateTime(item.created_at)}
+                        {item.user?.name || "—"} �?� {formatDateTime(item.created_at)}
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -1125,10 +1192,50 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <TextField fullWidth label="Assunto" value={protocolForm.assunto} onChange={(e) => setProtocolForm((prev) => ({ ...prev, assunto: e.target.value }))} required />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Tipo" value={protocolForm.tipo} onChange={(e) => setProtocolForm((prev) => ({ ...prev, tipo: e.target.value }))} required />
+            <TextField
+              select
+              fullWidth
+              label="Tipo"
+              value={protocolForm.tipo}
+              onChange={(e) => setProtocolForm((prev) => ({ ...prev, tipo: e.target.value }))}
+              required
+            >
+              {protocolTypeOptions.map((option) => (
+                <MenuItem key={option.codigo} value={option.codigo}>
+                  {option.nome}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Prioridade" value={protocolForm.prioridade} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prioridade: e.target.value }))} />
+            <TextField
+              select
+              fullWidth
+              label="Prioridade"
+              value={protocolForm.prioridade}
+              onChange={(e) => setProtocolForm((prev) => ({ ...prev, prioridade: e.target.value }))}
+            >
+              {protocolPriorityOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Tipo do solicitante"
+              value={protocolForm.solicitante_tipo}
+              onChange={(e) => setProtocolForm((prev) => ({ ...prev, solicitante_tipo: e.target.value }))}
+            >
+              {protocolRequesterTypeOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField fullWidth label="Solicitante" value={protocolForm.solicitante_nome} onChange={(e) => setProtocolForm((prev) => ({ ...prev, solicitante_nome: e.target.value }))} />
@@ -1144,7 +1251,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <InputLabel>Origem</InputLabel>
               <Select value={protocolForm.origem_unit_id} label="Origem" onChange={(e) => setProtocolForm((prev) => ({ ...prev, origem_unit_id: e.target.value }))}>
                 <MenuItem value="">Nenhuma</MenuItem>
-                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"â€”".repeat(unit.level)} ${unit.nome}`}</MenuItem>)}
+                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
               </Select>
             </FormControl>
           </Grid>
@@ -1153,7 +1260,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <InputLabel>Destino</InputLabel>
               <Select value={protocolForm.destino_unit_id} label="Destino" onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_unit_id: e.target.value }))}>
                 <MenuItem value="">Nenhuma</MenuItem>
-                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"â€”".repeat(unit.level)} ${unit.nome}`}</MenuItem>)}
+                {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
               </Select>
             </FormControl>
           </Grid>
@@ -1170,47 +1277,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     </BaseCard>
   );
 
-  const renderConfig = () => (
-    <BaseCard title="Configurações do protocolo">
-      <Box component="form" onSubmit={handleSubmitConfig} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Alert severity="info">A integração com Evolution API e os canais do protocolo são controlados por esta tela.</Alert>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Prioridade padrão" value={configForm.default_priority} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_priority: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth type="number" label="Prazo padrão em dias" value={configForm.default_due_days} onChange={(e) => setConfigForm((prev) => ({ ...prev, default_due_days: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Sessão padrão" value={configForm.evolution_default_session} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_default_session: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="URL base Evolution" value={configForm.evolution_base_url} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_base_url: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Chave Evolution" value={configForm.evolution_api_key} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_api_key: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField fullWidth multiline minRows={4} label="Observações" value={configForm.observacoes} onChange={(e) => setConfigForm((prev) => ({ ...prev, observacoes: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={2} flexWrap="wrap">
-              <FormControlLabel control={<Switch checked={Boolean(configForm.allow_external_protocols)} onChange={(e) => setConfigForm((prev) => ({ ...prev, allow_external_protocols: e.target.checked }))} />} label="Permitir protocolos externos" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.allow_reopen)} onChange={(e) => setConfigForm((prev) => ({ ...prev, allow_reopen: e.target.checked }))} />} label="Permitir reabertura" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.notify_internal)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_internal: e.target.checked }))} />} label="Notificação interna" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.notify_email)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_email: e.target.checked }))} />} label="E-mail" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.notify_whatsapp)} onChange={(e) => setConfigForm((prev) => ({ ...prev, notify_whatsapp: e.target.checked }))} />} label="WhatsApp" />
-              <FormControlLabel control={<Switch checked={Boolean(configForm.evolution_enabled)} onChange={(e) => setConfigForm((prev) => ({ ...prev, evolution_enabled: e.target.checked }))} />} label="Evolution habilitada" />
-            </Stack>
-          </Grid>
-        </Grid>
-        <Stack direction="row" justifyContent="flex-end" spacing={1}>
-          <Button type="submit" variant="contained" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
-        </Stack>
-      </Box>
-    </BaseCard>
-  );
-
   const renderStructure = () => (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <BaseCard title="Nova unidade organizacional">
@@ -1221,12 +1287,24 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 <InputLabel>Unidade pai</InputLabel>
                 <Select value={unitForm.parent_id} label="Unidade pai" onChange={(e) => setUnitForm((prev) => ({ ...prev, parent_id: e.target.value }))}>
                   <MenuItem value="">Nenhuma</MenuItem>
-                  {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"â€”".repeat(unit.level)} ${unit.nome}`}</MenuItem>)}
+                  {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Tipo" value={unitForm.tipo} onChange={(e) => setUnitForm((prev) => ({ ...prev, tipo: e.target.value }))} />
+              <TextField
+                select
+                fullWidth
+                label="Tipo"
+                value={unitForm.tipo}
+                onChange={(e) => setUnitForm((prev) => ({ ...prev, tipo: e.target.value }))}
+              >
+                {protocolUnitTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField fullWidth label="Código" value={unitForm.codigo} onChange={(e) => setUnitForm((prev) => ({ ...prev, codigo: e.target.value }))} />
@@ -1259,7 +1337,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <TableRow key={unit.id} hover>
                 <TableCell><Box sx={{ pl: `${unit.level * 16}px` }}>{unit.nome}</Box></TableCell>
                 <TableCell>{unit.tipo}</TableCell>
-                <TableCell>{unit.codigo || "â€”"}</TableCell>
+                <TableCell>{unit.codigo || "—"}</TableCell>
                 <TableCell><Chip size="small" color={unit.ativo ? "success" : "default"} label={unit.ativo ? "Ativo" : "Inativo"} /></TableCell>
               </TableRow>
             )) : (
@@ -1325,15 +1403,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Frequência"
+                label="Frequ�ncia"
                 value={alertForm.frequencia}
                 onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))}
               />
             </Grid>
             <Grid item xs={12} md={4}>
-              <MultiFreeSelect
-                label="Canais"
-                helperText="Selecione e adicione canais livremente"
+              <MultiSelectField
+                label="Motores de envio"
+                helperText="WhatsApp e e-mail s�o configurados em suas p�ginas pr�prias."
                 value={alertForm.canais}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, canais: value }))}
                 options={alertChannelOptions}
@@ -1341,19 +1419,19 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               />
             </Grid>
             <Grid item xs={12} md={4}>
-              <MultiFreeSelect
-                label="Destinatários"
-                helperText="Selecione perfis ou informe um destinatário específico"
+              <MultiSelectField
+                label="Destinat�rios"
+                helperText="Selecione destinat�rios predefinidos."
                 value={alertForm.destinatarios}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, destinatarios: value }))}
                 options={alertRecipientOptions}
-                placeholder="Ex.: admin"
+                placeholder="Ex.: administrador"
               />
             </Grid>
             <Grid item xs={12} md={4}>
-              <MultiFreeSelect
-                label="Condições"
-                helperText="Selecione condições ou adicione novas"
+              <MultiSelectField
+                label="Condi��es"
+                helperText="Selecione condi��es predefinidas."
                 value={alertForm.condicoes}
                 onChange={(value) => setAlertForm((prev) => ({ ...prev, condicoes: value }))}
                 options={alertConditionOptions}
@@ -1366,7 +1444,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 multiline
                 minRows={4}
                 label="Template"
-                placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
+                placeholder="Ex.: Ol� {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
                 value={alertForm.template}
                 onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
               />
@@ -1428,7 +1506,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     if (mode === "novo") return renderNovo();
     if (mode === "estrutura") return renderStructure();
     if (mode === "alertas") return renderAlerts();
-    if (mode === "configuracoes") return renderConfig();
     if (mode === "detail") {
       const detailVisualizations = Array.isArray(protocolDetail?.visualizations) ? protocolDetail.visualizations : [];
       const ordered = [...detailVisualizations].sort((a, b) => {
@@ -1443,6 +1520,36 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Tabs
             value={detailTab}
+            variant="scrollable"
+            scrollButtons="auto"
+            TabIndicatorProps={{
+              style: {
+                backgroundColor: "var(--lg-accent)",
+                height: 3,
+                borderRadius: 999,
+              },
+            }}
+            sx={{
+              minHeight: 44,
+              px: 1,
+              borderRadius: 2,
+              border: "1px solid var(--lg-border)",
+              bgcolor: "var(--lg-glass-panel)",
+              "& .MuiTabs-flexContainer": {
+                gap: 0.5,
+              },
+              "& .MuiTab-root": {
+                minHeight: 44,
+                textTransform: "none",
+                fontWeight: 600,
+                color: "var(--lg-text-muted)",
+                borderRadius: 1.5,
+              },
+              "& .MuiTab-root.Mui-selected": {
+                color: "var(--lg-text-primary)",
+                background: "var(--lg-glass-chip)",
+              },
+            }}
             onChange={async (_, next) => {
               setDetailTab(next);
               if (next === "visualizacoes") {
@@ -1455,7 +1562,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           >
             <Tab value="detalhes" label="Detalhes" />
             <Tab value="visualizacoes" label={`Visualizações (${detailVisualizations.length})`} />
-            <Tab value="historico" label={`HistÃ³rico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
+            <Tab value="historico" label={`Hist�f³rico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
           </Tabs>
 
           <BaseCard title={`Resumo - ${protocolDetail?.numero || "Protocolo"}`}>
@@ -1479,7 +1586,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </Grid>
               <Grid item xs={12} md={4}>
                 <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Typography variant="overline">Última visualização</Typography>
+                  <Typography variant="overline">�sltima visualização</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
                     {lastView ? formatDateTime(lastView.visualized_at) : "—"}
                   </Typography>
@@ -1521,3 +1628,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     </Box>
   );
 }
+
+
+
+
+
