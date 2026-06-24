@@ -201,6 +201,18 @@ export default function ProtocoloPage() {
     setTotal(Number(inboxRes.data?.total ?? inboxRes.data?.meta?.total ?? 0));
   };
 
+  const loadOverview = async () => {
+    const { data } = await api.get("/protocolos/contadores");
+    setCountInfo({
+      novos: Number(data?.novos ?? 0),
+      vence_em_breve: Number(data?.vence_em_breve ?? 0),
+      vencidos: Number(data?.vencidos ?? 0),
+      recentes: Array.isArray(data?.recentes) ? data.recentes : [],
+    });
+    setProtocols([]);
+    setTotal(0);
+  };
+
   const loadDetail = async (id) => {
     const { data } = await api.get(`/protocolos/${id}`);
     setProtocolDetail(data || null);
@@ -226,6 +238,8 @@ export default function ProtocoloPage() {
       } else if (mode === "alertas") {
         const { data } = await api.get("/protocolos/alertas");
         setAlerts(Array.isArray(data) ? data : []);
+      } else if (mode === "home") {
+        await loadOverview();
       } else {
         await loadList();
       }
@@ -244,8 +258,11 @@ export default function ProtocoloPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    if (mode === "home" || mode === "inbox") {
+    if (mode === "inbox") {
       loadList().catch(() => setMessage("Não foi possível carregar a caixa de entrada."));
+    }
+    if (mode === "home") {
+      loadOverview().catch(() => setMessage("Não foi possível carregar o painel do protocolo."));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, search, router.isReady, mode]);
