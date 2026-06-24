@@ -141,7 +141,7 @@ const flattenUnits = (items, level = 0) =>
     return acc;
   }, []);
 
-export default function ProtocoloPage() {
+export default function ProtocoloPage({ forcedMode = null } = {}) {
   const router = useRouter();
   const slug = useMemo(() => {
     const raw = router.query.slug;
@@ -149,11 +149,12 @@ export default function ProtocoloPage() {
   }, [router.query.slug]);
 
   const mode = useMemo(() => {
+    if (forcedMode) return forcedMode;
     const first = slug[0];
     if (!first) return "home";
     if (/^\d+$/.test(first)) return "detail";
     return routes[first] || "home";
-  }, [slug]);
+  }, [forcedMode, slug]);
 
   const protocolId = useMemo(() => (mode === "detail" ? Number(slug[0]) : null), [mode, slug]);
 
