@@ -267,6 +267,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [visualizationSort, setVisualizationSort] = useState("recentes");
   const [detailTab, setDetailTab] = useState("detalhes");
   const [loadingVisualizations, setLoadingVisualizations] = useState(false);
+  const [historicoMovements, setHistoricoMovements] = useState([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
   const loadList = async () => {
@@ -311,6 +313,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setAttachmentFile(null);
     setAttachmentDescription("");
     setVisualizations([]);
+    setHistoricoMovements([]);
   };
 
   const loadVisualizations = async () => {
@@ -328,6 +331,19 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       setMessage("Não foi possível carregar as visualizações do protocolo.");
     } finally {
       setLoadingVisualizations(false);
+    }
+  };
+
+  const loadHistorico = async () => {
+    if (!protocolId) return;
+    setLoadingHistorico(true);
+    try {
+      const { data } = await api.get(`/protocolos/${protocolId}/historico`);
+      setHistoricoMovements(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setMessage("Não foi possível carregar o histórico do protocolo.");
+    } finally {
+      setLoadingHistorico(false);
     }
   };
 
@@ -983,6 +999,62 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     );
   };
 
+  const renderHistoricoPanel = () => {
+    const p = protocolDetail || {};
+    const historico = Array.isArray(historicoMovements) ? historicoMovements : [];
+
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <BaseCard title={`Histórico - ${p.numero || ""}`}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap" sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>Andamento do protocolo</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Linha do tempo com as ações executadas, o status anterior e o status de destino.
+              </Typography>
+            </Box>
+            <Chip label={`${historico.length} eventos`} variant="outlined" />
+          </Stack>
+
+          {loadingHistorico ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+              <CircularProgress size={22} />
+              <Typography variant="body2">Carregando histórico...</Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5}>
+              {historico.length > 0 ? historico.map((item) => (
+                <Box key={item.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {String(item.acao || "ação").replace(/_/g, " ")}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                        {item.user?.name || "—"} • {formatDateTime(item.created_at)}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {item.status_anterior ? <Chip size="small" label={`De: ${item.status_anterior.replace(/_/g, " ")}`} /> : null}
+                      {item.status_novo ? <Chip size="small" color={statusColor(item.status_novo)} label={`Para: ${item.status_novo.replace(/_/g, " ")}`} /> : null}
+                    </Stack>
+                  </Stack>
+                  {item.observacao ? (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      {item.observacao}
+                    </Typography>
+                  ) : null}
+                </Box>
+              )) : (
+                <Typography color="text.secondary">Nenhum evento de histórico registrado.</Typography>
+              )}
+            </Stack>
+          )}
+        </BaseCard>
+      </Box>
+    );
+  };
+
   const renderNovo = () => (
     <BaseCard title="Novo protocolo">
       <Box component="form" onSubmit={handleSubmitProtocol} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -1314,10 +1386,14 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               if (next === "visualizacoes") {
                 await loadVisualizations();
               }
+              if (next === "historico") {
+                await loadHistorico();
+              }
             }}
           >
             <Tab value="detalhes" label="Detalhes" />
             <Tab value="visualizacoes" label={`Visualizações (${detailVisualizations.length})`} />
+            <Tab value="historico" label={`HistÃ³rico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
           </Tabs>
 
           <BaseCard title={`Resumo - ${protocolDetail?.numero || "Protocolo"}`}>
@@ -1353,7 +1429,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Grid>
           </BaseCard>
 
-          {detailTab === "visualizacoes" ? renderVisualizationsPanel() : renderDetail()}
+          {detailTab === "visualizacoes"
+            ? renderVisualizationsPanel()
+            : detailTab === "historico"
+              ? renderHistoricoPanel()
+              : renderDetail()}
         </Box>
       );
     }
