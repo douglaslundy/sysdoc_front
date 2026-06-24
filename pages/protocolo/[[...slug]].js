@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import {
+  Autocomplete,
   Alert,
   Box,
   Button,
@@ -91,14 +92,93 @@ const initialAlertForm = {
   descricao: "",
   modulo: "protocolo",
   gatilho: "protocolo_criado",
-  condicoes: "",
-  canais: "interna",
-  destinatarios: "",
+  condicoes: [],
+  canais: ["interna"],
+  destinatarios: [],
   template: "",
   frequencia: "",
   ativo: true,
   prevenir_duplicidade: true,
 };
+
+const alertModuleOptions = [
+  { value: "protocolo", label: "Protocolo" },
+  { value: "queue", label: "Queue" },
+  { value: "laboratorio", label: "Laboratório" },
+  { value: "cadastros", label: "Cadastros" },
+  { value: "sistema", label: "Sistema" },
+];
+
+const alertTriggerOptions = {
+  protocolo: [
+    { value: "protocolo_criado", label: "Protocolo criado" },
+    { value: "protocolo_recebido", label: "Protocolo recebido" },
+    { value: "protocolo_encaminhado", label: "Protocolo encaminhado" },
+    { value: "protocolo_vencendo", label: "Prazo vencendo" },
+    { value: "protocolo_vencido", label: "Prazo vencido" },
+  ],
+  queue: [
+    { value: "senha_emitida", label: "Senha emitida" },
+    { value: "senha_chamada", label: "Senha chamada" },
+    { value: "senha_perdida", label: "Senha perdida" },
+  ],
+  laboratorio: [
+    { value: "pedido_criado", label: "Pedido criado" },
+    { value: "pedido_rascunho", label: "Pedido em rascunho" },
+    { value: "resultado_liberado", label: "Resultado liberado" },
+  ],
+  cadastros: [
+    { value: "usuario_cadastrado", label: "Usuário cadastrado" },
+    { value: "cliente_cadastrado", label: "Cliente cadastrado" },
+  ],
+  sistema: [
+    { value: "config_alterada", label: "Configuração alterada" },
+    { value: "alerta_gerado", label: "Alerta gerado" },
+  ],
+};
+
+const alertChannelOptions = ["interna", "email", "sms", "whatsapp", "dashboard"];
+const alertRecipientOptions = ["admin", "manager", "user", "tfd", "driver", "all"];
+const alertConditionOptions = [
+  "novo",
+  "em_andamento",
+  "aguardando_resposta",
+  "vencendo",
+  "vencido",
+  "concluido",
+];
+
+const getAlertTriggerOptions = (module) => alertTriggerOptions[module] || alertTriggerOptions.protocolo;
+
+const normalizeStringList = (values) =>
+  Array.from(
+    new Set(
+      (Array.isArray(values) ? values : [])
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  );
+
+function MultiFreeSelect({ label, helperText, value, onChange, options, placeholder }) {
+  return (
+    <Autocomplete
+      multiple
+      freeSolo
+      options={options}
+      value={value}
+      onChange={(_, next) => onChange(normalizeStringList(next))}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          fullWidth
+          label={label}
+          helperText={helperText}
+          placeholder={placeholder}
+        />
+      )}
+    />
+  );
+}
 
 const statusColor = (status) => {
   const map = {
@@ -438,15 +518,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     try {
       await api.post("/protocolos/alertas", {
         ...alertForm,
-        condicoes: alertForm.condicoes
-          ? alertForm.condicoes.split(",").map((item) => item.trim()).filter(Boolean)
-          : [],
-        canais: alertForm.canais
-          ? alertForm.canais.split(",").map((item) => item.trim()).filter(Boolean)
-          : [],
-        destinatarios: alertForm.destinatarios
-          ? alertForm.destinatarios.split(",").map((item) => item.trim()).filter(Boolean)
-          : [],
+        condicoes: normalizeStringList(alertForm.condicoes),
+        canais: normalizeStringList(alertForm.canais),
+        destinatarios: normalizeStringList(alertForm.destinatarios),
       });
       setMessage("Alerta cadastrado com sucesso.");
       setAlertForm(initialAlertForm);
@@ -1070,15 +1144,110 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       <BaseCard title="Novo alerta">
         <Box component="form" onSubmit={handleSubmitAlert} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}><TextField fullWidth label="Nome" value={alertForm.nome} onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={6}><TextField fullWidth label="Módulo" value={alertForm.modulo} onChange={(e) => setAlertForm((prev) => ({ ...prev, modulo: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={6}><TextField fullWidth label="Gatilho" value={alertForm.gatilho} onChange={(e) => setAlertForm((prev) => ({ ...prev, gatilho: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={6}><TextField fullWidth label="Frequência" value={alertForm.frequencia} onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="Canais" helperText="Separar por vírgula" value={alertForm.canais} onChange={(e) => setAlertForm((prev) => ({ ...prev, canais: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="Destinatários" helperText="Separar por vírgula" value={alertForm.destinatarios} onChange={(e) => setAlertForm((prev) => ({ ...prev, destinatarios: e.target.value }))} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth label="Condições" helperText="Separar por vírgula" value={alertForm.condicoes} onChange={(e) => setAlertForm((prev) => ({ ...prev, condicoes: e.target.value }))} /></Grid>
-            <Grid item xs={12}><TextField fullWidth multiline minRows={4} label="Template" value={alertForm.template} onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))} /></Grid>
-            <Grid item xs={12}><TextField fullWidth multiline minRows={3} label="Descrição" value={alertForm.descricao} onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))} /></Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nome"
+                value={alertForm.nome}
+                onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                label="Módulo"
+                value={alertForm.modulo}
+                onChange={(e) =>
+                  setAlertForm((prev) => ({
+                    ...prev,
+                    modulo: e.target.value,
+                    gatilho: getAlertTriggerOptions(e.target.value)[0]?.value || "",
+                  }))
+                }
+              >
+                {alertModuleOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                label="Gatilho"
+                value={alertForm.gatilho}
+                onChange={(e) => setAlertForm((prev) => ({ ...prev, gatilho: e.target.value }))}
+              >
+                {getAlertTriggerOptions(alertForm.modulo).map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Frequência"
+                value={alertForm.frequencia}
+                onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <MultiFreeSelect
+                label="Canais"
+                helperText="Selecione e adicione canais livremente"
+                value={alertForm.canais}
+                onChange={(value) => setAlertForm((prev) => ({ ...prev, canais: value }))}
+                options={alertChannelOptions}
+                placeholder="Ex.: whatsapp"
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <MultiFreeSelect
+                label="Destinatários"
+                helperText="Selecione perfis ou informe um destinatário específico"
+                value={alertForm.destinatarios}
+                onChange={(value) => setAlertForm((prev) => ({ ...prev, destinatarios: value }))}
+                options={alertRecipientOptions}
+                placeholder="Ex.: admin"
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <MultiFreeSelect
+                label="Condições"
+                helperText="Selecione condições ou adicione novas"
+                value={alertForm.condicoes}
+                onChange={(value) => setAlertForm((prev) => ({ ...prev, condicoes: value }))}
+                options={alertConditionOptions}
+                placeholder="Ex.: vencido"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                minRows={4}
+                label="Template"
+                placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
+                value={alertForm.template}
+                onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                label="Descrição"
+                placeholder="Explique quando o alerta deve ser usado e o que o usuário verá quando ele disparar."
+                value={alertForm.descricao}
+                onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))}
+              />
+            </Grid>
             <Grid item xs={12}>
               <Stack direction="row" spacing={2} flexWrap="wrap">
                 <FormControlLabel control={<Switch checked={Boolean(alertForm.ativo)} onChange={(e) => setAlertForm((prev) => ({ ...prev, ativo: e.target.checked }))} />} label="Ativo" />
