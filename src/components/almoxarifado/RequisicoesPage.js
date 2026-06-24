@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
+import { Alert, Box, Button, Chip, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
@@ -46,6 +46,8 @@ export default function RequisicoesPage() {
   const [form, setForm] = useState(EMPTY);
   const [secretarias, setSecretarias] = useState([]);
   const [produtos, setProdutos] = useState([]);
+  const [feedback, setFeedback] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -89,14 +91,35 @@ export default function RequisicoesPage() {
   };
 
   const updateStatus = async (id, status) => {
-    await api.patch(`/almoxarifado/requisicoes/${id}/status`, { status });
-    await load();
+    setUpdatingId(id);
+    setFeedback(null);
+    try {
+      await api.patch(`/almoxarifado/requisicoes/${id}/status`, { status });
+      setFeedback({ type: 'success', message: 'Status da requisição atualizado com sucesso.' });
+      await load();
+    } catch (error) {
+      const validationMessage = Object.values(error?.response?.data?.errors || {})?.[0]?.[0];
+      setFeedback({
+        type: 'error',
+        message:
+          validationMessage ||
+          error?.response?.data?.message ||
+          'Não foi possível atualizar o status da requisição.',
+      });
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   return (
     <Box sx={modalFormRootSx} className="queue-page almoxarifado-requisicoes-page">
       <BaseCard title="Requisições">
         <AlertModal />
+        {feedback && (
+          <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>
+            {feedback.message}
+          </Alert>
+        )}
         <Box className="queue-page__toolbar" sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
           <TextField className="lg-search-field" placeholder="Pesquisar requisição..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} sx={{ flex: '1 1 280px', minWidth: 220 }} />
           <Button variant="contained" sx={{ ml: 'auto' }} onClick={() => setOpen(true)}>Nova Requisição</Button>
@@ -129,10 +152,10 @@ export default function RequisicoesPage() {
                       <TableCell>{row.itens?.length || 0}</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1}>
-                          {row.status === 'recebida' && <Button size="small" variant="contained" onClick={() => updateStatus(row.id, 'aprovada')}>Aprovar</Button>}
-                          {row.status === 'aprovada' && <Button size="small" variant="contained" onClick={() => updateStatus(row.id, 'em_separacao')}>Separar</Button>}
-                          {row.status === 'em_separacao' && <Button size="small" variant="contained" onClick={() => updateStatus(row.id, 'entregue')}>Entregar</Button>}
-                          {row.status !== 'entregue' && row.status !== 'cancelada' && <Button size="small" color="error" variant="outlined" onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>}
+                          {row.status === 'recebida' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'aprovada')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Aprovar'}</Button>}
+                          {row.status === 'aprovada' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'em_separacao')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Separar'}</Button>}
+                          {row.status === 'em_separacao' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'entregue')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Entregar'}</Button>}
+                          {row.status !== 'entregue' && row.status !== 'cancelada' && <Button size="small" color="error" variant="outlined" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>}
                         </Stack>
                       </TableCell>
                     </StyledTableRow>
