@@ -105,6 +105,14 @@ const Menuitems = [
     ],
   },
   {
+    title: "Kanban",
+    icon: "columns",
+    group: true,
+    children: [
+      { title: "Kanban Geral", icon: "columns", href: "/kanban" },
+    ],
+  },
+  {
     title: "Sistema",
     icon: "settings",
     group: true,

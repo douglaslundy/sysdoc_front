@@ -5,6 +5,10 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Grid,
   InputLabel,
@@ -19,15 +23,10 @@ import { api } from "../src/services/api";
 
 const BOARD_COLUMNS = [
   { value: "novo", label: "Novo", color: "info" },
-  { value: "recebido", label: "Recebido", color: "primary" },
-  { value: "encaminhado", label: "Encaminhado", color: "secondary" },
   { value: "em_andamento", label: "Em andamento", color: "warning" },
   { value: "aguardando_resposta", label: "Aguardando resposta", color: "warning" },
-  { value: "reaberto", label: "Reaberto", color: "info" },
-  { value: "concluido", label: "Concluído", color: "success" },
-  { value: "encerrado", label: "Encerrado", color: "default" },
-  { value: "cancelado", label: "Cancelado", color: "error" },
-  { value: "vencido", label: "Vencido", color: "error" },
+  { value: "bloqueado", label: "Bloqueado", color: "error" },
+  { value: "concluido", label: "Concluido", color: "success" },
 ];
 
 const PRIORITY_OPTIONS = [
@@ -38,10 +37,21 @@ const PRIORITY_OPTIONS = [
   { value: "urgente", label: "Urgente" },
 ];
 
-const normalizeStatus = (status) => {
-  const value = String(status || "").trim().toLowerCase();
-  if (value === "analise") return "em_andamento";
-  return value;
+const STATUS_OPTIONS = [
+  { value: "novo", label: "Novo" },
+  { value: "em_andamento", label: "Em andamento" },
+  { value: "aguardando_resposta", label: "Aguardando resposta" },
+  { value: "bloqueado", label: "Bloqueado" },
+  { value: "concluido", label: "Concluido" },
+];
+
+const INITIAL_FORM = {
+  titulo: "",
+  descricao: "",
+  status: "novo",
+  prioridade: "normal",
+  vencimento: "",
+  ordem: 0,
 };
 
 const formatDateTime = (value) => {
@@ -56,18 +66,25 @@ const formatDateTime = (value) => {
   }
 };
 
+const formatDate = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+};
+
 const fieldStyle = {
   width: "100%",
   background: "var(--lg-glass-input)",
   borderRadius: 12,
 };
 
-function KanbanCard({ protocol, onOpen }) {
-  const status = BOARD_COLUMNS.find((item) => item.value === normalizeStatus(protocol.status)) || BOARD_COLUMNS[0];
+function KanbanCard({ item, onOpen }) {
+  const column = BOARD_COLUMNS.find((entry) => entry.value === String(item.status || "").toLowerCase()) || BOARD_COLUMNS[0];
 
   return (
     <Box
-      onClick={() => onOpen(protocol.id)}
+      onClick={() => onOpen(item)}
       sx={{
         p: 1.5,
         borderRadius: 2,
@@ -85,25 +102,139 @@ function KanbanCard({ protocol, onOpen }) {
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
-            {protocol.numero}
+            {item.titulo}
           </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600, lineHeight: 1.3 }}>
-            {protocol.assunto}
+          <Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.35, color: "text.secondary" }}>
+            {item.descricao || "Sem descricao"}
           </Typography>
         </Box>
-        <Chip size="small" color={status.color} label={status.label} />
+        <Chip size="small" color={column.color} label={column.label} />
+      </Stack>
+
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
+        <Chip size="small" variant="outlined" label={`Prioridade: ${item.prioridade || "normal"}`} />
+        {item.protocol ? <Chip size="small" color="success" label={item.protocol.numero} /> : null}
       </Stack>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-        {protocol.solicitante_nome || "Sem solicitante"}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-        {protocol.origem_unit?.nome || "Origem não informada"} → {protocol.destino_unit?.nome || "Destino não informado"}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-        Atualizado em {formatDateTime(protocol.updated_at)}
+        Atualizado em {formatDateTime(item.updated_at)}
       </Typography>
     </Box>
+  );
+}
+
+function TaskDialog({ open, onClose, onSave, onDelete, item, saving }) {
+  const [form, setForm] = useState(INITIAL_FORM);
+
+  useEffect(() => {
+    if (!open) return;
+    setForm({
+      titulo: item?.titulo || "",
+      descricao: item?.descricao || "",
+      status: item?.status || "novo",
+      prioridade: item?.prioridade || "normal",
+      vencimento: formatDate(item?.vencimento),
+      ordem: Number(item?.ordem || 0),
+    });
+  }, [open, item]);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onSave({
+      ...form,
+      ordem: Number(form.ordem || 0),
+      vencimento: form.vencimento || null,
+    });
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{item ? "Editar item do kanban" : "Novo item do kanban"}</DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent sx={{ display: "grid", gap: 2 }}>
+          <TextField
+            label="Titulo"
+            value={form.titulo}
+            onChange={(event) => setForm((current) => ({ ...current, titulo: event.target.value }))}
+            required
+            fullWidth
+            sx={fieldStyle}
+          />
+          <TextField
+            label="Descricao"
+            value={form.descricao}
+            onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))}
+            fullWidth
+            multiline
+            minRows={3}
+            sx={fieldStyle}
+          />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Status"
+                value={form.status}
+                onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Prioridade</InputLabel>
+              <Select
+                label="Prioridade"
+                value={form.prioridade}
+                onChange={(event) => setForm((current) => ({ ...current, prioridade: event.target.value }))}
+              >
+                {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              type="date"
+              label="Vencimento"
+              value={form.vencimento}
+              onChange={(event) => setForm((current) => ({ ...current, vencimento: event.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              sx={fieldStyle}
+            />
+            <TextField
+              type="number"
+              label="Ordem"
+              value={form.ordem}
+              onChange={(event) => setForm((current) => ({ ...current, ordem: event.target.value }))}
+              fullWidth
+              sx={fieldStyle}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          {item ? (
+            <Button color="error" onClick={() => onDelete(item)} disabled={saving}>
+              Excluir
+            </Button>
+          ) : null}
+          <Box sx={{ flex: 1 }} />
+          <Button onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" disabled={saving}>
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }
 
@@ -111,38 +242,25 @@ export default function KanbanPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [protocols, setProtocols] = useState([]);
+  const [items, setItems] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
-  const loadProtocols = useCallback(async () => {
+  const loadItems = useCallback(async () => {
     setRefreshing(true);
     setMessage("");
 
     try {
-      const all = [];
-      let page = 1;
-      let lastPage = 1;
-
-      do {
-        const { data } = await api.get("/protocolos", {
-          params: {
-            per_page: 100,
-            page,
-          },
-        });
-
-        all.push(...(Array.isArray(data?.data) ? data.data : []));
-        lastPage = Number(data?.last_page || 1);
-        page += 1;
-      } while (page <= lastPage);
-
-      setProtocols(all);
+      const { data } = await api.get("/kanban");
+      setItems(Array.isArray(data) ? data : []);
     } catch (error) {
-      setProtocols([]);
-      setMessage(error?.response?.data?.message || "Não foi possível carregar o kanban.");
+      setItems([]);
+      setMessage(error?.response?.data?.message || "Nao foi possivel carregar o kanban.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -150,47 +268,93 @@ export default function KanbanPage() {
   }, []);
 
   useEffect(() => {
-    loadProtocols();
-  }, [loadProtocols]);
+    loadItems();
+  }, [loadItems]);
 
-  const filteredProtocols = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-
-    return protocols.filter((protocol) => {
+    return items.filter((item) => {
       const matchesSearch =
         !term ||
-        [protocol.numero, protocol.assunto, protocol.solicitante_nome, protocol.solicitante_documento]
+        [item.titulo, item.descricao, item.protocol?.numero, item.protocol?.assunto]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(term));
-      const matchesPriority = !priorityFilter || String(protocol.prioridade || "").toLowerCase() === priorityFilter;
-      const matchesStatus = !statusFilter || normalizeStatus(protocol.status) === statusFilter;
-
+      const matchesPriority = !priorityFilter || String(item.prioridade || "").toLowerCase() === priorityFilter;
+      const matchesStatus = !statusFilter || String(item.status || "").toLowerCase() === statusFilter;
       return matchesSearch && matchesPriority && matchesStatus;
     });
-  }, [protocols, search, priorityFilter, statusFilter]);
+  }, [items, search, priorityFilter, statusFilter]);
 
   const columns = useMemo(() => {
     return BOARD_COLUMNS.map((column) => ({
       ...column,
-      items: filteredProtocols
-        .filter((protocol) => normalizeStatus(protocol.status) === column.value)
+      items: filteredItems
+        .filter((item) => String(item.status || "").toLowerCase() === column.value)
         .sort((a, b) => {
           const left = new Date(b.updated_at || b.created_at || 0).getTime();
           const right = new Date(a.updated_at || a.created_at || 0).getTime();
           return left - right;
         }),
     }));
-  }, [filteredProtocols]);
+  }, [filteredItems]);
 
   const totals = useMemo(() => {
-    return BOARD_COLUMNS.reduce(
+    return columns.reduce(
       (acc, column) => {
-        acc.total += columns.find((item) => item.value === column.value)?.items.length || 0;
+        acc.total += column.items.length;
         return acc;
       },
       { total: 0 }
     );
   }, [columns]);
+
+  const openCreate = () => {
+    setEditingItem(null);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (item) => {
+    setEditingItem(item);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const saveItem = async (payload) => {
+    setSaving(true);
+    try {
+      if (editingItem?.id) {
+        await api.put(`/kanban/${editingItem.id}`, payload);
+      } else {
+        await api.post("/kanban", payload);
+      }
+      await loadItems();
+      closeDialog();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Nao foi possivel salvar o item.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteItem = async (item) => {
+    if (!item?.id) return;
+    if (!window.confirm("Deseja excluir este item do kanban?")) return;
+
+    setSaving(true);
+    try {
+      await api.delete(`/kanban/${item.id}`);
+      await loadItems();
+      closeDialog();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Nao foi possivel excluir o item.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Box sx={{ maxWidth: 1600, mx: "auto", p: { xs: 2, md: 3 }, color: "var(--lg-text-primary)" }}>
@@ -200,7 +364,7 @@ export default function KanbanPage() {
             Kanban Geral
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-            Acompanhe os protocolos em fluxo visual. Eles também podem ser abertos a partir daqui.
+            Quadro independente para acompanhamento operacional. Vinculos com protocolo sao opcionais e explicitos.
           </Typography>
         </Box>
 
@@ -208,10 +372,10 @@ export default function KanbanPage() {
           <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>
             Caixa de Entrada
           </Button>
-          <Button variant="contained" onClick={() => router.push("/protocolo/novo")}>
-            Novo Protocolo
+          <Button variant="contained" onClick={openCreate}>
+            Novo Item
           </Button>
-          <Button variant="text" onClick={loadProtocols} disabled={refreshing}>
+          <Button variant="text" onClick={loadItems} disabled={refreshing}>
             {refreshing ? "Atualizando..." : "Atualizar"}
           </Button>
         </Stack>
@@ -233,24 +397,17 @@ export default function KanbanPage() {
       ) : null}
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <BaseCard title="Total de protocolos">
+        <Grid item xs={12} md={6}>
+          <BaseCard title="Total de itens">
             <Typography variant="h3" sx={{ fontWeight: 900 }}>
               {totals.total}
             </Typography>
           </BaseCard>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <BaseCard title="Com visualização">
+        <Grid item xs={12} md={6}>
+          <BaseCard title="Em andamento">
             <Typography variant="h3" sx={{ fontWeight: 900 }}>
-              {protocols.filter((item) => Array.isArray(item.visualizations) && item.visualizations.length > 0).length}
-            </Typography>
-          </BaseCard>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <BaseCard title="Pendentes">
-            <Typography variant="h3" sx={{ fontWeight: 900 }}>
-              {protocols.filter((item) => !["concluido", "encerrado", "cancelado"].includes(normalizeStatus(item.status))).length}
+              {items.filter((item) => String(item.status || "").toLowerCase() === "em_andamento").length}
             </Typography>
           </BaseCard>
         </Grid>
@@ -260,18 +417,14 @@ export default function KanbanPage() {
         <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
           <TextField
             fullWidth
-            label="Pesquisar protocolo"
+            label="Pesquisar item"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             sx={fieldStyle}
           />
           <FormControl fullWidth>
             <InputLabel>Status</InputLabel>
-            <Select
-              label="Status"
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-            >
+            <Select label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               <MenuItem value="">Todos os status</MenuItem>
               {BOARD_COLUMNS.map((status) => (
                 <MenuItem key={status.value} value={status.value}>
@@ -320,47 +473,25 @@ export default function KanbanPage() {
               >
                 <Box
                   sx={{
-                    px: 2,
-                    py: 1.5,
+                    p: 1.5,
                     borderBottom: "1px solid var(--lg-border)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 1,
+                    bgcolor: "rgba(var(--lg-accent-rgb), 0.08)",
                   }}
                 >
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                       {column.label}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {column.items.length} protocolos
-                    </Typography>
-                  </Box>
-                  <Chip size="small" color={column.color} label={column.label} />
+                    <Chip size="small" color={column.color} label={`${column.items.length}`} />
+                  </Stack>
                 </Box>
-
-                <Box sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1.25, minHeight: 240 }}>
-                  {column.items.length > 0 ? (
-                    column.items.map((protocol) => (
-                      <KanbanCard
-                        key={protocol.id}
-                        protocol={protocol}
-                        onOpen={(id) => router.push(`/protocolo/${id}`)}
-                      />
-                    ))
+                <Box sx={{ p: 1.5, display: "grid", gap: 1.25, minHeight: 320 }}>
+                  {column.items.length ? (
+                    column.items.map((item) => <KanbanCard key={item.id} item={item} onOpen={openEdit} />)
                   ) : (
-                    <Box
-                      sx={{
-                        p: 2,
-                        border: "1px dashed var(--lg-border)",
-                        borderRadius: 2,
-                        color: "text.secondary",
-                        textAlign: "center",
-                      }}
-                    >
-                      Nenhum protocolo nesta etapa.
-                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                      Nenhum item nesta etapa.
+                    </Typography>
                   )}
                 </Box>
               </Box>
@@ -368,6 +499,8 @@ export default function KanbanPage() {
           </Stack>
         </Box>
       )}
+
+      <TaskDialog open={dialogOpen} item={editingItem} onClose={closeDialog} onSave={saveItem} onDelete={deleteItem} saving={saving} />
     </Box>
   );
 }
