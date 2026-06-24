@@ -81,18 +81,27 @@ export default function ChatDashboard() {
   }
 
   const dailyEvents = Number(data.today?.events_published || 0);
-  const eventLimit = Number(data.limits?.daily_messages || 200000);
-  const connectionLimit = Number(data.limits?.concurrent_connections || 100);
+  const isSoketi = data.limits?.engine === "soketi";
+  const eventLimit = data.limits?.daily_messages
+    ? Number(data.limits.daily_messages)
+    : null;
+  const connectionLimit = data.limits?.concurrent_connections
+    ? Number(data.limits.concurrent_connections)
+    : null;
   const currentConnections = Number(data.current?.connections || 0);
-  const dailyPercent = Math.min(100, (dailyEvents / eventLimit) * 100);
-  const connectionPercent = Math.min(100, (currentConnections / connectionLimit) * 100);
+  const dailyPercent = eventLimit
+    ? Math.min(100, (dailyEvents / eventLimit) * 100)
+    : 0;
+  const connectionPercent = connectionLimit
+    ? Math.min(100, (currentConnections / connectionLimit) * 100)
+    : 0;
 
   return (
     <Box className="dashboard-neon-home">
       <Alert severity="info" sx={{ mb: 2 }}>
-        O sistema registra publicações e conexões do chat. No Pusher, uma
-        publicação entregue a vários usuários pode consumir mais de uma
-        mensagem; confirme o valor faturável no painel do provedor.
+        {isSoketi
+          ? "O SysDoc está monitorando o uso do servidor Soketi. Os limites dependem da capacidade do servidor onde ele está hospedado."
+          : "O sistema registra publicações e conexões do chat. No Pusher, uma publicação entregue a vários usuários pode consumir mais de uma mensagem; confirme o valor faturável no painel do provedor."}
       </Alert>
 
       <Grid container spacing={2}>
@@ -120,7 +129,9 @@ export default function ChatDashboard() {
             </Box>
             <LinearProgress variant="determinate" value={dailyPercent} color={dailyPercent >= 80 ? "warning" : "primary"} sx={{ height: 9, borderRadius: 5 }} />
             <Typography variant="caption" color="text.secondary">
-              Referencia: {number(eventLimit)} mensagens por dia no {data.limits?.plan}.
+              {eventLimit
+                ? `Referência: ${number(eventLimit)} mensagens por dia no ${data.limits?.plan}.`
+                : "Sem limite fixo configurado pelo provedor. Acompanhe a capacidade do servidor Soketi."}
             </Typography>
           </Card>
         </Grid>
@@ -133,7 +144,9 @@ export default function ChatDashboard() {
             </Box>
             <LinearProgress variant="determinate" value={connectionPercent} color={connectionPercent >= 80 ? "warning" : "success"} sx={{ height: 9, borderRadius: 5 }} />
             <Typography variant="caption" color="text.secondary">
-              Limite de {number(connectionLimit)} conexões simultâneas.
+              {connectionLimit
+                ? `Limite de ${number(connectionLimit)} conexões simultâneas.`
+                : "Sem limite fixo configurado. O teto depende dos recursos do servidor Soketi."}
             </Typography>
           </Card>
         </Grid>

@@ -44,6 +44,7 @@ export function ChatProvider({ children }) {
   const [typing, setTyping] = useState({});
   const [loading, setLoading] = useState(false);
   const [syncError, setSyncError] = useState("");
+  const [realtimeVersion, setRealtimeVersion] = useState(0);
   const echoRef = useRef(null);
   const connectionIdRef = useRef(createConnectionId());
   const activeConversationRef = useRef(null);
@@ -245,12 +246,22 @@ export function ChatProvider({ children }) {
   }, [isAuthenticated, refreshLists]);
 
   useEffect(() => {
+    const reloadRealtime = () => setRealtimeVersion((current) => current + 1);
+    window.addEventListener("chat-realtime-config-updated", reloadRealtime);
+    return () =>
+      window.removeEventListener("chat-realtime-config-updated", reloadRealtime);
+  }, []);
+
+  useEffect(() => {
     if (!isAuthenticated || !user) return undefined;
     let cancelled = false;
-    const key = process.env.NEXT_PUBLIC_PUSHER_APP_KEY;
 
     const connect = async () => {
-      if (!key) return;
+      const { data: realtimeConfig } = await api.get("/chat/realtime-config");
+      if (!realtimeConfig?.active || !realtimeConfig?.key) {
+        setConnected(false);
+        return;
+      }
       const [{ default: Echo }, { default: Pusher }] = await Promise.all([
         import("laravel-echo"),
         import("pusher-js"),
@@ -258,11 +269,11 @@ export function ChatProvider({ children }) {
       if (cancelled) return;
 
       window.Pusher = Pusher;
-      const echo = new Echo({
+      const echoOptions = {
         broadcaster: "pusher",
-        key,
-        cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER || "mt1",
-        forceTLS: true,
+        key: realtimeConfig.key,
+        cluster: realtimeConfig.cluster || "mt1",
+        forceTLS: Boolean(realtimeConfig.use_tls),
         authorizer: (channel) => ({
           authorize: (socketId, callback) => {
             api
@@ -274,7 +285,17 @@ export function ChatProvider({ children }) {
               .catch((error) => callback(true, error));
           },
         }),
-      });
+      };
+
+      if (realtimeConfig.engine === "soketi") {
+        echoOptions.wsHost = realtimeConfig.host;
+        echoOptions.wsPort = Number(realtimeConfig.port || 6001);
+        echoOptions.wssPort = Number(realtimeConfig.port || 443);
+        echoOptions.enabledTransports = ["ws", "wss"];
+        echoOptions.disableStats = true;
+      }
+
+      const echo = new Echo(echoOptions);
 
       echoRef.current = echo;
       echo.connector.pusher.connection.bind("connected", () =>
@@ -381,6 +402,7 @@ export function ChatProvider({ children }) {
   }, [
     isAuthenticated,
     markRead,
+    realtimeVersion,
     refreshLists,
     user,
   ]);

@@ -26,6 +26,7 @@ const TITLE_OVERRIDES = {
   "/documentos/aprovacoes": "Aprovações de Documentos",
   "/configuracoes/whatsapp": "Configurações WhatsApp",
   "/configuracoes/email": "Configurações E-mail",
+  "/configuracoes/chat": "Configurações do Chat",
 };
 
 const SEGMENT_OVERRIDES = {

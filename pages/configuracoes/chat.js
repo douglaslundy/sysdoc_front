@@ -1,0 +1,307 @@
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
+import FeatherIcon from "feather-icons-react";
+import BaseCard from "../../src/components/baseCard/BaseCard";
+import {
+  modalFormRootSx,
+  modalPrimaryButtonSx,
+  modalSecondaryButtonSx,
+} from "../../src/components/modal/_shared/modalFormStyles";
+import { api } from "../../src/services/api";
+
+const emptyForm = {
+  engine: "pusher",
+  active: false,
+  app_id: "",
+  app_key: "",
+  app_secret: "",
+  cluster: "mt1",
+  host: "",
+  port: 6001,
+  scheme: "https",
+  use_tls: true,
+  current_password: "",
+};
+
+export default function ChatConfigPage() {
+  const [form, setForm] = useState(emptyForm);
+  const [configured, setConfigured] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+
+  const loadConfig = useCallback(async () => {
+    const { data } = await api.get("/chat/config");
+    setForm((current) => ({
+      ...current,
+      engine: data?.engine || "pusher",
+      active: Boolean(data?.active),
+      cluster: data?.cluster || "mt1",
+      host: data?.host || "",
+      port: data?.port || 6001,
+      scheme: data?.scheme || "https",
+      use_tls: Boolean(data?.use_tls),
+      app_id: "",
+      app_key: "",
+      app_secret: "",
+      current_password: "",
+    }));
+    setConfigured({
+      app_id: Boolean(data?.has_app_id),
+      app_key: Boolean(data?.has_app_key),
+      app_secret: Boolean(data?.has_app_secret),
+    });
+  }, []);
+
+  useEffect(() => {
+    loadConfig()
+      .catch((error) =>
+        setFeedback({
+          type: "error",
+          message:
+            error?.response?.data?.message ||
+            "Não foi possível carregar as configurações do chat.",
+        })
+      )
+      .finally(() => setLoading(false));
+  }, [loadConfig]);
+
+  const update = (field) => (event) => {
+    const value =
+      event?.target?.type === "checkbox"
+        ? event.target.checked
+        : event?.target?.value;
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === "scheme"
+        ? { use_tls: value === "https" }
+        : field === "use_tls"
+        ? { scheme: value ? "https" : "http" }
+        : {}),
+    }));
+  };
+
+  const payload = () => ({ ...form, port: Number(form.port || 0) });
+
+  const save = async () => {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.put("/chat/config", payload());
+      setConfigured({
+        app_id: Boolean(data?.has_app_id),
+        app_key: Boolean(data?.has_app_key),
+        app_secret: Boolean(data?.has_app_secret),
+      });
+      setForm((current) => ({
+        ...current,
+        app_id: "",
+        app_key: "",
+        app_secret: "",
+        current_password: "",
+      }));
+      window.dispatchEvent(new Event("chat-realtime-config-updated"));
+      setFeedback({
+        type: "success",
+        message: "Configurações do motor de chat salvas com segurança.",
+      });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Não foi possível salvar as configurações.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const testConnection = async () => {
+    setTesting(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.post("/chat/config/test", payload());
+      setFeedback({
+        type: data?.ok ? "success" : "error",
+        message: data?.message || "Teste concluído.",
+      });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error?.response?.data?.message ||
+          "Não foi possível validar a conexão.",
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const secretPlaceholder = (field, example) =>
+    configured[field]
+      ? "Já configurado. Deixe em branco para manter o valor atual."
+      : example;
+
+  if (loading) {
+    return <Box sx={{ p: 4, color: "var(--lg-text-muted)" }}>Carregando configurações...</Box>;
+  }
+
+  return (
+    <Box className="queue-page chat-config-page" sx={{ ...modalFormRootSx, maxWidth: 980, mx: "auto" }}>
+      <BaseCard
+        title="Configurações do Chat"
+        subtitle="Escolha e configure o motor responsável pela comunicação em tempo real."
+      >
+        <Stack spacing={2.2}>
+          {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
+
+          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Motor de comunicação</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Pusher Cloud não exige servidor próprio. Soketi é open-source, mas precisa estar instalado em um servidor externo com WebSocket.
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel id="chat-engine-label">Motor do chat</InputLabel>
+              <Select labelId="chat-engine-label" label="Motor do chat" value={form.engine} onChange={update("engine")}>
+                <MenuItem value="pusher">Pusher Cloud</MenuItem>
+                <MenuItem value="soketi">Soketi (servidor próprio)</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Typography sx={{ fontWeight: 800, mb: 2 }}>Credenciais da aplicação</Typography>
+            <Stack spacing={2}>
+              <TextField
+                label="App ID"
+                value={form.app_id}
+                onChange={update("app_id")}
+                placeholder={secretPlaceholder("app_id", form.engine === "pusher" ? "Ex.: 1234567, disponível em App Keys no painel Pusher" : "Valor configurado em SOKETI_DEFAULT_APP_ID")}
+                type="password"
+                autoComplete="new-password"
+              />
+              <TextField
+                label="App Key"
+                value={form.app_key}
+                onChange={update("app_key")}
+                placeholder={secretPlaceholder("app_key", form.engine === "pusher" ? "Chave pública disponível em App Keys no painel Pusher" : "Valor configurado em SOKETI_DEFAULT_APP_KEY")}
+                type="password"
+                autoComplete="new-password"
+              />
+              <TextField
+                label="App Secret"
+                value={form.app_secret}
+                onChange={update("app_secret")}
+                placeholder={secretPlaceholder("app_secret", form.engine === "pusher" ? "Segredo disponível em App Keys no painel Pusher" : "Valor configurado em SOKETI_DEFAULT_APP_SECRET")}
+                type="password"
+                autoComplete="new-password"
+              />
+            </Stack>
+          </Box>
+
+          {form.engine === "pusher" ? (
+            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+              <Typography sx={{ fontWeight: 800, mb: 2 }}>Pusher Cloud</Typography>
+              <TextField
+                fullWidth
+                label="Cluster"
+                value={form.cluster}
+                onChange={update("cluster")}
+                placeholder="Ex.: mt1, us2, eu ou sa1, conforme o painel Pusher"
+              />
+            </Box>
+          ) : (
+            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+              <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Servidor Soketi</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Informe o endereço público do servidor Soketi. Não inclua caminhos como <code>/app</code> ou <code>/apps</code>.
+              </Typography>
+              <Stack spacing={2}>
+                <TextField label="Host do Soketi" value={form.host} onChange={update("host")} placeholder="Ex.: websocket.seudominio.com" />
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
+                  <TextField
+                    label="Porta"
+                    type="number"
+                    value={form.port}
+                    onChange={update("port")}
+                    placeholder="6001 sem proxy ou 443 com HTTPS"
+                    inputProps={{ min: 1, max: 65535 }}
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel id="chat-scheme-label">Protocolo</InputLabel>
+                    <Select labelId="chat-scheme-label" label="Protocolo" value={form.scheme} onChange={update("scheme")}>
+                      <MenuItem value="https">HTTPS / WSS</MenuItem>
+                      <MenuItem value="http">HTTP / WS</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <FormControlLabel
+                  control={<Switch checked={form.use_tls} onChange={update("use_tls")} />}
+                  label="Usar conexão segura TLS (recomendado em produção)"
+                />
+              </Stack>
+            </Box>
+          )}
+
+          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Stack spacing={2}>
+              <FormControlLabel
+                control={<Switch checked={form.active} onChange={update("active")} />}
+                label="Ativar comunicação em tempo real"
+              />
+              <TextField
+                label="Senha atual do administrador"
+                value={form.current_password}
+                onChange={update("current_password")}
+                type="password"
+                autoComplete="current-password"
+                placeholder="Obrigatória para salvar ou testar as credenciais"
+              />
+            </Stack>
+          </Box>
+
+          <Alert severity="warning">
+            App ID, App Key e App Secret são criptografados no banco usando a APP_KEY do Laravel. O App Secret nunca é enviado ao navegador.
+          </Alert>
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>
+            <Button
+              variant="outlined"
+              onClick={testConnection}
+              disabled={testing || saving}
+              startIcon={<FeatherIcon icon="activity" width="17" />}
+              sx={modalSecondaryButtonSx}
+            >
+              {testing ? "Testando..." : "Testar conexão"}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={save}
+              disabled={saving || testing}
+              startIcon={<FeatherIcon icon="save" width="17" />}
+              sx={modalPrimaryButtonSx}
+            >
+              {saving ? "Salvando..." : "Salvar configurações"}
+            </Button>
+          </Box>
+        </Stack>
+      </BaseCard>
+    </Box>
+  );
+}
