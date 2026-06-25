@@ -35,6 +35,12 @@ const emptyForm = {
   port: 6001,
   scheme: "https",
   use_tls: true,
+  rate_limit_decay_minutes: 1,
+  rate_limit_global: 300,
+  rate_limit_sync: 120,
+  rate_limit_messages: 30,
+  rate_limit_typing: 60,
+  rate_limit_presence: 60,
 };
 
 export default function ChatConfigPage() {
@@ -61,6 +67,12 @@ export default function ChatConfigPage() {
       port: data?.port || 6001,
       scheme: data?.scheme || "https",
       use_tls: Boolean(data?.use_tls),
+      rate_limit_decay_minutes: data?.rate_limit_decay_minutes ?? 1,
+      rate_limit_global: data?.rate_limit_global ?? 300,
+      rate_limit_sync: data?.rate_limit_sync ?? 120,
+      rate_limit_messages: data?.rate_limit_messages ?? 30,
+      rate_limit_typing: data?.rate_limit_typing ?? 60,
+      rate_limit_presence: data?.rate_limit_presence ?? 60,
       app_id: clearSecrets ? "" : current.app_id,
       app_key: clearSecrets ? "" : current.app_key,
       app_secret: clearSecrets ? "" : current.app_secret,
@@ -107,7 +119,16 @@ export default function ChatConfigPage() {
     }));
   };
 
-  const payload = () => ({ ...form, port: Number(form.port || 0) });
+  const payload = () => ({
+    ...form,
+    port: Number(form.port || 0),
+    rate_limit_decay_minutes: Number(form.rate_limit_decay_minutes || 1),
+    rate_limit_global: Number(form.rate_limit_global || 0),
+    rate_limit_sync: Number(form.rate_limit_sync || 0),
+    rate_limit_messages: Number(form.rate_limit_messages || 0),
+    rate_limit_typing: Number(form.rate_limit_typing || 0),
+    rate_limit_presence: Number(form.rate_limit_presence || 0),
+  });
 
   const errorMessage = (error, fallback) => {
     if (error?.response?.status === 429) {
@@ -246,6 +267,9 @@ export default function ChatConfigPage() {
                 <Typography variant="body2" color="text.secondary">
                   Status: credenciais salvas. Use “Testar conexão” para validar a comunicação com o motor.
                 </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Limites atuais: global {config?.rate_limit_global ?? 300}/min, sincronizaÃ§Ã£o {config?.rate_limit_sync ?? 120}/min, mensagens {config?.rate_limit_messages ?? 30}/min, digitaÃ§Ã£o {config?.rate_limit_typing ?? 60}/min e presenÃ§a {config?.rate_limit_presence ?? 60}/min. Janela: {config?.rate_limit_decay_minutes ?? 1} min.
+                </Typography>
 
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   <Button
@@ -379,6 +403,63 @@ export default function ChatConfigPage() {
               </Stack>
             </Box>
           )}
+
+          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>ProteÃ§Ã£o contra excesso de uso</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite especÃ­fico.
+            </Typography>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2 }}>
+              <TextField
+                label="Janela de bloqueio (minutos)"
+                type="number"
+                value={form.rate_limit_decay_minutes}
+                onChange={update("rate_limit_decay_minutes")}
+                inputProps={{ min: 1, max: 60 }}
+                helperText="Janela usada para contar as tentativas."
+              />
+              <TextField
+                label="Limite global do chat / minuto"
+                type="number"
+                value={form.rate_limit_global}
+                onChange={update("rate_limit_global")}
+                inputProps={{ min: 0, max: 5000 }}
+                helperText="Total de requisiÃ§Ãµes do mÃ³dulo por usuÃ¡rio."
+              />
+              <TextField
+                label="SincronizaÃ§Ãµes / minuto"
+                type="number"
+                value={form.rate_limit_sync}
+                onChange={update("rate_limit_sync")}
+                inputProps={{ min: 0, max: 5000 }}
+                helperText="Listagens, leitura, entrega e histÃ³rico."
+              />
+              <TextField
+                label="Mensagens enviadas / minuto"
+                type="number"
+                value={form.rate_limit_messages}
+                onChange={update("rate_limit_messages")}
+                inputProps={{ min: 0, max: 5000 }}
+                helperText="Envio real de mensagens e anexos."
+              />
+              <TextField
+                label="Eventos de digitaÃ§Ã£o / minuto"
+                type="number"
+                value={form.rate_limit_typing}
+                onChange={update("rate_limit_typing")}
+                inputProps={{ min: 0, max: 5000 }}
+                helperText="InÃ­cio e parada do indicador de digitaÃ§Ã£o."
+              />
+              <TextField
+                label="AtualizaÃ§Ãµes de presenÃ§a / minuto"
+                type="number"
+                value={form.rate_limit_presence}
+                onChange={update("rate_limit_presence")}
+                inputProps={{ min: 0, max: 5000 }}
+                helperText="Heartbeat, online, ausente e offline."
+              />
+            </Box>
+          </Box>
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>
             {config?.configured && (
