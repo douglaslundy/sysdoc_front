@@ -130,9 +130,11 @@ export default function ConfiguracoesPage() {
               </Stack>
 
               <Box sx={{ display: 'flex', gap: 1, mt: 2.5, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                <Button variant="outlined" component={NextLink} href="/almoxarifado">
-                  Voltar
-                </Button>
+                <NextLink href="/almoxarifado" passHref>
+                  <Button variant="outlined" component="a">
+                    Voltar
+                  </Button>
+                </NextLink>
                 <Button variant="contained" onClick={handleSave} disabled={saving || loading}>
                   {saving ? 'Salvando...' : 'Salvar'}
                 </Button>
@@ -147,15 +149,15 @@ export default function ConfiguracoesPage() {
               </Typography>
               <Stack spacing={1}>
                 {QUICK_LINKS.map((item) => (
-                  <Button
-                    key={item.href}
-                    component={NextLink}
-                    href={item.href}
-                    variant="outlined"
-                    sx={{ justifyContent: 'space-between' }}
-                  >
-                    {item.label}
-                  </Button>
+                  <NextLink key={item.href} href={item.href} passHref>
+                    <Button
+                      component="a"
+                      variant="outlined"
+                      sx={{ justifyContent: 'space-between' }}
+                    >
+                      {item.label}
+                    </Button>
+                  </NextLink>
                 ))}
               </Stack>
               <Divider sx={{ my: 2 }} />
