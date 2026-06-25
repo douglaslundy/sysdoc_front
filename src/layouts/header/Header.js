@@ -7,11 +7,13 @@ import ProfileDD from "./ProfileDD";
 import { getPageTitle } from "../../utils/pageTitle";
 import ProtocolBell from "../../components/protocolo/ProtocolBell";
 import { ChatContext } from "../../contexts/ChatContext";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const { pathname } = useRouter();
   const pageTitle = getPageTitle(pathname);
   const { setIsOpen, unreadTotal } = useContext(ChatContext);
+  const { canUseChat } = useContext(AuthContext);
 
   return (
     <AppBar
@@ -25,7 +27,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
       className={`lg-topbar-paper ${customClass || ""}`.trim()}
     >
       <Toolbar sx={{ px: "22px !important", py: "13px", minHeight: "64px !important" }}>
-        <IconButton
+        {canUseChat && <IconButton
           size="large"
           color="inherit"
           aria-label="open sidebar"
@@ -43,7 +45,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
           }}
         >
           <FeatherIcon icon="menu" width="20" height="20" />
-        </IconButton>
+        </IconButton>}
 
         <Typography
           sx={{

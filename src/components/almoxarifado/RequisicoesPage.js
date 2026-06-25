@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, Box, Button, Chip, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -6,6 +6,7 @@ import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import TableLoadingRows from '../tableLoadingRows';
 import { modalBackdropSx, modalFormRootSx, modalShellSx } from '../modal/_shared/modalFormStyles';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const StyledTableRow = styled(TableRow)(() => ({
   '& td': {
@@ -33,9 +34,10 @@ const STATUS_META = {
 };
 
 const EMPTY_ITEM = { almoxarifado_produto_id: '', quantidade_solicitada: '', observacao: '' };
-const EMPTY = { almoxarifado_secretaria_id: '', solicitante: '', data_solicitacao: '', justificativa: '', observacoes: '', itens: [EMPTY_ITEM] };
+const EMPTY = { almoxarifado_secretaria_id: '', justificativa: '', observacoes: '', itens: [EMPTY_ITEM] };
 
 export default function RequisicoesPage() {
+  const { user: currentUserId, username, capabilities } = useContext(AuthContext);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -48,6 +50,8 @@ export default function RequisicoesPage() {
   const [produtos, setProdutos] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -111,6 +115,32 @@ export default function RequisicoesPage() {
     }
   };
 
+  const openDetail = async (id) => {
+    setDetailLoading(true);
+    try {
+      const { data } = await api.get(`/almoxarifado/requisicoes/${id}`);
+      setDetail(data);
+    } catch (error) {
+      setFeedback({ type: 'error', message: error?.response?.data?.message || 'Não foi possível carregar a requisição.' });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const printRequest = async (row) => {
+    try {
+      const response = await api.get(`/almoxarifado/requisicoes/${row.id}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `requisicao-${row.numero}.pdf`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setFeedback({ type: 'error', message: error?.response?.data?.message || 'Não foi possível imprimir a requisição.' });
+    }
+  };
+
   return (
     <Box sx={modalFormRootSx} className="queue-page almoxarifado-requisicoes-page">
       <BaseCard title="Requisições">
@@ -122,7 +152,9 @@ export default function RequisicoesPage() {
         )}
         <Box className="queue-page__toolbar" sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
           <TextField className="lg-search-field" placeholder="Pesquisar requisição..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} sx={{ flex: '1 1 280px', minWidth: 220 }} />
-          <Button variant="contained" sx={{ ml: 'auto' }} onClick={() => setOpen(true)}>Nova Requisição</Button>
+          {capabilities?.almoxarifado_create && (
+            <Button variant="contained" sx={{ ml: 'auto' }} onClick={() => setOpen(true)}>Nova Requisição</Button>
+          )}
         </Box>
 
         <TableContainer className="queue-page__table-wrap">
@@ -152,10 +184,14 @@ export default function RequisicoesPage() {
                       <TableCell>{row.itens?.length || 0}</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1}>
-                          {row.status === 'recebida' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'aprovada')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Aprovar'}</Button>}
-                          {row.status === 'aprovada' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'em_separacao')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Separar'}</Button>}
-                          {row.status === 'em_separacao' && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'entregue')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Entregar'}</Button>}
-                          {row.status !== 'entregue' && row.status !== 'cancelada' && <Button size="small" color="error" variant="outlined" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>}
+                          <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>Detalhes</Button>
+                          {(Number(row.requisitante_user_id) === Number(currentUserId) || capabilities?.almoxarifado_approve || capabilities?.almoxarifado_deliver) && (
+                            <Button size="small" variant="outlined" onClick={() => printRequest(row)}>Imprimir</Button>
+                          )}
+                          {row.status === 'recebida' && capabilities?.almoxarifado_approve && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'aprovada')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Aprovar'}</Button>}
+                          {row.status === 'aprovada' && capabilities?.almoxarifado_deliver && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'em_separacao')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Separar'}</Button>}
+                          {row.status === 'em_separacao' && capabilities?.almoxarifado_deliver && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'entregue')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Entregar'}</Button>}
+                          {row.status !== 'entregue' && row.status !== 'cancelada' && (Number(row.requisitante_user_id) === Number(currentUserId) || capabilities?.almoxarifado_approve || capabilities?.almoxarifado_deliver) && <Button size="small" color="error" variant="outlined" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>}
                         </Stack>
                       </TableCell>
                     </StyledTableRow>
@@ -182,8 +218,14 @@ export default function RequisicoesPage() {
                   {secretarias.map((item) => <MenuItem key={item.id} value={item.id}>{item.nome}</MenuItem>)}
                 </Select>
               </FormControl>
-              <TextField label="Solicitante" value={form.solicitante} onChange={(e) => setForm((prev) => ({ ...prev, solicitante: e.target.value }))} />
-              <TextField label="Data da solicitação" type="date" value={form.data_solicitacao} onChange={(e) => setForm((prev) => ({ ...prev, data_solicitacao: e.target.value }))} InputLabelProps={{ shrink: true }} />
+              <Box>
+                <Typography variant="caption" color="text.secondary">Requisitante</Typography>
+                <Typography>{username || 'Usuário logado'}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">Data da solicitação</Typography>
+                <Typography>{new Date().toLocaleDateString('pt-BR')}</Typography>
+              </Box>
               <TextField label="Justificativa" value={form.justificativa} onChange={(e) => setForm((prev) => ({ ...prev, justificativa: e.target.value }))} multiline rows={2} />
               <TextField label="Observações" value={form.observacoes} onChange={(e) => setForm((prev) => ({ ...prev, observacoes: e.target.value }))} multiline rows={2} />
 
@@ -219,6 +261,48 @@ export default function RequisicoesPage() {
               <Button variant="contained" onClick={submit}>Gravar</Button>
               <Button variant="outlined" onClick={() => setOpen(false)}>Cancelar</Button>
             </Box>
+          </BaseCard>
+        </Box>
+      </Modal>
+
+      <Modal open={Boolean(detail) || detailLoading} onClose={() => setDetail(null)} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
+        <Box sx={{ ...modalShellSx, ...modalFormRootSx, maxWidth: 900 }}>
+          <BaseCard title={detail ? `Requisição ${detail.numero}` : 'Carregando requisição'}>
+            {detailLoading ? (
+              <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
+            ) : detail ? (
+              <Stack spacing={2}>
+                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: 'repeat(3, 1fr)' }} gap={2}>
+                  <Box><Typography variant="caption">Requisitante</Typography><Typography>{detail.requisitante?.name || detail.solicitante}</Typography></Box>
+                  <Box><Typography variant="caption">Data</Typography><Typography>{new Date(`${detail.data_solicitacao}T00:00:00`).toLocaleDateString('pt-BR')}</Typography></Box>
+                  <Box><Typography variant="caption">Status</Typography><Typography>{STATUS_META[detail.status]?.label || detail.status}</Typography></Box>
+                </Box>
+
+                <Typography variant="h6">Itens</Typography>
+                {(detail.itens || []).map((item) => (
+                  <Box key={item.id} sx={{ p: 1.5, border: '1px solid var(--lg-border)', borderRadius: 2 }}>
+                    <Typography fontWeight={700}>{item.produto?.nome || '-'}</Typography>
+                    <Typography variant="body2">Quantidade solicitada: {item.quantidade_solicitada}</Typography>
+                  </Box>
+                ))}
+
+                <Typography variant="h6">Histórico</Typography>
+                <Stack divider={<Box sx={{ borderBottom: '1px solid var(--lg-border)' }} />}>
+                  {[...(detail.historicos || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((entry) => (
+                    <Box key={entry.id} py={1.25}>
+                      <Typography fontWeight={700}>{STATUS_META[entry.novo_status]?.label || entry.novo_status}</Typography>
+                      <Typography variant="body2">{entry.user?.name || 'Sistema'} · {new Date(entry.created_at).toLocaleString('pt-BR')}</Typography>
+                      {entry.observacao && <Typography variant="body2" color="text.secondary">{entry.observacao}</Typography>}
+                    </Box>
+                  ))}
+                </Stack>
+
+                <Box display="flex" justifyContent="flex-end" gap={1}>
+                  <Button variant="outlined" onClick={() => printRequest(detail)}>Imprimir</Button>
+                  <Button variant="contained" onClick={() => setDetail(null)}>Fechar</Button>
+                </Box>
+              </Stack>
+            ) : null}
           </BaseCard>
         </Box>
       </Modal>

@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [myPermissions, setMyPermissions] = useState([]);
     const [authorizedPages, setAuthorizedPages] = useState([]);
+    const [capabilities, setCapabilities] = useState({});
     // Starts false; flips to true once the BFF responds (success or failure).
     // AuthGuard waits for this before rendering any access decision.
     const [permissionsLoaded, setPermissionsLoaded] = useState(false);
@@ -44,6 +45,7 @@ export function AuthProvider({ children }) {
                     setIsAuthenticated(true);
                     setMyPermissions(data.permissions || []);
                     setAuthorizedPages(data.pages || []);
+                    setCapabilities(data.capabilities || {});
                 }
             })
             .catch(() => {})
@@ -80,6 +82,8 @@ export function AuthProvider({ children }) {
                 setMyPermissions,
                 authorizedPages,
                 setAuthorizedPages,
+                capabilities,
+                canUseChat: Boolean(capabilities.chat),
                 permissionsLoaded,
                 loadAuth,
             }}

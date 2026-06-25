@@ -25,7 +25,17 @@ const modalStyle = {
     boxShadow: 24, p: 4, overflow: 'scroll',
 };
 
-const FORM_INICIAL = { nome: '', slug: '', descricao: '', ativo: true, page_ids: [] };
+const FORM_INICIAL = {
+    nome: '',
+    slug: '',
+    descricao: '',
+    ativo: true,
+    chat_enabled: false,
+    almoxarifado_create_enabled: true,
+    almoxarifado_approve_enabled: false,
+    almoxarifado_deliver_enabled: false,
+    page_ids: [],
+};
 const StyledTableRow = styled(TableRow)(() => ({
     '& td': {
         background: 'var(--queue-row-bg)',
@@ -93,6 +103,10 @@ export default function Perfis() {
             slug: profile.slug,
             descricao: profile.descricao || '',
             ativo: profile.ativo,
+            chat_enabled: Boolean(profile.chat_enabled),
+            almoxarifado_create_enabled: Boolean(profile.almoxarifado_create_enabled),
+            almoxarifado_approve_enabled: Boolean(profile.almoxarifado_approve_enabled),
+            almoxarifado_deliver_enabled: Boolean(profile.almoxarifado_deliver_enabled),
             page_ids: profile.pages?.map((p) => p.id) || [],
         });
         setOpenModal(true);
@@ -247,6 +261,33 @@ export default function Perfis() {
                                     <FormControlLabel
                                         control={<Switch checked={form.ativo} onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))} />}
                                         label="Perfil ativo"
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Typography variant="h6" fontWeight="bold">Permissões operacionais</Typography>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.chat_enabled} onChange={(e) => setForm((f) => ({ ...f, chat_enabled: e.target.checked }))} />}
+                                        label="Permitir acesso ao chat"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.almoxarifado_create_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_create_enabled: e.target.checked }))} />}
+                                        label="Criar requisições do almoxarifado"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.almoxarifado_approve_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_approve_enabled: e.target.checked }))} />}
+                                        label="Aprovar requisições do almoxarifado"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.almoxarifado_deliver_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_deliver_enabled: e.target.checked }))} />}
+                                        label="Separar e entregar requisições"
                                     />
                                 </Grid>
                             </Grid>

@@ -9,6 +9,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
   Grid,
   InputLabel,
@@ -82,6 +83,12 @@ const fieldStyle = {
   background: "var(--lg-glass-input)",
   borderRadius: 12,
 };
+
+const flattenUnits = (items, level = 0) =>
+  (Array.isArray(items) ? items : []).flatMap((item) => [
+    { ...item, level },
+    ...flattenUnits(item.children, level + 1),
+  ]);
 
 function KanbanCard({ item, onOpen, onDragStart, dragging }) {
   const column = BOARD_COLUMNS.find((entry) => entry.value === String(item.status || "").toLowerCase()) || BOARD_COLUMNS[0];
@@ -260,6 +267,216 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
   );
 }
 
+function ProtocolDialog({ open, item, onClose, onChanged }) {
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [protocol, setProtocol] = useState(null);
+  const [types, setTypes] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [form, setForm] = useState({});
+
+  const load = useCallback(async () => {
+    if (!open || !item?.protocol_id) return;
+    setLoading(true);
+    setMessage("");
+    try {
+      const [protocolRes, typesRes, usersRes, unitsRes] = await Promise.all([
+        api.get(`/protocolos/${item.protocol_id}`),
+        api.get("/protocolos/tipos"),
+        api.get("/users"),
+        api.get("/protocolos/unidades-organizacionais"),
+      ]);
+      const data = protocolRes.data;
+      setProtocol(data);
+      setTypes(Array.isArray(typesRes.data) ? typesRes.data : []);
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+      setUnits(flattenUnits(unitsRes.data));
+      setForm({
+        assunto: data.assunto || "",
+        descricao: data.descricao || "",
+        tipo: data.tipo || "",
+        prioridade: data.prioridade || "normal",
+        destino_unit_id: data.destino_unit_id || "",
+        destino_user_id: data.responsavel_atual_id || "",
+        prazo_atendimento: formatDate(data.prazo_atendimento),
+        kanban_status: item.status || "novo",
+      });
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível carregar o protocolo.");
+    } finally {
+      setLoading(false);
+    }
+  }, [open, item]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.put(`/protocolos/${item.protocol_id}`, {
+        assunto: form.assunto,
+        descricao: form.descricao || null,
+        tipo: form.tipo,
+        prioridade: form.prioridade,
+        destino_unit_id: form.destino_unit_id || null,
+        destino_user_id: form.destino_user_id || null,
+        prazo_atendimento: form.prazo_atendimento || null,
+      });
+
+      if (form.kanban_status !== item.status) {
+        await api.post(`/protocolos/${item.protocol_id}/kanban-status`, {
+          kanban_status: form.kanban_status,
+          observacao: "Movimentação realizada pelo Kanban.",
+        });
+      }
+
+      await onChanged();
+      onClose();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível atualizar o protocolo.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const downloadAttachment = async (attachment) => {
+    try {
+      const response = await api.get(`/protocolos/anexos/${attachment.id}/download`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = attachment.nome_original || "anexo";
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível baixar o anexo.");
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: { ...modalShellSx, ...modalFormRootSx, position: "relative", transform: "none", inset: "auto" },
+      }}
+    >
+      <DialogTitle>{protocol ? `${protocol.numero} - ${protocol.assunto}` : "Protocolo"}</DialogTitle>
+      <DialogContent>
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={5}><CircularProgress /></Box>
+        ) : (
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {message && <Typography color="error">{message}</Typography>}
+            <TextField fullWidth label="Assunto" value={form.assunto || ""} onChange={(event) => setForm((current) => ({ ...current, assunto: event.target.value }))} />
+            <TextField fullWidth multiline minRows={3} label="Descrição" value={form.descricao || ""} onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))} />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Tipo</InputLabel>
+                  <Select value={form.tipo || ""} label="Tipo" onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value }))}>
+                    {types.filter((type) => type.ativo !== false).map((type) => <MenuItem key={type.id} value={type.codigo}>{type.nome}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Prioridade</InputLabel>
+                  <Select value={form.prioridade || "normal"} label="Prioridade" onChange={(event) => setForm((current) => ({ ...current, prioridade: event.target.value }))}>
+                    {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth type="date" label="Prazo" InputLabelProps={{ shrink: true }} value={form.prazo_atendimento || ""} onChange={(event) => setForm((current) => ({ ...current, prazo_atendimento: event.target.value }))} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Unidade de destino</InputLabel>
+                  <Select value={form.destino_unit_id || ""} label="Unidade de destino" onChange={(event) => setForm((current) => ({ ...current, destino_unit_id: event.target.value }))}>
+                    <MenuItem value="">Sem unidade</MenuItem>
+                    {units.filter((unit) => unit.ativo !== false).map((unit) => <MenuItem key={unit.id} value={unit.id}>{`${"— ".repeat(unit.level || 0)}${unit.nome}`}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Responsável</InputLabel>
+                  <Select value={form.destino_user_id || ""} label="Responsável" onChange={(event) => setForm((current) => ({ ...current, destino_user_id: event.target.value }))}>
+                    <MenuItem value="">Sem responsável</MenuItem>
+                    {users.map((user) => <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Etapa no Kanban</InputLabel>
+                  <Select value={form.kanban_status || "novo"} label="Etapa no Kanban" onChange={(event) => setForm((current) => ({ ...current, kanban_status: event.target.value }))}>
+                    {STATUS_OPTIONS.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Divider />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography>{protocol?.solicitante_nome || "—"}</Typography></Grid>
+              <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography>{protocol?.origem_unit?.nome || "—"}</Typography></Grid>
+              <Grid item xs={12} md={4}><Typography variant="caption">Status do protocolo</Typography><Typography>{protocol?.status || "—"}</Typography></Grid>
+            </Grid>
+
+            <Typography variant="h6">Histórico</Typography>
+            <Stack divider={<Divider />}>
+              {(protocol?.movements || []).slice().reverse().map((movement) => (
+                <Box key={movement.id} py={1}>
+                  <Typography fontWeight={700}>{movement.acao}</Typography>
+                  <Typography variant="body2">{movement.user?.name || "Sistema"} · {formatDateTime(movement.created_at)}</Typography>
+                  {movement.observacao && <Typography variant="body2" color="text.secondary">{movement.observacao}</Typography>}
+                </Box>
+              ))}
+            </Stack>
+
+            <Typography variant="h6">Comentários</Typography>
+            {(protocol?.comments || []).length ? (
+              <Stack divider={<Divider />}>
+                {protocol.comments.map((comment) => (
+                  <Box key={comment.id} py={1}>
+                    <Typography>{comment.conteudo}</Typography>
+                    <Typography variant="body2" color="text.secondary">{comment.user?.name || "Sistema"} · {formatDateTime(comment.created_at)}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+            ) : <Typography variant="body2" color="text.secondary">Sem comentários.</Typography>}
+
+            <Typography variant="h6">Anexos</Typography>
+            {(protocol?.attachments || []).length ? (
+              <Stack spacing={1}>
+                {protocol.attachments.map((attachment) => (
+                  <Box key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" gap={2}>
+                    <Typography variant="body2">{attachment.nome_original}</Typography>
+                    <Button size="small" variant="outlined" onClick={() => downloadAttachment(attachment)}>Baixar</Button>
+                  </Box>
+                ))}
+              </Stack>
+            ) : <Typography variant="body2" color="text.secondary">Sem anexos.</Typography>}
+          </Stack>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="contained" onClick={save} disabled={loading || saving}>{saving ? "Salvando..." : "Salvar e movimentar"}</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export default function KanbanPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -271,6 +488,7 @@ export default function KanbanPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [items, setItems] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [createStatus, setCreateStatus] = useState("novo");
   const [draggedItemId, setDraggedItemId] = useState(null);
@@ -340,12 +558,22 @@ export default function KanbanPage() {
   };
 
   const openEdit = (item) => {
+    if (item?.protocol_id) {
+      setEditingItem(item);
+      setProtocolDialogOpen(true);
+      return;
+    }
     setEditingItem(item);
     setDialogOpen(true);
   };
 
   const closeDialog = () => {
     setDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const closeProtocolDialog = () => {
+    setProtocolDialogOpen(false);
     setEditingItem(null);
   };
 
@@ -403,7 +631,12 @@ export default function KanbanPage() {
       )
     );
     try {
-      const { data } = await api.put(`/kanban/${item.id}`, { status });
+      const { data } = item.protocol_id
+        ? await api.post(`/protocolos/${item.protocol_id}/kanban-status`, {
+            kanban_status: status,
+            observacao: "Movimentação realizada por arrastar e soltar no Kanban.",
+          }).then((response) => ({ data: response.data?.kanban_task || { ...item, status } }))
+        : await api.put(`/kanban/${item.id}`, { status });
       setItems((current) =>
         current.map((entry) => (entry.id === item.id ? data : entry))
       );
@@ -613,6 +846,12 @@ export default function KanbanPage() {
         onSave={saveItem}
         onDelete={deleteItem}
         saving={saving}
+      />
+      <ProtocolDialog
+        open={protocolDialogOpen}
+        item={editingItem}
+        onClose={closeProtocolDialog}
+        onChanged={loadItems}
       />
     </Box>
   );

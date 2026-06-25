@@ -13,6 +13,8 @@ import Footer from "./footer/Footer";
 import AuthGuard from "../components/authGuard";
 import NoticeModal from "../components/systemNotices/NoticeModal";
 import ChatPanel from "../components/chat/ChatPanel";
+import { AuthContext } from "../contexts/AuthContext";
+import { useContext } from "react";
 
 const SIDEBAR_WIDTH = 318;
 
@@ -32,6 +34,7 @@ const PageWrapper = experimentalStyled("div")(({ theme }) => ({
 
 const FullLayout = ({ children }) => {
   const theme = useTheme();
+  const { canUseChat } = useContext(AuthContext);
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -66,7 +69,7 @@ const FullLayout = ({ children }) => {
         isSidebarOpen={isSidebarOpen}
         onSidebarClose={() => setSidebarOpen(false)}
       />
-      <ChatPanel />
+      {canUseChat && <ChatPanel />}
       <MainWrapper>
         <Header toggleSidebar={toggleSidebar} />
 

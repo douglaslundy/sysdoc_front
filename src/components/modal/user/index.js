@@ -35,6 +35,13 @@ import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store
 import { AuthContext } from '../../../contexts/AuthContext';
 import { getAllProfiles } from '../../../store/fetchActions/accessProfiles';
 import { api } from '../../../services/api';
+
+const flattenProtocolUnits = (items, level = 0) =>
+  (Array.isArray(items) ? items : []).flatMap((item) => [
+    { ...item, level },
+    ...flattenProtocolUnits(item.children, level + 1),
+  ]);
+
 export default function UserModal(props) {
   const [form, setForm] = useState({
     profile: '',
@@ -44,6 +51,8 @@ export default function UserModal(props) {
     is_driver: false,
     is_rt_psf: false,
     rt_all_teams: false,
+    chat_access_override: '',
+    protocol_unit_ids: [],
     password: '',
     password2: '',
   });
@@ -51,6 +60,7 @@ export default function UserModal(props) {
   const [equipesRt, setEquipesRt] = useState([]);
   const [equipesOpcoes, setEquipesOpcoes] = useState([]);
   const [loadingEquipes, setLoadingEquipes] = useState(false);
+  const [protocolUnits, setProtocolUnits] = useState([]);
 
   const { user } = useSelector((state) => state.users);
   const { isOpenUserModal } = useSelector((state) => state.layout);
@@ -74,12 +84,15 @@ export default function UserModal(props) {
       is_driver: false,
       is_rt_psf: false,
       rt_all_teams: false,
+      chat_access_override: '',
+      protocol_unit_ids: [],
       password: '',
       password2: '',
     });
     setTexto('');
     setEquipesRt([]);
     setEquipesOpcoes([]);
+    setProtocolUnits([]);
     dispatch(turnUserModal());
     dispatch(showUser({}));
   };
@@ -139,6 +152,8 @@ export default function UserModal(props) {
         is_driver: user.is_driver === true || Number(user.is_driver) === 1,
         is_rt_psf: Boolean(user.is_rt_psf),
         rt_all_teams: Boolean(user.rt_all_teams),
+        chat_access_override: user.chat_access_override ?? '',
+        protocol_unit_ids: Array.isArray(user.protocol_unit_ids) ? user.protocol_unit_ids : [],
       });
       if (userProfile === 'admin') {
         api.get(`/users/${user.id}/equipe-aps`)
@@ -163,6 +178,13 @@ export default function UserModal(props) {
       dispatch(getAllProfiles());
     }
   }, [isOpenUserModal, userProfile, dbProfiles.length, dispatch]);
+
+  useEffect(() => {
+    if (!isOpenUserModal || userProfile !== 'admin' || protocolUnits.length > 0) return;
+    api.get('/protocolos/unidades-organizacionais')
+      .then(({ data }) => setProtocolUnits(flattenProtocolUnits(data).filter((unit) => unit.ativo !== false)))
+      .catch(() => {});
+  }, [isOpenUserModal, userProfile, protocolUnits.length]);
 
   return (
     <div>
@@ -272,6 +294,42 @@ export default function UserModal(props) {
 
                   {userProfile === 'admin' && (
                     <>
+                      <FormControl fullWidth>
+                        <InputLabel>Acesso individual ao chat</InputLabel>
+                        <Select
+                          value={form.chat_access_override}
+                          label="Acesso individual ao chat"
+                          onChange={(event) => setForm((current) => ({
+                            ...current,
+                            chat_access_override: event.target.value,
+                          }))}
+                        >
+                          <MenuItem value="">Herdar configuração do perfil</MenuItem>
+                          <MenuItem value={true}>Permitir</MenuItem>
+                          <MenuItem value={false}>Bloquear</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <Autocomplete
+                        multiple
+                        fullWidth
+                        options={protocolUnits}
+                        getOptionLabel={(option) => `${'— '.repeat(option.level || 0)}${option.nome}`}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        value={protocolUnits.filter((unit) => form.protocol_unit_ids.includes(unit.id))}
+                        onChange={(_, selected) => setForm((current) => ({
+                          ...current,
+                          protocol_unit_ids: selected.map((unit) => unit.id),
+                        }))}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Secretaria / unidade organizacional"
+                            placeholder="Selecione a lotação do usuário"
+                          />
+                        )}
+                      />
+
                       <FormControlLabel
                         control={
                           <Switch
@@ -372,7 +430,6 @@ export default function UserModal(props) {
     </div>
   );
 }
-
 
 
 

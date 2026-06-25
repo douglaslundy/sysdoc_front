@@ -33,7 +33,7 @@ const createConnectionId = () => {
 const createClientMessageId = () => `pending-${createConnectionId()}`;
 
 export function ChatProvider({ children }) {
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const { isAuthenticated, user, canUseChat } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [connected, setConnected] = useState(false);
   const [users, setUsers] = useState([]);
@@ -99,7 +99,7 @@ export function ChatProvider({ children }) {
   }, []);
 
   const refreshLists = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !canUseChat) return;
     const [usersResult, conversationsResult, unreadResult] =
       await Promise.allSettled([
         api.get("/chat/users"),
@@ -128,7 +128,7 @@ export function ChatProvider({ children }) {
             "Alguns dados do chat nao puderam ser sincronizados."
         : ""
     );
-  }, [isAuthenticated]);
+  }, [isAuthenticated, canUseChat]);
 
   const markRead = useCallback(async (conversationId) => {
     await api.post(`/chat/conversations/${conversationId}/read`);
@@ -334,11 +334,11 @@ export function ChatProvider({ children }) {
   );
 
   useEffect(() => {
-    if (!isAuthenticated) return undefined;
+    if (!isAuthenticated || !canUseChat) return undefined;
     refreshLists().catch(() => {});
     const fallback = setInterval(() => refreshLists().catch(() => {}), 30000);
     return () => clearInterval(fallback);
-  }, [isAuthenticated, refreshLists]);
+  }, [isAuthenticated, canUseChat, refreshLists]);
 
   useEffect(() => {
     const reloadRealtime = () => setRealtimeVersion((current) => current + 1);
@@ -348,7 +348,7 @@ export function ChatProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return undefined;
+    if (!isAuthenticated || !user || !canUseChat) return undefined;
     let cancelled = false;
 
     const connect = async () => {
@@ -497,6 +497,7 @@ export function ChatProvider({ children }) {
     };
   }, [
     isAuthenticated,
+    canUseChat,
     markRead,
     playNotificationSound,
     realtimeVersion,
@@ -505,7 +506,7 @@ export function ChatProvider({ children }) {
   ]);
 
   useEffect(() => {
-    if (!isAuthenticated) return undefined;
+    if (!isAuthenticated || !canUseChat) return undefined;
     const updatePresence = (state) =>
       api
         .post("/chat/presence", {
@@ -526,7 +527,7 @@ export function ChatProvider({ children }) {
       document.removeEventListener("visibilitychange", onVisibility);
       updatePresence("offline");
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, canUseChat]);
 
   return (
     <ChatContext.Provider

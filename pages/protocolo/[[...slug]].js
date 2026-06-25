@@ -59,9 +59,7 @@ const initialProtocolForm = {
   descricao: "",
   tipo: "administrativo",
   prioridade: "normal",
-  solicitante_tipo: "interno",
-  solicitante_nome: "",
-  solicitante_documento: "",
+  origem_unit_id: "",
   destino_user_id: "",
   prazo_atendimento: "",
 };
@@ -94,11 +92,6 @@ const protocolPriorityOptions = [
   { value: "baixa", label: "Baixa" },
   { value: "alta", label: "Alta" },
   { value: "urgente", label: "Urgente" },
-];
-
-const protocolRequesterTypeOptions = [
-  { value: "interno", label: "Interno" },
-  { value: "externo", label: "Externo" },
 ];
 
 const protocolUnitTypeOptions = [
@@ -321,6 +314,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
   const [protocolTypes, setProtocolTypes] = useState([]);
+  const [creationContext, setCreationContext] = useState(null);
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
@@ -461,13 +455,19 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         ];
         if (mode === "novo") {
           requests.push(api.get("/protocolos/tipos"));
+          requests.push(api.get("/protocolos/contexto-novo"));
         }
         const responses = await Promise.all(requests);
-        const [unitsRes, usersRes, typesRes] = responses;
+        const [unitsRes, usersRes, typesRes, contextRes] = responses;
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
         setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
         if (mode === "novo") {
           setProtocolTypes(Array.isArray(typesRes?.data) ? typesRes.data : []);
+          setCreationContext(contextRes?.data || null);
+          setProtocolForm((current) => ({
+            ...current,
+            origem_unit_id: contextRes?.data?.origin?.id ? String(contextRes.data.origin.id) : "",
+          }));
         }
         if (mode === "detail" && protocolId) {
           await loadDetail(protocolId);
@@ -560,6 +560,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     try {
       await api.post("/protocolos", {
         ...protocolForm,
+        origem_unit_id: protocolForm.origem_unit_id || null,
         destino_user_id: protocolForm.destino_user_id || null,
         prazo_atendimento: protocolForm.prazo_atendimento || null,
       });
@@ -1113,35 +1114,40 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
-              select
               fullWidth
-              label="Tipo do solicitante"
-              value={protocolForm.solicitante_tipo}
-              onChange={(e) => setProtocolForm((prev) => ({ ...prev, solicitante_tipo: e.target.value }))}
-            >
-              {protocolRequesterTypeOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Solicitante" value={protocolForm.solicitante_nome} onChange={(e) => setProtocolForm((prev) => ({ ...prev, solicitante_nome: e.target.value }))} />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth label="Documento do solicitante" value={protocolForm.solicitante_documento} onChange={(e) => setProtocolForm((prev) => ({ ...prev, solicitante_documento: e.target.value }))} />
+              label="Solicitante"
+              value={creationContext?.requester?.name || username || "Usuário logado"}
+              InputProps={{ readOnly: true }}
+            />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField fullWidth type="date" label="Prazo de atendimento" InputLabelProps={{ shrink: true }} value={protocolForm.prazo_atendimento} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prazo_atendimento: e.target.value }))} />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Origem"
-              value={username || "Usuário logado"}
-              InputProps={{ readOnly: true }}
-            />
+            {creationContext?.origin_locked ? (
+              <TextField
+                fullWidth
+                label="Origem"
+                value={creationContext?.origin?.nome || "Unidade vinculada"}
+                InputProps={{ readOnly: true }}
+              />
+            ) : (
+              <FormControl fullWidth required>
+                <InputLabel>Origem</InputLabel>
+                <Select
+                  value={protocolForm.origem_unit_id}
+                  label="Origem"
+                  onChange={(e) => setProtocolForm((prev) => ({ ...prev, origem_unit_id: e.target.value }))}
+                >
+                  <MenuItem value="">Selecione a origem</MenuItem>
+                  {unitOptions.filter((unit) => unit.ativo !== false).map((unit) => (
+                    <MenuItem key={unit.id} value={String(unit.id)}>
+                      {`${"— ".repeat(unit.level || 0)}${unit.nome}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Grid>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>

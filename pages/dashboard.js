@@ -28,20 +28,21 @@ const ABAS = [
 ];
 
 export default function DashboardPage() {
-    const { myPermissions, authorizedPages, profile } = useContext(AuthContext);
+    const { myPermissions, authorizedPages, profile, canUseChat } = useContext(AuthContext);
     const [aba, setAba] = useState(0);
 
     const abasVisiveis = useMemo(() => {
-        const visible = profile === 'admin'
+        const permitted = profile === 'admin'
             ? ABAS
             : ABAS.filter(a => myPermissions.includes(a.permission));
+        const visible = permitted.filter(a => a.permission !== '/dashboard/chat' || canUseChat);
         const orderByPath = new Map(
             (authorizedPages || []).map((page) => [page.path, Number(page.ordem ?? 999)])
         );
         return [...visible].sort(
             (a, b) => (orderByPath.get(a.permission) ?? 999) - (orderByPath.get(b.permission) ?? 999)
         );
-    }, [authorizedPages, myPermissions, profile]);
+    }, [authorizedPages, canUseChat, myPermissions, profile]);
 
     // Garante que o índice selecionado não fique fora dos limites após mudança de perfil
     const abaSegura = Math.min(aba, Math.max(0, abasVisiveis.length - 1));
