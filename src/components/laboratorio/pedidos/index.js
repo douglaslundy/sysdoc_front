@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     Box, Button, Chip, Fab, MenuItem, Select, Table, TableBody, TableCell,
     TableContainer, TableHead, TablePagination, TableRow, Typography,
-    FormControl, InputLabel, TextField, styled,
+    FormControl, InputLabel, TextField, Tooltip, styled,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
@@ -54,6 +54,11 @@ const formatDate = (s) => {
     if (!s) return '—';
     const [y, m, d] = s.substring(0, 10).split('-');
     return `${d}/${m}/${y}`;
+};
+
+const formatExamName = (name) => {
+    const value = String(name || '—');
+    return value.length > 30 ? `${value.slice(0, 27)}...` : value;
 };
 
 export default function ListaPedidos() {
@@ -199,7 +204,9 @@ export default function ListaPedidos() {
                                     </TableCell>
                                     <TableCell>
                                         {pedido.exames?.slice(0, 2).map(e => (
-                                            <Chip key={e.id} label={e.codigo} size="small" sx={{ mr: 0.5 }} />
+                                            <Tooltip key={e.id} title={e.nome || 'Exame sem nome'} arrow>
+                                                <Chip label={formatExamName(e.nome)} size="small" sx={{ mr: 0.5 }} />
+                                            </Tooltip>
                                         ))}
                                         {pedido.exames?.length > 2 && <Typography variant="caption">+{pedido.exames.length - 2}</Typography>}
                                     </TableCell>
