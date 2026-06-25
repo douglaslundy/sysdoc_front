@@ -34,7 +34,10 @@ import {
 } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
 import AlertModal from "../../src/components/messagesModal";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import {
+  modalFormRootSx,
+  modalSecondaryButtonSx,
+} from "../../src/components/modal/_shared/modalFormStyles";
 import { AuthContext } from "../../src/contexts/AuthContext";
 import { api } from "../../src/services/api";
 
@@ -380,18 +383,20 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setTotal(0);
   };
 
-  const loadDetail = async (id) => {
+  const loadDetail = async (id, { resetForms = true } = {}) => {
     const { data } = await api.get(`/protocolos/${id}`, {
       params: { view_session: getProtocolViewSession(id) },
     });
     setProtocolDetail(data || null);
     setDetailForwardUnit(String(data?.destino_unit_id || ""));
     setDetailForwardUser(String(data?.responsavel_atual_id || ""));
-    setDetailForwardObservation("");
-    setForwardDialogOpen(false);
-    setCommentText("");
-    setAttachmentFile(null);
-    setAttachmentDescription("");
+    if (resetForms) {
+      setDetailForwardObservation("");
+      setForwardDialogOpen(false);
+      setCommentText("");
+      setAttachmentFile(null);
+      setAttachmentDescription("");
+    }
   };
 
   const loadVisualizations = async () => {
@@ -519,13 +524,10 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
   const refreshDetail = async () => {
     if (!protocolId) return;
-    setLoading(true);
     try {
-      await loadDetail(protocolId);
+      await loadDetail(protocolId, { resetForms: false });
     } catch (error) {
       setMessage("Não foi possível recarregar o protocolo.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -534,8 +536,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setSaving(true);
     setMessage("");
     try {
-      await api.post(`/protocolos/${protocolId}/${action}`, payload);
-      await refreshDetail();
+      const { data } = await api.post(`/protocolos/${protocolId}/${action}`, payload);
+      setProtocolDetail(data || null);
       setMessage("Ação executada com sucesso.");
     } catch (error) {
       setMessage("Não foi possível executar a ação.");
@@ -620,13 +622,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setSaving(true);
     setMessage("");
     try {
-      await api.post(`/protocolos/${protocolId}/comentarios`, {
+      const { data } = await api.post(`/protocolos/${protocolId}/comentarios`, {
         conteudo: commentText.trim(),
         privado: commentPrivate,
         tipo: "comentario",
       });
+      setProtocolDetail(data || null);
+      setCommentText("");
+      setCommentPrivate(false);
       setMessage("Comentário adicionado com sucesso.");
-      await refreshDetail();
     } catch (error) {
       setMessage("Não foi possível salvar o comentário.");
     } finally {
@@ -647,6 +651,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       await api.post(`/protocolos/${protocolId}/anexos`, formData);
       setMessage("Anexo enviado com sucesso.");
       await refreshDetail();
+      setAttachmentFile(null);
+      setAttachmentDescription("");
     } catch (error) {
       setMessage("Não foi possível enviar o anexo.");
     } finally {
@@ -771,6 +777,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const renderDetail = () => {
     const p = protocolDetail || {};
     const attachments = Array.isArray(p.attachments) ? p.attachments : [];
+    const comments = (Array.isArray(p.comments) ? [...p.comments] : [])
+      .filter((comment) => comment?.created_at)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -783,8 +792,13 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip label={String(p.status || "—").replace(/_/g, " ")} color={statusColor(p.status)} />
               <Chip label={p.prioridade || "normal"} />
-              <Button variant="outlined" size="small" onClick={handleOpenLogs}>
-                Logs do protocolo
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleOpenLogs}
+                sx={{ ...modalSecondaryButtonSx, flex: "0 0 auto", py: 0.75 }}
+              >
+                Movimentação
               </Button>
             </Stack>
           </Stack>
@@ -892,7 +906,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 <TextField
                   fullWidth
                   multiline
-                  minRows={4}
+                  minRows={2}
+                  maxRows={3}
                   label="Escreva um comentário"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
@@ -964,6 +979,29 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </Stack>
         </BaseCard>
 
+        <BaseCard title="Comentários">
+          <Stack spacing={0} divider={<Divider flexItem />}>
+            {comments.length > 0 ? comments.map((comment) => (
+              <Box key={comment.id} sx={{ py: 1.5 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {comment.user?.name || "Usuário não identificado"}
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {comment.privado ? <Chip size="small" variant="outlined" label="Privado" /> : null}
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDateTime(comment.created_at)}
+                    </Typography>
+                  </Stack>
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}>
+                  {comment.conteudo}
+                </Typography>
+              </Box>
+            )) : <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum comentário registrado.</Typography>}
+          </Stack>
+        </BaseCard>
+
         {renderProtocolLogsDrawer()}
       </Box>
     );
@@ -971,8 +1009,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
   const renderProtocolLogsDrawer = () => {
     const p = protocolDetail || {};
-    const comments = Array.isArray(p.comments) ? p.comments : [];
     const movements = Array.isArray(historicoMovements) ? historicoMovements : [];
+    const findUnitName = (id) => unitOptions.find((unit) => Number(unit.id) === Number(id))?.nome;
+    const findUserName = (id) => users.find((user) => Number(user.id) === Number(id))?.name;
     const accessLogs = visualizations.map((view) => ({
       key: `view-${view.id}`,
       type: "Acesso",
@@ -982,29 +1021,31 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     }));
     const movementLogs = movements
       .filter((item) => item.acao !== "comentario")
-      .map((item) => ({
-        key: `movement-${item.id}`,
-        type: "Movimentação",
-        title: String(item.acao || "Ação").replace(/_/g, " "),
-        detail: [
-          item.user?.name || "Usuário não identificado",
-          item.status_anterior && item.status_novo
-            ? `${String(item.status_anterior).replace(/_/g, " ")} → ${String(item.status_novo).replace(/_/g, " ")}`
-            : null,
-          item.observacao,
-        ].filter(Boolean).join(" • "),
-        timestamp: item.created_at,
-      }));
-    const commentLogs = comments.map((comment) => ({
-      key: `comment-${comment.id}`,
-      type: comment.privado ? "Comentário privado" : "Comentário",
-      title: comment.user?.name || "Usuário não identificado",
-      detail: comment.conteudo,
-      timestamp: comment.created_at,
-    }));
-    const logs = [...accessLogs, ...movementLogs, ...commentLogs].sort(
-      (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
-    );
+      .map((item) => {
+        const destinationUnit = findUnitName(item.dados?.destino_unit_id);
+        const destinationUser = findUserName(item.dados?.destino_user_id);
+
+        return {
+          key: `movement-${item.id}`,
+          type: "Movimentação",
+          title: String(item.acao || "Ação").replace(/_/g, " "),
+          detail: [
+            `Usuário: ${item.user?.name || "Não identificado"}`,
+            item.status_anterior && item.status_novo
+              ? `Status: ${String(item.status_anterior).replace(/_/g, " ")} → ${String(item.status_novo).replace(/_/g, " ")}`
+              : null,
+            destinationUnit ? `Destino: ${destinationUnit}` : null,
+            destinationUser ? `Responsável: ${destinationUser}` : null,
+            item.observacao ? `Descrição: ${item.observacao}` : null,
+          ].filter(Boolean).join("\n"),
+          timestamp: item.created_at,
+        };
+      });
+    const logs = [...accessLogs, ...movementLogs]
+      .filter((log) => log.timestamp)
+      .sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
     const loadingLogs = loadingVisualizations || loadingHistorico;
 
     return (
@@ -1026,9 +1067,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", minHeight: "100%" }}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Logs do protocolo</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Movimentação</Typography>
               <Typography variant="caption" color="text.secondary">
-                {p.numero || "Protocolo"} • {accessLogs.length} acessos • {movementLogs.length} movimentações • {commentLogs.length} comentários
+                {p.numero || "Protocolo"} • {accessLogs.length} acessos • {movementLogs.length} movimentações
               </Typography>
             </Box>
             <Button size="small" variant="outlined" onClick={() => setLogDrawerOpen(false)}>
@@ -1041,7 +1082,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           {loadingLogs ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3 }}>
               <CircularProgress size={22} />
-              <Typography variant="body2">Carregando logs...</Typography>
+              <Typography variant="body2">Carregando movimentações...</Typography>
             </Box>
           ) : (
             <Stack spacing={0} divider={<Divider flexItem />}>
@@ -1063,7 +1104,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   ) : null}
                 </Box>
               )) : (
-                <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum log registrado.</Typography>
+                <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma movimentação ou acesso registrado.</Typography>
               )}
             </Stack>
           )}
