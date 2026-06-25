@@ -130,7 +130,7 @@ function KanbanCard({ item, onOpen, onDragStart, dragging }) {
   );
 }
 
-function TaskDialog({ open, onClose, onSave, onDelete, item, saving }) {
+function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStatus }) {
   const [form, setForm] = useState(INITIAL_FORM);
 
   useEffect(() => {
@@ -138,12 +138,12 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving }) {
     setForm({
       titulo: item?.titulo || "",
       descricao: item?.descricao || "",
-      status: item?.status || "novo",
+      status: item?.status || initialStatus || "novo",
       prioridade: item?.prioridade || "normal",
       vencimento: formatDate(item?.vencimento),
       ordem: Number(item?.ordem || 0),
     });
-  }, [open, item]);
+  }, [open, item, initialStatus]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -272,6 +272,7 @@ export default function KanbanPage() {
   const [items, setItems] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [createStatus, setCreateStatus] = useState("novo");
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState("");
 
@@ -332,8 +333,9 @@ export default function KanbanPage() {
     );
   }, [columns]);
 
-  const openCreate = () => {
+  const openCreate = (status = "novo") => {
     setEditingItem(null);
+    setCreateStatus(status);
     setDialogOpen(true);
   };
 
@@ -434,7 +436,7 @@ export default function KanbanPage() {
           <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>
             Caixa de Entrada
           </Button>
-          <Button variant="contained" onClick={openCreate}>
+          <Button variant="contained" onClick={() => openCreate("novo")}>
             Novo Item
           </Button>
           <Button variant="text" onClick={loadItems} disabled={refreshing}>
@@ -520,8 +522,19 @@ export default function KanbanPage() {
           </Typography>
         </Box>
       ) : (
-        <Box sx={{ mt: 3, overflowX: "auto", pb: 1 }}>
-          <Stack direction="row" spacing={2} sx={{ minWidth: 1400, alignItems: "flex-start" }}>
+        <Box
+          sx={{
+            mt: 3,
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(5, minmax(0, 1fr))",
+            },
+            gap: 2,
+            alignItems: "flex-start",
+          }}
+        >
             {columns.map((column) => (
               <Box
                 key={column.value}
@@ -533,7 +546,7 @@ export default function KanbanPage() {
                 onDragLeave={() => setDragOverColumn("")}
                 onDrop={(event) => handleDrop(event, column.value)}
                 sx={{
-                  flex: "0 0 280px",
+                  minWidth: 0,
                   borderRadius: 3,
                   border: "1px solid var(--lg-border)",
                   bgcolor:
@@ -560,6 +573,15 @@ export default function KanbanPage() {
                     </Typography>
                     <Chip size="small" color={column.color} label={`${column.items.length}`} />
                   </Stack>
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                    onClick={() => openCreate(column.value)}
+                    sx={{ mt: 1 }}
+                  >
+                    Adicionar tarefa
+                  </Button>
                 </Box>
                 <Box sx={{ p: 1.5, display: "grid", gap: 1.25, minHeight: 320 }}>
                   {column.items.length ? (
@@ -580,11 +602,18 @@ export default function KanbanPage() {
                 </Box>
               </Box>
             ))}
-          </Stack>
         </Box>
       )}
 
-      <TaskDialog open={dialogOpen} item={editingItem} onClose={closeDialog} onSave={saveItem} onDelete={deleteItem} saving={saving} />
+      <TaskDialog
+        open={dialogOpen}
+        item={editingItem}
+        initialStatus={createStatus}
+        onClose={closeDialog}
+        onSave={saveItem}
+        onDelete={deleteItem}
+        saving={saving}
+      />
     </Box>
   );
 }
