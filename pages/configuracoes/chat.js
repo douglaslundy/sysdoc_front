@@ -295,9 +295,6 @@ export default function ChatConfigPage() {
             <>
           <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
             <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Motor de comunicação</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Pusher Cloud não exige servidor próprio. Soketi é open-source, mas precisa estar instalado em um servidor externo com WebSocket.
-            </Typography>
             <FormControl fullWidth>
               <InputLabel id="chat-engine-label">Motor do chat</InputLabel>
               <Select labelId="chat-engine-label" label="Motor do chat" value={form.engine} onChange={update("engine")}>
