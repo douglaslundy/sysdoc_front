@@ -217,10 +217,11 @@ export function ChatProvider({ children }) {
   const sendMessage = useCallback(
     async ({ body, file, clientMessageId }) => {
       if (!activeConversation) return null;
+      const activeConversationId = activeConversation.id;
       const pendingId = clientMessageId || createClientMessageId();
       const pendingMessage = {
         id: pendingId,
-        conversation_id: activeConversation.id,
+        conversation_id: activeConversationId,
         sender_id: user,
         body: body || null,
         display_body: body || (file ? file.name : ""),
@@ -245,7 +246,7 @@ export function ChatProvider({ children }) {
       if (file) formData.append("file", file);
       try {
         const response = await api.post(
-          `/chat/conversations/${activeConversation.id}/messages`,
+          `/chat/conversations/${activeConversationId}/messages`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -254,7 +255,21 @@ export function ChatProvider({ children }) {
             message.id === pendingId ? response.data : message
           )
         );
-        await refreshLists();
+        setConversations((current) =>
+          sortConversations(
+            current.map((conversation) =>
+              conversation.id === activeConversationId
+                ? {
+                    ...conversation,
+                    last_message: response.data,
+                    last_message_at:
+                      response.data?.created_at || conversation.last_message_at,
+                  }
+                : conversation
+            )
+          )
+        );
+        refreshLists().catch(() => {});
         return response.data;
       } catch (error) {
         setMessages((current) =>
