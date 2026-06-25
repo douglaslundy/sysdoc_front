@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  Drawer,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -22,7 +23,6 @@ import {
   Select,
   Stack,
   Switch,
-  Tab,
   Table,
   TableBody,
   TableCell,
@@ -30,7 +30,6 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Tabs,
   Typography,
 } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
@@ -261,6 +260,32 @@ const formatDateTime = (value) => {
   return date.toLocaleString("pt-BR");
 };
 
+const activeProtocolViewSessions = new Map();
+
+const getProtocolViewSession = (protocolId) => {
+  if (typeof window === "undefined" || !protocolId) return "";
+  if (activeProtocolViewSessions.has(protocolId)) {
+    return activeProtocolViewSessions.get(protocolId);
+  }
+
+  const storageKey = `protocol-view-session:${protocolId}`;
+  const navigationType = window.performance
+    ?.getEntriesByType?.("navigation")?.[0]?.type;
+  let sessionKey = navigationType === "reload"
+    ? window.sessionStorage.getItem(storageKey)
+    : "";
+
+  if (!sessionKey) {
+    sessionKey = typeof window.crypto?.randomUUID === "function"
+      ? window.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  window.sessionStorage.setItem(storageKey, sessionKey);
+  activeProtocolViewSessions.set(protocolId, sessionKey);
+  return sessionKey;
+};
+
 const flattenUnits = (items, level = 0) =>
   (Array.isArray(items) ? items : []).reduce((acc, item) => {
     acc.push({ ...item, level });
@@ -314,12 +339,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentDescription, setAttachmentDescription] = useState("");
   const [visualizations, setVisualizations] = useState([]);
-  const [visualizationUserFilter, setVisualizationUserFilter] = useState("");
-  const [visualizationTeamFilter, setVisualizationTeamFilter] = useState("");
-  const [visualizationDateFrom, setVisualizationDateFrom] = useState("");
-  const [visualizationDateTo, setVisualizationDateTo] = useState("");
-  const [visualizationSort, setVisualizationSort] = useState("recentes");
-  const [detailTab, setDetailTab] = useState("detalhes");
+  const [logDrawerOpen, setLogDrawerOpen] = useState(false);
   const [loadingVisualizations, setLoadingVisualizations] = useState(false);
   const [historicoMovements, setHistoricoMovements] = useState([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
@@ -367,7 +387,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   };
 
   const loadDetail = async (id) => {
-    const { data } = await api.get(`/protocolos/${id}`);
+    const { data } = await api.get(`/protocolos/${id}`, {
+      params: { view_session: getProtocolViewSession(id) },
+    });
     setProtocolDetail(data || null);
     setDetailForwardUnit(String(data?.destino_unit_id || ""));
     setDetailForwardUser(String(data?.responsavel_atual_id || ""));
@@ -376,8 +398,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setCommentText("");
     setAttachmentFile(null);
     setAttachmentDescription("");
-    setVisualizations([]);
-    setHistoricoMovements([]);
   };
 
   const loadVisualizations = async () => {
@@ -387,10 +407,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       const { data } = await api.get(`/protocolos/${protocolId}/visualizacoes`);
       setVisualizations(Array.isArray(data) ? data : []);
       setProtocolDetail((prev) => (prev ? { ...prev, visualizations: Array.isArray(data) ? data : [] } : prev));
-      setVisualizationUserFilter("");
-      setVisualizationTeamFilter("");
-      setVisualizationDateFrom("");
-      setVisualizationDateTo("");
     } catch (error) {
       setMessage("Não foi possível carregar as visualizações do protocolo.");
     } finally {
@@ -411,16 +427,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     }
   };
 
-  const visualizationUsers = useMemo(() => {
-    const map = new Map();
-    visualizations.forEach((view) => {
-      if (view?.user?.id && view?.user?.name && !map.has(String(view.user.id))) {
-        map.set(String(view.user.id), view.user.name);
-      }
-    });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [visualizations]);
-
   const filteredRecentProtocols = useMemo(() => {
     const items = Array.isArray(countInfo?.recentes) ? countInfo.recentes : [];
     const query = search.trim().toLowerCase();
@@ -438,48 +444,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       return haystack.includes(query);
     });
   }, [countInfo?.recentes, search]);
-
-  const visualizationTeams = useMemo(() => {
-    const map = new Map();
-    visualizations.forEach((view) => {
-      const team = view?.departamento || view?.equipe;
-      if (team && !map.has(team)) {
-        map.set(team, team);
-      }
-    });
-    return Array.from(map.values());
-  }, [visualizations]);
-
-  const filteredVisualizations = useMemo(() => (
-    visualizations.filter((view) => {
-      const matchesUser = !visualizationUserFilter || String(view?.user?.id || "") === visualizationUserFilter;
-      const teamValue = view?.departamento || view?.equipe || "";
-      const matchesTeam = !visualizationTeamFilter || teamValue === visualizationTeamFilter;
-      const visualizedAt = view?.visualized_at ? new Date(view.visualized_at) : null;
-      const viewDate = visualizedAt && !Number.isNaN(visualizedAt.getTime())
-        ? visualizedAt.toISOString().slice(0, 10)
-        : "";
-      const matchesDateFrom = !visualizationDateFrom || (viewDate && viewDate >= visualizationDateFrom);
-      const matchesDateTo = !visualizationDateTo || (viewDate && viewDate <= visualizationDateTo);
-      return matchesUser && matchesTeam && matchesDateFrom && matchesDateTo;
-    })
-  ), [visualizations, visualizationUserFilter, visualizationTeamFilter, visualizationDateFrom, visualizationDateTo]);
-
-  const sortedVisualizations = useMemo(() => {
-    const sorted = [...filteredVisualizations];
-    sorted.sort((a, b) => {
-      const leftDate = new Date(a?.visualized_at || a?.created_at || 0).getTime();
-      const rightDate = new Date(b?.visualized_at || b?.created_at || 0).getTime();
-      if (visualizationSort === "antigos") {
-        return leftDate - rightDate;
-      }
-      if (visualizationSort === "usuario") {
-        return String(a?.user?.name || "").localeCompare(String(b?.user?.name || ""), "pt-BR");
-      }
-      return rightDate - leftDate;
-    });
-    return sorted;
-  }, [filteredVisualizations, visualizationSort]);
 
   const loadData = async () => {
     setLoading(true);
@@ -530,6 +494,18 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, mode]);
+
+  useEffect(() => {
+    setLogDrawerOpen(false);
+    setVisualizations([]);
+    setHistoricoMovements([]);
+
+    return () => {
+      if (protocolId) {
+        activeProtocolViewSessions.delete(protocolId);
+      }
+    };
+  }, [protocolId]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -677,20 +653,31 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     }
   };
 
+  const handleOpenLogs = async () => {
+    setLogDrawerOpen(true);
+    await Promise.all([loadVisualizations(), loadHistorico()]);
+  };
+
   const handleDownloadAttachment = async (attachment) => {
     try {
       const response = await api.get(`/protocolos/anexos/${attachment.id}/download`, {
         responseType: "blob",
       });
-      const blob = new Blob([response.data], { type: response.headers["content-type"] || "application/octet-stream" });
+      const blob = response.data instanceof Blob
+        ? response.data
+        : new Blob([response.data], { type: response.headers["content-type"] || "application/octet-stream" });
+      if (!blob.size) {
+        throw new Error("Arquivo vazio");
+      }
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = attachment.nome_original || "anexo";
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (error) {
       setMessage("Não foi possível baixar o anexo.");
     }
@@ -782,8 +769,6 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   );
   const renderDetail = () => {
     const p = protocolDetail || {};
-    const movements = Array.isArray(p.movements) ? p.movements : [];
-    const comments = Array.isArray(p.comments) ? p.comments : [];
     const attachments = Array.isArray(p.attachments) ? p.attachments : [];
 
     return (
@@ -797,7 +782,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip label={String(p.status || "—").replace(/_/g, " ")} color={statusColor(p.status)} />
               <Chip label={p.prioridade || "normal"} />
-              <Chip label={`${Array.isArray(p.visualizations) ? p.visualizations.length : 0} visualizações`} variant="outlined" />
+              <Button variant="outlined" size="small" onClick={handleOpenLogs}>
+                Logs do protocolo
+              </Button>
             </Stack>
           </Stack>
 
@@ -949,239 +936,140 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </Grid>
         </Grid>
 
-        <BaseCard title="Histórico e observações">
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 1 }}>Movimentações</Typography>
-              <Stack spacing={1}>
-                {movements.length > 0 ? movements.map((movement) => (
-                  <Box key={movement.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{movement.acao}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {movement.user?.name || "—"} • {formatDateTime(movement.created_at)}
-                    </Typography>
-                  </Box>
-                )) : <Typography color="text.secondary">Nenhuma movimentação registrada.</Typography>}
-              </Stack>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 1 }}>Comentários</Typography>
-              <Stack spacing={1}>
-                {comments.length > 0 ? comments.map((comment) => (
-                  <Box key={comment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
-                    <Typography variant="body2">{comment.conteudo}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {comment.user?.name || "—"} • {formatDateTime(comment.created_at)}
-                    </Typography>
-                  </Box>
-                )) : <Typography color="text.secondary">Nenhum comentário registrado.</Typography>}
-              </Stack>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 1 }}>Anexos</Typography>
-              <Stack spacing={1}>
-                {attachments.length > 0 ? attachments.map((attachment) => (
-                  <Box key={attachment.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {attachment.nome_original}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
-                    </Typography>
-                    <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
-                      <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
-                        Baixar
-                      </Button>
-                    </Stack>
-                  </Box>
-                )) : <Typography color="text.secondary">Nenhum anexo enviado.</Typography>}
-              </Stack>
-            </Grid>
-          </Grid>
-        </BaseCard>
-      </Box>
-    );
-  };
-
-  const renderVisualizationsPanel = () => {
-    const p = protocolDetail || {};
-    const protocolVisualizations = Array.isArray(p.visualizations) ? p.visualizations : [];
-    const orderedVisualizations = [...protocolVisualizations].sort((a, b) => {
-      const left = new Date(a?.visualized_at || a?.created_at || 0).getTime();
-      const right = new Date(b?.visualized_at || b?.created_at || 0).getTime();
-      return left - right;
-    });
-    const firstVisualization = orderedVisualizations[0] || null;
-    const lastVisualization = orderedVisualizations[orderedVisualizations.length - 1] || null;
-    const activeFilters = [
-      visualizationUserFilter,
-      visualizationTeamFilter,
-      visualizationDateFrom,
-      visualizationDateTo,
-    ].filter(Boolean).length;
-
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <BaseCard title={`Visualizações - ${p.numero || ""}`}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap" sx={{ mb: 2 }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>Resumo de acesso</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Quem abriu, quando abriu e qual foi a primeira e a última visualização.
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip label={`${filteredVisualizations.length} registros`} variant="outlined" />
-              <Chip label={`${activeFilters} filtros`} variant="outlined" color={activeFilters > 0 ? "primary" : "default"} />
-            </Stack>
-          </Stack>
-
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Total</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>{protocolVisualizations.length}</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Primeira visualização</Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {firstVisualization ? formatDateTime(firstVisualization.visualized_at) : "—"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {firstVisualization?.user?.name || "Nenhum registro"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                <Typography variant="caption" sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}>Última visualização</Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {lastVisualization ? formatDateTime(lastVisualization.visualized_at) : "—"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {lastVisualization?.user?.name || "Nenhum registro"}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 2 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Filtrar por usuário</InputLabel>
-              <Select value={visualizationUserFilter} label="Filtrar por usuário" onChange={(event) => setVisualizationUserFilter(event.target.value)}>
-                <MenuItem value="">Todos</MenuItem>
-                {visualizationUsers.map((user) => (
-                  <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth size="small">
-              <InputLabel>Filtrar por equipe</InputLabel>
-              <Select value={visualizationTeamFilter} label="Filtrar por equipe" onChange={(event) => setVisualizationTeamFilter(event.target.value)}>
-                <MenuItem value="">Todas</MenuItem>
-                {visualizationTeams.map((team) => (
-                  <MenuItem key={team} value={team}>{team}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField fullWidth size="small" type="date" label="De" value={visualizationDateFrom} onChange={(event) => setVisualizationDateFrom(event.target.value)} InputLabelProps={{ shrink: true }} />
-            <TextField fullWidth size="small" type="date" label="Até" value={visualizationDateTo} onChange={(event) => setVisualizationDateTo(event.target.value)} InputLabelProps={{ shrink: true }} />
-            <FormControl fullWidth size="small">
-              <InputLabel>Ordenação</InputLabel>
-              <Select value={visualizationSort} label="Ordenação" onChange={(event) => setVisualizationSort(event.target.value)}>
-                <MenuItem value="recentes">Mais recentes</MenuItem>
-                <MenuItem value="antigos">Mais antigos</MenuItem>
-                <MenuItem value="usuario">Usuário</MenuItem>
-              </Select>
-            </FormControl>
-          </Stack>
-
-          {loadingVisualizations ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
-              <CircularProgress size={22} />
-              <Typography variant="body2">Carregando visualizações...</Typography>
-            </Box>
-          ) : (
-            <Stack spacing={1.5}>
-              {sortedVisualizations.length > 0 ? sortedVisualizations.map((view) => (
-                <Box key={view.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
+        <BaseCard title="Anexos do protocolo">
+          <Stack spacing={0} divider={<Divider flexItem />}>
+            {attachments.length > 0 ? attachments.map((attachment) => (
+              <Stack
+                key={attachment.id}
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+                alignItems={{ xs: "stretch", sm: "center" }}
+                gap={1.5}
+                sx={{ py: 1.5 }}
+              >
+                <Box>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {view.user?.name || "Usuário não identificado"}
+                    {attachment.nome_original}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                    {view.departamento || "Departamento não informado"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                    {formatDateTime(view.visualized_at)}
+                  <Typography variant="caption" color="text.secondary">
+                    {attachment.descricao || "Sem descrição"} • {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
                   </Typography>
                 </Box>
-              )) : (
-                <Typography color="text.secondary">Nenhuma visualização registrada.</Typography>
-              )}
-            </Stack>
-          )}
+                <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
+                  Baixar
+                </Button>
+              </Stack>
+            )) : <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum anexo enviado.</Typography>}
+          </Stack>
         </BaseCard>
+
+        {renderProtocolLogsDrawer()}
       </Box>
     );
   };
 
-  const renderHistoricoPanel = () => {
+  const renderProtocolLogsDrawer = () => {
     const p = protocolDetail || {};
-    const historico = Array.isArray(historicoMovements) ? historicoMovements : [];
+    const comments = Array.isArray(p.comments) ? p.comments : [];
+    const movements = Array.isArray(historicoMovements) ? historicoMovements : [];
+    const accessLogs = visualizations.map((view) => ({
+      key: `view-${view.id}`,
+      type: "Acesso",
+      title: view.user?.name || "Usuário não identificado",
+      detail: view.departamento || view.equipe || "Setor não informado",
+      timestamp: view.visualized_at || view.created_at,
+    }));
+    const movementLogs = movements
+      .filter((item) => item.acao !== "comentario")
+      .map((item) => ({
+        key: `movement-${item.id}`,
+        type: "Movimentação",
+        title: String(item.acao || "Ação").replace(/_/g, " "),
+        detail: [
+          item.user?.name || "Usuário não identificado",
+          item.status_anterior && item.status_novo
+            ? `${String(item.status_anterior).replace(/_/g, " ")} → ${String(item.status_novo).replace(/_/g, " ")}`
+            : null,
+          item.observacao,
+        ].filter(Boolean).join(" • "),
+        timestamp: item.created_at,
+      }));
+    const commentLogs = comments.map((comment) => ({
+      key: `comment-${comment.id}`,
+      type: comment.privado ? "Comentário privado" : "Comentário",
+      title: comment.user?.name || "Usuário não identificado",
+      detail: comment.conteudo,
+      timestamp: comment.created_at,
+    }));
+    const logs = [...accessLogs, ...movementLogs, ...commentLogs].sort(
+      (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+    );
+    const loadingLogs = loadingVisualizations || loadingHistorico;
 
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <BaseCard title={`Histórico - ${p.numero || ""}`}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} flexWrap="wrap" sx={{ mb: 2 }}>
+      <Drawer
+        anchor="right"
+        open={logDrawerOpen}
+        onClose={() => setLogDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: "100%", sm: 480 },
+            maxWidth: "100vw",
+            bgcolor: "var(--lg-glass-panel)",
+            color: "var(--lg-text-primary)",
+            borderLeft: "1px solid var(--lg-border)",
+            backdropFilter: "var(--lg-blur-panel)",
+          },
+        }}
+      >
+        <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", minHeight: "100%" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>Andamento do protocolo</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Linha do tempo com as ações executadas, o status anterior e o status de destino.
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Logs do protocolo</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {p.numero || "Protocolo"} • {accessLogs.length} acessos • {movementLogs.length} movimentações • {commentLogs.length} comentários
               </Typography>
             </Box>
-            <Chip label={`${historico.length} eventos`} variant="outlined" />
+            <Button size="small" variant="outlined" onClick={() => setLogDrawerOpen(false)}>
+              Fechar
+            </Button>
           </Stack>
 
-          {loadingHistorico ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+          <Divider sx={{ my: 2 }} />
+
+          {loadingLogs ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3 }}>
               <CircularProgress size={22} />
-              <Typography variant="body2">Carregando histórico...</Typography>
+              <Typography variant="body2">Carregando logs...</Typography>
             </Box>
           ) : (
-            <Stack spacing={1.5}>
-              {historico.length > 0 ? historico.map((item) => (
-                <Box key={item.id} sx={{ p: 1.5, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {String(item.acao || "ação").replace(/_/g, " ")}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                        {item.user?.name || "—"} • {formatDateTime(item.created_at)}
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {item.status_anterior ? <Chip size="small" label={`De: ${item.status_anterior.replace(/_/g, " ")}`} /> : null}
-                      {item.status_novo ? <Chip size="small" color={statusColor(item.status_novo)} label={`Para: ${item.status_novo.replace(/_/g, " ")}`} /> : null}
-                    </Stack>
+            <Stack spacing={0} divider={<Divider flexItem />}>
+              {logs.length > 0 ? logs.map((log) => (
+                <Box key={log.key} sx={{ py: 1.5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+                    <Chip size="small" variant="outlined" label={log.type} />
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDateTime(log.timestamp)}
+                    </Typography>
                   </Stack>
-                  {item.observacao ? (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {item.observacao}
+                  <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75 }}>
+                    {log.title}
+                  </Typography>
+                  {log.detail ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, whiteSpace: "pre-wrap" }}>
+                      {log.detail}
                     </Typography>
                   ) : null}
                 </Box>
               )) : (
-                <Typography color="text.secondary">Nenhum evento de histórico registrado.</Typography>
+                <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum log registrado.</Typography>
               )}
             </Stack>
           )}
-        </BaseCard>
-      </Box>
+
+          <Box sx={{ flex: 1 }} />
+        </Box>
+      </Drawer>
     );
   };
 
@@ -1515,106 +1403,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     if (mode === "novo") return renderNovo();
     if (mode === "estrutura") return renderStructure();
     if (mode === "alertas") return renderAlerts();
-    if (mode === "detail") {
-      const detailVisualizations = Array.isArray(protocolDetail?.visualizations) ? protocolDetail.visualizations : [];
-      const ordered = [...detailVisualizations].sort((a, b) => {
-        const left = new Date(a?.visualized_at || a?.created_at || 0).getTime();
-        const right = new Date(b?.visualized_at || b?.created_at || 0).getTime();
-        return left - right;
-      });
-      const firstView = ordered[0] || null;
-      const lastView = ordered[ordered.length - 1] || null;
-
-      return (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Tabs
-            value={detailTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            TabIndicatorProps={{
-              style: {
-                backgroundColor: "var(--lg-accent)",
-                height: 3,
-                borderRadius: 999,
-              },
-            }}
-            sx={{
-              minHeight: 44,
-              px: 1,
-              borderRadius: 2,
-              border: "1px solid var(--lg-border)",
-              bgcolor: "var(--lg-glass-panel)",
-              "& .MuiTabs-flexContainer": {
-                gap: 0.5,
-              },
-              "& .MuiTab-root": {
-                minHeight: 44,
-                textTransform: "none",
-                fontWeight: 600,
-                color: "var(--lg-text-muted)",
-                borderRadius: 1.5,
-              },
-              "& .MuiTab-root.Mui-selected": {
-                color: "var(--lg-text-primary)",
-                background: "var(--lg-glass-chip)",
-              },
-            }}
-            onChange={async (_, next) => {
-              setDetailTab(next);
-              if (next === "visualizacoes") {
-                await loadVisualizations();
-              }
-              if (next === "historico") {
-                await loadHistorico();
-              }
-            }}
-          >
-            <Tab value="detalhes" label="Detalhes" />
-            <Tab value="visualizacoes" label={`Visualizações (${detailVisualizations.length})`} />
-            <Tab value="historico" label={`Histórico (${Array.isArray(protocolDetail?.movements) ? protocolDetail.movements.length : 0})`} />
-          </Tabs>
-
-          <BaseCard title={`Resumo - ${protocolDetail?.numero || "Protocolo"}`}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Typography variant="overline">Total</Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>{detailVisualizations.length}</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Typography variant="overline">Primeira visualização</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {firstView ? formatDateTime(firstView.visualized_at) : "—"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {firstView?.user?.name || "Nenhum registro"}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-                  <Typography variant="overline">Última visualização</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {lastView ? formatDateTime(lastView.visualized_at) : "—"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {lastView?.user?.name || "Nenhum registro"}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </BaseCard>
-
-          {detailTab === "visualizacoes"
-            ? renderVisualizationsPanel()
-            : detailTab === "historico"
-              ? renderHistoricoPanel()
-              : renderDetail()}
-        </Box>
-      );
-    }
+    if (mode === "detail") return renderDetail();
     return renderHome();
   };
 
