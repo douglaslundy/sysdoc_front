@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -33,19 +34,22 @@ const emptyForm = {
   port: 6001,
   scheme: "https",
   use_tls: true,
-  current_password: "",
 };
 
 export default function ChatConfigPage() {
   const [form, setForm] = useState(emptyForm);
+  const [config, setConfig] = useState(null);
   const [configured, setConfigured] = useState({});
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [changingStatus, setChangingStatus] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  const loadConfig = useCallback(async () => {
-    const { data } = await api.get("/chat/config");
+  const applyConfig = useCallback((data, clearSecrets = true) => {
+    setConfig(data || null);
     setForm((current) => ({
       ...current,
       engine: data?.engine || "pusher",
@@ -55,10 +59,9 @@ export default function ChatConfigPage() {
       port: data?.port || 6001,
       scheme: data?.scheme || "https",
       use_tls: Boolean(data?.use_tls),
-      app_id: "",
-      app_key: "",
-      app_secret: "",
-      current_password: "",
+      app_id: clearSecrets ? "" : current.app_id,
+      app_key: clearSecrets ? "" : current.app_key,
+      app_secret: clearSecrets ? "" : current.app_secret,
     }));
     setConfigured({
       app_id: Boolean(data?.has_app_id),
@@ -66,6 +69,12 @@ export default function ChatConfigPage() {
       app_secret: Boolean(data?.has_app_secret),
     });
   }, []);
+
+  const loadConfig = useCallback(async () => {
+    const { data } = await api.get("/chat/config");
+    applyConfig(data);
+    setEditing(!data?.configured);
+  }, [applyConfig]);
 
   useEffect(() => {
     loadConfig()
@@ -98,34 +107,35 @@ export default function ChatConfigPage() {
 
   const payload = () => ({ ...form, port: Number(form.port || 0) });
 
+  const errorMessage = (error, fallback) => {
+    if (error?.response?.status === 429) {
+      return "Too Many Attempts. Aguarde alguns instantes antes de tentar novamente.";
+    }
+
+    const validation = error?.response?.data?.errors;
+    const firstValidation = validation
+      ? Object.values(validation).flat().find(Boolean)
+      : null;
+
+    return firstValidation || error?.response?.data?.message || fallback;
+  };
+
   const save = async () => {
     setSaving(true);
     setFeedback(null);
     try {
       const { data } = await api.put("/chat/config", payload());
-      setConfigured({
-        app_id: Boolean(data?.has_app_id),
-        app_key: Boolean(data?.has_app_key),
-        app_secret: Boolean(data?.has_app_secret),
-      });
-      setForm((current) => ({
-        ...current,
-        app_id: "",
-        app_key: "",
-        app_secret: "",
-        current_password: "",
-      }));
+      applyConfig(data);
+      setEditing(false);
       window.dispatchEvent(new Event("chat-realtime-config-updated"));
       setFeedback({
         type: "success",
-        message: "Configurações do motor de chat salvas com segurança.",
+        message: "Conexão salva com sucesso.",
       });
     } catch (error) {
       setFeedback({
         type: "error",
-        message:
-          error?.response?.data?.message ||
-          "Não foi possível salvar as configurações.",
+        message: errorMessage(error, "Não foi possível salvar as credenciais."),
       });
     } finally {
       setSaving(false);
@@ -144,12 +154,54 @@ export default function ChatConfigPage() {
     } catch (error) {
       setFeedback({
         type: "error",
-        message:
-          error?.response?.data?.message ||
-          "Não foi possível validar a conexão.",
+        message: errorMessage(error, "Não foi possível validar a conexão."),
       });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const toggleActive = async () => {
+    setChangingStatus(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.patch("/chat/config/status", {
+        active: !config?.active,
+      });
+      applyConfig(data);
+      window.dispatchEvent(new Event("chat-realtime-config-updated"));
+      setFeedback({
+        type: "success",
+        message: data?.active ? "Conexão ativada." : "Conexão desativada.",
+      });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: errorMessage(error, "Não foi possível alterar o estado da conexão."),
+      });
+    } finally {
+      setChangingStatus(false);
+    }
+  };
+
+  const deleteCredentials = async () => {
+    if (!window.confirm("Deseja realmente apagar as credenciais do chat?")) return;
+
+    setDeleting(true);
+    setFeedback(null);
+    try {
+      const { data } = await api.delete("/chat/config");
+      applyConfig(data);
+      setEditing(true);
+      window.dispatchEvent(new Event("chat-realtime-config-updated"));
+      setFeedback({ type: "success", message: "Credenciais apagadas." });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: errorMessage(error, "Não foi possível apagar as credenciais."),
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -169,8 +221,78 @@ export default function ChatConfigPage() {
         subtitle="Escolha e configure o motor responsável pela comunicação em tempo real."
       >
         <Stack spacing={2.2}>
-          {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
+          {config?.configured && (
+            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+              <Stack spacing={1.5}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800 }}>Conexão configurada</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {config.engine === "soketi" ? "Soketi" : "Pusher Cloud"}
+                      {config.updated_at
+                        ? ` · Atualizada em ${new Date(config.updated_at).toLocaleString("pt-BR")}`
+                        : ""}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={config.active ? "Ativa" : "Inativa"}
+                    color={config.active ? "success" : "default"}
+                    variant={config.active ? "filled" : "outlined"}
+                  />
+                </Box>
 
+                <Typography variant="body2" color="text.secondary">
+                  Status: credenciais salvas. Use “Testar conexão” para validar a comunicação com o motor.
+                </Typography>
+
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Button
+                    variant="outlined"
+                    onClick={testConnection}
+                    disabled={testing || saving || changingStatus || deleting}
+                    startIcon={<FeatherIcon icon="activity" width="17" />}
+                    sx={modalSecondaryButtonSx}
+                  >
+                    {testing ? "Testando..." : "Testar conexão"}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setEditing(true)}
+                    disabled={saving || deleting}
+                    startIcon={<FeatherIcon icon="edit-2" width="17" />}
+                    sx={modalSecondaryButtonSx}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={toggleActive}
+                    disabled={changingStatus || saving || deleting}
+                    startIcon={<FeatherIcon icon={config.active ? "pause-circle" : "play-circle"} width="17" />}
+                    sx={modalSecondaryButtonSx}
+                  >
+                    {changingStatus
+                      ? "Atualizando..."
+                      : config.active
+                      ? "Desativar"
+                      : "Ativar"}
+                  </Button>
+                  <Button
+                    color="error"
+                    variant="outlined"
+                    onClick={deleteCredentials}
+                    disabled={deleting || saving || changingStatus}
+                    startIcon={<FeatherIcon icon="trash-2" width="17" />}
+                  >
+                    {deleting ? "Apagando..." : "Apagar"}
+                  </Button>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+
+          {(!config?.configured || editing) && (
+            <>
           <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
             <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Motor de comunicação</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -259,37 +381,20 @@ export default function ChatConfigPage() {
             </Box>
           )}
 
-          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Stack spacing={2}>
-              <FormControlLabel
-                control={<Switch checked={form.active} onChange={update("active")} />}
-                label="Ativar comunicação em tempo real"
-              />
-              <TextField
-                label="Senha atual do administrador"
-                value={form.current_password}
-                onChange={update("current_password")}
-                type="password"
-                autoComplete="current-password"
-                placeholder="Obrigatória para salvar ou testar as credenciais"
-              />
-            </Stack>
-          </Box>
-
-          <Alert severity="warning">
-            App ID, App Key e App Secret são criptografados no banco usando a APP_KEY do Laravel. O App Secret nunca é enviado ao navegador.
-          </Alert>
-
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>
-            <Button
-              variant="outlined"
-              onClick={testConnection}
-              disabled={testing || saving}
-              startIcon={<FeatherIcon icon="activity" width="17" />}
-              sx={modalSecondaryButtonSx}
-            >
-              {testing ? "Testando..." : "Testar conexão"}
-            </Button>
+            {config?.configured && (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  applyConfig(config);
+                  setEditing(false);
+                }}
+                disabled={saving}
+                sx={modalSecondaryButtonSx}
+              >
+                Cancelar
+              </Button>
+            )}
             <Button
               variant="contained"
               onClick={save}
@@ -297,9 +402,13 @@ export default function ChatConfigPage() {
               startIcon={<FeatherIcon icon="save" width="17" />}
               sx={modalPrimaryButtonSx}
             >
-              {saving ? "Salvando..." : "Salvar configurações"}
+              {saving ? "Salvando..." : "Salvar credenciais"}
             </Button>
           </Box>
+            </>
+          )}
+
+          {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
         </Stack>
       </BaseCard>
     </Box>
