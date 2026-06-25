@@ -35,6 +35,11 @@ const STATUS_META = {
 
 const EMPTY_ITEM = { almoxarifado_produto_id: '', quantidade_solicitada: '', observacao: '' };
 const EMPTY = { almoxarifado_secretaria_id: '', justificativa: '', observacoes: '', itens: [EMPTY_ITEM] };
+const formatDate = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR');
+};
 
 export default function RequisicoesPage() {
   const { user: currentUserId, username, capabilities } = useContext(AuthContext);
@@ -274,7 +279,7 @@ export default function RequisicoesPage() {
               <Stack spacing={2}>
                 <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: 'repeat(3, 1fr)' }} gap={2}>
                   <Box><Typography variant="caption">Requisitante</Typography><Typography>{detail.requisitante?.name || detail.solicitante}</Typography></Box>
-                  <Box><Typography variant="caption">Data</Typography><Typography>{new Date(`${detail.data_solicitacao}T00:00:00`).toLocaleDateString('pt-BR')}</Typography></Box>
+                  <Box><Typography variant="caption">Data</Typography><Typography>{formatDate(detail.data_solicitacao)}</Typography></Box>
                   <Box><Typography variant="caption">Status</Typography><Typography>{STATUS_META[detail.status]?.label || detail.status}</Typography></Box>
                 </Box>
 

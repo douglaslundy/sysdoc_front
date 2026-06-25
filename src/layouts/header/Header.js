@@ -62,7 +62,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
 
         <Box flexGrow={1} />
 
-        <IconButton
+        {canUseChat && <IconButton
           aria-label="Abrir chat interno"
           onClick={() => setIsOpen(true)}
           sx={{
@@ -76,7 +76,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
           <Badge badgeContent={unreadTotal} color="error" max={99}>
             <FeatherIcon icon="message-circle" width="20" height="20" />
           </Badge>
-        </IconButton>
+        </IconButton>}
         <ProtocolBell />
         <ProfileDD />
       </Toolbar>
