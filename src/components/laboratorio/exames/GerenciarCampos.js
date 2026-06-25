@@ -14,26 +14,17 @@ import { api } from '../../../services/api';
 import { addAlertMessage, addMessage, turnAlert } from '../../../store/ducks/Layout';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
+import {
+    modalBackdropSx,
+    modalFormRootSx,
+    modalShellSx,
+} from '../../modal/_shared/modalFormStyles';
 
 const CAMPO_INICIAL = { nome: '', descricao: '', tipo_valor: 'numerico', unidade: '', opcoes_selecao: [], obrigatorio: true, ativo: true };
 const REF_INICIAL   = { perfil: 'geral', valor_min: '', valor_max: '', valor_texto: '', descricao: '' };
 
 const PERFIS = ['geral', 'adulto_m', 'adulto_f', 'crianca', 'idoso', 'gestante'];
 const TIPOS  = ['numerico', 'texto', 'booleano', 'selecao'];
-
-const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    height: '98%',
-    bgcolor: 'background.paper',
-    border: '0px solid transparent',
-    boxShadow: 24,
-    p: 4,
-    overflow: 'scroll',
-};
 
 export default function GerenciarCampos() {
     const dispatch = useDispatch();
@@ -218,8 +209,13 @@ export default function GerenciarCampos() {
             </Card>
 
             {/* Modal - Novo/Editar Campo */}
-            <Modal keepMounted open={openCampo} onClose={() => setOpenCampo(false)}>
-                <Box className="lab-campo-exame-modal-shell" sx={modalStyle}>
+            <Modal
+                keepMounted
+                open={openCampo}
+                onClose={() => setOpenCampo(false)}
+                slotProps={{ backdrop: { sx: modalBackdropSx } }}
+            >
+                <Box className="lab-campo-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <BaseCard title={campoEditId ? 'Editar Campo' : 'Novo Campo do Exame'}>
                         <Stack spacing={3}>
@@ -286,8 +282,13 @@ export default function GerenciarCampos() {
             </Modal>
 
             {/* Modal - Valores de Referência */}
-            <Modal keepMounted open={openRef} onClose={() => setOpenRef(false)}>
-                <Box className="lab-referencia-campo-modal-shell" sx={modalStyle}>
+            <Modal
+                keepMounted
+                open={openRef}
+                onClose={() => setOpenRef(false)}
+                slotProps={{ backdrop: { sx: modalBackdropSx } }}
+            >
+                <Box className="lab-referencia-campo-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <BaseCard title="Valores de Referência do Campo">
                         <Stack spacing={3}>
@@ -399,6 +400,5 @@ export default function GerenciarCampos() {
         </>
     );
 }
-
 
 
