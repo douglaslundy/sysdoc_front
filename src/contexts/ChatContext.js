@@ -304,6 +304,29 @@ export function ChatProvider({ children }) {
     );
   }, []);
 
+  const deleteMessages = useCallback(async (messageIds) => {
+    if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+    const response = await api.delete("/chat/messages", {
+      data: { message_ids: messageIds },
+    });
+    const deletedIds = new Set(
+      (response.data?.message_ids || messageIds).map((id) => String(id))
+    );
+    setMessages((current) =>
+      current.map((message) =>
+        deletedIds.has(String(message.id))
+          ? {
+              ...message,
+              body: null,
+              display_body: "Mensagem apagada",
+              is_deleted: true,
+              attachments: [],
+            }
+          : message
+      )
+    );
+  }, []);
+
   const deleteConversation = useCallback(async () => {
     if (!activeConversation) return;
     await api.delete(`/chat/conversations/${activeConversation.id}`);
@@ -553,6 +576,7 @@ export function ChatProvider({ children }) {
         sendMessage,
         retryMessage,
         deleteMessage,
+        deleteMessages,
         deleteConversation,
         closeConversation,
         sendTyping,

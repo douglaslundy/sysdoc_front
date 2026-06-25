@@ -3,7 +3,25 @@ import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { Grid, Stack, TextField, Alert, Button, Typography, Divider, Box as MuiBox } from "@mui/material";
+import {
+    Grid,
+    Stack,
+    TextField,
+    Alert,
+    Button,
+    Typography,
+    Divider,
+    Box as MuiBox,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+} from "@mui/material";
 import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showLetter, editLetter } from '../../../store/ducks/letters';
@@ -24,6 +42,7 @@ import {
     downloadLetterAttachment,
     getAllLetters
 } from '../../../store/fetchActions/letter';
+import { api } from '../../../services/api';
 
 export default function LetterModal(props) {
     const [form, setForm] = useState({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
@@ -38,6 +57,11 @@ export default function LetterModal(props) {
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
     const [pendingFiles, setPendingFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [destinationUserId, setDestinationUserId] = useState('');
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [creatingProtocol, setCreatingProtocol] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: '',
@@ -54,6 +78,8 @@ export default function LetterModal(props) {
         setAttachments([]);
         setPendingFiles([]);
         setIsSubmitting(false);
+        setProtocolDialogOpen(false);
+        setDestinationUserId('');
         dispatch(getTextOpenAi(""));
         dispatch(closeModal());
         dispatch(showLetter({}));
@@ -158,6 +184,67 @@ export default function LetterModal(props) {
         return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
     };
 
+    const hasPdfAttachment = attachments.some((attachment) => attachment.mime_type === 'application/pdf');
+    const protocolDisabledReason = !letter?.id
+        ? 'Salve o ofício antes de criar o protocolo.'
+        : letter.has_open_protocol
+        ? `Já existe um protocolo aberto vinculado${letter.open_protocol_number ? `: ${letter.open_protocol_number}` : '.'}`
+        : !hasPdfAttachment
+        ? 'Anexe um PDF válido ao ofício antes de criar o protocolo.'
+        : '';
+
+    const openProtocolDialog = async () => {
+        if (protocolDisabledReason) {
+            setAlertState({ visible: true, type: 'warning', message: protocolDisabledReason });
+            return;
+        }
+
+        setProtocolDialogOpen(true);
+        if (users.length > 0) return;
+        setLoadingUsers(true);
+        try {
+            const { data } = await api.get('/users');
+            setUsers((Array.isArray(data) ? data : []).filter((item) => item.active));
+        } catch (error) {
+            setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível carregar os destinatários.' });
+        } finally {
+            setLoadingUsers(false);
+        }
+    };
+
+    const createProtocol = async () => {
+        if (!destinationUserId || !letter?.id || creatingProtocol) return;
+        setCreatingProtocol(true);
+        try {
+            const { data } = await api.post(`/letters/${letter.id}/protocol`, {
+                destino_user_id: destinationUserId,
+            });
+            const updated = {
+                ...letter,
+                has_open_protocol: true,
+                open_protocol_id: data?.protocol?.id,
+                open_protocol_number: data?.protocol?.numero,
+            };
+            dispatch(editLetter(updated));
+            dispatch(showLetter(updated));
+            setProtocolDialogOpen(false);
+            setDestinationUserId('');
+            setAlertState({
+                visible: true,
+                type: 'success',
+                message: `${data?.message || 'Protocolo criado com sucesso.'} Número: ${data?.protocol?.numero || '-'}`,
+            });
+        } catch (error) {
+            setAlertState({
+                visible: true,
+                type: 'error',
+                message: error?.response?.data?.message || 'Não foi possível criar o protocolo.',
+            });
+        } finally {
+            setCreatingProtocol(false);
+        }
+    };
+
     useEffect(() => {
         if (letter && letter.id) setForm(letter);
     }, [letter]);
@@ -257,11 +344,25 @@ export default function LetterModal(props) {
                                     )}
                                 </MuiBox>
 
+                                {letter?.id && protocolDisabledReason && (
+                                    <Alert severity={letter.has_open_protocol ? 'info' : 'warning'} sx={{ mt: 2 }}>
+                                        {protocolDisabledReason}
+                                    </Alert>
+                                )}
+
                                 <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
                                     <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx} disabled={isSubmitting || isAttachmentUploading}>
                                         {isSubmitting ? 'Salvando...' : 'Gravar'}
                                     </Button>
                                     <Button onClick={handleGetTextAI} variant="contained" color="success" sx={modalPrimaryButtonSx} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
+                                    <Button
+                                        onClick={openProtocolDialog}
+                                        variant="contained"
+                                        disabled={Boolean(protocolDisabledReason) || isSubmitting || isAttachmentUploading || creatingProtocol}
+                                        title={protocolDisabledReason || 'Criar protocolo usando o PDF anexado ao ofício'}
+                                    >
+                                        {letter?.has_open_protocol ? 'Protocolo já criado' : 'Criar protocolo'}
+                                    </Button>
                                     <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx} disabled={isSubmitting}>Cancelar</Button>
                                 </Box>
                             </BaseCard>
@@ -269,12 +370,56 @@ export default function LetterModal(props) {
                     </Grid>
                 </Box>
             </Modal>
+            <Dialog
+                open={protocolDialogOpen}
+                onClose={() => !creatingProtocol && setProtocolDialogOpen(false)}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>Criar protocolo pelo Ofício {letter?.number}</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} sx={{ pt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                            O mesmo PDF anexado ao ofício será vinculado ao protocolo e enviado ao usuário selecionado.
+                        </Typography>
+                        <FormControl fullWidth disabled={loadingUsers || creatingProtocol}>
+                            <InputLabel id="letter-protocol-destination-label">Destinatário</InputLabel>
+                            <Select
+                                labelId="letter-protocol-destination-label"
+                                label="Destinatário"
+                                value={destinationUserId}
+                                onChange={(event) => setDestinationUserId(event.target.value)}
+                            >
+                                {users.map((item) => (
+                                    <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        {loadingUsers && <CircularProgress size={24} />}
+                    </Stack>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        variant="outlined"
+                        onClick={() => setProtocolDialogOpen(false)}
+                        disabled={creatingProtocol}
+                        sx={modalSecondaryButtonSx}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={createProtocol}
+                        disabled={creatingProtocol || loadingUsers || !destinationUserId}
+                    >
+                        {creatingProtocol ? 'Criando...' : 'Criar protocolo'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }
-
-
 
 
 

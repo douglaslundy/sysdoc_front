@@ -78,6 +78,16 @@ const formatDate = (value) => {
   return date.toISOString().slice(0, 10);
 };
 
+const formatHistoryText = (value) => {
+  const readable = String(value || "")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+  return readable ? readable.charAt(0).toUpperCase() + readable.slice(1) : "Ação";
+};
+
 const fieldStyle = {
   width: "100%",
   background: "var(--lg-glass-input)",
@@ -436,9 +446,11 @@ function ProtocolDialog({ open, item, onClose, onChanged }) {
             <Stack divider={<Divider />}>
               {(protocol?.movements || []).slice().reverse().map((movement) => (
                 <Box key={movement.id} py={1}>
-                  <Typography fontWeight={700}>{movement.acao}</Typography>
-                  <Typography variant="body2">{movement.user?.name || "Sistema"} · {formatDateTime(movement.created_at)}</Typography>
-                  {movement.observacao && <Typography variant="body2" color="text.secondary">{movement.observacao}</Typography>}
+                  <Typography sx={{ fontWeight: 700, fontSize: "0.72rem" }}>
+                    {formatHistoryText(movement.acao)}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.65rem" }}>{movement.user?.name || "Sistema"} · {formatDateTime(movement.created_at)}</Typography>
+                  {movement.observacao && <Typography color="text.secondary" sx={{ fontSize: "0.65rem" }}>{movement.observacao}</Typography>}
                 </Box>
               ))}
             </Stack>

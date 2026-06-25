@@ -4,6 +4,7 @@ import {
   Badge,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Divider,
   Drawer,
@@ -22,6 +23,7 @@ import FeatherIcon from "feather-icons-react";
 import { ChatContext } from "../../contexts/ChatContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
+import DestructiveConfirmDialog from "../confirmDialog/DestructiveConfirmDialog";
 
 const PANEL_WIDTH = 780;
 
@@ -164,6 +166,7 @@ export default function ChatPanel() {
     sendMessage,
     retryMessage,
     deleteMessage,
+    deleteMessages,
     deleteConversation,
     closeConversation,
     sendTyping,
@@ -174,9 +177,13 @@ export default function ChatPanel() {
   const [search, setSearch] = useState("");
   const [historySearch, setHistorySearch] = useState("");
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [selectedMessageIds, setSelectedMessageIds] = useState([]);
+  const [deleteRequest, setDeleteRequest] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
+  const typingActiveRef = useRef(false);
 
   const filteredUsers = users.filter((item) =>
     item.name?.toLowerCase().includes(search.toLowerCase())
@@ -188,11 +195,22 @@ export default function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, activeConversation?.id]);
 
+  useEffect(() => {
+    setSelectedMessageIds([]);
+    setDeleteRequest(null);
+  }, [activeConversation?.id]);
+
   const handleBodyChange = (event) => {
     setBody(event.target.value);
-    sendTyping(true);
+    if (!typingActiveRef.current) {
+      typingActiveRef.current = true;
+      sendTyping(true);
+    }
     clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(() => sendTyping(false), 1800);
+    typingTimerRef.current = setTimeout(() => {
+      typingActiveRef.current = false;
+      sendTyping(false);
+    }, 1800);
   };
 
   const handleSend = async () => {
@@ -203,6 +221,8 @@ export default function ChatPanel() {
     setError("");
     setBody("");
     setFile(null);
+    typingActiveRef.current = false;
+    clearTimeout(typingTimerRef.current);
     sendTyping(false);
     try {
       await sendMessage({ body: messageBody, file: messageFile });
@@ -225,6 +245,43 @@ export default function ChatPanel() {
         retryError?.response?.data?.message ||
           "Não foi possível reenviar a mensagem."
       );
+    }
+  };
+
+  const toggleMessageSelection = (messageId) => {
+    setSelectedMessageIds((current) =>
+      current.includes(messageId)
+        ? current.filter((id) => id !== messageId)
+        : [...current, messageId]
+    );
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteRequest || deleting) return;
+    setDeleting(true);
+    setError("");
+    try {
+      if (deleteRequest.type === "conversation") {
+        await deleteConversation();
+      } else if (deleteRequest.type === "multiple") {
+        if (selectedMessageIds.length === 0) return;
+        await deleteMessages(selectedMessageIds);
+        setSelectedMessageIds([]);
+      } else {
+        await deleteMessage(deleteRequest.messageId);
+        setSelectedMessageIds((current) =>
+          current.filter((id) => id !== deleteRequest.messageId)
+        );
+      }
+      setDeleteRequest(null);
+    } catch (deleteError) {
+      setDeleteRequest(null);
+      setError(
+        deleteError?.response?.data?.message ||
+          "Não foi possível concluir a exclusão."
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -483,7 +540,7 @@ export default function ChatPanel() {
                 <Tooltip title="Apagar conversa da minha lista">
                   <IconButton
                     aria-label="Apagar conversa"
-                    onClick={deleteConversation}
+                    onClick={() => setDeleteRequest({ type: "conversation" })}
                     sx={{ color: "error.main" }}
                   >
                     <FeatherIcon icon="trash-2" width="18" />
@@ -500,6 +557,38 @@ export default function ChatPanel() {
                     "radial-gradient(circle at 20% 0%, rgba(var(--lg-accent-rgb), .08), transparent 34%)",
                 }}
               >
+                {selectedMessageIds.length > 0 && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      mb: 1.5,
+                      p: 1,
+                      border: "1px solid var(--lg-border)",
+                      borderRadius: "12px",
+                      background: "var(--lg-glass-panel)",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {selectedMessageIds.length} mensagem(ns) selecionada(s)
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button size="small" onClick={() => setSelectedMessageIds([])}>
+                        Limpar
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="contained"
+                        onClick={() => setDeleteRequest({ type: "multiple" })}
+                      >
+                        Excluir selecionadas
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
                 {loading ? (
                   <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
                     <CircularProgress size={28} />
@@ -526,6 +615,7 @@ export default function ChatPanel() {
                       >
                         <Box
                           sx={{
+                            position: "relative",
                             maxWidth: "78%",
                             px: 1.5,
                             py: 1,
@@ -538,6 +628,22 @@ export default function ChatPanel() {
                             border: "1px solid var(--lg-border)",
                           }}
                         >
+                          {mine &&
+                            !message.is_deleted &&
+                            !["sending", "failed"].includes(message.status) && (
+                              <Checkbox
+                                size="small"
+                                checked={selectedMessageIds.includes(message.id)}
+                                onChange={() => toggleMessageSelection(message.id)}
+                                inputProps={{ "aria-label": "Selecionar mensagem" }}
+                                sx={{
+                                  position: "absolute",
+                                  left: -34,
+                                  top: 4,
+                                  p: 0.5,
+                                }}
+                              />
+                            )}
                           <Typography
                             sx={{
                               fontSize: "13px",
@@ -595,7 +701,12 @@ export default function ChatPanel() {
                               <IconButton
                                 size="small"
                                 aria-label="Apagar mensagem"
-                                onClick={() => deleteMessage(message.id)}
+                                onClick={() =>
+                                  setDeleteRequest({
+                                    type: "single",
+                                    messageId: message.id,
+                                  })
+                                }
                                 sx={{ p: 0.25, ml: 0.5, color: "var(--lg-text-muted)" }}
                               >
                                 <FeatherIcon icon="trash" width="11" />
@@ -703,6 +814,31 @@ export default function ChatPanel() {
           )}
         </Box>
       </Box>
+      <DestructiveConfirmDialog
+        open={Boolean(deleteRequest)}
+        title={
+          deleteRequest?.type === "conversation"
+            ? "Excluir conversa"
+            : deleteRequest?.type === "multiple"
+            ? "Excluir mensagens selecionadas"
+            : "Excluir mensagem"
+        }
+        message={
+          deleteRequest?.type === "conversation"
+            ? "A conversa será removida apenas da sua lista. O histórico continuará preservado para auditoria."
+            : deleteRequest?.type === "multiple"
+            ? `As ${selectedMessageIds.length} mensagens selecionadas serão marcadas como apagadas.`
+            : "A mensagem será marcada como apagada e permanecerá preservada para auditoria."
+        }
+        confirmLabel={
+          deleteRequest?.type === "conversation"
+            ? "Excluir conversa"
+            : "Excluir mensagem"
+        }
+        loading={deleting}
+        onClose={() => setDeleteRequest(null)}
+        onConfirm={confirmDelete}
+      />
     </Drawer>
   );
 }

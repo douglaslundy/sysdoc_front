@@ -22,6 +22,7 @@ import {
   modalSecondaryButtonSx,
 } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
+import DestructiveConfirmDialog from "../../src/components/confirmDialog/DestructiveConfirmDialog";
 
 const emptyForm = {
   engine: "pusher",
@@ -46,6 +47,7 @@ export default function ChatConfigPage() {
   const [testing, setTesting] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
   const applyConfig = useCallback((data, clearSecrets = true) => {
@@ -185,17 +187,17 @@ export default function ChatConfigPage() {
   };
 
   const deleteCredentials = async () => {
-    if (!window.confirm("Deseja realmente apagar as credenciais do chat?")) return;
-
     setDeleting(true);
     setFeedback(null);
     try {
       const { data } = await api.delete("/chat/config");
       applyConfig(data);
       setEditing(true);
+      setDeleteDialogOpen(false);
       window.dispatchEvent(new Event("chat-realtime-config-updated"));
       setFeedback({ type: "success", message: "Credenciais apagadas." });
     } catch (error) {
+      setDeleteDialogOpen(false);
       setFeedback({
         type: "error",
         message: errorMessage(error, "Não foi possível apagar as credenciais."),
@@ -280,7 +282,7 @@ export default function ChatConfigPage() {
                   <Button
                     color="error"
                     variant="outlined"
-                    onClick={deleteCredentials}
+                    onClick={() => setDeleteDialogOpen(true)}
                     disabled={deleting || saving || changingStatus}
                     startIcon={<FeatherIcon icon="trash-2" width="17" />}
                   >
@@ -408,6 +410,15 @@ export default function ChatConfigPage() {
           {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
         </Stack>
       </BaseCard>
+      <DestructiveConfirmDialog
+        open={deleteDialogOpen}
+        title="Apagar configurações do chat"
+        message="As credenciais e a conexão em tempo real serão removidas. O chat deixará de receber atualizações em tempo real até uma nova configuração ser salva."
+        confirmLabel="Apagar configurações"
+        loading={deleting}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={deleteCredentials}
+      />
     </Box>
   );
 }
