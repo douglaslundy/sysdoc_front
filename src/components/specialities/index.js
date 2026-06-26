@@ -175,9 +175,9 @@ export default function Specialities() {
               <TableRow>
                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">ID</Typography></TableCell>
                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Nome</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Usuario cadastrador</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Usuário cadastrador</Typography></TableCell>
                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Criado em</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

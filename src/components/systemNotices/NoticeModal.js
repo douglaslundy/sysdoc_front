@@ -43,6 +43,45 @@ export default function NoticeModal() {
     border: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
   }), [theme]);
 
+  const formatNoticeBody = (body) => {
+    const raw = String(body || '');
+    if (!raw) return '';
+
+    const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
+    if (hasHtml) {
+      return raw;
+    }
+
+    const escaped = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    return escaped.replace(/\n/g, '<br />');
+  };
+
+  const [sanitizedBody, setSanitizedBody] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    import('dompurify')
+      .then(({ default: DOMPurify }) => {
+        if (!active) return;
+        setSanitizedBody(DOMPurify.sanitize(formatNoticeBody(current?.body)));
+      })
+      .catch(() => {
+        if (!active) return;
+        setSanitizedBody(formatNoticeBody(current?.body));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [current?.body]);
+
   const handleClose = () => {
     setOpen(false);
     const nextQueue = queue.slice(1);
@@ -92,9 +131,18 @@ export default function NoticeModal() {
             <img src={current.image_data} alt={current.title} style={imageStyle} />
           </Box>
         ) : null}
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-          {current.body}
-        </Typography>
+        <Box
+          sx={{
+            lineHeight: 1.8,
+            color: 'text.primary',
+            '& p': { my: 1.25 },
+            '& h1, & h2, & h3': { mt: 2, mb: 1, fontWeight: 800, lineHeight: 1.2 },
+            '& ul, & ol': { pl: 3, my: 1.25 },
+            '& a': { color: 'primary.main' },
+            '& strong': { fontWeight: 800 },
+          }}
+          dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+        />
       </DialogContent>
       <DialogActions sx={{ p: 3, pt: 2 }}>
         <Button

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
+import Phone from '../../inputs/textFields/phone';
 import {
   modalFormRootSx,
   modalBackdropSx,
@@ -46,6 +47,8 @@ export default function UserModal(props) {
   const [form, setForm] = useState({
     profile: '',
     name: '',
+    preferred_name: '',
+    phone: '',
     email: '',
     cpf: '',
     is_driver: false,
@@ -68,17 +71,24 @@ export default function UserModal(props) {
   const dispatch = useDispatch();
   const { user: userId, profile: userProfile } = useContext(AuthContext);
 
-  const { profile, name, email, cpf, is_driver, password, password2 } = form;
+  const { profile, name, preferred_name, phone, email, cpf, is_driver, password, password2 } = form;
   const [texto, setTexto] = useState();
 
   const changeItem = ({ target }) => {
-    setForm({ ...form, [target.name]: target.value });
+    setForm({
+      ...form,
+      [target.name]: target.name === 'preferred_name'
+        ? target.value.toUpperCase()
+        : target.value,
+    });
   };
 
   const cleanForm = () => {
     setForm({
       profile: '',
       name: '',
+      preferred_name: '',
+      phone: '',
       email: '',
       cpf: '',
       is_driver: false,
@@ -149,6 +159,8 @@ export default function UserModal(props) {
     if (user && user.id) {
       setForm({
         ...user,
+        preferred_name: user.preferred_name ?? '',
+        phone: user.phone ?? '',
         is_driver: user.is_driver === true || Number(user.is_driver) === 1,
         is_rt_psf: Boolean(user.is_rt_psf),
         rt_all_teams: Boolean(user.rt_all_teams),
@@ -262,6 +274,22 @@ export default function UserModal(props) {
                   />
 
                   <TextField
+                    id="preferred_name"
+                    label="Como gostaria de ser chamado"
+                    variant="outlined"
+                    name="preferred_name"
+                    value={preferred_name || ''}
+                    onChange={changeItem}
+                    fullWidth
+                    helperText="Se não preencher, o chat exibirá o nome do usuário."
+                    inputProps={{
+                      style: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                  />
+
+                  <TextField
                     id="email"
                     label="@Email"
                     variant="outlined"
@@ -270,6 +298,14 @@ export default function UserModal(props) {
                     value={email || ''}
                     onChange={changeItem}
                     required
+                    fullWidth
+                  />
+
+                  <Phone
+                    value={phone || ''}
+                    label="Telefone"
+                    name="phone"
+                    changeItem={changeItem}
                     fullWidth
                   />
 
@@ -430,7 +466,4 @@ export default function UserModal(props) {
     </div>
   );
 }
-
-
-
 

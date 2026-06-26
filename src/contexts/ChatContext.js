@@ -47,26 +47,54 @@ export function ChatProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [syncError, setSyncError] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [chatBehavior, setChatBehavior] = useState({
+    autoOpenOnMessage: false,
+    playSoundOnMessage: true,
+  });
+  const [attachmentRules, setAttachmentRules] = useState({
+    maxAttachmentKb: 0,
+    maxAttachmentBytes: 0,
+    allowedExtensions: [],
+  });
   const [realtimeVersion, setRealtimeVersion] = useState(0);
   const echoRef = useRef(null);
   const connectionIdRef = useRef(createConnectionId());
   const activeConversationRef = useRef(null);
+  const conversationsRef = useRef([]);
   const isOpenRef = useRef(false);
   const soundEnabledRef = useRef(false);
+  const audioContextRef = useRef(null);
+  const audioUnlockedRef = useRef(false);
+  const chatBehaviorRef = useRef({
+    autoOpenOnMessage: false,
+    playSoundOnMessage: true,
+  });
 
   useEffect(() => {
     activeConversationRef.current = activeConversation;
   }, [activeConversation]);
 
   useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
     isOpenRef.current = isOpen;
   }, [isOpen]);
 
   useEffect(() => {
-    const enabled = window.localStorage.getItem("chat.notificationSound") === "true";
+    const storedPreference = window.localStorage.getItem("chat.notificationSound");
+    const enabled = storedPreference === null ? true : storedPreference === "true";
     setSoundEnabled(enabled);
     soundEnabledRef.current = enabled;
+    if (storedPreference === null) {
+      window.localStorage.setItem("chat.notificationSound", "true");
+    }
   }, []);
+
+  useEffect(() => {
+    chatBehaviorRef.current = chatBehavior;
+  }, [chatBehavior]);
 
   const toggleSound = useCallback(() => {
     setSoundEnabled((current) => {
@@ -77,26 +105,77 @@ export function ChatProvider({ children }) {
     });
   }, []);
 
-  const playNotificationSound = useCallback(() => {
-    if (!soundEnabledRef.current) return;
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const audio = new AudioContext();
-      const oscillator = audio.createOscillator();
-      const gain = audio.createGain();
-      oscillator.frequency.value = 720;
-      gain.gain.setValueAtTime(0.08, audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.18);
-      oscillator.connect(gain);
-      gain.connect(audio.destination);
-      oscillator.start();
-      oscillator.stop(audio.currentTime + 0.18);
-      oscillator.addEventListener("ended", () => audio.close());
-    } catch {
-      // Browsers may block audio until the user interacts with the page.
+  const ensureAudioContext = useCallback(async () => {
+    if (typeof window === "undefined") return null;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return null;
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext();
     }
+
+    if (audioContextRef.current.state === "suspended") {
+      try {
+        await audioContextRef.current.resume();
+      } catch {
+        return audioContextRef.current;
+      }
+    }
+
+    return audioContextRef.current;
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const unlockAudio = async () => {
+      const context = await ensureAudioContext();
+      if (context?.state === "running") {
+        audioUnlockedRef.current = true;
+      }
+    };
+
+    const handleUnlock = () => {
+      unlockAudio().catch(() => {});
+    };
+
+    window.addEventListener("pointerdown", handleUnlock, { passive: true });
+    window.addEventListener("keydown", handleUnlock);
+    window.addEventListener("touchstart", handleUnlock, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", handleUnlock);
+      window.removeEventListener("keydown", handleUnlock);
+      window.removeEventListener("touchstart", handleUnlock);
+    };
+  }, [ensureAudioContext]);
+
+  const playNotificationSound = useCallback(() => {
+    if (
+      !soundEnabledRef.current ||
+      !chatBehaviorRef.current.playSoundOnMessage
+    ) {
+      return;
+    }
+    ensureAudioContext()
+      .then((audio) => {
+        if (!audio || audio.state !== "running") return;
+
+        audioUnlockedRef.current = true;
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(720, audio.currentTime);
+        gain.gain.setValueAtTime(0.0001, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.08, audio.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.22);
+        oscillator.connect(gain);
+        gain.connect(audio.destination);
+        oscillator.start(audio.currentTime);
+        oscillator.stop(audio.currentTime + 0.22);
+      })
+      .catch(() => {});
+  }, [ensureAudioContext]);
 
   const refreshLists = useCallback(async () => {
     if (!isAuthenticated || !canUseChat) return;
@@ -125,7 +204,7 @@ export function ChatProvider({ children }) {
     setSyncError(
       failed
         ? failed.reason?.response?.data?.message ||
-            "Alguns dados do chat nao puderam ser sincronizados."
+            "Alguns dados do chat não puderam ser sincronizados."
         : ""
     );
   }, [isAuthenticated, canUseChat]);
@@ -156,13 +235,44 @@ export function ChatProvider({ children }) {
           Number(response.data?.current_page || 1) <
             Number(response.data?.last_page || 1)
         );
-        await markRead(conversation.id);
-        await refreshLists();
       } finally {
         setLoading(false);
       }
+
+      markRead(conversation.id).catch(() => {});
+      refreshLists().catch(() => {});
     },
     [markRead, refreshLists]
+  );
+
+  const focusConversationById = useCallback(
+    async (conversationId) => {
+      if (!conversationId) return;
+
+      setIsOpen(true);
+
+      if (activeConversationRef.current?.id === conversationId) {
+        return;
+      }
+
+      let conversation = conversationsRef.current.find(
+        (item) => Number(item.id) === Number(conversationId)
+      );
+
+      if (!conversation) {
+        const response = await api.get("/chat/conversations");
+        const items = sortConversations(response.data || []);
+        setConversations(items);
+        conversation = items.find(
+          (item) => Number(item.id) === Number(conversationId)
+        );
+      }
+
+      if (conversation) {
+        await openConversation(conversation);
+      }
+    },
+    [openConversation]
   );
 
   const startConversation = useCallback(
@@ -219,17 +329,18 @@ export function ChatProvider({ children }) {
       if (!activeConversation) return null;
       const activeConversationId = activeConversation.id;
       const pendingId = clientMessageId || createClientMessageId();
+      const normalizedBody = body?.trim() || "";
       const pendingMessage = {
         id: pendingId,
         conversation_id: activeConversationId,
         sender_id: user,
-        body: body || null,
-        display_body: body || (file ? file.name : ""),
-        status: "sending",
+        body: normalizedBody || null,
+        display_body: normalizedBody || (file ? file.name : ""),
+        status: "sent",
         created_at: new Date().toISOString(),
         attachments: [],
         pending_attachment_name: file?.name || null,
-        retry_payload: { body, file },
+        retry_payload: { body: normalizedBody, file },
       };
 
       setMessages((current) => {
@@ -241,14 +352,19 @@ export function ChatProvider({ children }) {
           : [...current, pendingMessage];
       });
 
-      const formData = new FormData();
-      if (body) formData.append("body", body);
-      if (file) formData.append("file", file);
       try {
+        const payload = file
+          ? (() => {
+              const formData = new FormData();
+              if (normalizedBody) formData.append("body", normalizedBody);
+              formData.append("file", file);
+              return formData;
+            })()
+          : { body: normalizedBody };
+
         const response = await api.post(
           `/chat/conversations/${activeConversationId}/messages`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          payload
         );
         setMessages((current) =>
           current.map((message) =>
@@ -391,6 +507,21 @@ export function ChatProvider({ children }) {
 
     const connect = async () => {
       const { data: realtimeConfig } = await api.get("/chat/realtime-config");
+      const behavior = {
+        autoOpenOnMessage: Boolean(realtimeConfig?.auto_open_on_message),
+        playSoundOnMessage:
+          realtimeConfig?.play_sound_on_message === undefined
+            ? true
+            : Boolean(realtimeConfig?.play_sound_on_message),
+      };
+      setChatBehavior(behavior);
+      setAttachmentRules({
+        maxAttachmentKb: Number(realtimeConfig?.max_attachment_kb || 0),
+        maxAttachmentBytes: Number(realtimeConfig?.max_attachment_bytes || 0),
+        allowedExtensions: Array.isArray(realtimeConfig?.allowed_extensions)
+          ? realtimeConfig.allowed_extensions
+          : [],
+      });
       if (!realtimeConfig?.active || !realtimeConfig?.key) {
         setConnected(false);
         return;
@@ -441,19 +572,27 @@ export function ChatProvider({ children }) {
       const channel = echo.private(`chat.user.${user}`);
       channel.listen(".message.new", (message) => {
         api.post(`/chat/messages/${message.id}/delivered`).catch(() => {});
+        const shouldFocusConversation =
+          chatBehaviorRef.current.autoOpenOnMessage &&
+          activeConversationRef.current?.id !== message.conversation_id;
         setMessages((current) =>
           activeConversationRef.current?.id === message.conversation_id
             ? [...current, message]
             : current
         );
+        playNotificationSound();
         if (
           activeConversationRef.current?.id === message.conversation_id &&
           isOpenRef.current
         ) {
           markRead(message.conversation_id).catch(() => {});
+        } else if (shouldFocusConversation) {
+          focusConversationById(message.conversation_id).catch(() => {
+            setUnreadTotal((current) => current + 1);
+            setIsOpen(true);
+          });
         } else {
           setUnreadTotal((current) => current + 1);
-          playNotificationSound();
         }
         refreshLists().catch(() => {});
       });
@@ -538,6 +677,7 @@ export function ChatProvider({ children }) {
     canUseChat,
     markRead,
     playNotificationSound,
+    focusConversationById,
     realtimeVersion,
     refreshLists,
     user,
@@ -583,6 +723,8 @@ export function ChatProvider({ children }) {
         loading,
         syncError,
         soundEnabled,
+        chatBehavior,
+        attachmentRules,
         refreshLists,
         openConversation,
         loadOlderMessages,

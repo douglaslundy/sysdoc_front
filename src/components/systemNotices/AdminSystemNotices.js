@@ -21,9 +21,11 @@ import {
 import { alpha, useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
+import ConfirmDialog from '../confirmDialog';
 import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import NoticeRichTextEditor from './NoticeRichTextEditor';
 
 const EMPTY = {
   title: '',
@@ -44,6 +46,13 @@ export default function AdminSystemNotices() {
   const [users, setUsers] = useState([]);
   const [notices, setNotices] = useState([]);
   const [error, setError] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    subTitle: '',
+    confirm: null,
+    onConfirm: null,
+  });
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -119,6 +128,12 @@ export default function AdminSystemNotices() {
     setError('');
 
     try {
+      const normalizedBody = String(form.body || '').replace(/<(.|\n)*?>/g, ' ').replace(/&nbsp;/g, ' ').trim();
+      if (!normalizedBody) {
+        setError('Informe o conteúdo do aviso.');
+        return;
+      }
+
       const targetUserId = form.target_user_id === 'all' ? null : Number(form.target_user_id);
       await api.post('/system-notices', {
         ...form,
@@ -135,9 +150,22 @@ export default function AdminSystemNotices() {
   };
 
   const remove = async (id) => {
-    if (!window.confirm('Deseja remover este aviso?')) return;
-    await api.delete(`/system-notices/${id}`);
-    load();
+    try {
+      await api.delete(`/system-notices/${id}`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Não foi possível remover o aviso.');
+    }
+  };
+
+  const confirmRemove = (notice) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: `Deseja remover o aviso "${notice?.title || ''}"?`,
+      subTitle: 'Esta ação não poderá ser desfeita.',
+      confirm: null,
+      onConfirm: () => remove(notice.id),
+    });
   };
 
   return (
@@ -149,7 +177,15 @@ export default function AdminSystemNotices() {
           <Stack spacing={2}>
             <TextField sx={fieldSx} name="title" label="Título" value={form.title} onChange={change} required fullWidth />
             <TextField sx={fieldSx} name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} fullWidth />
-            <TextField sx={fieldSx} name="body" label="Texto do aviso" value={form.body} onChange={change} required fullWidth multiline minRows={4} />
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Texto do aviso
+              </Typography>
+              <NoticeRichTextEditor
+                value={form.body}
+                onChange={(content) => setForm((current) => ({ ...current, body: content }))}
+              />
+            </Box>
             <Button component="label" variant="outlined" startIcon={<FeatherIcon icon="image" width="16" height="16" />} sx={{ alignSelf: 'flex-start' }}>
               Inserir imagem
               <input hidden type="file" accept="image/*" onChange={handleImage} />
@@ -240,7 +276,7 @@ export default function AdminSystemNotices() {
                     <Chip size="small" color={notice.is_active ? 'success' : 'default'} label={notice.is_active ? 'Ativo' : 'Inativo'} />
                   </TableCell>
                   <TableCell>
-                    <Button color="error" onClick={() => remove(notice.id)}>
+                    <Button color="error" onClick={() => confirmRemove(notice)}>
                       Excluir
                     </Button>
                   </TableCell>
@@ -257,6 +293,7 @@ export default function AdminSystemNotices() {
           </Table>
         </TableContainer>
       </BaseCard>
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
     </Box>
   );
 }

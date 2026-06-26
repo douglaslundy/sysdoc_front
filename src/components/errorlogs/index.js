@@ -54,48 +54,48 @@ const getFriendlyError = (log) => {
 
     if (type === 'ValidationException') {
         return {
-            summary: 'Nao foi possivel salvar porque alguns campos estao invalidos ou ausentes.',
-            reason: 'Revise os campos obrigatorios destacados e tente novamente.',
+            summary: 'Não foi possível salvar porque alguns campos estão inválidos ou ausentes.',
+            reason: 'Revise os campos obrigatórios destacados e tente novamente.',
         };
     }
 
     if (type === 'AuthenticationException') {
         return {
-            summary: 'Sua sessao expirou ou voce nao esta autenticado.',
-            reason: 'Faca login novamente para continuar.',
+            summary: 'Sua sessão expirou ou você não está autenticado.',
+            reason: 'Faça login novamente para continuar.',
         };
     }
 
     if (type === 'AuthorizationException') {
         return {
-            summary: 'Voce nao tem permissao para executar esta acao.',
+            summary: 'Você não tem permissão para executar esta ação.',
             reason: 'Solicite acesso ao administrador do sistema.',
         };
     }
 
     if (type === 'NotFoundHttpException') {
         return {
-            summary: 'O recurso solicitado nao foi encontrado.',
-            reason: 'Verifique se o item ainda existe ou se o link/rota esta correto.',
+            summary: 'O recurso solicitado não foi encontrado.',
+            reason: 'Verifique se o item ainda existe ou se o link/rota está correto.',
         };
     }
 
     if (type === 'QueryException') {
         return {
             summary: 'Ocorreu uma falha ao processar os dados no banco.',
-            reason: 'Pode ser incompatibilidade de estrutura, dado invalido ou indisponibilidade temporaria.',
+            reason: 'Pode ser incompatibilidade de estrutura, dado inválido ou indisponibilidade temporária.',
         };
     }
 
     if (message.includes('timeout')) {
         return {
-            summary: 'A operacao excedeu o tempo esperado.',
+            summary: 'A operação excedeu o tempo esperado.',
             reason: 'Verifique conectividade, carga do servidor ou tente novamente.',
         };
     }
 
     return {
-        summary: 'Ocorreu um erro inesperado durante a operacao.',
+        summary: 'Ocorreu um erro inesperado durante a operação.',
         reason: 'Tente novamente. Se persistir, acione o suporte com o ID do log.',
     };
 };
@@ -140,7 +140,7 @@ export default () => {
 
             <Box className="queue-page__toolbar" sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between' }}>
                 <Select
-                    label="Usuario"
+                    label="Usuário"
                     name="user"
                     value={use}
                     store={usersExists}
@@ -154,13 +154,13 @@ export default () => {
                     <TableHead>
                         <TableRow>
                             <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">ID / Usuario / Data</Typography>
+                                <Typography color="textSecondary" variant="h6">ID / Usuário / Data</Typography>
                             </TableCell>
                             <TableCell className="queue-page__th">
                                 <Typography color="textSecondary" variant="h6">Tipo / Arquivo - Linha</Typography>
                             </TableCell>
                             <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">Mensagem amigavel / Detalhe tecnico</Typography>
+                                <Typography color="textSecondary" variant="h6">Mensagem amigável / Detalhe técnico</Typography>
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -181,7 +181,7 @@ export default () => {
                                                             {errorlog.id}
                                                         </Typography>
                                                         <Typography variant="h6" sx={{ fontSize: "12px" }}>
-                                                            {(errorlog.user?.name || 'NAO IDENTIFICADO').toUpperCase()}
+                                                            {(errorlog.user?.name || 'NÃO IDENTIFICADO').toUpperCase()}
                                                         </Typography>
                                                         <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
                                                             {errorlog.created_at && format(parseISO(errorlog.created_at), 'dd/MM/yyyy HH:mm:ss')}
@@ -209,7 +209,7 @@ export default () => {
                                                             Motivo: {friendly.reason}
                                                         </Typography>
                                                         <details>
-                                                            <summary>Detalhes tecnicos</summary>
+                                                            <summary>Detalhes técnicos</summary>
                                                             <Typography sx={{ mt: 0.8, fontSize: "12px" }}>
                                                                 {errorlog.message || '-'}
                                                             </Typography>

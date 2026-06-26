@@ -41,6 +41,8 @@ const emptyForm = {
   rate_limit_messages: 30,
   rate_limit_typing: 60,
   rate_limit_presence: 60,
+  auto_open_on_message: false,
+  play_sound_on_message: true,
 };
 
 export default function ChatConfigPage() {
@@ -73,6 +75,11 @@ export default function ChatConfigPage() {
       rate_limit_messages: data?.rate_limit_messages ?? 30,
       rate_limit_typing: data?.rate_limit_typing ?? 60,
       rate_limit_presence: data?.rate_limit_presence ?? 60,
+      auto_open_on_message: Boolean(data?.auto_open_on_message),
+      play_sound_on_message:
+        data?.play_sound_on_message === undefined
+          ? true
+          : Boolean(data?.play_sound_on_message),
       app_id: clearSecrets ? "" : current.app_id,
       app_key: clearSecrets ? "" : current.app_key,
       app_secret: clearSecrets ? "" : current.app_secret,
@@ -268,7 +275,10 @@ export default function ChatConfigPage() {
                   Status: credenciais salvas. Use “Testar conexão” para validar a comunicação com o motor.
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Limites atuais: global {config?.rate_limit_global ?? 300}/min, sincronizaÃ§Ã£o {config?.rate_limit_sync ?? 120}/min, mensagens {config?.rate_limit_messages ?? 30}/min, digitaÃ§Ã£o {config?.rate_limit_typing ?? 60}/min e presenÃ§a {config?.rate_limit_presence ?? 60}/min. Janela: {config?.rate_limit_decay_minutes ?? 1} min.
+                  Limites atuais: global {config?.rate_limit_global ?? 300}/min, sincronização {config?.rate_limit_sync ?? 120}/min, mensagens {config?.rate_limit_messages ?? 30}/min, digitação {config?.rate_limit_typing ?? 60}/min e presença {config?.rate_limit_presence ?? 60}/min. Janela: {config?.rate_limit_decay_minutes ?? 1} min.
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Comportamento ao receber mensagem: abertura automática {config?.auto_open_on_message ? "ativada" : "desativada"} e som {config?.play_sound_on_message ? "ativado" : "desativado"}.
                 </Typography>
 
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -405,9 +415,9 @@ export default function ChatConfigPage() {
           )}
 
           <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>ProteÃ§Ã£o contra excesso de uso</Typography>
+            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Proteção contra excesso de uso</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite especÃ­fico.
+              Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite específico.
             </Typography>
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2 }}>
               <TextField
@@ -424,15 +434,15 @@ export default function ChatConfigPage() {
                 value={form.rate_limit_global}
                 onChange={update("rate_limit_global")}
                 inputProps={{ min: 0, max: 5000 }}
-                helperText="Total de requisiÃ§Ãµes do mÃ³dulo por usuÃ¡rio."
+                helperText="Total de requisições do módulo por usuário."
               />
               <TextField
-                label="SincronizaÃ§Ãµes / minuto"
+                label="Sincronizações / minuto"
                 type="number"
                 value={form.rate_limit_sync}
                 onChange={update("rate_limit_sync")}
                 inputProps={{ min: 0, max: 5000 }}
-                helperText="Listagens, leitura, entrega e histÃ³rico."
+                helperText="Listagens, leitura, entrega e histórico."
               />
               <TextField
                 label="Mensagens enviadas / minuto"
@@ -443,15 +453,15 @@ export default function ChatConfigPage() {
                 helperText="Envio real de mensagens e anexos."
               />
               <TextField
-                label="Eventos de digitaÃ§Ã£o / minuto"
+                label="Eventos de digitação / minuto"
                 type="number"
                 value={form.rate_limit_typing}
                 onChange={update("rate_limit_typing")}
                 inputProps={{ min: 0, max: 5000 }}
-                helperText="InÃ­cio e parada do indicador de digitaÃ§Ã£o."
+                helperText="Início e parada do indicador de digitação."
               />
               <TextField
-                label="AtualizaÃ§Ãµes de presenÃ§a / minuto"
+                label="Atualizações de presença / minuto"
                 type="number"
                 value={form.rate_limit_presence}
                 onChange={update("rate_limit_presence")}
@@ -459,6 +469,33 @@ export default function ChatConfigPage() {
                 helperText="Heartbeat, online, ausente e offline."
               />
             </Box>
+          </Box>
+
+          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Comportamento de notificação</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Defina como o chat deve reagir quando uma nova mensagem chegar para o usuário.
+            </Typography>
+            <Stack spacing={1}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={Boolean(form.auto_open_on_message)}
+                    onChange={update("auto_open_on_message")}
+                  />
+                }
+                label="Abrir o painel do chat automaticamente ao receber mensagem"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={Boolean(form.play_sound_on_message)}
+                    onChange={update("play_sound_on_message")}
+                  />
+                }
+                label="Tocar som de alerta ao receber mensagem"
+              />
+            </Stack>
           </Box>
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>

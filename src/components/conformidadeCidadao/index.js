@@ -251,7 +251,7 @@ export default function ConformidadeCidadao() {
             setErro(null);
             carregarHistorico();
         } catch (_) {
-            setErro('Nao foi possivel descartar a previa.');
+            setErro('Não foi possível descartar a prévia.');
         } finally {
             setCancelando(false);
         }
@@ -297,7 +297,7 @@ export default function ConformidadeCidadao() {
             }));
         } catch (_) {
             setDetalhesHistorico(prev => ({ ...prev, loading: false }));
-            setErro('Nao foi possivel carregar os detalhes do historico.');
+            setErro('Não foi possível carregar os detalhes do histórico.');
         }
     };
 
@@ -326,7 +326,7 @@ export default function ConformidadeCidadao() {
 
             generateConformidadeHistoricoPDF(primeira.sync ?? row, todos);
         } catch (_) {
-            setErro('Nao foi possivel baixar o PDF do historico.');
+            setErro('Não foi possível baixar o PDF do histórico.');
         } finally {
             setPdfJobId(null);
         }
@@ -755,7 +755,7 @@ export default function ConformidadeCidadao() {
                                     <TableCell>Óbitos</TableCell>
                                     <TableCell>Erros</TableCell>
                                     <TableCell>Iniciado por</TableCell>
-                                    <TableCell align="right">Acoes</TableCell>
+                                    <TableCell align="right">Ações</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>

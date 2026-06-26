@@ -81,7 +81,7 @@ export default () => {
 
             <Box sx={{ '& > :not(style)': { mb: 0, mt: 2 }, display: 'flex', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
                 <Select
-                    label="Usuario"
+                    label="Usuário"
                     name="user"
                     value={use}
                     store={usersExists}

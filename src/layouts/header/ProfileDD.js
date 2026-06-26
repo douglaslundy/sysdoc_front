@@ -35,6 +35,16 @@ const getInitials = (name) => {
     .join("");
 };
 
+const formatProfileLabel = (value) => {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+
+  return normalized
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const ProfileDD = () => {
   const [anchorEl4, setAnchorEl4] = React.useState(null);
   const [mounted, setMounted] = React.useState(false);
@@ -49,7 +59,7 @@ const ProfileDD = () => {
 
   const dispatch = useDispatch();
 
-  const { username, user } = useContext(AuthContext);
+  const { username, user, profile } = useContext(AuthContext);
 
   React.useEffect(() => { setMounted(true); }, []);
 
@@ -93,7 +103,7 @@ const ProfileDD = () => {
               className="profile-dd-identity"
             >
               <Typography className="profile-dd-username">
-                {mounted ? username : ""}
+                {mounted ? `${username || ""}${profile ? ` - ${formatProfileLabel(profile)}` : ""}` : ""}
               </Typography>
               <FeatherIcon className="profile-dd-chevron" icon="chevron-down" width="14" height="14" />
             </Box>

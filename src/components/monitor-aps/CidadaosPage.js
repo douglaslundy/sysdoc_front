@@ -153,7 +153,7 @@ export default function CidadaosPage() {
     const [equipes,        setEquipes]        = useState([]);
     const [agentes,        setAgentes]        = useState([]);
     const [ine,            setIne]            = useState('');
-    const [agenteSel,      setAgenteSel]      = useState('');
+    const [agenteCns,      setAgenteCns]      = useState('');
     const [condicao,       setCondicao]       = useState('');
     const [busca,          setBusca]          = useState('');
     const [multiDomicilio, setMultiDomicilio] = useState(false);
@@ -185,7 +185,7 @@ export default function CidadaosPage() {
 
     // Carrega agentes quando equipe muda
     useEffect(() => {
-        setAgenteSel('');
+        setAgenteCns('');
         const ctrl = new AbortController();
         const params = new URLSearchParams();
         if (ine) params.set('ine', ine);
@@ -202,7 +202,7 @@ export default function CidadaosPage() {
 
         const params = new URLSearchParams({ page: overridePage + 1, per_page: rowsPerPage });
         if (ine)               params.set('ine', ine);
-        if (agenteSel)         params.set('agente', agenteSel);
+        if (agenteCns)         params.set('agente_cns', agenteCns);
         if (condicao)          params.set('condicao', condicao);
         if (busca.length >= 3) params.set('busca', busca);
         if (multiDomicilio)    params.set('multi_domicilio', '1');
@@ -219,7 +219,7 @@ export default function CidadaosPage() {
             })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setCidadaos([]); })
             .finally(() => setLoading(false));
-    }, [ine, agenteSel, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
+    }, [ine, agenteCns, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
     // Fetch com debounce de 400ms para campo de busca
     useEffect(() => {
@@ -227,7 +227,7 @@ export default function CidadaosPage() {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => fetchCidadaos(0), busca ? 400 : 0);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }, [ine, agenteSel, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
+    }, [ine, agenteCns, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
     const handlePageChange = (_, newPage) => {
         setPage(newPage);
@@ -325,11 +325,11 @@ export default function CidadaosPage() {
                     )}
                     <FormControl size="small" sx={{ minWidth: 200, ...selectControlSx }}>
                         <InputLabel>Agente</InputLabel>
-                        <Select label="Agente" value={agenteSel}
-                            onChange={e => { setAgenteSel(e.target.value); setPage(0); }}>
+                        <Select label="Agente" value={agenteCns}
+                            onChange={e => { setAgenteCns(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todos os agentes</MenuItem>
                             {agentes.map(a => (
-                                <MenuItem key={a.nome} value={a.nome}>{a.nome}</MenuItem>
+                                <MenuItem key={a.agente_cns ?? a.id ?? a.nome} value={a.agente_cns ?? ''}>{a.nome}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

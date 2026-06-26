@@ -7,6 +7,7 @@ import { api } from "../../src/services/api";
 const initialForm = {
   allow_external_protocols: true,
   allow_reopen: true,
+  notify_whatsapp: false,
   default_priority: "normal",
   default_due_days: 5,
   observacoes: "",
@@ -32,6 +33,7 @@ export default function ProtocoloConfiguracoesPage() {
         setForm({
           allow_external_protocols: Boolean(data?.allow_external_protocols),
           allow_reopen: Boolean(data?.allow_reopen),
+          notify_whatsapp: Boolean(data?.notify_whatsapp),
           default_priority: data?.default_priority || "normal",
           default_due_days: data?.default_due_days ?? 5,
           observacoes: data?.observacoes || "",
@@ -51,6 +53,7 @@ export default function ProtocoloConfiguracoesPage() {
       setForm({
         allow_external_protocols: Boolean(data?.allow_external_protocols),
         allow_reopen: Boolean(data?.allow_reopen),
+        notify_whatsapp: Boolean(data?.notify_whatsapp),
         default_priority: data?.default_priority || "normal",
         default_due_days: data?.default_due_days ?? 5,
         observacoes: data?.observacoes || "",
@@ -136,6 +139,13 @@ export default function ProtocoloConfiguracoesPage() {
                   onClick={() => setForm((prev) => ({ ...prev, allow_reopen: !prev.allow_reopen }))}
                 >
                   {form.allow_reopen ? "Reabertura permitida" : "Reabertura desativada"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={form.notify_whatsapp ? "contained" : "outlined"}
+                  onClick={() => setForm((prev) => ({ ...prev, notify_whatsapp: !prev.notify_whatsapp }))}
+                >
+                  {form.notify_whatsapp ? "Alertas WhatsApp ativados" : "Alertas WhatsApp desativados"}
                 </Button>
               </Stack>
             </Grid>

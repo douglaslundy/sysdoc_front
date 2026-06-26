@@ -58,7 +58,7 @@ export default function AttendanceHistory() {
       const { data } = await attendanceApi.listTickets(params);
       setTickets(data || []);
     } catch (e) {
-      setError(e?.response?.data?.message || "Nao foi possivel carregar atendimentos.");
+      setError(e?.response?.data?.message || "Não foi possível carregar atendimentos.");
       setTickets([]);
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export default function AttendanceHistory() {
 
   useEffect(() => {
     Promise.all([loadBaseData(), loadTickets()]).catch(() => {
-      setError("Nao foi possivel carregar os filtros iniciais.");
+      setError("Não foi possível carregar os filtros iniciais.");
     });
   }, []);
 
@@ -84,13 +84,13 @@ export default function AttendanceHistory() {
     tickets.forEach((ticket) => {
       const user = ticket.assigned_user;
       if (user?.id) {
-        map.set(String(user.id), { id: user.id, name: user.name || `Usuario #${user.id}` });
+        map.set(String(user.id), { id: user.id, name: user.name || `Usuário #${user.id}` });
       }
     });
 
     const options = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
     if (filters.assignedUserId && !map.has(String(filters.assignedUserId))) {
-      options.unshift({ id: filters.assignedUserId, name: `Usuario #${filters.assignedUserId}` });
+      options.unshift({ id: filters.assignedUserId, name: `Usuário #${filters.assignedUserId}` });
     }
     return options;
   }, [tickets, filters.assignedUserId]);
@@ -143,7 +143,7 @@ export default function AttendanceHistory() {
         </TextField>
         <TextField
           select
-          label="Usuario"
+          label="Usuário"
           value={filters.assignedUserId}
           onChange={(e) => onChangeFilter("assignedUserId", e.target.value)}
           sx={{ minWidth: 260 }}

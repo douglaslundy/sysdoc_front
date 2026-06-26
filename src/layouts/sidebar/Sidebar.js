@@ -18,7 +18,7 @@ import { DashboardItem } from "./MenuItems";
 import { useRouter } from "next/router";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
-import { normalizeIconName } from "../../utils/iconResolver";
+import { normalizeIconName, resolveIconForPath } from "../../utils/iconResolver";
 
 const SIDEBAR_WIDTH = 318;
 
@@ -163,7 +163,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
       if (!acc[category.title].icon && category.icon) acc[category.title].icon = category.icon;
       acc[category.title].children.push({
         title: pg.titulo,
-        icon: normalizeIconName(pg.icone, "circle"),
+        icon: resolveIconForPath(pg.path, pg.icone, "circle"),
         href: pg.path,
         order: Number(pg.ordem ?? 999),
       });

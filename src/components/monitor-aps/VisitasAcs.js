@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getCached, setCached } from '../../services/monitorApsCache';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
@@ -142,6 +142,10 @@ export default function VisitasAcs() {
     const [loadingMapa, setLoadingMapa] = useState(false);
     const [printLoading, setPrintLoading] = useState(false);
     const [aba, setAba]               = useState('tabela');
+    const resumoRequestRef = useRef(0);
+    const agentesRequestRef = useRef(0);
+    const visitasRequestRef = useRef(0);
+    const mapaRequestRef = useRef(0);
 
     // Estado do modal de detalhe
     const [detalhe, setDetalhe]           = useState(null);
@@ -184,9 +188,23 @@ export default function VisitasAcs() {
         return () => ctrl.abort();
     }, [ano, mes, ine]);
 
-    useEffect(() => {
+    const handleEquipeChange = useCallback((event) => {
+        setIne(event.target.value);
         setFiltroAgente('');
-    }, [ine, ano, mes]);
+        setPage(0);
+    }, []);
+
+    const handleAnoChange = useCallback((event) => {
+        setAno(Number(event.target.value));
+        setFiltroAgente('');
+        setPage(0);
+    }, []);
+
+    const handleMesChange = useCallback((event) => {
+        setMes(Number(event.target.value));
+        setFiltroAgente('');
+        setPage(0);
+    }, []);
 
     // Carrega resumo
     useEffect(() => {
@@ -197,15 +215,22 @@ export default function VisitasAcs() {
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_resumo_${params}`;
         const cached = getCached(key);
+        const requestId = ++resumoRequestRef.current;
         setLoadingResumo(true);
         setResumo(null);
         if (cached) { setResumo(cached); setLoadingResumo(false); return; }
 
         const ctrl = new AbortController();
         monitorApsApi.get(`/visitas/resumo?${params}`, { signal: ctrl.signal })
-            .then(d => { setCached(key, d); setResumo(d); })
+            .then(d => {
+                if (requestId !== resumoRequestRef.current || ctrl.signal.aborted) return;
+                setCached(key, d);
+                setResumo(d);
+            })
             .catch(() => {})
-            .finally(() => setLoadingResumo(false));
+            .finally(() => {
+                if (requestId === resumoRequestRef.current) setLoadingResumo(false);
+            });
         return () => ctrl.abort();
     }, [ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
@@ -218,15 +243,22 @@ export default function VisitasAcs() {
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_agentes_${params}`;
         const cached = getCached(key);
+        const requestId = ++agentesRequestRef.current;
         setLoadingAgentes(true);
         setAgentes([]);
         if (cached) { setAgentes(cached.agentes ?? []); setLoadingAgentes(false); return; }
 
         const ctrl = new AbortController();
         monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
-            .then(d => { setCached(key, d); setAgentes(d.agentes ?? []); })
+            .then(d => {
+                if (requestId !== agentesRequestRef.current || ctrl.signal.aborted) return;
+                setCached(key, d);
+                setAgentes(d.agentes ?? []);
+            })
             .catch(() => {})
-            .finally(() => setLoadingAgentes(false));
+            .finally(() => {
+                if (requestId === agentesRequestRef.current) setLoadingAgentes(false);
+            });
         return () => ctrl.abort();
     }, [ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
@@ -239,16 +271,23 @@ export default function VisitasAcs() {
         if (filtroGeo)      params.set('has_geo', filtroGeo);
 
         const ctrl = new AbortController();
+        const requestId = ++visitasRequestRef.current;
         setLoading(true);
         setLoadingVisitas(true);
         setVisitas([]);
         setTotalVisitas(0);
         monitorApsApi.get(`/visitas/lista?${params}`, { signal: ctrl.signal })
-            .then(d => { setVisitas(d.visitas ?? []); setTotalVisitas(d.total ?? 0); })
+            .then(d => {
+                if (requestId !== visitasRequestRef.current || ctrl.signal.aborted) return;
+                setVisitas(d.visitas ?? []);
+                setTotalVisitas(d.total ?? 0);
+            })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setVisitas([]); })
             .finally(() => {
-                setLoading(false);
-                setLoadingVisitas(false);
+                if (requestId === visitasRequestRef.current) {
+                    setLoading(false);
+                    setLoadingVisitas(false);
+                }
             });
         return () => ctrl.abort();
     }, [ano, mes, ine, page, filtroAgente, filtroDesfecho, filtroGeo]);
@@ -263,14 +302,21 @@ export default function VisitasAcs() {
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_mapa_all_${params}`;
         const cached = getCached(key);
+        const requestId = ++mapaRequestRef.current;
         if (cached) { setPontosMapa(cached.pontos ?? []); return; }
 
         const ctrl = new AbortController();
         setLoadingMapa(true);
         monitorApsApi.get(`/visitas/mapa?${params}`, { signal: ctrl.signal })
-            .then(d => { setCached(key, d); setPontosMapa(d.pontos ?? []); })
+            .then(d => {
+                if (requestId !== mapaRequestRef.current || ctrl.signal.aborted) return;
+                setCached(key, d);
+                setPontosMapa(d.pontos ?? []);
+            })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setPontosMapa([]); })
-            .finally(() => setLoadingMapa(false));
+            .finally(() => {
+                if (requestId === mapaRequestRef.current) setLoadingMapa(false);
+            });
         return () => ctrl.abort();
     }, [aba, ano, mes, ine, filtroAgente, filtroDesfecho, filtroGeo]);
 
@@ -412,7 +458,7 @@ export default function VisitasAcs() {
                     <FormControl size="small" sx={{ ...selSx, minWidth: 200 }}>
                         <InputLabel>Equipe</InputLabel>
                         <Select label="Equipe" value={ine}
-                            onChange={e => { setIne(e.target.value); setPage(0); }}
+                            onChange={handleEquipeChange}
                             disabled={isRestrito && equipes.length === 1}
                             renderValue={(val) => {
                                 if (!val) return '';
@@ -437,14 +483,14 @@ export default function VisitasAcs() {
                     <FormControl size="small" sx={selSx}>
                         <InputLabel>Ano</InputLabel>
                         <Select label="Ano" value={ano}
-                            onChange={e => { setAno(Number(e.target.value)); setPage(0); }}>
+                            onChange={handleAnoChange}>
                             {anosDisponiveis.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
                         <InputLabel>Mês</InputLabel>
                         <Select label="Mês" value={mes}
-                            onChange={e => { setMes(Number(e.target.value)); setPage(0); }}>
+                            onChange={handleMesChange}>
                             {MESES_COMPLETO.slice(1).map((m, i) => (
                                 <MenuItem key={i + 1} value={i + 1}>{m}</MenuItem>
                             ))}

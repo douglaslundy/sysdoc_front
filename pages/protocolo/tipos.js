@@ -46,7 +46,7 @@ export default function ProtocolTypesPage() {
       const { data } = await api.get("/protocolos/tipos");
       setTypes(Array.isArray(data) ? data : []);
     } catch (error) {
-      setMessage("Nao foi possivel carregar os tipos de protocolo.");
+      setMessage("Não foi possível carregar os tipos de protocolo.");
       setTypes([]);
     } finally {
       setLoading(false);
@@ -92,7 +92,7 @@ export default function ProtocolTypesPage() {
       setEditingId(null);
       await loadTypes();
     } catch (error) {
-      setMessage(error?.response?.data?.message || "Nao foi possivel salvar o tipo de protocolo.");
+      setMessage(error?.response?.data?.message || "Não foi possível salvar o tipo de protocolo.");
     } finally {
       setSaving(false);
     }
@@ -107,7 +107,7 @@ export default function ProtocolTypesPage() {
       setMessage("Tipo inativado com sucesso.");
       await loadTypes();
     } catch (error) {
-      setMessage(error?.response?.data?.message || "Nao foi possivel inativar o tipo.");
+      setMessage(error?.response?.data?.message || "Não foi possível inativar o tipo.");
     } finally {
       setSaving(false);
     }
@@ -130,7 +130,7 @@ export default function ProtocolTypesPage() {
       </Stack>
 
       {message ? (
-        <Alert severity={message.toLowerCase().includes("nao foi") ? "error" : "success"} onClose={() => setMessage("")}>
+        <Alert severity={message.toLowerCase().includes("não foi") ? "error" : "success"} onClose={() => setMessage("")}>
           {message}
         </Alert>
       ) : null}
@@ -142,12 +142,12 @@ export default function ProtocolTypesPage() {
           <Table sx={{ whiteSpace: "nowrap" }}>
             <TableHead>
               <TableRow>
-                <TableCell>Codigo</TableCell>
+                <TableCell>Código</TableCell>
                 <TableCell>Nome</TableCell>
-                <TableCell>Descricao</TableCell>
+                <TableCell>Descrição</TableCell>
                 <TableCell>Ordem</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell align="right">Acoes</TableCell>
+                <TableCell align="right">Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -189,7 +189,7 @@ export default function ProtocolTypesPage() {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Codigo"
+                  label="Código"
                   value={form.codigo}
                   onChange={(e) => setForm((prev) => ({ ...prev, codigo: e.target.value }))}
                   required
@@ -218,7 +218,7 @@ export default function ProtocolTypesPage() {
                   fullWidth
                   multiline
                   minRows={3}
-                  label="Descricao"
+                  label="Descrição"
                   value={form.descricao}
                   onChange={(e) => setForm((prev) => ({ ...prev, descricao: e.target.value }))}
                 />

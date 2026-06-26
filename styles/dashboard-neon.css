@@ -270,6 +270,34 @@
   color: #334155 !important;
 }
 
+[data-theme="light"] .dashboard-neon-content .apexcharts-xaxis-texts-g text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-yaxis-texts-g text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-datalabel,
+[data-theme="light"] .dashboard-neon-content .apexcharts-data-labels text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-title-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-subtitle-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-no-data-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-pie-label,
+[data-theme="light"] .dashboard-neon-content .apexcharts-radialbar-label,
+[data-theme="light"] .dashboard-neon-content .apexcharts-radialbar-value,
+[data-theme="light"] .dashboard-neon-content .apexcharts-radialbar-total-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-radialbar-total-label {
+  fill: #334155 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .dashboard-neon-content .apexcharts-legend-text,
+[data-theme="light"] .dashboard-neon-content .apexcharts-legend-series span {
+  color: #334155 !important;
+  fill: #334155 !important;
+}
+
+[data-theme="light"] .dashboard-neon-content .MuiTypography-colorTextSecondary,
+[data-theme="light"] .dashboard-neon-content .MuiTypography-caption {
+  color: #475569 !important;
+}
+
 [data-theme="light"] .dashboard-neon-home .apexcharts-tooltip {
   background: #ffffff !important;
   border: 1px solid rgba(var(--lg-accent-rgb), 0.30) !important;

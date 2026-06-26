@@ -27,7 +27,7 @@ export default function EsqueciSenha() {
             if (err?.response?.status === 429) {
                 setErro('Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.');
             } else if (lower.includes('authentication required') || lower.includes('expected response code "250" but got code "530"')) {
-                setErro('Nao foi possivel enviar o e-mail no momento por indisponibilidade do servico de envio. Tente novamente em instantes.');
+                setErro('Não foi possível enviar o e-mail no momento por indisponibilidade do serviço de envio. Tente novamente em instantes.');
             } else {
                 setErro(err?.response?.data?.message || 'Erro ao enviar e-mail. Tente novamente.');
             }
@@ -44,7 +44,7 @@ export default function EsqueciSenha() {
             <div className={`${styles.ambient} ${styles.ambientRight}`} aria-hidden="true" />
 
             <section className={styles.loginCopy} aria-labelledby="recovery-copy-title">
-                <span className={styles.eyebrow}>Recuperacao de acesso</span>
+                <span className={styles.eyebrow}>Recuperação de acesso</span>
 
                 <h1 id="recovery-copy-title">
                     Redefina sua senha<br />
@@ -52,11 +52,11 @@ export default function EsqueciSenha() {
                 </h1>
 
                 <p className={styles.copyDescription}>
-                    Informe o e-mail cadastrado para receber o link de redefinicao. O processo
-                    mantem o mesmo padrao visual da tela de login e preserva a experiencia do sistema.
+                    Informe o e-mail cadastrado para receber o link de redefinição. O processo
+                    mantém o mesmo padrão visual da tela de login e preserva a experiência do sistema.
                 </p>
 
-                <div className={styles.benefits} aria-label="Como funciona a recuperacao">
+                <div className={styles.benefits} aria-label="Como funciona a recuperação">
                     <article className={styles.benefit}>
                         <div className={styles.benefitIcon} aria-hidden="true">
                             <FeatherIcon icon="mail" width="24" height="24" />
@@ -73,7 +73,7 @@ export default function EsqueciSenha() {
                         </div>
                         <div>
                             <h2>Fluxo seguro</h2>
-                            <p>A solicitacao segue o mesmo padrao visual e de protecao usado no login.</p>
+                            <p>A solicitação segue o mesmo padrão visual e de proteção usado no login.</p>
                         </div>
                     </article>
 
@@ -83,13 +83,13 @@ export default function EsqueciSenha() {
                         </div>
                         <div>
                             <h2>Retorno rapido</h2>
-                            <p>Apos redefinir a senha, voce volta ao login com apenas um clique.</p>
+                            <p>Após redefinir a senha, você volta ao login com apenas um clique.</p>
                         </div>
                     </article>
                 </div>
             </section>
 
-            <section className={styles.loginPanel} aria-label="Recuperacao de senha">
+            <section className={styles.loginPanel} aria-label="Recuperação de senha">
                 <form className={styles.loginCard} onSubmit={handleSubmit}>
                     <header className={styles.cardHeader}>
                         <Image
@@ -101,7 +101,7 @@ export default function EsqueciSenha() {
                             style={{ display: 'block' }}
                         />
                         <h2>Esqueceu a senha?</h2>
-                        <p>Digite o e-mail cadastrado para receber o link de redefinicao.</p>
+                        <p>Digite o e-mail cadastrado para receber o link de redefinição.</p>
                     </header>
 
                     {sucesso ? (
@@ -112,8 +112,8 @@ export default function EsqueciSenha() {
                             <div>
                                 <strong>E-mail enviado</strong>
                                 <p>
-                                    Se o endereco estiver cadastrado, voce recebera as instrucoes em
-                                    breve. Verifique tambem a caixa de spam.
+                                    Se o endereço estiver cadastrado, você receberá as instruções em
+                                    breve. Verifique também a caixa de spam.
                                 </p>
                             </div>
                         </div>
@@ -125,7 +125,7 @@ export default function EsqueciSenha() {
                                         <FeatherIcon icon="alert-triangle" width="20" height="20" />
                                     </div>
                                     <div>
-                                        <strong>Nao foi possivel enviar</strong>
+                                        <strong>Não foi possível enviar</strong>
                                         <p>{erro}</p>
                                     </div>
                                 </div>
@@ -151,7 +151,7 @@ export default function EsqueciSenha() {
                             </div>
 
                             <button className={styles.submitButton} type="submit" disabled={loading}>
-                                {loading ? 'Enviando...' : 'Enviar link de redefinicao'}
+                                {loading ? 'Enviando...' : 'Enviar link de redefinição'}
                             </button>
                         </div>
                     )}

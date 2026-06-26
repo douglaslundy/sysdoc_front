@@ -72,7 +72,7 @@ const getRouteDisplayText = (route) => {
     .map((value) => value.toUpperCase())
     .join(" X ");
 
-  return (routeText || "ROTA NAO ATRIBUIDA").slice(0, ROUTE_TIME_MAX_LENGTH);
+  return (routeText || "ROTA NÃO ATRIBUÍDA").slice(0, ROUTE_TIME_MAX_LENGTH);
 };
 
 const getRouteTitleText = (route) => {
@@ -81,7 +81,7 @@ const getRouteTitleText = (route) => {
     .map((value) => value.toUpperCase())
     .join(" X ");
 
-  return routeText || "ROTA NAO ATRIBUIDA";
+  return routeText || "ROTA NÃO ATRIBUÍDA";
 };
 
 const SwitchModal = ({ option }) => {
@@ -665,5 +665,4 @@ export default function Trips() {
     </Box>
   );
 }
-
 

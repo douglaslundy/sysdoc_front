@@ -26,7 +26,7 @@ export default function AttendanceService() {
       setNotes(data?.record?.notes || "");
     } catch (e) {
       setData(null);
-      setError(e?.response?.data?.message || "Nao foi possivel carregar o atendimento.");
+      setError(e?.response?.data?.message || "Não foi possível carregar o atendimento.");
     } finally {
       setInitialLoadDone(true);
     }

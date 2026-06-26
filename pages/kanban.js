@@ -19,7 +19,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import BaseCard from "../src/components/baseCard/BaseCard";
 import {
   modalFormRootSx,
   modalShellSx,
@@ -31,7 +30,7 @@ const BOARD_COLUMNS = [
   { value: "em_andamento", label: "Em andamento", color: "warning" },
   { value: "aguardando_resposta", label: "Aguardando resposta", color: "warning" },
   { value: "bloqueado", label: "Bloqueado", color: "error" },
-  { value: "concluido", label: "Concluido", color: "success" },
+  { value: "concluido", label: "Concluído", color: "success" },
 ];
 
 const PRIORITY_OPTIONS = [
@@ -47,7 +46,7 @@ const STATUS_OPTIONS = [
   { value: "em_andamento", label: "Em andamento" },
   { value: "aguardando_resposta", label: "Aguardando resposta" },
   { value: "bloqueado", label: "Bloqueado" },
-  { value: "concluido", label: "Concluido" },
+  { value: "concluido", label: "Concluído" },
 ];
 
 const INITIAL_FORM = {
@@ -94,6 +93,63 @@ const fieldStyle = {
   borderRadius: 12,
 };
 
+const selectStyle = {
+  minWidth: 130,
+  "& .MuiOutlinedInput-root": {
+    color: "var(--lg-text-primary)",
+    background: "var(--lg-glass-input)",
+    borderRadius: 1.5,
+    "& fieldset": { borderColor: "var(--lg-border-input)" },
+    "&:hover fieldset": { borderColor: "var(--lg-border-input-focus)" },
+    "&.Mui-focused fieldset": {
+      borderColor: "var(--lg-border-input-focus)",
+      boxShadow: "var(--lg-focus-ring)",
+    },
+  },
+  "& .MuiInputLabel-root": { color: "var(--lg-text-secondary)" },
+  "& .MuiSvgIcon-root": { color: "var(--lg-text-secondary)" },
+  "& .MuiSelect-select": {
+    color: "var(--lg-text-primary)",
+    WebkitTextFillColor: "var(--lg-text-primary)",
+  },
+};
+
+const toolbarButtonSx = {
+  minHeight: 40,
+  height: 40,
+  px: 2,
+  borderRadius: 1.5,
+  whiteSpace: "nowrap",
+};
+
+const boardColumnSx = {
+  minWidth: 0,
+  borderRadius: 3,
+  border: "1px solid rgba(var(--lg-accent-rgb), 0.28)",
+  background: (theme) =>
+    theme.palette.mode === "light"
+      ? "radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86))"
+      : "radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96))",
+  boxShadow: (theme) =>
+    theme.palette.mode === "light"
+      ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset, 0 0 16px rgba(var(--lg-accent-rgb), 0.12), 0 14px 30px rgba(37, 99, 235, 0.14)"
+      : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.09) inset, 0 0 22px rgba(var(--lg-accent-rgb), 0.14), 0 20px 46px rgba(2, 8, 27, 0.60)",
+  overflow: "hidden",
+};
+
+const boardCardSx = {
+  borderRadius: 2,
+  border: "1px solid var(--lg-border)",
+  background: (theme) =>
+    theme.palette.mode === "light"
+      ? "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86))"
+      : "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.10), transparent 70%), linear-gradient(140deg, rgba(4, 16, 50, 0.88), rgba(3, 11, 36, 0.84))",
+  boxShadow: (theme) =>
+    theme.palette.mode === "light"
+      ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset, 0 0 16px rgba(var(--lg-accent-rgb), 0.10), 0 14px 30px rgba(37, 99, 235, 0.12)"
+      : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.09) inset, 0 0 18px rgba(var(--lg-accent-rgb), 0.12), 0 18px 36px rgba(2, 8, 27, 0.36)",
+};
+
 const flattenUnits = (items, level = 0) =>
   (Array.isArray(items) ? items : []).flatMap((item) => [
     { ...item, level },
@@ -110,34 +166,73 @@ function KanbanCard({ item, onOpen, onDragStart, dragging }) {
       onClick={() => onOpen(item)}
       sx={{
         p: 1.5,
-        borderRadius: 2,
-        border: "1px solid var(--lg-border)",
-        bgcolor: "var(--lg-glass-panel)",
+        ...boardCardSx,
         cursor: dragging ? "grabbing" : "grab",
         opacity: dragging ? 0.55 : 1,
         transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
         "&:hover": {
           transform: "translateY(-2px)",
-          borderColor: "rgba(var(--lg-accent-rgb),0.42)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.14)",
+          background: (theme) =>
+            theme.palette.mode === "light"
+              ? "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.16), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.94), rgba(236, 245, 255, 0.92))"
+              : "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%), linear-gradient(140deg, rgba(6, 19, 58, 0.92), rgba(4, 14, 42, 0.90))",
+          borderColor: "rgba(var(--lg-accent-rgb),0.32)",
+          boxShadow: (theme) =>
+            theme.palette.mode === "light"
+              ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset, 0 0 18px rgba(var(--lg-accent-rgb), 0.12), 0 16px 32px rgba(37, 99, 235, 0.14)"
+              : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.12) inset, 0 0 22px rgba(var(--lg-accent-rgb), 0.16), 0 20px 40px rgba(2, 8, 27, 0.40)",
         },
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
-            {item.titulo}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.35, color: "text.secondary" }}>
-            {item.descricao || "Sem descricao"}
-          </Typography>
-        </Box>
-        <Chip size="small" color={column.color} label={column.label} />
-      </Stack>
+      <Box sx={{ minWidth: 0 }}>
+        <Chip
+          size="small"
+          color={column.color}
+          label={column.label}
+          sx={{
+            mb: 1,
+            maxWidth: "100%",
+            "& .MuiChip-label": {
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
+          }}
+        />
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.25, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+          {item.titulo}
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 0.75, lineHeight: 1.35, color: "text.secondary", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+          {item.descricao || "Sem descrição"}
+        </Typography>
+      </Box>
 
-      <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
-        <Chip size="small" variant="outlined" label={`Prioridade: ${item.prioridade || "normal"}`} />
-        {item.protocol ? <Chip size="small" color="success" label={item.protocol.numero} /> : null}
+      <Stack direction="row" spacing={1} sx={{ mt: 1, minWidth: 0 }} flexWrap="wrap" useFlexGap>
+        <Chip
+          size="small"
+          variant="outlined"
+          label={`Prioridade: ${item.prioridade || "normal"}`}
+          sx={{
+            maxWidth: "100%",
+            "& .MuiChip-label": {
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            },
+          }}
+        />
+        {item.protocol ? (
+          <Chip
+            size="small"
+            color="success"
+            label={item.protocol.numero}
+            sx={{
+              maxWidth: "100%",
+              "& .MuiChip-label": {
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+            }}
+          />
+        ) : null}
       </Stack>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
@@ -192,7 +287,7 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ display: "grid", gap: 2 }}>
           <TextField
-            label="Titulo"
+            label="Título"
             value={form.titulo}
             onChange={(event) => setForm((current) => ({ ...current, titulo: event.target.value }))}
             required
@@ -200,7 +295,7 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
             sx={fieldStyle}
           />
           <TextField
-            label="Descricao"
+            label="Descrição"
             value={form.descricao}
             onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))}
             fullWidth
@@ -515,7 +610,7 @@ export default function KanbanPage() {
       setItems(Array.isArray(data) ? data : []);
     } catch (error) {
       setItems([]);
-      setMessage(error?.response?.data?.message || "Nao foi possivel carregar o kanban.");
+      setMessage(error?.response?.data?.message || "Não foi possível carregar o kanban.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -600,7 +695,7 @@ export default function KanbanPage() {
       await loadItems();
       closeDialog();
     } catch (error) {
-      setMessage(error?.response?.data?.message || "Nao foi possivel salvar o item.");
+      setMessage(error?.response?.data?.message || "Não foi possível salvar o item.");
     } finally {
       setSaving(false);
     }
@@ -616,7 +711,7 @@ export default function KanbanPage() {
       await loadItems();
       closeDialog();
     } catch (error) {
-      setMessage(error?.response?.data?.message || "Nao foi possivel excluir o item.");
+      setMessage(error?.response?.data?.message || "Não foi possível excluir o item.");
     } finally {
       setSaving(false);
     }
@@ -667,24 +762,103 @@ export default function KanbanPage() {
       className="queue-page kanban-page"
       sx={{ ...modalFormRootSx, maxWidth: 1600, mx: "auto", p: { xs: 2, md: 3 }, color: "var(--lg-text-primary)" }}
     >
-      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2} sx={{ mb: 3 }}>
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        gap={2}
+        sx={{ mb: 3, alignItems: { xs: "stretch", md: "flex-end" } }}
+      >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.1 }}>
-            Kanban Geral
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-            Quadro independente para acompanhamento operacional. Vinculos com protocolo sao opcionais e explicitos.
-          </Typography>
+          <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap" useFlexGap>
+            <Chip
+              size="small"
+              label={`Você possui ${totals.total} itens`}
+              sx={{
+                fontWeight: 700,
+                color: "var(--lg-text-primary)",
+                background: "var(--lg-glass-chip)",
+                border: "0.5px solid var(--lg-border)",
+              }}
+            />
+          </Stack>
+          <Stack
+            className="queue-page__toolbar"
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            useFlexGap
+            sx={{ alignItems: "center", mt: 1.5 }}
+          >
+            <TextField
+              size="small"
+              className="lg-search-field kanban-page__search"
+              label="Pesquisar item"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              sx={{
+                ...fieldStyle,
+                width: { xs: "100%", sm: 240, md: 260 },
+                "& .MuiOutlinedInput-root": {
+                  color: "var(--lg-text-primary)",
+                  background: "var(--lg-glass-input)",
+                  borderRadius: 1.5,
+                  "& fieldset": { borderColor: "var(--lg-border-input)" },
+                  "&:hover fieldset": { borderColor: "var(--lg-border-input-focus)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--lg-border-input-focus)",
+                    boxShadow: "var(--lg-focus-ring)",
+                  },
+                },
+                "& .MuiInputLabel-root": { color: "var(--lg-text-secondary)" },
+                "& .MuiInputBase-input": {
+                  color: "var(--lg-text-primary)",
+                  WebkitTextFillColor: "var(--lg-text-primary)",
+                },
+              }}
+            />
+            <FormControl size="small" sx={{ ...selectStyle, width: { xs: "100%", sm: 170, md: 180 } }}>
+              <InputLabel>Status</InputLabel>
+              <Select label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <MenuItem value="">Todos os status</MenuItem>
+                {BOARD_COLUMNS.map((status) => (
+                  <MenuItem key={status.value} value={status.value}>
+                    {status.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ ...selectStyle, width: { xs: "100%", sm: 170, md: 180 } }}>
+              <InputLabel>Prioridade</InputLabel>
+              <Select
+                label="Prioridade"
+                value={priorityFilter}
+                onChange={(event) => setPriorityFilter(event.target.value)}
+              >
+                {PRIORITY_OPTIONS.map((priority) => (
+                  <MenuItem key={priority.value || "all"} value={priority.value}>
+                    {priority.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
         </Box>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="flex-end">
-          <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          justifyContent="flex-end"
+          useFlexGap
+          sx={{ alignItems: "center" }}
+        >
+          <Button size="small" variant="outlined" sx={toolbarButtonSx} onClick={() => router.push("/protocolo/caixa-entrada")}>
             Caixa de Entrada
           </Button>
-          <Button variant="contained" onClick={() => openCreate("novo")}>
+          <Button size="small" variant="contained" sx={toolbarButtonSx} onClick={() => openCreate("novo")}>
             Novo Item
           </Button>
-          <Button variant="text" onClick={loadItems} disabled={refreshing}>
+          <Button size="small" variant="text" sx={toolbarButtonSx} onClick={loadItems} disabled={refreshing}>
             {refreshing ? "Atualizando..." : "Atualizar"}
           </Button>
         </Stack>
@@ -704,60 +878,6 @@ export default function KanbanPage() {
           {message}
         </Box>
       ) : null}
-
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={6}>
-          <BaseCard title="Total de itens">
-            <Typography variant="h3" sx={{ fontWeight: 900 }}>
-              {totals.total}
-            </Typography>
-          </BaseCard>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <BaseCard title="Em andamento">
-            <Typography variant="h3" sx={{ fontWeight: 900 }}>
-              {items.filter((item) => String(item.status || "").toLowerCase() === "em_andamento").length}
-            </Typography>
-          </BaseCard>
-        </Grid>
-      </Grid>
-
-      <BaseCard title="Filtros">
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-          <TextField
-            fullWidth
-            label="Pesquisar item"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            sx={fieldStyle}
-          />
-          <FormControl fullWidth>
-            <InputLabel>Status</InputLabel>
-            <Select label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <MenuItem value="">Todos os status</MenuItem>
-              {BOARD_COLUMNS.map((status) => (
-                <MenuItem key={status.value} value={status.value}>
-                  {status.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Prioridade</InputLabel>
-            <Select
-              label="Prioridade"
-              value={priorityFilter}
-              onChange={(event) => setPriorityFilter(event.target.value)}
-            >
-              {PRIORITY_OPTIONS.map((priority) => (
-                <MenuItem key={priority.value || "all"} value={priority.value}>
-                  {priority.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </BaseCard>
 
       {loading ? (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
@@ -791,25 +911,25 @@ export default function KanbanPage() {
                 onDragLeave={() => setDragOverColumn("")}
                 onDrop={(event) => handleDrop(event, column.value)}
                 sx={{
-                  minWidth: 0,
-                  borderRadius: 3,
-                  border: "1px solid var(--lg-border)",
+                  ...boardColumnSx,
                   bgcolor:
                     dragOverColumn === column.value
                       ? "var(--lg-glass-input-focus)"
-                      : "var(--lg-glass-panel)",
+                      : boardColumnSx.bgcolor,
                   boxShadow:
                     dragOverColumn === column.value
                       ? "var(--lg-focus-ring)"
-                      : "var(--lg-shadow-panel)",
-                  overflow: "hidden",
+                      : boardColumnSx.boxShadow,
                 }}
               >
                 <Box
                   sx={{
                     p: 1.5,
-                    borderBottom: "1px solid var(--lg-border)",
-                    bgcolor: "rgba(var(--lg-accent-rgb), 0.08)",
+                    borderBottom: "1px solid rgba(var(--lg-accent-rgb), 0.22)",
+                    background: (theme) =>
+                      theme.palette.mode === "light"
+                        ? "rgba(255, 255, 255, 0.50)"
+                        : "rgba(4, 16, 50, 0.46)",
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -819,16 +939,34 @@ export default function KanbanPage() {
                     <Chip size="small" color={column.color} label={`${column.items.length}`} />
                   </Stack>
                   <Button
+                    className="kanban-page__column-add-button"
                     fullWidth
                     size="small"
                     variant="outlined"
                     onClick={() => openCreate(column.value)}
-                    sx={{ mt: 1 }}
+                    sx={{
+                      mt: 1,
+                      borderColor: "var(--lg-border)",
+                      background: "var(--lg-glass-input)",
+                      color: "var(--lg-text-primary)",
+                      "&:hover": {
+                        borderColor: "rgba(var(--lg-accent-rgb),0.3)",
+                        background: "var(--queue-row-hover)",
+                      },
+                    }}
                   >
                     Adicionar tarefa
                   </Button>
                 </Box>
-                <Box sx={{ p: 1.5, display: "grid", gap: 1.25, minHeight: 320 }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    display: "grid",
+                    gap: 1.25,
+                    minHeight: 320,
+                    background: "transparent",
+                  }}
+                >
                   {column.items.length ? (
                     column.items.map((item) => (
                       <KanbanCard

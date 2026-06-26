@@ -158,7 +158,7 @@ export default function ListaEstabelecimentos() {
                                 <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Endereco</Typography></TableCell>
                                 <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">CNAE</Typography></TableCell>
                                 <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Cadastro</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Acoes</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

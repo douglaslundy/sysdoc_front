@@ -1,13 +1,22 @@
-import React, { useState } from "react";
-import CpfCnpj from "@react-br-forms/cpf-cnpj-mask";
+import React from "react";
+import InputMask from "react-input-mask";
 import { TextField } from "@mui/material";
 
+const resolveMask = (value) => {
+    const digits = String(value || "").replace(/\D/g, "");
+    return digits.length > 11 ? "99.999.999/9999-99" : "999.999.999-99";
+};
+
 const CpfCnpjInput = React.forwardRef((props, ref) => {
-    const { inputRef, ...styles } = props;
+    const { inputRef, value, ...styles } = props;
 
     return (
-        <CpfCnpj
+        <InputMask
             {...styles}
+            value={value || ""}
+            ref={inputRef || ref}
+            mask={resolveMask(value)}
+            maskChar={null}
         />
     );
 });

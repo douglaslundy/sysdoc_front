@@ -97,7 +97,7 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
         {
             stack: [
                 driver != null ? ({ text: `MOTORISTA: ${driver?.id} - ${driver?.name?.toUpperCase()}` })
-                    : { text: `NÃO FOI ATRIBUIDO MOTORISTA PARA ESTA VIAGEM` }
+                    : { text: `NÃO FOI ATRIBUÍDO MOTORISTA PARA ESTA VIAGEM` }
             ],
             fontSize: 13,
             bold: true,
@@ -106,8 +106,8 @@ async function tripPDF({ id, departure_date, departure_time, obs, clients, drive
 
         {
             stack: [
-                route != null ? ({ text: `DESTINO: ${route?.destination?.toUpperCase()} - VEÍCULO ${vehicle != null ? vehicle?.license_plate?.toUpperCase() : 'NÃO FOI ATRIBUIDO VEÍCULO A ESTA VIAGEM'} ` })
-                    : { text: `NÃO FOI ATRIBUIDO UMA TORA PARA ESTA VIAGEM` }
+                route != null ? ({ text: `DESTINO: ${route?.destination?.toUpperCase()} - VEÍCULO ${vehicle != null ? vehicle?.license_plate?.toUpperCase() : 'NÃO FOI ATRIBUÍDO VEÍCULO A ESTA VIAGEM'} ` })
+                    : { text: `NÃO FOI ATRIBUÍDA UMA ROTA PARA ESTA VIAGEM` }
             ],
             fontSize: 11,
             bold: false,

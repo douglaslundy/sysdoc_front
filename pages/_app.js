@@ -10,6 +10,7 @@ import "../styles/theme-liquid-glass.css";
 import "../styles/dashboard-neon.css";
 import "../styles/queue-page.css";
 import "leaflet/dist/leaflet.css";
+import "react-quill/dist/quill.snow.css";
 import { Provider } from "react-redux";
 import store from "../src/store";
 import Messages from "../src/components/messages";

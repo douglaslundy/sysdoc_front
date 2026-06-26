@@ -69,13 +69,13 @@ async function tripsPDF(trips = []) {
                 margin: [0, 1, 0, 1]
             },
             {
-                text: driver ? `MOTORISTA: ${driver.id} - ${driver.name?.toUpperCase()}` : 'NÃO FOI ATRIBUIDO MOTORISTA PARA ESTA VIAGEM',
+                text: driver ? `MOTORISTA: ${driver.id} - ${driver.name?.toUpperCase()}` : 'NÃO FOI ATRIBUÍDO MOTORISTA PARA ESTA VIAGEM',
                 fontSize: 13,
                 bold: true,
                 margin: [0, 1, 0, 1]
             },
             {
-                text: route ? `DESTINO: ${route.destination?.toUpperCase()} - VEÍCULO ${vehicle ? vehicle.license_plate?.toUpperCase() : 'NÃO FOI ATRIBUIDO VEÍCULO'}` : 'NÃO FOI ATRIBUIDA UMA ROTA',
+                text: route ? `DESTINO: ${route.destination?.toUpperCase()} - VEÍCULO ${vehicle ? vehicle.license_plate?.toUpperCase() : 'NÃO FOI ATRIBUÍDO VEÍCULO'}` : 'NÃO FOI ATRIBUÍDA UMA ROTA',
                 fontSize: 11,
                 margin: [0, 1, 0, 1]
             },

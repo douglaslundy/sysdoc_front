@@ -11,6 +11,17 @@ const ICON_ALIASES = {
   error: "alert-circle",
 };
 
+const RESERVED_PATH_ICONS = {
+  "/kanban": "columns",
+  "/sistema/alertas": "bell",
+  "/protocolo/alertas": "bell",
+};
+
+const normalizePath = (value) => {
+  const normalized = String(value || "").split("?")[0].replace(/\/+$/, "");
+  return normalized || "/";
+};
+
 export const normalizeIconName = (iconName, fallback = "circle") => {
   if (typeof iconName !== "string") return fallback;
   const raw = iconName.trim();
@@ -22,3 +33,11 @@ export const normalizeIconName = (iconName, fallback = "circle") => {
   return ICON_ALIASES[kebab] || ICON_ALIASES[compact] || kebab || fallback;
 };
 
+export const resolveIconForPath = (path, iconName, fallback = "circle") => {
+  const reservedIcon = RESERVED_PATH_ICONS[normalizePath(path)];
+  if (reservedIcon) {
+    return reservedIcon;
+  }
+
+  return normalizeIconName(iconName, fallback);
+};

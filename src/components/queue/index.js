@@ -838,7 +838,7 @@ export default () => {
                         <Box>
                             <Typography variant="caption" color="text.secondary">ANEXOS DO PEDIDO</Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                Cada registro da fila pode receber multiplos arquivos (PDF, JPG, JPEG e PNG).
+                                Cada registro da fila pode receber múltiplos arquivos (PDF, JPG, JPEG e PNG).
                             </Typography>
                             <Box mt={1} mb={1}>
                                 <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ height: `${controlHeight}px` }}>

@@ -63,6 +63,7 @@ const initialProtocolForm = {
   tipo: "administrativo",
   prioridade: "normal",
   origem_unit_id: "",
+  destino_unit_id: "",
   destino_user_id: "",
   prazo_atendimento: "",
 };
@@ -342,6 +343,45 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [loadingHistorico, setLoadingHistorico] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
+  const unitById = useMemo(() => {
+    const map = new Map();
+    unitOptions.forEach((unit) => {
+      map.set(String(unit.id), unit);
+    });
+    return map;
+  }, [unitOptions]);
+  const secretariatOptions = useMemo(
+    () => unitOptions.filter((unit) => unit.ativo !== false && unit.tipo === "secretaria"),
+    [unitOptions]
+  );
+  const resolveSecretariatId = (unitId) => {
+    let current = unitById.get(String(unitId || ""));
+    while (current) {
+      if (current.tipo === "secretaria") {
+        return String(current.id);
+      }
+      current = current.parent_id ? unitById.get(String(current.parent_id)) : null;
+    }
+    return "";
+  };
+  const destinationUsers = useMemo(() => {
+    const selectedSecretariatId = String(protocolForm.destino_unit_id || "");
+    if (!selectedSecretariatId) return [];
+
+    return users.filter((user) => {
+      const links = Array.isArray(user?.protocol_units)
+        ? user.protocol_units
+        : Array.isArray(user?.protocolUnits)
+          ? user.protocolUnits
+          : [];
+
+      return links.some((link) => {
+        if (link?.ativo === false) return false;
+        const linkedUnitId = link?.protocol_organizational_unit_id ?? link?.unit?.id;
+        return resolveSecretariatId(linkedUnitId) === selectedSecretariatId;
+      });
+    });
+  }, [protocolForm.destino_unit_id, resolveSecretariatId, users]);
   const protocolTypeOptions = useMemo(
     () => {
       const activeTypes = protocolTypes.filter((type) => type?.ativo !== false);
@@ -520,6 +560,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, rowsPerPage, search, router.isReady, mode]);
 
+  useEffect(() => {
+    if (!protocolForm.destino_user_id) return;
+
+    const exists = destinationUsers.some((user) => String(user.id) === String(protocolForm.destino_user_id));
+    if (!exists) {
+      setProtocolForm((current) => ({ ...current, destino_user_id: "" }));
+    }
+  }, [destinationUsers, protocolForm.destino_user_id]);
+
   const currentTitle = modeLabels[mode] || "Protocolo";
 
   const refreshDetail = async () => {
@@ -563,6 +612,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       await api.post("/protocolos", {
         ...protocolForm,
         origem_unit_id: protocolForm.origem_unit_id || null,
+        destino_unit_id: protocolForm.destino_unit_id || null,
         destino_user_id: protocolForm.destino_user_id || null,
         prazo_atendimento: protocolForm.prazo_atendimento || null,
       });
@@ -570,7 +620,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       setProtocolForm(initialProtocolForm);
       await router.push("/protocolo/caixa-entrada");
     } catch (error) {
-      setMessage("Não foi possível criar o protocolo.");
+      setMessage(error?.response?.data?.message || "Não foi possível criar o protocolo.");
     } finally {
       setSaving(false);
     }
@@ -1181,9 +1231,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   onChange={(e) => setProtocolForm((prev) => ({ ...prev, origem_unit_id: e.target.value }))}
                 >
                   <MenuItem value="">Selecione a origem</MenuItem>
-                  {unitOptions.filter((unit) => unit.ativo !== false).map((unit) => (
+                  {secretariatOptions.map((unit) => (
                     <MenuItem key={unit.id} value={String(unit.id)}>
-                      {`${"— ".repeat(unit.level || 0)}${unit.nome}`}
+                      {unit.nome}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1192,15 +1242,32 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </Grid>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
-              <InputLabel>Destino</InputLabel>
+              <InputLabel>Secretaria de destino</InputLabel>
               <Select
-                value={protocolForm.destino_user_id}
-                label="Destino"
-                onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_user_id: e.target.value }))}
+                value={protocolForm.destino_unit_id}
+                label="Secretaria de destino"
+                onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_unit_id: e.target.value }))}
                 required
               >
-                <MenuItem value="">Selecione um usuário</MenuItem>
-                {users.map((user) => (
+                <MenuItem value="">Selecione a secretaria</MenuItem>
+                {secretariatOptions.map((unit) => (
+                  <MenuItem key={unit.id} value={String(unit.id)}>
+                    {unit.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth disabled={!protocolForm.destino_unit_id}>
+              <InputLabel>Usuário de destino</InputLabel>
+              <Select
+                value={protocolForm.destino_user_id}
+                label="Usuário de destino"
+                onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_user_id: e.target.value }))}
+              >
+                <MenuItem value="">Todos da secretaria</MenuItem>
+                {destinationUsers.map((user) => (
                   <MenuItem key={user.id} value={String(user.id)}>
                     {user.name}
                   </MenuItem>

@@ -1,5 +1,6 @@
 import { api } from "../../../services/api";
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
+import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { inactiveUser, addUser, editUser, addUsers, showUser } from "../../ducks/users";
 import { turnLoading, turnAlert, addMessage, addAlertMessage } from "../../ducks/Layout";
 
@@ -24,6 +25,7 @@ export const addUserFetch = (user, cleanForm) => {
         user = {
             ...user,
             cpf: cleanCpfCnpj(user.cpf),
+            phone: cleanPhone(user.phone),
         };
         api.post('/users', user)
             .then((res) =>
@@ -49,6 +51,7 @@ export const editUserFetch = (user, cleanForm) => {
             user = {
                 ...user,
                 cpf: cleanCpfCnpj(user.cpf),
+                phone: cleanPhone(user.phone),
             };
 
         api.put(`/users/${user.id}`, user)

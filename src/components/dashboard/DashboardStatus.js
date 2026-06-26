@@ -13,7 +13,7 @@ export function getDashboardErrorMessage(modulo, erro) {
     const base = `Falha ao carregar o dashboard de ${modulo}.`;
 
     if (status === 401) return `${base} Sessao expirada. Faca login novamente.`;
-    if (status === 403) return `${base} Voce nao tem permissao para este modulo.`;
+    if (status === 403) return `${base} Você não tem permissão para este módulo.`;
     if (status === 429) return `${base} Muitas requisicoes em sequencia. Tente novamente em instantes.`;
     if (status >= 500) return `${base} Erro interno do servidor.`;
     if (status >= 400) return `${base} Requisicao invalida (${status}).`;

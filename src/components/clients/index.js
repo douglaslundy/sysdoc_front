@@ -235,7 +235,7 @@ export default function Clients() {
                   <Typography color="textSecondary" variant="h6">Telefone / Endereco</Typography>
                 </TableCell>
                 <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Acoes</Typography>
+                  <Typography color="textSecondary" variant="h6">Ações</Typography>
                 </TableCell>
               </TableRow>
             </TableHead>

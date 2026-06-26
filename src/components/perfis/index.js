@@ -157,10 +157,10 @@ export default function Perfis() {
                         <TableHead>
                             <TableRow>
                                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Nome / Slug</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Descricao</Typography></TableCell>
+                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Descrição</Typography></TableCell>
                                 <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Paginas</Typography></TableCell>
                                 <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
+                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -251,7 +251,7 @@ export default function Perfis() {
                                     <TextField
                                         className="lg-search-field"
                                         fullWidth
-                                        label="Descricao"
+                                        label="Descrição"
                                         value={form.descricao}
                                         onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))}
                                         inputProps={{ maxLength: 200 }}

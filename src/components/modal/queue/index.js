@@ -185,7 +185,7 @@ export default function QueueModal(props) {
                     setAlertState({
                         visible: true,
                         type: 'success',
-                        message: 'Cadastro salvo. Agora voce pode anexar arquivos e gerar o recibo.'
+                        message: 'Cadastro salvo. Agora você pode anexar arquivos e gerar o recibo.'
                     });
                 }
 
@@ -197,7 +197,7 @@ export default function QueueModal(props) {
                 setAlertState({
                     visible: true,
                     type: 'error',
-                    message: 'Nao foi possivel salvar o cadastro na fila. Verifique os dados e tente novamente.'
+                    message: 'Não foi possível salvar o cadastro na fila. Verifique os dados e tente novamente.'
                 });
                 setIsSubmittingQueue(false);
             },
@@ -235,7 +235,7 @@ export default function QueueModal(props) {
                 setAlertState({
                     visible: true,
                     type: 'error',
-                    message: 'Nao foi possivel atualizar o cadastro da fila. Verifique os dados e tente novamente.'
+                    message: 'Não foi possível atualizar o cadastro da fila. Verifique os dados e tente novamente.'
                 });
                 setIsSubmittingQueue(false);
             },
@@ -328,7 +328,7 @@ export default function QueueModal(props) {
             ...confirmDialog,
             isOpen: true,
             title: `Deseja realmente excluir o anexo "${attachment.original_name}"?`,
-            subTitle: 'Esta acao nao podera ser desfeita.',
+            subTitle: 'Esta ação não poderá ser desfeita.',
             onConfirm: () => handleDeleteAttachment(attachment.id),
             confirm: null,
         });
@@ -497,7 +497,7 @@ export default function QueueModal(props) {
                                     {queue?.id ? (
                                         <>
                                             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                Este registro aceita multiplos anexos (PDF, JPG, JPEG e PNG).
+                                                Este registro aceita múltiplos anexos (PDF, JPG, JPEG e PNG).
                                             </Typography>
                                             <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ mt: 0.5, ...buttonSx }}>
                                                 {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s)'}
@@ -545,7 +545,7 @@ export default function QueueModal(props) {
                                                 </Button>
                                                 {pendingFiles.length > 0 && (
                                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.8 }}>
-                                                        {pendingFiles.length} arquivo(s) pronto(s) para envio apos salvar.
+                                                        {pendingFiles.length} arquivo(s) pronto(s) para envio após salvar.
                                                     </Typography>
                                                 )}
                                             </MuiBox>
@@ -578,7 +578,6 @@ export default function QueueModal(props) {
         </div>
     );
 }
-
 
 
 

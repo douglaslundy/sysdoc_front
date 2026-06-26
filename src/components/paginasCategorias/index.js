@@ -204,7 +204,7 @@ export default function PaginasCategorias() {
                   <Typography color="textSecondary" variant="h6">Status</Typography>
                 </TableCell>
                 <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Acoes</Typography>
+                  <Typography color="textSecondary" variant="h6">Ações</Typography>
                 </TableCell>
               </TableRow>
             </TableHead>

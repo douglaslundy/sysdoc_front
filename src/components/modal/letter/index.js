@@ -43,6 +43,7 @@ import {
     getAllLetters
 } from '../../../store/fetchActions/letter';
 import { api } from '../../../services/api';
+import { parseCookies } from 'nookies';
 
 export default function LetterModal(props) {
     const [form, setForm] = useState({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
@@ -59,6 +60,8 @@ export default function LetterModal(props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
     const [users, setUsers] = useState([]);
+    const [units, setUnits] = useState([]);
+    const [destinationUnitId, setDestinationUnitId] = useState('');
     const [destinationUserId, setDestinationUserId] = useState('');
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [creatingProtocol, setCreatingProtocol] = useState(false);
@@ -79,11 +82,17 @@ export default function LetterModal(props) {
         setPendingFiles([]);
         setIsSubmitting(false);
         setProtocolDialogOpen(false);
+        setUnits([]);
+        setDestinationUnitId('');
         setDestinationUserId('');
         dispatch(getTextOpenAi(""));
         dispatch(closeModal());
         dispatch(showLetter({}));
     };
+
+    const cookies = parseCookies();
+    const currentUserId = cookies['sysvendas.id'];
+    const currentUsername = cookies['sysvendas.username'];
 
     const loadAttachments = async (letterId) => {
         setIsAttachmentsLoading(true);
@@ -184,27 +193,78 @@ export default function LetterModal(props) {
         return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
     };
 
-    const hasPdfAttachment = attachments.some((attachment) => attachment.mime_type === 'application/pdf');
-    const protocolDisabledReason = !letter?.id
-        ? 'Salve o ofício antes de criar o protocolo.'
-        : letter.has_open_protocol
+    const isPdfAttachment = (attachment) => {
+        const mimeType = String(attachment?.mime_type || '').toLowerCase();
+        const fileName = String(attachment?.original_name || '').toLowerCase();
+        return mimeType.includes('pdf') || fileName.endsWith('.pdf');
+    };
+
+    const hasPdfAttachment = attachments.some(isPdfAttachment);
+    const hasPendingPdf = pendingFiles.some((file) => {
+        const mimeType = String(file?.type || '').toLowerCase();
+        const fileName = String(file?.name || '').toLowerCase();
+        return mimeType === 'application/pdf' || fileName.endsWith('.pdf');
+    });
+    const protocolDisabledReason = letter.has_open_protocol
         ? `Já existe um protocolo aberto vinculado${letter.open_protocol_number ? `: ${letter.open_protocol_number}` : '.'}`
-        : !hasPdfAttachment
+        : !(hasPdfAttachment || hasPendingPdf)
         ? 'Anexe um PDF válido ao ofício antes de criar o protocolo.'
         : '';
 
+    const secretariatOptions = units.filter((unit) => unit?.ativo !== false && unit?.tipo === 'secretaria');
+    const destinationUsers = users.filter((item) => {
+        if (!destinationUnitId) return false;
+        const links = Array.isArray(item?.protocol_units)
+            ? item.protocol_units
+            : Array.isArray(item?.protocolUnits)
+                ? item.protocolUnits
+                : [];
+        return links.some((link) => {
+            if (link?.ativo === false) return false;
+            const linkedUnitId = String(link?.protocol_organizational_unit_id ?? link?.unit?.id ?? '');
+            return linkedUnitId === String(destinationUnitId);
+        });
+    });
+
     const openProtocolDialog = async () => {
-        if (protocolDisabledReason) {
+        if (letter?.has_open_protocol) {
             setAlertState({ visible: true, type: 'warning', message: protocolDisabledReason });
             return;
         }
 
+        if (!hasPdfAttachment && !hasPendingPdf && letter?.id) {
+            try {
+                const res = await listLetterAttachments(letter.id);
+                const refreshedAttachments = Array.isArray(res.data) ? res.data : [];
+                setAttachments(refreshedAttachments);
+
+                if (!refreshedAttachments.some(isPdfAttachment)) {
+                    setAlertState({ visible: true, type: 'warning', message: 'Anexe um PDF válido ao ofício antes de criar o protocolo.' });
+                    return;
+                }
+            } catch (error) {
+                setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível validar os anexos do ofício.' });
+                return;
+            }
+        }
+
+        if (!letter?.id && !hasPendingPdf) {
+            setAlertState({ visible: true, type: 'warning', message: 'Anexe um PDF válido ao ofício antes de criar o protocolo.' });
+            return;
+        }
+
         setProtocolDialogOpen(true);
-        if (users.length > 0) return;
+        if (users.length > 0 && units.length > 0) return;
         setLoadingUsers(true);
         try {
-            const { data } = await api.get('/users');
-            setUsers((Array.isArray(data) ? data : []).filter((item) => item.active));
+            const [usersResponse, unitsResponse] = await Promise.all([
+                api.get('/users'),
+                api.get('/protocolos/unidades-organizacionais'),
+            ]);
+            const fetchedUsers = (Array.isArray(usersResponse.data) ? usersResponse.data : []).filter((item) => item.active);
+            const fetchedUnits = Array.isArray(unitsResponse.data) ? unitsResponse.data : [];
+            setUsers(fetchedUsers);
+            setUnits(fetchedUnits);
         } catch (error) {
             setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível carregar os destinatários.' });
         } finally {
@@ -212,15 +272,59 @@ export default function LetterModal(props) {
         }
     };
 
+    const persistLetterForProtocol = async () => {
+        const payload = {
+            ...form,
+            id_user: currentUserId,
+        };
+
+        let savedLetter = letter;
+
+        if (letter?.id) {
+            const { data } = await api.put(`/letters/${letter.id}`, {
+                ...payload,
+                id: letter.id,
+            });
+            savedLetter = data?.letter || { ...letter, ...form };
+            dispatch(editLetter(savedLetter));
+            dispatch(showLetter(savedLetter));
+        } else {
+            const { data } = await api.post('/letters', payload);
+            savedLetter = data?.letter;
+            if (savedLetter) {
+                savedLetter = {
+                    ...savedLetter,
+                    user: savedLetter.user || { name: currentUsername },
+                };
+                dispatch(addLetter(savedLetter));
+                dispatch(showLetter(savedLetter));
+            }
+        }
+
+        if (!savedLetter?.id) {
+            throw new Error('Não foi possível salvar o ofício antes de gerar o protocolo.');
+        }
+
+        if (pendingFiles.length > 0) {
+            await uploadLetterAttachment(savedLetter.id, pendingFiles);
+            setPendingFiles([]);
+            await loadAttachments(savedLetter.id);
+        }
+
+        return savedLetter;
+    };
+
     const createProtocol = async () => {
-        if (!destinationUserId || !letter?.id || creatingProtocol) return;
+        if (!destinationUnitId || creatingProtocol || isAttachmentUploading || isSubmitting) return;
         setCreatingProtocol(true);
         try {
-            const { data } = await api.post(`/letters/${letter.id}/protocol`, {
-                destino_user_id: destinationUserId,
+            const savedLetter = await persistLetterForProtocol();
+            const { data } = await api.post(`/letters/${savedLetter.id}/protocol`, {
+                destino_unit_id: destinationUnitId,
+                destino_user_id: destinationUserId || null,
             });
             const updated = {
-                ...letter,
+                ...savedLetter,
                 has_open_protocol: true,
                 open_protocol_id: data?.protocol?.id,
                 open_protocol_number: data?.protocol?.numero,
@@ -228,6 +332,7 @@ export default function LetterModal(props) {
             dispatch(editLetter(updated));
             dispatch(showLetter(updated));
             setProtocolDialogOpen(false);
+            setDestinationUnitId('');
             setDestinationUserId('');
             setAlertState({
                 visible: true,
@@ -238,7 +343,7 @@ export default function LetterModal(props) {
             setAlertState({
                 visible: true,
                 type: 'error',
-                message: error?.response?.data?.message || 'Não foi possível criar o protocolo.',
+                message: error?.response?.data?.message || error?.message || 'Não foi possível criar o protocolo.',
             });
         } finally {
             setCreatingProtocol(false);
@@ -278,6 +383,14 @@ export default function LetterModal(props) {
         if (isOpenModal && letter?.id) loadAttachments(letter.id);
         if (!isOpenModal) setAttachments([]);
     }, [isOpenModal, letter?.id]);
+
+    useEffect(() => {
+        if (!destinationUserId) return;
+        const stillAvailable = destinationUsers.some((item) => String(item.id) === String(destinationUserId));
+        if (!stillAvailable) {
+            setDestinationUserId('');
+        }
+    }, [destinationUserId, destinationUsers]);
 
     return (
         <div>
@@ -380,17 +493,31 @@ export default function LetterModal(props) {
                 <DialogContent>
                     <Stack spacing={2} sx={{ pt: 1 }}>
                         <Typography variant="body2" color="text.secondary">
-                            O mesmo PDF anexado ao ofício será vinculado ao protocolo e enviado ao usuário selecionado.
+                            O mesmo PDF anexado ao ofício será vinculado ao protocolo. Primeiro escolha a secretaria de destino e, se quiser, selecione um usuário dessa secretaria.
                         </Typography>
                         <FormControl fullWidth disabled={loadingUsers || creatingProtocol}>
-                            <InputLabel id="letter-protocol-destination-label">Destinatário</InputLabel>
+                            <InputLabel id="letter-protocol-unit-label">Secretaria de destino</InputLabel>
+                            <Select
+                                labelId="letter-protocol-unit-label"
+                                label="Secretaria de destino"
+                                value={destinationUnitId}
+                                onChange={(event) => setDestinationUnitId(event.target.value)}
+                            >
+                                {secretariatOptions.map((item) => (
+                                    <MenuItem key={item.id} value={item.id}>{item.nome}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth disabled={loadingUsers || creatingProtocol}>
+                            <InputLabel id="letter-protocol-destination-label">Usuário de destino</InputLabel>
                             <Select
                                 labelId="letter-protocol-destination-label"
-                                label="Destinatário"
+                                label="Usuário de destino"
                                 value={destinationUserId}
                                 onChange={(event) => setDestinationUserId(event.target.value)}
                             >
-                                {users.map((item) => (
+                                <MenuItem value="">Todos da secretaria</MenuItem>
+                                {destinationUsers.map((item) => (
                                     <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
                                 ))}
                             </Select>
@@ -410,7 +537,7 @@ export default function LetterModal(props) {
                     <Button
                         variant="contained"
                         onClick={createProtocol}
-                        disabled={creatingProtocol || loadingUsers || !destinationUserId}
+                        disabled={creatingProtocol || loadingUsers || !destinationUnitId}
                     >
                         {creatingProtocol ? 'Criando...' : 'Criar protocolo'}
                     </Button>
@@ -420,6 +547,3 @@ export default function LetterModal(props) {
         </div>
     );
 }
-
-
-

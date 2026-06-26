@@ -111,7 +111,7 @@ async function protocolPDF({ id, uuid, obs, urgency, done, created_at, updated_a
         },
         {
             stack: [
-                client != null ? ({ text: `CLIENTE: ${client.id} - ${client.name}` }) : { text: `NÃO FOI ATRIBUIDO CLIENTE PARA ESTA ESPECIALIDADE` }
+                client != null ? ({ text: `CLIENTE: ${client.id} - ${client.name}` }) : { text: `NÃO FOI ATRIBUÍDO CLIENTE PARA ESTA ESPECIALIDADE` }
             ],
             fontSize: 11,
             margin: [0, 1, 0, 1]
@@ -132,7 +132,7 @@ async function protocolPDF({ id, uuid, obs, urgency, done, created_at, updated_a
         },
         {
             stack: [
-                speciality != null ? ({ text: `ESPECIALIDADE: ${speciality.name.toUpperCase()}` }) : { text: `NÃO FOI ATRIBUIDA UMA ESPECIALIDADE` }
+                speciality != null ? ({ text: `ESPECIALIDADE: ${speciality.name.toUpperCase()}` }) : { text: `NÃO FOI ATRIBUÍDA UMA ESPECIALIDADE` }
             ],
             fontSize: 16,
             bold: true,

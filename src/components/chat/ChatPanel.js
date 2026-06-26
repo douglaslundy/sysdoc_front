@@ -106,15 +106,6 @@ function Attachment({ attachment }) {
 }
 
 function StatusIcon({ status }) {
-  if (status === "sending") {
-    return (
-      <Tooltip title="Enviando">
-        <Box component="span" sx={{ display: "inline-flex", ml: 0.5 }}>
-          <CircularProgress size={11} />
-        </Box>
-      </Tooltip>
-    );
-  }
   if (status === "failed") {
     return (
       <Tooltip title="Falha no envio">
@@ -126,8 +117,9 @@ function StatusIcon({ status }) {
   }
   const read = status === "read";
   const double = status === "delivered" || read;
+  const title = status === "sending" ? "Enviada" : read ? "Lida" : double ? "Entregue" : "Enviada";
   return (
-    <Tooltip title={read ? "Lida" : double ? "Entregue" : "Enviada"}>
+    <Tooltip title={title}>
       <Box
         component="span"
         sx={{
@@ -159,6 +151,8 @@ export default function ChatPanel() {
     loading,
     syncError,
     soundEnabled,
+    chatBehavior,
+    attachmentRules,
     openConversation,
     loadOlderMessages,
     searchMessages,
@@ -176,7 +170,6 @@ export default function ChatPanel() {
   const [file, setFile] = useState(null);
   const [search, setSearch] = useState("");
   const [historySearch, setHistorySearch] = useState("");
-  const [sending, setSending] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [selectedMessageIds, setSelectedMessageIds] = useState([]);
@@ -184,6 +177,14 @@ export default function ChatPanel() {
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
   const typingActiveRef = useRef(false);
+
+  const formatAttachmentLimit = (bytes) => {
+    if (!bytes || bytes <= 0) return "";
+    if (bytes >= 1024 * 1024) {
+      return `${Math.round(bytes / (1024 * 1024))} MB`;
+    }
+    return `${Math.round(bytes / 1024)} KB`;
+  };
 
   const filteredUsers = users.filter((item) =>
     item.name?.toLowerCase().includes(search.toLowerCase())
@@ -214,10 +215,9 @@ export default function ChatPanel() {
   };
 
   const handleSend = async () => {
-    if ((!body.trim() && !file) || sending) return;
+    if (!body.trim() && !file) return;
     const messageBody = body.trim();
     const messageFile = file;
-    setSending(true);
     setError("");
     setBody("");
     setFile(null);
@@ -231,9 +231,37 @@ export default function ChatPanel() {
         sendError?.response?.data?.message ||
           "Não foi possível enviar a mensagem."
       );
-    } finally {
-      setSending(false);
     }
+  };
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0] || null;
+    event.target.value = "";
+
+    if (!selectedFile) {
+      return;
+    }
+
+    const maxBytes = Number(attachmentRules?.maxAttachmentBytes || 0);
+    const allowedExtensions = Array.isArray(attachmentRules?.allowedExtensions)
+      ? attachmentRules.allowedExtensions.map((item) => String(item).toLowerCase())
+      : [];
+    const extension = String(selectedFile.name.split(".").pop() || "").toLowerCase();
+
+    if (allowedExtensions.length > 0 && extension && !allowedExtensions.includes(extension)) {
+      setError("Envie apenas arquivos JPG, JPEG, PNG, WEBP, TXT ou PDF.");
+      setFile(null);
+      return;
+    }
+
+    if (maxBytes > 0 && selectedFile.size > maxBytes) {
+      setError(`O arquivo excede o limite permitido de ${formatAttachmentLimit(maxBytes)}.`);
+      setFile(null);
+      return;
+    }
+
+    setError("");
+    setFile(selectedFile);
   };
 
   const handleRetry = async (message) => {
@@ -381,13 +409,37 @@ export default function ChatPanel() {
           </Typography>
         </Box>
         <Box flexGrow={1} />
-        <Tooltip title={soundEnabled ? "Desativar som" : "Ativar som"}>
+        <Tooltip
+          title={
+            chatBehavior?.playSoundOnMessage === false
+              ? "Som desativado pelo administrador"
+              : soundEnabled
+              ? "Desativar som"
+              : "Ativar som"
+          }
+        >
           <IconButton
-            aria-label={soundEnabled ? "Desativar som do chat" : "Ativar som do chat"}
+            aria-label={
+              chatBehavior?.playSoundOnMessage === false
+                ? "Som do chat desativado pelo administrador"
+                : soundEnabled
+                ? "Desativar som do chat"
+                : "Ativar som do chat"
+            }
             onClick={toggleSound}
+            disabled={chatBehavior?.playSoundOnMessage === false}
             sx={{ color: "inherit" }}
           >
-            <FeatherIcon icon={soundEnabled ? "volume-2" : "volume-x"} width="18" />
+            <FeatherIcon
+              icon={
+                chatBehavior?.playSoundOnMessage === false
+                  ? "volume-x"
+                  : soundEnabled
+                  ? "volume-2"
+                  : "volume-x"
+              }
+              width="18"
+            />
           </IconButton>
         </Tooltip>
         <IconButton
@@ -758,7 +810,7 @@ export default function ChatPanel() {
                       hidden
                       type="file"
                       accept=".jpg,.jpeg,.png,.webp,.txt,.pdf"
-                      onChange={(event) => setFile(event.target.files?.[0] || null)}
+                      onChange={handleFileChange}
                     />
                   </IconButton>
                   <TextField
@@ -779,14 +831,10 @@ export default function ChatPanel() {
                   <IconButton
                     color="primary"
                     aria-label="Enviar mensagem"
-                    disabled={sending || (!body.trim() && !file)}
+                    disabled={!body.trim() && !file}
                     onClick={handleSend}
                   >
-                    {sending ? (
-                      <CircularProgress size={22} />
-                    ) : (
-                      <FeatherIcon icon="send" />
-                    )}
+                    <FeatherIcon icon="send" />
                   </IconButton>
                 </Box>
               </Box>
@@ -825,10 +873,10 @@ export default function ChatPanel() {
         }
         message={
           deleteRequest?.type === "conversation"
-            ? "A conversa será removida apenas da sua lista. O histórico continuará preservado para auditoria."
+            ? "Deseja excluir esta conversa?"
             : deleteRequest?.type === "multiple"
-            ? `As ${selectedMessageIds.length} mensagens selecionadas serão marcadas como apagadas.`
-            : "A mensagem será marcada como apagada e permanecerá preservada para auditoria."
+            ? `Deseja excluir ${selectedMessageIds.length} mensagens selecionadas?`
+            : "Deseja excluir esta mensagem?"
         }
         confirmLabel={
           deleteRequest?.type === "conversation"

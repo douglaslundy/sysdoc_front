@@ -14,7 +14,7 @@ const PhoneMask = React.forwardRef((props, ref) => {
 
 export default function index(props) {
 
-    const { label,  name, value, changeItem, sx} = props;
+    const { label,  name, value, changeItem, sx, ...rest } = props;
     return (
         <TextField
             id={name}
@@ -24,6 +24,7 @@ export default function index(props) {
             sx={sx}
             value={value ? value : ''}
             onChange={changeItem}
+            {...rest}
 
             InputProps={{
                 inputComponent: PhoneMask,

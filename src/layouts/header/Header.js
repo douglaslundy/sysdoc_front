@@ -1,18 +1,17 @@
 import React, { useContext } from "react";
 import PropTypes from "prop-types";
-import { AppBar, Badge, Box, IconButton, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
 import FeatherIcon from "feather-icons-react";
 import { useRouter } from "next/router";
 import ProfileDD from "./ProfileDD";
 import { getPageTitle } from "../../utils/pageTitle";
 import ProtocolBell from "../../components/protocolo/ProtocolBell";
-import { ChatContext } from "../../contexts/ChatContext";
+import KanbanShortcut from "../../components/kanban/KanbanShortcut";
 import { AuthContext } from "../../contexts/AuthContext";
 
 const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
   const { pathname } = useRouter();
   const pageTitle = getPageTitle(pathname);
-  const { setIsOpen, unreadTotal } = useContext(ChatContext);
   const { canUseChat } = useContext(AuthContext);
 
   return (
@@ -61,22 +60,7 @@ const Header = ({ sx, customClass, toggleSidebar, position = "fixed" }) => {
         </Typography>
 
         <Box flexGrow={1} />
-
-        {canUseChat && <IconButton
-          aria-label="Abrir chat interno"
-          onClick={() => setIsOpen(true)}
-          sx={{
-            mr: 0.5,
-            color: "inherit",
-            background: "var(--lg-glass-chip)",
-            border: "0.5px solid var(--lg-border)",
-            borderRadius: "10px",
-          }}
-        >
-          <Badge badgeContent={unreadTotal} color="error" max={99}>
-            <FeatherIcon icon="message-circle" width="20" height="20" />
-          </Badge>
-        </IconButton>}
+        <KanbanShortcut />
         <ProtocolBell />
         <ProfileDD />
       </Toolbar>

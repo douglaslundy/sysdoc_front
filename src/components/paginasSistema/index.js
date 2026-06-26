@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
-import { normalizeIconName } from '../../utils/iconResolver';
+import { normalizeIconName, resolveIconForPath } from '../../utils/iconResolver';
 import {
   getAllPages,
   addPageFetch,
@@ -279,7 +279,7 @@ export default function PaginasSistema() {
                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
                 <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
                 <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Acoes</Typography></TableCell>
+                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -287,7 +287,7 @@ export default function PaginasSistema() {
                 <StyledTableRow key={pg.id} hover>
                   <TableCell>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {pg.icone && <FeatherIcon icon={normalizeIconName(pg.icone, 'circle')} width="16" height="16" />}
+                      {pg.icone && <FeatherIcon icon={resolveIconForPath(pg.path, pg.icone, 'circle')} width="16" height="16" />}
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>{pg.titulo}</Typography>
                     </Box>
                   </TableCell>
@@ -396,7 +396,7 @@ export default function PaginasSistema() {
                   renderValue={(val) =>
                     val ? (
                       <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={normalizeIconName(val, 'circle')} width="16" height="16" />
+                        <FeatherIcon icon={resolveIconForPath(form.path, val, 'circle')} width="16" height="16" />
                         <span>{val}</span>
                       </Box>
                     ) : (
@@ -434,8 +434,6 @@ export default function PaginasSistema() {
     </Box>
   );
 }
-
-
 
 
 

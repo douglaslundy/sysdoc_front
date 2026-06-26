@@ -165,6 +165,13 @@
   --lg-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
+[data-theme="light"] body,
+[data-theme="light"] #__next,
+[data-theme="light"] .lg-app-shell,
+[data-theme="light"] .app-wrapper {
+  color: var(--lg-text-primary);
+}
+
 .lg-app-shell,
 body,
 #app,
@@ -402,6 +409,64 @@ input[type="checkbox"],
   color: var(--lg-text-muted);
   margin-left: 2px;
   margin-top: 6px;
+}
+
+[data-theme="light"] .MuiPaper-root,
+[data-theme="light"] .MuiCard-root,
+[data-theme="light"] .MuiDrawer-paper,
+[data-theme="light"] .MuiPopover-paper,
+[data-theme="light"] .MuiDialog-root .MuiPaper-root,
+[data-theme="light"] .MuiModal-root > .MuiBox-root {
+  color: var(--lg-text-primary);
+}
+
+[data-theme="light"] .MuiInputBase-input,
+[data-theme="light"] .MuiInputBase-inputMultiline,
+[data-theme="light"] .MuiSelect-select,
+[data-theme="light"] .MuiAutocomplete-input,
+[data-theme="light"] textarea,
+[data-theme="light"] input,
+[data-theme="light"] select {
+  color: var(--lg-text-primary) !important;
+  -webkit-text-fill-color: var(--lg-text-primary) !important;
+  caret-color: var(--lg-text-primary) !important;
+}
+
+[data-theme="light"] .MuiInputBase-input::placeholder,
+[data-theme="light"] textarea::placeholder,
+[data-theme="light"] input::placeholder {
+  color: var(--lg-text-muted) !important;
+  -webkit-text-fill-color: var(--lg-text-muted) !important;
+  opacity: 1;
+}
+
+[data-theme="light"] .MuiInputLabel-root,
+[data-theme="light"] .MuiFormLabel-root,
+[data-theme="light"] .MuiFormHelperText-root,
+[data-theme="light"] .MuiInputAdornment-root,
+[data-theme="light"] .MuiSelect-icon,
+[data-theme="light"] .MuiTableCell-head,
+[data-theme="light"] .MuiTab-root:not(.Mui-selected) {
+  color: var(--lg-text-muted) !important;
+  -webkit-text-fill-color: var(--lg-text-muted) !important;
+}
+
+[data-theme="light"] .MuiTypography-root,
+[data-theme="light"] .MuiTableCell-root,
+[data-theme="light"] .MuiListItemText-primary,
+[data-theme="light"] .MuiListItemText-secondary,
+[data-theme="light"] .MuiFormControlLabel-label {
+  color: inherit;
+}
+
+[data-theme="light"] .MuiIconButton-root,
+[data-theme="light"] .MuiButton-root.MuiButton-text,
+[data-theme="light"] .MuiButton-root.MuiButton-outlined {
+  color: var(--lg-text-primary);
+}
+
+[data-theme="light"] .Mui-disabled {
+  -webkit-text-fill-color: var(--lg-text-muted) !important;
 }
 
 .lg-search-field {

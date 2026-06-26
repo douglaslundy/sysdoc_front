@@ -53,7 +53,7 @@ export default function VisitasEvolucao() {
     const [equipes,      setEquipes]      = useState([]);
     const [agenteOpcoes, setAgenteOpcoes] = useState([]);
     const [ine,          setIne]          = useState('');
-    const [agente,       setAgente]       = useState('');
+    const [agenteCns,    setAgenteCns]    = useState('');
     const [desfecho,     setDesfecho]     = useState('');
     const [geo,          setGeo]          = useState('');
     const [series,       setSeries]       = useState([]);
@@ -77,8 +77,8 @@ export default function VisitasEvolucao() {
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
     const agenteNomeSelecionado = useMemo(
-        () => agenteOpcoes.find((item) => item.agente_cns === agente)?.agente ?? '',
-        [agenteOpcoes, agente]
+        () => agenteOpcoes.find((item) => item.agente_cns === agenteCns)?.agente ?? '',
+        [agenteOpcoes, agenteCns]
     );
 
     useMonitorApsAudit('/monitor-aps/visitas/evolucao', 'Monitor APS - Evolução de Visitas', {
@@ -105,16 +105,16 @@ export default function VisitasEvolucao() {
             .catch(() => setAgenteOpcoes([]));
     }, [ine, anoAtual, mesAtual]);
 
-    useEffect(() => { setAgente(''); }, [ine]);
+    useEffect(() => { setAgenteCns(''); }, [ine]);
 
     useEffect(() => {
         const params = new URLSearchParams();
         if (ine)      params.set('ine',      ine);
-        if (agente)   params.set('agente_cns', agente);
+        if (agenteCns) params.set('agente_cns', agenteCns);
         if (desfecho) params.set('desfecho', desfecho);
         if (geo)      params.set('has_geo',  geo);
 
-        const key = `visitas_evolucao_${ine}_${agente}_${desfecho}_${geo}`;
+        const key = `visitas_evolucao_${ine}_${agenteCns}_${desfecho}_${geo}`;
         const cached = getCached(key);
         if (cached) { setSeries(cached.series ?? []); setLoading(false); return; }
 
@@ -127,7 +127,7 @@ export default function VisitasEvolucao() {
             .then(d => { setCached(key, d); setSeries(d.series ?? []); })
             .catch(e => { if (e?.code !== 'ERR_CANCELED') setErro(e.message); })
             .finally(() => setLoading(false));
-    }, [ine, agente, desfecho, geo]);
+    }, [ine, agenteCns, desfecho, geo]);
 
     function ativarComparacao() {
         setModoComparacao(true);
@@ -301,8 +301,8 @@ export default function VisitasEvolucao() {
                         {ine && (
                             <FormControl size="small" sx={{ minWidth: 200 }}>
                                 <InputLabel>Agente</InputLabel>
-                                <Select label="Agente" value={agente}
-                                    onChange={e => setAgente(e.target.value)}>
+                                <Select label="Agente" value={agenteCns}
+                                    onChange={e => setAgenteCns(e.target.value)}>
                                     <MenuItem value="">Todos os agentes</MenuItem>
                                     {agenteOpcoes.map((a, i) => (
                                     <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>

@@ -65,7 +65,7 @@ export default function Users() {
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
-    subTitle: "Esta acao nao podera ser desfeita",
+    subTitle: "Esta ação não poderá ser desfeita",
   });
 
   const dispatch = useDispatch();
@@ -104,10 +104,10 @@ export default function Users() {
     setConfirmDialog({
       ...confirmDialog,
       isOpen: true,
-      title: `Deseja realmente inativar o usuario ${user.name}?`,
+      title: `Deseja realmente inativar o usuário ${user.name}?`,
       confirm: inactiveUserFetch(user),
     });
-    dispatch(changeTitleAlert(`O usuario ${user.name} foi inativado com sucesso!`));
+    dispatch(changeTitleAlert(`O usuário ${user.name} foi inativado com sucesso!`));
   };
 
   const handleSearchUsers = ({ target }) => {
@@ -174,7 +174,7 @@ export default function Users() {
 
         <TableContainer className="queue-page__table-wrap">
           <Table
-            aria-label="tabela de usuarios"
+            aria-label="tabela de usuários"
             className="queue-page__table"
             sx={{ mt: 2, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}
           >
@@ -197,7 +197,7 @@ export default function Users() {
                 </TableCell>
                 <TableCell align="center" className="queue-page__th">
                   <Typography color="textSecondary" variant="h6">
-                    Acoes
+                    Ações
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -272,7 +272,7 @@ export default function Users() {
                         <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
                             <ActionEditButton
                               className="queue-page__action queue-page__action--success"
-                              title="Editar usuario"
+                              title="Editar usuário"
                               onClick={() => {
                                 handleEditUser(user);
                               }}
@@ -280,7 +280,7 @@ export default function Users() {
 
                             <ActionDeleteButton
                               className="queue-page__action queue-page__action--danger"
-                              title="Inativar usuario"
+                              title="Inativar usuário"
                               onClick={() => {
                                 handleInactiveUser(user);
                               }}

@@ -1,5 +1,5 @@
 ﻿import React, { useContext, useMemo, useState } from 'react';
-import { Box, Tabs, Tab, Typography } from '@mui/material';
+import { Box, Tabs, Tab, Typography, useTheme } from '@mui/material';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import ConformidadesDashboard from '../src/components/dashboard/ConformidadesDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
@@ -28,6 +28,7 @@ const ABAS = [
 ];
 
 export default function DashboardPage() {
+    const theme = useTheme();
     const { myPermissions, authorizedPages, profile, canUseChat } = useContext(AuthContext);
     const [aba, setAba] = useState(0);
 
@@ -74,11 +75,17 @@ export default function DashboardPage() {
                         '& .MuiTab-root': {
                             textTransform: 'none',
                             fontSize: '15px',
-                            color: 'var(--lg-text-muted)',
+                            color: theme.palette.mode === 'light' ? '#475569 !important' : 'var(--lg-text-muted)',
                             minHeight: 46,
                         },
                         '& .MuiTab-root.Mui-selected': {
-                            color: '#48a7ff',
+                            color: theme.palette.mode === 'light' ? '#1d4ed8 !important' : '#48a7ff',
+                        },
+                        '& .MuiTabScrollButton-root': {
+                            color: theme.palette.mode === 'light' ? '#334155 !important' : 'var(--lg-text-primary)',
+                        },
+                        '& .MuiTabScrollButton-root.Mui-disabled': {
+                            color: theme.palette.mode === 'light' ? 'rgba(51, 65, 85, 0.35) !important' : 'rgba(255, 255, 255, 0.3)',
                         },
                     }}
                 >

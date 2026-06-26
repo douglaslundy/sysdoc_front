@@ -67,6 +67,7 @@ const ProtocolBell = () => {
           aria-label="protocolos novos"
           sx={{
             mr: 1,
+            color: "var(--lg-text-primary)",
             background: "var(--lg-glass-chip)",
             border: "0.5px solid var(--lg-border)",
             borderRadius: "10px",
