@@ -60,7 +60,7 @@ const KanbanShortcut = () => {
         }}
       >
         <Badge badgeContent={total} color="primary" max={99}>
-          <FeatherIcon icon="columns" width="18" height="18" />
+          <FeatherIcon icon="trello" width="18" height="18" />
         </Badge>
       </IconButton>
     </Tooltip>

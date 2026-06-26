@@ -12,7 +12,7 @@ const ICON_ALIASES = {
 };
 
 const RESERVED_PATH_ICONS = {
-  "/kanban": "columns",
+  "/kanban": "trello",
   "/sistema/alertas": "bell",
   "/protocolo/alertas": "bell",
 };
