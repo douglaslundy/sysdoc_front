@@ -12,7 +12,7 @@ const COOKIE_OPTS = {
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Método não permitido' });
+        return res.status(405).json({ message: 'Metodo nao permitido' });
     }
 
     try {
@@ -25,14 +25,20 @@ export default async function handler(req, res) {
             body: JSON.stringify(req.body),
         });
 
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json')
+            ? await response.json().catch(() => ({}))
+            : { message: await response.text().catch(() => '') };
+
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            return res.status(response.status).json({ message: data.message || 'Credenciais inválidas.' });
+            return res.status(response.status).json({ message: data.message || 'Credenciais invalidas.' });
         }
 
-        const data = await response.json();
+        if (!data?.token || !data?.user?.id) {
+            return res.status(502).json({ message: 'Resposta de autenticacao invalida do backend.' });
+        }
 
-        // Token stored as httpOnly — JS cannot read via document.cookie
+        // Token stored as httpOnly; JS cannot read via document.cookie
         setCookie({ res }, 'sysvendas.token', data.token, {
             ...COOKIE_OPTS,
             httpOnly: true,
@@ -40,11 +46,11 @@ export default async function handler(req, res) {
 
         // Non-sensitive user metadata (profile checks, display)
         setCookie({ res }, 'sysvendas.id', String(data.user.id), COOKIE_OPTS);
-        setCookie({ res }, 'sysvendas.username', data.user.name, COOKIE_OPTS);
-        setCookie({ res }, 'sysvendas.profile', data.user.profile, COOKIE_OPTS);
+        setCookie({ res }, 'sysvendas.username', String(data.user.name || ''), COOKIE_OPTS);
+        setCookie({ res }, 'sysvendas.profile', String(data.user.profile || ''), COOKIE_OPTS);
 
         return res.status(200).json({ user: data.user });
     } catch (_) {
-        return res.status(503).json({ message: 'Backend indisponível ou URL de API inválida.' });
+        return res.status(503).json({ message: 'Backend indisponivel ou URL de API invalida.' });
     }
 }

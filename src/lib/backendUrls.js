@@ -7,9 +7,19 @@ function normalize(base) {
     return String(base || '').trim().replace(/\/+$/, '');
 }
 
+function ensureApiSuffix(base) {
+    const normalized = normalize(base);
+
+    if (!normalized) {
+        return '';
+    }
+
+    return /\/api$/i.test(normalized) ? normalized : `${normalized}/api`;
+}
+
 export function getApiBaseCandidates() {
-    const envBase = normalize(process.env.NEXT_PUBLIC_API_URL);
-    const all = [envBase, ...DEFAULT_BASES.map(normalize)].filter(Boolean);
+    const envBase = ensureApiSuffix(process.env.NEXT_PUBLIC_API_URL);
+    const all = [envBase, ...DEFAULT_BASES.map(ensureApiSuffix)].filter(Boolean);
     return [...new Set(all)];
 }
 

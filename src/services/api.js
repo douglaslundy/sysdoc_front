@@ -1,11 +1,16 @@
 import axios from "axios";
 
 const normalize = (v) => String(v || "").trim().replace(/\/+$/, "");
+const ensureApiSuffix = (value) => {
+  const normalized = normalize(value);
+  if (!normalized) return "";
+  return /\/api$/i.test(normalized) ? normalized : `${normalized}/api`;
+};
 const apiBaseCandidates = [
-  normalize(process.env.NEXT_PUBLIC_API_URL),
+  ensureApiSuffix(process.env.NEXT_PUBLIC_API_URL),
   "http://127.0.0.1:8010/api",
   "http://localhost:8010/api",
-].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+].map(ensureApiSuffix).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
 
 export const api = axios.create({
   baseURL: apiBaseCandidates[0],
