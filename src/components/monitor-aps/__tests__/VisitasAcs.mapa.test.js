@@ -8,5 +8,5 @@ it('MapaVisitasPage passes search and team params to mapa endpoint', () => {
     expect(src).toMatch(/searchAtivo/);
     expect(src).toMatch(/params\.set\('busca', searchAtivo\)/);
     expect(src).toMatch(/params\.set\('ine', equipeIne\)/);
-    expect(src).toMatch(/params\.set\('agente', agenteNome\)/);
+    expect(src).toMatch(/params\.set\('agente_cns', agenteCns\)/);
 });

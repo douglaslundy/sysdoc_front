@@ -149,8 +149,13 @@ export default function VisitasAcs() {
     const [modalAberto, setModalAberto]   = useState(false);
     const anySectionLoading = loadingResumo || loadingAgentes || loadingVisitas;
 
+    const filtroAgenteNome = useMemo(
+        () => agenteOpcoes.find((item) => item.agente_cns === filtroAgente)?.agente ?? '',
+        [agenteOpcoes, filtroAgente]
+    );
+
     useMonitorApsAudit('/monitor-aps/visitas', 'Monitor APS - Visitas ACS', {
-        ano, mes, equipe: ine, agente: filtroAgente, desfecho: filtroDesfecho, geo: filtroGeo,
+        ano, mes, equipe: ine, agente: filtroAgenteNome, desfecho: filtroDesfecho, geo: filtroGeo,
     });
 
     // Carrega equipes conforme permissões do usuário
@@ -187,7 +192,7 @@ export default function VisitasAcs() {
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
         if (ine)            params.set('ine', ine);
-        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_resumo_${params}`;
@@ -208,7 +213,7 @@ export default function VisitasAcs() {
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
         if (ine)            params.set('ine', ine);
-        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_agentes_${params}`;
@@ -229,7 +234,7 @@ export default function VisitasAcs() {
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes, page: page + 1, per_page: perPage });
         if (ine)            params.set('ine', ine);
-        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
 
@@ -253,7 +258,7 @@ export default function VisitasAcs() {
         if (aba !== 'mapa') return;
         const params = new URLSearchParams({ ano, mes });
         if (ine)            params.set('ine', ine);
-        if (filtroAgente)   params.set('agente', filtroAgente);
+        if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
         const key = `visitas_mapa_all_${params}`;
@@ -318,7 +323,7 @@ export default function VisitasAcs() {
                 const totalPages = Math.ceil(totalVisitas / chunkSize);
                 const paramsBase = new URLSearchParams({ ano, mes, per_page: chunkSize });
                 if (ine)            paramsBase.set('ine', ine);
-                if (filtroAgente)   paramsBase.set('agente', filtroAgente);
+                if (filtroAgente)   paramsBase.set('agente_cns', filtroAgente);
                 if (filtroDesfecho) paramsBase.set('desfecho', filtroDesfecho);
                 if (filtroGeo)      paramsBase.set('has_geo', filtroGeo);
 
@@ -347,7 +352,7 @@ export default function VisitasAcs() {
                     ano, mes,
                     mesLabel: MESES_COMPLETO[mes],
                     equipeNome,
-                    filtroAgente,
+                    filtroAgente: filtroAgenteNome,
                     filtroDesfecho,
                     filtroGeo,
                 },
@@ -451,7 +456,7 @@ export default function VisitasAcs() {
                             onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todos os agentes</MenuItem>
                             {agenteOpcoes.map((a, i) => (
-                                <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                                <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

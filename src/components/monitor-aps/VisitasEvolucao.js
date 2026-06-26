@@ -21,19 +21,19 @@ const FONT   = { fontFamily: "'DM Sans', sans-serif" };
 
 const DESFECHO_LABELS = { '1': 'Realizada', '2': 'Recusada', '3': 'Ausente' };
 const GEO_LABELS      = { 'sim': 'Com geo', 'nao': 'Sem geo' };
-const VETOR_VAZIO     = { ine: '', agente: '', desfecho: '', geo: '' };
+const VETOR_VAZIO     = { ine: '', agente_cns: '', agente_nome: '', desfecho: '', geo: '' };
 
 function labelVetor(vetor, nomeEquipe, fallback) {
     const partes = [];
     if (vetor.ine)      partes.push(nomeEquipe || 'Equipe');
-    if (vetor.agente)   partes.push(vetor.agente);
+    if (vetor.agente_nome) partes.push(vetor.agente_nome);
     if (vetor.desfecho) partes.push(DESFECHO_LABELS[vetor.desfecho]);
     if (vetor.geo)      partes.push(GEO_LABELS[vetor.geo]);
     return partes.length ? partes.join(' · ') : fallback;
 }
 
 function vetorConfigurado(v) {
-    return !!(v.ine || v.agente || v.desfecho || v.geo);
+    return !!(v.ine || v.agente_cns || v.desfecho || v.geo);
 }
 
 export function buildChartSeries(series, cores) {
@@ -76,8 +76,13 @@ export default function VisitasEvolucao() {
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
+    const agenteNomeSelecionado = useMemo(
+        () => agenteOpcoes.find((item) => item.agente_cns === agente)?.agente ?? '',
+        [agenteOpcoes, agente]
+    );
+
     useMonitorApsAudit('/monitor-aps/visitas/evolucao', 'Monitor APS - Evolução de Visitas', {
-        equipe: ine, agente, desfecho, geo,
+        equipe: ine, agente: agenteNomeSelecionado, desfecho, geo,
     });
 
     useEffect(() => {
@@ -105,7 +110,7 @@ export default function VisitasEvolucao() {
     useEffect(() => {
         const params = new URLSearchParams();
         if (ine)      params.set('ine',      ine);
-        if (agente)   params.set('agente',   agente);
+        if (agente)   params.set('agente_cns', agente);
         if (desfecho) params.set('desfecho', desfecho);
         if (geo)      params.set('has_geo',  geo);
 
@@ -153,7 +158,7 @@ export default function VisitasEvolucao() {
         const buildParams = (v) => {
             const p = new URLSearchParams({ ano: anoComparacao });
             if (v.ine)      p.set('ine',      v.ine);
-            if (v.agente)   p.set('agente',   v.agente);
+            if (v.agente_cns) p.set('agente_cns', v.agente_cns);
             if (v.desfecho) p.set('desfecho', v.desfecho);
             if (v.geo)      p.set('has_geo',  v.geo);
             return p.toString();
@@ -167,8 +172,8 @@ export default function VisitasEvolucao() {
             return data;
         };
 
-        const keyV1 = `visitas_evolucao_cmp_${anoComparacao}_${vetor1.ine}_${vetor1.agente}_${vetor1.desfecho}_${vetor1.geo}`;
-        const keyV2 = `visitas_evolucao_cmp_${anoComparacao}_${vetor2.ine}_${vetor2.agente}_${vetor2.desfecho}_${vetor2.geo}`;
+        const keyV1 = `visitas_evolucao_cmp_${anoComparacao}_${vetor1.ine}_${vetor1.agente_cns}_${vetor1.desfecho}_${vetor1.geo}`;
+        const keyV2 = `visitas_evolucao_cmp_${anoComparacao}_${vetor2.ine}_${vetor2.agente_cns}_${vetor2.desfecho}_${vetor2.geo}`;
 
         try {
             const [res1, res2] = await Promise.all([
@@ -227,7 +232,7 @@ export default function VisitasEvolucao() {
             const equipeNome = equipes.find(e => e.nu_ine === ine)?.no_equipe ?? '';
             await generateVisitasEvolucaoPDF({
                 series,
-                filtros: { equipeNome, agente, desfecho, geo },
+                filtros: { equipeNome, agente: agenteNomeSelecionado, desfecho, geo },
                 anoAtual,
             });
         } finally {
@@ -300,7 +305,7 @@ export default function VisitasEvolucao() {
                                     onChange={e => setAgente(e.target.value)}>
                                     <MenuItem value="">Todos os agentes</MenuItem>
                                     {agenteOpcoes.map((a, i) => (
-                                        <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                                    <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>

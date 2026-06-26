@@ -7,7 +7,7 @@ import { monitorApsApi } from '../../services/monitorApsApi';
  * Props:
  *   label     {string}   — "Vetor 1" | "Vetor 2"
  *   equipes   {array}    — lista de equipes do endpoint /config/equipes
- *   vetor     {object}   — { ine, agente, desfecho, geo }
+ *   vetor     {object}   — { ine, agente_cns, agente_nome, desfecho, geo }
  *   onChange  {function} — (novoVetor, nomeEquipe) => void
  */
 export default function VetorPanel({ label, equipes, vetor, onChange }) {
@@ -27,7 +27,13 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
 
     function update(field, value) {
         const updates = { [field]: value };
-        if (field === 'ine') updates.agente = '';
+        if (field === 'ine') {
+            updates.agente_cns = '';
+            updates.agente_nome = '';
+        }
+        if (field === 'agente_cns') {
+            updates.agente_nome = agentesOpcoes.find((item) => item.agente_cns === value)?.agente ?? '';
+        }
         const newVetor = { ...vetor, ...updates };
         const nomeEquipeFull = equipes.find(e => e.nu_ine === newVetor.ine)?.no_equipe ?? '';
         const nomeEquipe = equipeLabel(nomeEquipeFull);
@@ -54,11 +60,11 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
                 {vetor.ine && (
                     <FormControl size="small" fullWidth>
                         <InputLabel>Agente</InputLabel>
-                        <Select label="Agente" value={vetor.agente}
-                            onChange={e => update('agente', e.target.value)}>
+                        <Select label="Agente" value={vetor.agente_cns}
+                            onChange={e => update('agente_cns', e.target.value)}>
                             <MenuItem value="">Todos os agentes</MenuItem>
                             {agentesOpcoes.map(a => (
-                                <MenuItem key={a.agente} value={a.agente}>{a.agente}</MenuItem>
+                                <MenuItem key={a.agente_cns ?? a.agente} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

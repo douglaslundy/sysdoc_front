@@ -25,7 +25,7 @@ export default function MapaVisitasPage() {
 
     const [filtroModo, setFiltroModo]   = useState('todos'); // 'todos' | 'equipe'
     const [equipeIne, setEquipeIne]     = useState('');
-    const [agenteNome, setAgenteNome]   = useState('');
+    const [agenteCns, setAgenteCns]     = useState('');
     const [filtroSearch, setFiltroSearch] = useState('');
     const [searchAtivo, setSearchAtivo]   = useState(''); // debounced
     const [ano, setAno]                 = useState(anoAtual);
@@ -43,6 +43,11 @@ export default function MapaVisitasPage() {
     const [loadingDetalhe, setLoadingDetalhe] = useState(false);
     const [modalAberto, setModalAberto]       = useState(false);
 
+    const agenteNome = useMemo(
+        () => agentes.find((item) => item.agente_cns === agenteCns)?.agente ?? '',
+        [agentes, agenteCns]
+    );
+
     useMonitorApsAudit('/monitor-aps/visitas/mapa', 'Monitor APS - Mapa de Visitas', {
         ano, mes, equipe: equipeIne, agente: agenteNome,
     });
@@ -50,9 +55,9 @@ export default function MapaVisitasPage() {
     // Color mode is auto-determined by the filter state (no separate toggle needed)
     const modoExterno = useMemo(() => {
         if (filtroModo === 'todos' || !equipeIne) return 'todos'; // color by team
-        if (!agenteNome)                          return 'equipe'; // color by agent
+        if (!agenteCns)                           return 'equipe'; // color by agent
         return 'agente';                                           // color by outcome
-    }, [filtroModo, equipeIne, agenteNome]);
+    }, [filtroModo, equipeIne, agenteCns]);
 
     useEffect(() => {
         if (loadingPerms) return;
@@ -76,7 +81,7 @@ export default function MapaVisitasPage() {
     useEffect(() => {
         if (!equipeIne) {
             setAgentes([]);
-            setAgenteNome('');
+            setAgenteCns('');
             return;
         }
         const params = new URLSearchParams({ ano, mes, ine: equipeIne });
@@ -105,7 +110,7 @@ export default function MapaVisitasPage() {
     useEffect(() => {
         const params = new URLSearchParams({ ano, mes });
         if (equipeIne)    params.set('ine', equipeIne);
-        if (agenteNome)   params.set('agente', agenteNome);
+        if (agenteCns)    params.set('agente_cns', agenteCns);
         if (searchAtivo)  params.set('busca', searchAtivo);
 
         setLoading(true);
@@ -113,7 +118,7 @@ export default function MapaVisitasPage() {
             .then(d => setPontos(d.pontos ?? []))
             .catch(() => setPontos([]))
             .finally(() => setLoading(false));
-    }, [ano, mes, equipeIne, agenteNome, searchAtivo]);
+    }, [ano, mes, equipeIne, agenteCns, searchAtivo]);
 
     const abrirDetalhe = useCallback(async (id) => {
         setLoadingDetalhe(true);
@@ -144,7 +149,7 @@ export default function MapaVisitasPage() {
         setFiltroModo(valor);
         if (valor === 'todos') {
             setEquipeIne('');
-            setAgenteNome('');
+            setAgenteCns('');
         } else {
             // ao mudar para Por Equipe, limpa a busca por cidadão
             limparSearch();
@@ -245,7 +250,7 @@ export default function MapaVisitasPage() {
                             <FormControl size="small" sx={{ minWidth: 220 }}>
                                 <InputLabel>Equipe</InputLabel>
                                 <Select label="Equipe" value={equipeIne}
-                                    onChange={e => { setEquipeIne(e.target.value); setAgenteNome(''); }}
+                                    onChange={e => { setEquipeIne(e.target.value); setAgenteCns(''); }}
                                     disabled={isRestrito && equipes.length === 1}
                                     renderValue={(val) => {
                                         if (!val) return '';
@@ -273,11 +278,11 @@ export default function MapaVisitasPage() {
                         {filtroModo === 'equipe' && equipeIne && (
                             <FormControl size="small" sx={{ minWidth: 220 }}>
                                 <InputLabel>Agente</InputLabel>
-                                <Select label="Agente" value={agenteNome}
-                                    onChange={e => setAgenteNome(e.target.value)}>
+                                <Select label="Agente" value={agenteCns}
+                                    onChange={e => setAgenteCns(e.target.value)}>
                                     <MenuItem value="">Todos os agentes</MenuItem>
                                     {agentes.map((a, i) => (
-                                        <MenuItem key={i} value={a.agente}>{a.agente}</MenuItem>
+                                        <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
@@ -341,4 +346,3 @@ export default function MapaVisitasPage() {
         </Box>
     );
 }
-
