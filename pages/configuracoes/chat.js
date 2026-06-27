@@ -21,6 +21,7 @@ import {
   modalPrimaryButtonSx,
   modalSecondaryButtonSx,
 } from "../../src/components/modal/_shared/modalFormStyles";
+import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
 import { api } from "../../src/services/api";
 import DestructiveConfirmDialog from "../../src/components/confirmDialog/DestructiveConfirmDialog";
 
@@ -245,14 +246,14 @@ export default function ChatConfigPage() {
   }
 
   return (
-    <Box className="queue-page chat-config-page" sx={{ ...modalFormRootSx, maxWidth: 980, mx: "auto" }}>
+    <Box className="queue-page chat-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
       <BaseCard
         title="Configurações do Chat"
         subtitle="Escolha e configure o motor responsável pela comunicação em tempo real."
       >
         <Stack spacing={2.2}>
           {config?.configured && (
-            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Box className="system-config-surface" sx={{ p: 2 }}>
               <Stack spacing={1.5}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
                   <Box>
@@ -329,7 +330,7 @@ export default function ChatConfigPage() {
 
           {(!config?.configured || editing) && (
             <>
-          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+          <Box className="system-config-surface" sx={{ p: 2 }}>
             <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Motor de comunicação</Typography>
             <FormControl fullWidth>
               <InputLabel id="chat-engine-label">Motor do chat</InputLabel>
@@ -340,7 +341,7 @@ export default function ChatConfigPage() {
             </FormControl>
           </Box>
 
-          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+          <Box className="system-config-surface" sx={{ p: 2 }}>
             <Typography sx={{ fontWeight: 800, mb: 2 }}>Credenciais da aplicação</Typography>
             <Stack spacing={2}>
               <TextField
@@ -371,7 +372,7 @@ export default function ChatConfigPage() {
           </Box>
 
           {form.engine === "pusher" ? (
-            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Box className="system-config-surface" sx={{ p: 2 }}>
               <Typography sx={{ fontWeight: 800, mb: 2 }}>Pusher Cloud</Typography>
               <TextField
                 fullWidth
@@ -382,7 +383,7 @@ export default function ChatConfigPage() {
               />
             </Box>
           ) : (
-            <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+            <Box className="system-config-surface" sx={{ p: 2 }}>
               <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Servidor Soketi</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Informe o endereço público do servidor Soketi. Não inclua caminhos como <code>/app</code> ou <code>/apps</code>.
@@ -414,7 +415,7 @@ export default function ChatConfigPage() {
             </Box>
           )}
 
-          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+          <Box className="system-config-surface" sx={{ p: 2 }}>
             <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Proteção contra excesso de uso</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite específico.
@@ -471,7 +472,7 @@ export default function ChatConfigPage() {
             </Box>
           </Box>
 
-          <Box sx={{ p: 2, borderRadius: "14px", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
+          <Box className="system-config-surface" sx={{ p: 2 }}>
             <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Comportamento de notificação</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Defina como o chat deve reagir quando uma nova mensagem chegar para o usuário.

@@ -1524,8 +1524,10 @@ input[type="checkbox"],
 
 .badge,
 .chip,
-[class*="badge"],
-[class*="chip"] {
+[class^="badge"],
+[class*=" badge"],
+[class^="chip"],
+[class*=" chip"] {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
