@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -8,8 +8,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Fab,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Modal,
@@ -24,12 +26,13 @@ import {
   TableRow,
   TextField,
   Typography,
+  styled,
 } from '@mui/material';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import { AuthContext } from '../../contexts/AuthContext';
 import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import FeatherIcon from 'feather-icons-react';
 
 const initialForm = {
   id: null,
@@ -51,8 +54,31 @@ const STATUS_LABELS = {
   publicado: 'Publicado',
 };
 
+const StyledTableRow = styled(TableRow)(() => ({
+  '& td': {
+    background: 'var(--queue-row-bg)',
+    borderTop: '0.5px solid var(--lg-border)',
+    borderBottom: '0.5px solid var(--lg-border)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: 'var(--queue-text-primary)',
+  },
+  '& td:first-of-type': {
+    borderLeft: '0.5px solid var(--lg-border)',
+    borderTopLeftRadius: 14,
+    borderBottomLeftRadius: 14,
+  },
+  '& td:last-of-type': {
+    borderRight: '0.5px solid var(--lg-border)',
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  '&:hover td': {
+    background: 'var(--queue-row-hover)',
+  },
+}));
+
 export default function Documentos() {
-  const { profile } = useContext(AuthContext);
   const [documents, setDocuments] = useState([]);
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -242,21 +268,71 @@ export default function Documentos() {
 
   return (
     <Box sx={modalFormRootSx} className="queue-page documentos-page">
-      <BaseCard title="Documentos">
-        {alertState.visible && (
-          <Alert
-            sx={{ mb: 2 }}
-            variant="filled"
-            severity={alertState.type}
-            onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-          >
-            {alertState.message}
-          </Alert>
-        )}
+      {alertState.visible && (
+        <Alert
+          sx={{ mb: 2 }}
+          variant="filled"
+          severity={alertState.type}
+          onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
+        >
+          {alertState.message}
+        </Alert>
+      )}
 
-        <Grid container spacing={2} mb={2}>
-          <Grid item xs={12} md={4}>
-            <TextField fullWidth size="small" label="Buscar" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <BaseCard title={`Voce possui ${total} Documentos Cadastrados`} sx={{ mb: 3 }}>
+        <Box
+          className="queue-page__toolbar"
+          sx={{
+            '& > :not(style)': { m: 0 },
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: 'wrap',
+            mb: 2,
+          }}
+        >
+          <TextField
+            className="lg-search-field"
+            sx={{ flex: 1, minWidth: 260 }}
+            placeholder="Pesquisar documento"
+            name="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FeatherIcon icon="search" width="22" height="22" />
+                </InputAdornment>
+              ),
+            }}
+            inputProps={{ maxLength: 80, autoComplete: 'off' }}
+          />
+
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
+            <Fab
+              className="queue-page__fab queue-page__fab--add"
+              onClick={openNew}
+              color="primary"
+              aria-label="novo documento"
+              sx={{ width: 62, height: 62, borderRadius: '14px' }}
+            >
+              <FeatherIcon icon="file-plus" />
+            </Fab>
+          </Stack>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          Listagem, filtros e ações do módulo de documentos.
+        </Typography>
+      </BaseCard>
+
+      <BaseCard title="Filtros" sx={{ mb: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" color="text.secondary" sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+              Refine a listagem usando tipo, sigilo e status.
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2.5}>
             <FormControl fullWidth size="small">
@@ -308,42 +384,56 @@ export default function Documentos() {
           </Grid>
         </Grid>
 
-        <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+      </BaseCard>
+
+      <BaseCard title="Ações" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', display: 'none' }}>
           <Button variant="contained" onClick={openNew}>Novo documento</Button>
           <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
-          {profile === 'admin' && <Button variant="outlined" href="/documentos/configuracoes">Configurações</Button>}
+                                                                                                                       
         </Stack>
 
+      </BaseCard>
+
+      <BaseCard title="Listagem">
         <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" size="small">
+          <Table
+            className="queue-page__table"
+            size="small"
+            sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}
+          >
             <TableHead>
               <TableRow>
                 <TableCell>Título</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Sigilo</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Tipo</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Sigilo</Typography></TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
                 <TableCell>Versão</TableCell>
-                <TableCell>Criado por</TableCell>
+                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Criado por</Typography></TableCell>
                 <TableCell>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {documents.map((doc) => (
-                <TableRow key={doc.id} hover>
-                  <TableCell>{doc.titulo}</TableCell>
+                <StyledTableRow key={doc.id} hover>
+                  <TableCell><Typography variant="h6" sx={{ fontWeight: 700 }}>{doc.titulo || '-'}</Typography></TableCell>
                   <TableCell>{doc.type?.nome || '—'}</TableCell>
                   <TableCell><Chip size="small" label={SIGILO_LABELS[doc.sigilo] || doc.sigilo} /></TableCell>
-                  <TableCell>{STATUS_LABELS[doc.status] || String(doc.status || '').toUpperCase()}</TableCell>
-                  <TableCell>{doc.current_version_number || 0}</TableCell>
+                  <TableCell><Typography variant="h6">{STATUS_LABELS[doc.status] || String(doc.status || '').toUpperCase()}</Typography></TableCell>
+                  <TableCell><Typography variant="h6">{doc.current_version_number || 0}</Typography></TableCell>
                   <TableCell>{doc.creator?.name || '—'}</TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
+                  <TableCell align="center">
+                    <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
                       <Button size="small" variant="outlined" onClick={() => openVersions(doc)}>Versões</Button>
-                      <Button size="small" variant="outlined" onClick={() => openEdit(doc)}>Editar</Button>
-                      <Button size="small" color="error" variant="outlined" onClick={() => askDelete(doc)}>Excluir</Button>
-                    </Stack>
+                      <Button className="queue-page__action queue-page__action--success" color="success" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => openEdit(doc)} title="Editar documento">
+                        <FeatherIcon icon="edit" width="18" height="18" />
+                      </Button>
+                      <Button className="queue-page__action queue-page__action--danger" color="error" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => askDelete(doc)} title="Excluir documento">
+                        <FeatherIcon icon="trash" width="18" height="18" />
+                      </Button>
+                    </Box>
                   </TableCell>
-                </TableRow>
+                </StyledTableRow>
               ))}
               {!loading && documents.length === 0 && (
                 <TableRow>

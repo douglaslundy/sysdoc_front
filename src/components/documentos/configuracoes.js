@@ -5,7 +5,6 @@ import {
   Button,
   FormControl,
   FormControlLabel,
-  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -130,7 +129,8 @@ export default function DocumentosConfiguracoes() {
               Defina os 3 usuários responsáveis e em quais níveis de sigilo a regra será aplicada.
             </Typography>
 
-            <FormControl fullWidth>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <FormControl sx={{ width: { xs: '100%', md: '50%' } }}>
               <InputLabel>Aplicar em</InputLabel>
               <Select
                 multiple
@@ -143,14 +143,15 @@ export default function DocumentosConfiguracoes() {
                   <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                 ))}
               </Select>
-            </FormControl>
+              </FormControl>
+            </Box>
 
-            <Grid container spacing={2}>
+            <Stack spacing={2}>
               {[1, 2, 3].map((index) => {
                 const key = `signer_user_${index}_id`;
                 return (
-                  <Grid item xs={12} md={4} key={key}>
-                    <FormControl fullWidth>
+                  <Box key={key} sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                    <FormControl sx={{ width: { xs: '100%', md: '50%' } }}>
                       <InputLabel>{`Usuário ${index}`}</InputLabel>
                       <Select
                         value={form[key]}
@@ -163,10 +164,10 @@ export default function DocumentosConfiguracoes() {
                         ))}
                       </Select>
                     </FormControl>
-                  </Grid>
+                  </Box>
                 );
               })}
-            </Grid>
+            </Stack>
 
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button variant="outlined" href="/documentos">Voltar</Button>
