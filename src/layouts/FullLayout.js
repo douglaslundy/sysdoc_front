@@ -93,7 +93,7 @@ const FullLayout = ({ children }) => {
               color: "var(--lg-text-primary)",
               background:
                 theme.palette.mode === "light"
-                  ? "rgba(226, 232, 240, 0.96)"
+                  ? "rgba(203, 213, 225, 0.97)"
                   : "var(--lg-glass-chip)",
               border: "1px solid var(--lg-border)",
               boxShadow: "0 18px 35px rgba(15, 23, 42, 0.18)",
@@ -101,7 +101,7 @@ const FullLayout = ({ children }) => {
               "&:hover": {
                 background:
                   theme.palette.mode === "light"
-                    ? "rgba(203, 213, 225, 0.98)"
+                    ? "rgba(186, 198, 212, 0.99)"
                     : "var(--lg-glass-panel-hover)",
               },
             }}

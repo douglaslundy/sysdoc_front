@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { parseCookies } from 'nookies';
 import { useDispatch } from 'react-redux';
+import FeatherIcon from 'feather-icons-react';
 import { loginFetch } from '../src/store/fetchActions/auth';
 import AlertModal from '../src/components/messagesModal';
 import LogoDark from '../assets/images/logos/logo.png';
@@ -52,7 +53,9 @@ export default function SignIn() {
                     </article>
 
                     <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">⌾</div>
+                        <div className={styles.benefitIcon} aria-hidden="true">
+                            <FeatherIcon icon="lock" width="24" height="24" />
+                        </div>
                         <div>
                             <h2>Segurança e confiabilidade</h2>
                             <p>Proteção de dados e infraestrutura robusta para o seu negócio.</p>
@@ -108,7 +111,9 @@ export default function SignIn() {
                     <div className={styles.fieldGroup}>
                         <label htmlFor="password">Senha</label>
                         <div className={styles.inputShell}>
-                            <span aria-hidden="true">▣</span>
+                            <span aria-hidden="true">
+                                <FeatherIcon icon="key" width="18" height="18" />
+                            </span>
                             <input
                                 id="password"
                                 name="password"
@@ -150,7 +155,9 @@ export default function SignIn() {
                         <span />
                     </div>
 
-                    <div className={styles.securityBadge} aria-label="Acesso seguro">⌾</div>
+                    <div className={styles.securityBadge} aria-label="Acesso seguro">
+                        <FeatherIcon icon="lock" width="24" height="24" />
+                    </div>
                 </form>
 
                 <footer className={styles.loginFooter}>

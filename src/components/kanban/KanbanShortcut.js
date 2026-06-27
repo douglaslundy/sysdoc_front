@@ -5,6 +5,19 @@ import { useRouter } from "next/router";
 import { api } from "../../services/api";
 import { AuthContext } from "../../contexts/AuthContext";
 
+const normalizePath = (value) => String(value || "").split("?")[0].replace(/\/+$/, "");
+
+const hasPermissionForPath = (allowedPaths, targetPath) => {
+  const normalizedTarget = normalizePath(targetPath);
+  return (Array.isArray(allowedPaths) ? allowedPaths : []).some((allowed) => {
+    const normalizedAllowed = normalizePath(allowed);
+    return (
+      normalizedAllowed === normalizedTarget ||
+      normalizedTarget.startsWith(`${normalizedAllowed}/`)
+    );
+  });
+};
+
 const KanbanShortcut = () => {
   const router = useRouter();
   const isKanbanPage = router.pathname === "/kanban";
@@ -14,9 +27,9 @@ const KanbanShortcut = () => {
   const canAccessKanban = useMemo(() => {
     if (profile === "admin") return true;
 
-    const hasDirectPermission = Array.isArray(myPermissions) && myPermissions.includes("/kanban");
+    const hasDirectPermission = hasPermissionForPath(myPermissions, "/kanban");
     const hasAuthorizedPage = Array.isArray(authorizedPages)
-      && authorizedPages.some((page) => page?.ativo && page?.path === "/kanban");
+      && authorizedPages.some((page) => page?.ativo && normalizePath(page?.path) === "/kanban");
 
     return isKanbanPage || hasDirectPermission || hasAuthorizedPage;
   }, [authorizedPages, isKanbanPage, myPermissions, profile]);
