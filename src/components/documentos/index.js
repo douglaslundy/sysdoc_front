@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
+import { AuthContext } from '../../contexts/AuthContext';
 import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
 
@@ -45,16 +46,21 @@ const SIGILO_LABELS = {
   restrito: 'Restrito/Sigiloso',
 };
 
+const STATUS_LABELS = {
+  rascunho: 'Rascunho',
+  publicado: 'Publicado',
+};
+
 export default function Documentos() {
+  const { profile } = useContext(AuthContext);
   const [documents, setDocuments] = useState([]);
   const [types, setTypes] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ document_type_id: '', sigilo: '' });
+  const [filters, setFilters] = useState({ document_type_id: '', sigilo: '', status: '' });
   const [form, setForm] = useState(initialForm);
   const [file, setFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,21 +71,10 @@ export default function Documentos() {
   const [versions, setVersions] = useState([]);
   const [currentDocument, setCurrentDocument] = useState(null);
   const [versionFile, setVersionFile] = useState(null);
-  const [deleteSigners, setDeleteSigners] = useState(['', '', '']);
-  const deleteSignersRef = useRef(deleteSigners);
 
   const loadTypes = async () => {
     const res = await api.get('/documentos/tipos');
     setTypes(res.data || []);
-  };
-
-  const loadUsers = async () => {
-    try {
-      const res = await api.get('/users', { params: { per_page: 200 } });
-      setUsers(Array.isArray(res.data?.data) ? res.data.data : (res.data || []));
-    } catch (_) {
-      setUsers([]);
-    }
   };
 
   const loadDocuments = async (nextPage = page, nextRowsPerPage = rowsPerPage) => {
@@ -91,6 +86,7 @@ export default function Documentos() {
         search: search || undefined,
         document_type_id: filters.document_type_id || undefined,
         sigilo: filters.sigilo || undefined,
+        status: filters.status || undefined,
       };
       const res = await api.get('/documentos', { params });
       setDocuments(res.data?.data || []);
@@ -104,15 +100,11 @@ export default function Documentos() {
 
   useEffect(() => {
     (async () => {
-      await Promise.all([loadTypes(), loadUsers()]);
+      await loadTypes();
       await loadDocuments(0, rowsPerPage);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    deleteSignersRef.current = deleteSigners;
-  }, [deleteSigners]);
 
   const filteredTypes = useMemo(() => types.filter((type) => type.ativo !== false), [types]);
 
@@ -227,9 +219,9 @@ export default function Documentos() {
     }
   };
 
-  const confirmDelete = async (documentId, signers = []) => {
+  const confirmDelete = async (documentId) => {
     try {
-      await api.delete(`/documentos/${documentId}`, { data: { assinaturas: signers } });
+      await api.delete(`/documentos/${documentId}`);
       setAlertState({ visible: true, type: 'success', message: 'Documento excluído com sucesso.' });
       await loadDocuments();
       setConfirmDialog({ isOpen: false, title: '', subTitle: '', onConfirm: null });
@@ -240,44 +232,11 @@ export default function Documentos() {
 
   const askDelete = (doc) => {
     setCurrentDocument(doc);
-    setDeleteSigners(['', '', '']);
-
-    if (['interno', 'restrito'].includes(doc.sigilo)) {
-      setConfirmDialog({
-        isOpen: true,
-        title: 'Exclusão com tripla assinatura',
-        subTitle: (
-          <Stack spacing={2} mt={1}>
-            <Typography variant="body2" color="text.secondary">
-              Documento {SIGILO_LABELS[doc.sigilo] || doc.sigilo}. A exclusão exige tripla assinatura.
-            </Typography>
-            {[0, 1, 2].map((idx) => (
-              <FormControl key={idx} fullWidth size="small">
-                <InputLabel>Assinatura {idx + 1}</InputLabel>
-                <Select
-                  label={`Assinatura ${idx + 1}`}
-                  value={deleteSigners[idx]}
-                  onChange={(e) => setDeleteSigners((prev) => prev.map((item, pos) => (pos === idx ? e.target.value : item)))}
-                >
-                  <MenuItem value=""><em>Selecione</em></MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>{String(user.name || '').toUpperCase()}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ))}
-          </Stack>
-        ),
-        onConfirm: () => confirmDelete(doc.id, deleteSignersRef.current),
-      });
-      return;
-    }
-
     setConfirmDialog({
       isOpen: true,
       title: 'Excluir documento',
       subTitle: 'Esta ação não poderá ser desfeita.',
-      onConfirm: () => confirmDelete(doc.id, []),
+      onConfirm: () => confirmDelete(doc.id),
     });
   };
 
@@ -299,7 +258,7 @@ export default function Documentos() {
           <Grid item xs={12} md={4}>
             <TextField fullWidth size="small" label="Buscar" value={search} onChange={(e) => setSearch(e.target.value)} />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Tipo</InputLabel>
               <Select
@@ -314,7 +273,7 @@ export default function Documentos() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Sigilo</InputLabel>
               <Select
@@ -329,7 +288,22 @@ export default function Documentos() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
+          <Grid item xs={12} md={2.5}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filters.status}
+                label="Status"
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+              >
+                <MenuItem value=""><em>Todos</em></MenuItem>
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>{label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={1}>
             <Button fullWidth variant="contained" onClick={() => loadDocuments(0, rowsPerPage)}>Filtrar</Button>
           </Grid>
         </Grid>
@@ -337,6 +311,7 @@ export default function Documentos() {
         <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
           <Button variant="contained" onClick={openNew}>Novo documento</Button>
           <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
+          {profile === 'admin' && <Button variant="outlined" href="/documentos/configuracoes">Configurações</Button>}
         </Stack>
 
         <TableContainer className="queue-page__table-wrap">
@@ -358,7 +333,7 @@ export default function Documentos() {
                   <TableCell>{doc.titulo}</TableCell>
                   <TableCell>{doc.type?.nome || '—'}</TableCell>
                   <TableCell><Chip size="small" label={SIGILO_LABELS[doc.sigilo] || doc.sigilo} /></TableCell>
-                  <TableCell>{String(doc.status || '').toUpperCase()}</TableCell>
+                  <TableCell>{STATUS_LABELS[doc.status] || String(doc.status || '').toUpperCase()}</TableCell>
                   <TableCell>{doc.current_version_number || 0}</TableCell>
                   <TableCell>{doc.creator?.name || '—'}</TableCell>
                   <TableCell>
@@ -430,6 +405,18 @@ export default function Documentos() {
                   onChange={(e) => setForm((prev) => ({ ...prev, sigilo: e.target.value }))}
                 >
                   {Object.entries(SIGILO_LABELS).map(([value, label]) => (
+                    <MenuItem key={value} value={value}>{label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={form.status}
+                  label="Status"
+                  onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+                >
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
                     <MenuItem key={value} value={value}>{label}</MenuItem>
                   ))}
                 </Select>
@@ -519,12 +506,7 @@ export default function Documentos() {
       </Dialog>
 
       <ConfirmDialog
-        confirmDialog={{
-          ...confirmDialog,
-          onConfirm: currentDocument && ['interno', 'restrito'].includes(currentDocument.sigilo)
-            ? () => confirmDelete(currentDocument.id, deleteSigners)
-            : confirmDialog.onConfirm,
-        }}
+        confirmDialog={confirmDialog}
         setConfirmDialog={setConfirmDialog}
       />
     </Box>

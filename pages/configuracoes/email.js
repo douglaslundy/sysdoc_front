@@ -1,6 +1,8 @@
 ﻿import React, { useCallback, useEffect, useState } from "react";
 import { Box } from "@mui/material";
+import BaseCard from "../../src/components/baseCard/BaseCard";
 import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
 import { api } from "../../src/services/api";
 
 const panelStyle = {
@@ -12,11 +14,9 @@ const panelStyle = {
 
 const fieldStyle = {
   width: "100%",
-  padding: "10px 12px",
+  minHeight: 48,
+  padding: "12px 14px",
   borderRadius: 10,
-  background: "var(--lg-glass-input)",
-  border: "1px solid var(--lg-border-input)",
-  color: "var(--lg-text-primary)",
   fontSize: 14,
   outline: "none",
   boxSizing: "border-box",
@@ -24,15 +24,16 @@ const fieldStyle = {
 
 const labelStyle = {
   display: "block",
-  fontSize: 12,
+  fontSize: 10,
   fontWeight: 700,
-  letterSpacing: "0.05em",
+  letterSpacing: "0.07em",
   textTransform: "uppercase",
   color: "var(--lg-text-muted)",
   marginBottom: 6,
 };
 
 const actionStyle = {
+  minHeight: 44,
   padding: "10px 18px",
   borderRadius: 10,
   border: "none",
@@ -126,8 +127,8 @@ export default function EmailConfigPage() {
   }
 
   return (
-    <Box className="queue-page system-config-page email-config-page" sx={modalFormRootSx}>
-      <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 16px 40px", color: "var(--lg-text-primary)" }}>
+    <Box className="queue-page system-config-page email-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
+      <div className="system-config-container">
       <div style={{ marginBottom: 24 }}>
         <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
           Configurações E-mail
@@ -151,35 +152,33 @@ export default function EmailConfigPage() {
         </div>
       ) : null}
 
-      <div style={{ ...panelStyle, overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--lg-border)" }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Servidor SMTP</div>
-        </div>
-        <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 16 }}>
+      <BaseCard title="Servidor SMTP" sx={{ mb: 2.25 }}>
+        <div className="system-config-section" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={labelStyle}>Host SMTP</label>
-            <input value={form.smtp_host} onChange={(e) => setForm((prev) => ({ ...prev, smtp_host: e.target.value }))} style={fieldStyle} placeholder="smtp.exemplo.com" />
+            <label className="system-config-label" style={labelStyle}>Host SMTP</label>
+            <input className="system-config-input" value={form.smtp_host} onChange={(e) => setForm((prev) => ({ ...prev, smtp_host: e.target.value }))} style={fieldStyle} placeholder="smtp.exemplo.com" />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
             <div>
-              <label style={labelStyle}>Porta</label>
-              <input value={form.smtp_port} onChange={(e) => setForm((prev) => ({ ...prev, smtp_port: e.target.value }))} style={fieldStyle} placeholder="587" />
+              <label className="system-config-label" style={labelStyle}>Porta</label>
+              <input className="system-config-input" value={form.smtp_port} onChange={(e) => setForm((prev) => ({ ...prev, smtp_port: e.target.value }))} style={fieldStyle} placeholder="587" />
             </div>
             <div>
-              <label style={labelStyle}>Criptografia</label>
-              <input value={form.smtp_encryption} onChange={(e) => setForm((prev) => ({ ...prev, smtp_encryption: e.target.value }))} style={fieldStyle} placeholder="tls" />
+              <label className="system-config-label" style={labelStyle}>Criptografia</label>
+              <input className="system-config-input" value={form.smtp_encryption} onChange={(e) => setForm((prev) => ({ ...prev, smtp_encryption: e.target.value }))} style={fieldStyle} placeholder="tls" />
             </div>
           </div>
 
           <div>
-            <label style={labelStyle}>Usuário</label>
-            <input value={form.smtp_username} onChange={(e) => setForm((prev) => ({ ...prev, smtp_username: e.target.value }))} style={fieldStyle} placeholder="usuario@exemplo.com" />
+            <label className="system-config-label" style={labelStyle}>Usuário</label>
+            <input className="system-config-input" value={form.smtp_username} onChange={(e) => setForm((prev) => ({ ...prev, smtp_username: e.target.value }))} style={fieldStyle} placeholder="usuario@exemplo.com" />
           </div>
 
           <div>
-            <label style={labelStyle}>Senha</label>
+            <label className="system-config-label" style={labelStyle}>Senha</label>
             <input
+              className="system-config-input"
               type="password"
               value={form.smtp_password}
               onChange={(e) => setForm((prev) => ({ ...prev, smtp_password: e.target.value }))}
@@ -190,16 +189,16 @@ export default function EmailConfigPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
             <div>
-              <label style={labelStyle}>E-mail remetente</label>
-              <input value={form.from_address} onChange={(e) => setForm((prev) => ({ ...prev, from_address: e.target.value }))} style={fieldStyle} placeholder="noreply@exemplo.com" />
+              <label className="system-config-label" style={labelStyle}>E-mail remetente</label>
+              <input className="system-config-input" value={form.from_address} onChange={(e) => setForm((prev) => ({ ...prev, from_address: e.target.value }))} style={fieldStyle} placeholder="noreply@exemplo.com" />
             </div>
             <div>
-              <label style={labelStyle}>Nome remetente</label>
-              <input value={form.from_name} onChange={(e) => setForm((prev) => ({ ...prev, from_name: e.target.value }))} style={fieldStyle} placeholder="Sysdoc" />
+              <label className="system-config-label" style={labelStyle}>Nome remetente</label>
+              <input className="system-config-input" value={form.from_name} onChange={(e) => setForm((prev) => ({ ...prev, from_name: e.target.value }))} style={fieldStyle} placeholder="Sysdoc" />
             </div>
           </div>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+          <label className="system-config-checkbox-label">
             <input
               type="checkbox"
               checked={form.email_ativo}
@@ -211,6 +210,7 @@ export default function EmailConfigPage() {
 
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button
+              className="system-config-action system-config-action--primary"
               type="button"
               onClick={salvar}
               disabled={saving}
@@ -226,20 +226,18 @@ export default function EmailConfigPage() {
             </button>
           </div>
         </div>
-      </div>
+      </BaseCard>
 
-      <div style={{ ...panelStyle, overflow: "hidden", marginTop: 18 }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--lg-border)" }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Teste de envio</div>
-          <div style={{ fontSize: 13, color: "var(--lg-text-muted)", marginTop: 3 }}>
-            Informe um destinatário para validar o servidor SMTP.
-          </div>
-        </div>
-        <div style={{ padding: 22 }}>
+      <BaseCard
+        title="Teste de envio"
+        subtitle="Informe um destinatário para validar o servidor SMTP."
+      >
+        <div className="system-config-section">
           <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 260px" }}>
-              <label style={labelStyle}>E-mail destinatário</label>
+              <label className="system-config-label" style={labelStyle}>E-mail destinatário</label>
               <input
+                className="system-config-input"
                 value={testRecipient}
                 onChange={(e) => setTestRecipient(e.target.value)}
                 placeholder="destino@exemplo.com"
@@ -247,6 +245,7 @@ export default function EmailConfigPage() {
               />
             </div>
             <button
+              className="system-config-action system-config-action--success"
               type="button"
               onClick={testar}
               disabled={testing}
@@ -262,7 +261,7 @@ export default function EmailConfigPage() {
             </button>
           </div>
         </div>
-      </div>
+      </BaseCard>
       </div>
     </Box>
   );

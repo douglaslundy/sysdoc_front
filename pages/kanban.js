@@ -54,9 +54,15 @@ const INITIAL_FORM = {
   descricao: "",
   status: "novo",
   prioridade: "normal",
+  visibility: "public",
   vencimento: "",
   ordem: 0,
 };
+
+const VISIBILITY_OPTIONS = [
+  { value: "public", label: "Público" },
+  { value: "private", label: "Privado" },
+];
 
 const formatDateTime = (value) => {
   if (!value) return "—";
@@ -198,6 +204,12 @@ function KanbanCard({ item, onOpen, onDragStart, dragging }) {
             },
           }}
         />
+        <Chip
+          size="small"
+          variant="outlined"
+          label={item.visibility === "private" ? "Privado" : "Público"}
+          sx={{ mb: 1, ml: 1 }}
+        />
         <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.25, overflowWrap: "anywhere", wordBreak: "break-word" }}>
           {item.titulo}
         </Typography>
@@ -252,6 +264,7 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
       descricao: item?.descricao || "",
       status: item?.status || initialStatus || "novo",
       prioridade: item?.prioridade || "normal",
+      visibility: item?.visibility || "public",
       vencimento: formatDate(item?.vencimento),
       ordem: Number(item?.ordem || 0),
     });
@@ -333,6 +346,20 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
               </Select>
             </FormControl>
           </Stack>
+          <FormControl fullWidth>
+            <InputLabel>Visibilidade</InputLabel>
+            <Select
+              label="Visibilidade"
+              value={form.visibility}
+              onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value }))}
+            >
+              {VISIBILITY_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
               type="date"

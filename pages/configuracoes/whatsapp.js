@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
+import BaseCard from "../../src/components/baseCard/BaseCard";
 import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
 import { api } from "../../src/services/api";
 
 const panelStyle = {
@@ -12,11 +14,9 @@ const panelStyle = {
 
 const fieldStyle = {
   width: "100%",
-  padding: "10px 12px",
+  minHeight: 48,
+  padding: "12px 14px",
   borderRadius: 10,
-  background: "var(--lg-glass-input)",
-  border: "1px solid var(--lg-border-input)",
-  color: "var(--lg-text-primary)",
   fontSize: 14,
   outline: "none",
   boxSizing: "border-box",
@@ -24,15 +24,16 @@ const fieldStyle = {
 
 const labelStyle = {
   display: "block",
-  fontSize: 12,
+  fontSize: 10,
   fontWeight: 700,
-  letterSpacing: "0.05em",
+  letterSpacing: "0.07em",
   textTransform: "uppercase",
   color: "var(--lg-text-muted)",
   marginBottom: 6,
 };
 
 const actionStyle = {
+  minHeight: 44,
   padding: "10px 18px",
   borderRadius: 10,
   border: "none",
@@ -41,16 +42,29 @@ const actionStyle = {
   cursor: "pointer",
 };
 
-function SecretInput({ label, value, onChange, placeholder }) {
+function SecretInput({ label, value, onChange, placeholder, maskedValue = "" }) {
   const [visible, setVisible] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const displayValue = !editing && !value && maskedValue ? maskedValue : value;
 
   return (
     <div>
-      <label style={labelStyle}>{label}</label>
+      <label className="system-config-label" style={labelStyle}>{label}</label>
       <div style={{ position: "relative" }}>
         <input
+          className="system-config-input"
           type={visible ? "text" : "password"}
-          value={value}
+          value={displayValue}
+          onFocus={() => {
+            if (!value && maskedValue) {
+              setEditing(true);
+            }
+          }}
+          onBlur={() => {
+            if (!value) {
+              setEditing(false);
+            }
+          }}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder || "••••••••••••"}
           style={{ ...fieldStyle, paddingRight: 42 }}
@@ -106,6 +120,7 @@ export default function WhatsappConfigPage() {
   const [form, setForm] = useState({
     whatsapp_base_url: "",
     whatsapp_api_key: "",
+    whatsapp_api_key_masked: "",
     whatsapp_instance_name: "",
     whatsapp_instance_token: "",
     whatsapp_ativo: false,
@@ -119,6 +134,7 @@ export default function WhatsappConfigPage() {
     setForm({
       whatsapp_base_url: data?.whatsapp_base_url || "",
       whatsapp_api_key: data?.whatsapp_api_key || "",
+      whatsapp_api_key_masked: data?.whatsapp_api_key_masked || "",
       whatsapp_instance_name: data?.whatsapp_instance_name || "",
       whatsapp_instance_token: data?.whatsapp_instance_token || "",
       whatsapp_ativo: Boolean(data?.whatsapp_ativo),
@@ -167,7 +183,8 @@ export default function WhatsappConfigPage() {
       setForm((prev) => ({
         ...prev,
         whatsapp_base_url: data?.whatsapp_base_url || prev.whatsapp_base_url,
-        whatsapp_api_key: data?.whatsapp_api_key || prev.whatsapp_api_key,
+        whatsapp_api_key: data?.whatsapp_api_key || "",
+        whatsapp_api_key_masked: data?.whatsapp_api_key_masked || prev.whatsapp_api_key_masked,
         whatsapp_instance_name: data?.whatsapp_instance_name || prev.whatsapp_instance_name,
         whatsapp_instance_token: data?.whatsapp_instance_token || prev.whatsapp_instance_token,
         whatsapp_ativo: Boolean(data?.whatsapp_ativo),
@@ -253,8 +270,8 @@ export default function WhatsappConfigPage() {
   }
 
   return (
-    <Box className="queue-page system-config-page whatsapp-config-page" sx={modalFormRootSx}>
-      <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 16px 40px", color: "var(--lg-text-primary)" }}>
+    <Box className="queue-page system-config-page whatsapp-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
+      <div className="system-config-container">
       <div style={{ marginBottom: 24 }}>
         <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
           Configurações WhatsApp
@@ -278,19 +295,54 @@ export default function WhatsappConfigPage() {
         </div>
       ) : null}
 
-      <div
-        style={{
-          ...panelStyle,
-          padding: 20,
-          marginBottom: 18,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
+      <BaseCard
+        title="Status da instância"
+        sx={{ mb: 2.25 }}
+        action={
+          <div className="system-config-inline-actions">
+            {String(status.status || "").toLowerCase() !== "open" ? (
+              <button
+                className="system-config-action system-config-action--primary"
+                type="button"
+                onClick={verQrCode}
+                style={{ ...actionStyle, background: "var(--lg-accent)", color: "#000" }}
+              >
+                Escanear QR Code
+              </button>
+            ) : (
+              <button
+                className="system-config-action system-config-action--danger"
+                type="button"
+                onClick={desconectar}
+                disabled={disconnecting}
+                style={{
+                  ...actionStyle,
+                  background: "transparent",
+                  border: "1px solid var(--danger)",
+                  color: "var(--danger)",
+                  cursor: disconnecting ? "not-allowed" : "pointer",
+                }}
+              >
+                {disconnecting ? "Desconectando..." : "Desconectar"}
+              </button>
+            )}
+            <button
+              className="system-config-action system-config-action--secondary"
+              type="button"
+              onClick={fetchStatus}
+              style={{
+                ...actionStyle,
+                background: "transparent",
+                border: "1px solid var(--lg-border)",
+                color: "var(--lg-text-muted)",
+              }}
+            >
+              Atualizar
+            </button>
+          </div>
+        }
       >
-        <div>
+        <div className="system-config-section">
           <div style={{ fontSize: 12, color: "var(--lg-text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Status da instância
           </div>
@@ -302,9 +354,10 @@ export default function WhatsappConfigPage() {
           ) : null}
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="system-config-inline-actions" style={{ display: "none" }}>
           {String(status.status || "").toLowerCase() !== "open" ? (
             <button
+              className="system-config-action system-config-action--primary"
               type="button"
               onClick={verQrCode}
               style={{ ...actionStyle, background: "var(--lg-accent)", color: "#000" }}
@@ -313,6 +366,7 @@ export default function WhatsappConfigPage() {
             </button>
           ) : (
             <button
+              className="system-config-action system-config-action--danger"
               type="button"
               onClick={desconectar}
               disabled={disconnecting}
@@ -328,6 +382,7 @@ export default function WhatsappConfigPage() {
             </button>
           )}
           <button
+            className="system-config-action system-config-action--secondary"
             type="button"
             onClick={fetchStatus}
             style={{
@@ -340,7 +395,7 @@ export default function WhatsappConfigPage() {
             ↻ Atualizar
           </button>
         </div>
-      </div>
+      </BaseCard>
 
       {showQr ? (
         <div
@@ -427,14 +482,12 @@ export default function WhatsappConfigPage() {
         </div>
       ) : null}
 
-      <div style={{ ...panelStyle, overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--lg-border)" }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Credenciais da integração</div>
-        </div>
-        <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 16 }}>
+      <BaseCard title="Credenciais da integração" sx={{ mb: 2.25 }}>
+        <div className="system-config-section" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={labelStyle}>URL da Evolution API</label>
+            <label className="system-config-label" style={labelStyle}>URL da Evolution API</label>
             <input
+              className="system-config-input"
               value={form.whatsapp_base_url}
               onChange={(e) => updateField("whatsapp_base_url")(e.target.value)}
               style={fieldStyle}
@@ -446,12 +499,14 @@ export default function WhatsappConfigPage() {
             label="API Key (apikey)"
             value={form.whatsapp_api_key}
             onChange={updateField("whatsapp_api_key")}
+            maskedValue={form.whatsapp_api_key_masked}
             placeholder="620096bf1e66..."
           />
 
           <div>
-            <label style={labelStyle}>Nome da instância</label>
+            <label className="system-config-label" style={labelStyle}>Nome da instância</label>
             <input
+              className="system-config-input"
               value={form.whatsapp_instance_name}
               onChange={(e) => updateField("whatsapp_instance_name")(e.target.value)}
               style={fieldStyle}
@@ -465,7 +520,7 @@ export default function WhatsappConfigPage() {
             onChange={updateField("whatsapp_instance_token")}
           />
 
-          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+          <label className="system-config-checkbox-label">
             <input
               type="checkbox"
               checked={form.whatsapp_ativo}
@@ -477,6 +532,7 @@ export default function WhatsappConfigPage() {
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingTop: 8, borderTop: "1px solid var(--lg-border)" }}>
             <button
+              className="system-config-action system-config-action--secondary"
               type="button"
               onClick={testar}
               disabled={testing}
@@ -491,6 +547,7 @@ export default function WhatsappConfigPage() {
               {testing ? "⟳ Testando..." : "🔌 Testar conexão"}
             </button>
             <button
+              className="system-config-action system-config-action--primary"
               type="button"
               onClick={salvar}
               disabled={saving}
@@ -506,16 +563,13 @@ export default function WhatsappConfigPage() {
             </button>
           </div>
         </div>
-      </div>
+      </BaseCard>
 
-      <div style={{ ...panelStyle, overflow: "hidden", marginTop: 18 }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--lg-border)" }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Enviar mensagem de teste</div>
-          <div style={{ fontSize: 13, color: "var(--lg-text-muted)", marginTop: 3 }}>
-            Informe um número com DDD para confirmar o envio.
-          </div>
-        </div>
-        <div style={{ padding: 22 }}>
+      <BaseCard
+        title="Enviar mensagem de teste"
+        subtitle="Informe um número com DDD para confirmar o envio."
+      >
+        <div className="system-config-section">
           {String(status.status || "").toLowerCase() !== "open" ? (
             <div
               style={{
@@ -534,8 +588,9 @@ export default function WhatsappConfigPage() {
 
           <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 260px" }}>
-              <label style={labelStyle}>Número do WhatsApp (com DDD)</label>
+              <label className="system-config-label" style={labelStyle}>Número do WhatsApp (com DDD)</label>
               <input
+                className="system-config-input"
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
                 onKeyDown={(e) => {
@@ -546,6 +601,7 @@ export default function WhatsappConfigPage() {
               />
             </div>
             <button
+              className="system-config-action system-config-action--success"
               type="button"
               onClick={enviarTeste}
               disabled={sendingTest || String(status.status || "").toLowerCase() !== "open"}
@@ -561,7 +617,7 @@ export default function WhatsappConfigPage() {
             </button>
           </div>
         </div>
-      </div>
+      </BaseCard>
 
       <div
         style={{

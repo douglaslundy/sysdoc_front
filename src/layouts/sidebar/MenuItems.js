@@ -87,6 +87,7 @@ const Menuitems = [
       { title: "Documentos", icon: "file-text", href: "/documentos" },
       { title: "Tipos de Documentos", icon: "list", href: "/documentos/tipos" },
       { title: "Aprovações", icon: "check-circle", href: "/documentos/aprovacoes" },
+      { title: "Configurações", icon: "settings", href: "/documentos/configuracoes", profile: ["admin"] },
       { title: "Ofícios", icon: "send", href: "/letters" },
       { title: "Portarias", icon: "file-text", href: "/ordinance" },
     ],
