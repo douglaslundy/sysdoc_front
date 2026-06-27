@@ -1,0 +1,25 @@
+Browserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+Image with src /_next/static/media/logo.f378552e.png is assigned the following styles, which are overwritten by automatically-generated styles: display
+warn  - Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/basic-features/fast-refresh#how-it-works
+warn  - Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/basic-features/fast-refresh#how-it-works
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\dougl\workspace\sysdoc_front\.next\cache\webpack\client-development\9.pack_' -> 'C:\Users\dougl\workspace\sysdoc_front\.next\cache\webpack\client-development\9.pack'
+Invariant: failed to load static page {
+  "page": "/letters",
+  "url": "/letters",
+  "initUrl": "http://localhost:3000/letters"
+}
+error - MissingStaticPage [Error]: Failed to load static file for page: /letters ENOENT: no such file or directory, open 'C:\Users\dougl\workspace\sysdoc_front\.next\server\pages\letters.html'
+    at C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\require.js:55:19
+    at async Object.loadComponents (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\load-components.js:61:26)
+    at async DevServer.findPageComponents (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\next-server.js:555:36)
+    at async DevServer.renderPageComponent (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\base-server.js:909:24)
+    at async DevServer.renderToResponse (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\base-server.js:938:32)
+    at async DevServer.pipe (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\base-server.js:387:25)
+    at async Object.fn (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\next-server.js:749:21)
+    at async Router.execute (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\router.js:252:36)
+    at async DevServer.run (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\base-server.js:365:29)
+    at async DevServer.run (C:\Users\dougl\workspace\sysdoc_front\node_modules\next\dist\server\dev\next-dev-server.js:709:20)
+warn  - Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/basic-features/fast-refresh#how-it-works
+warn  - Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/basic-features/fast-refresh#how-it-works
