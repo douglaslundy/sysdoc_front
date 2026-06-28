@@ -10,7 +10,6 @@ import {
   DialogTitle,
   Fab,
   FormControl,
-  Grid,
   InputAdornment,
   InputLabel,
   MenuItem,
@@ -294,7 +293,7 @@ export default function Documentos() {
         >
           <TextField
             className="lg-search-field"
-            sx={{ flex: 1, minWidth: 260 }}
+            sx={{ flex: 1, minWidth: 240 }}
             placeholder="Pesquisar documento"
             name="search"
             value={search}
@@ -309,8 +308,50 @@ export default function Documentos() {
             inputProps={{ maxLength: 80, autoComplete: 'off' }}
           />
 
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Tipo</InputLabel>
+            <Select
+              value={filters.document_type_id}
+              label="Tipo"
+              onChange={(e) => setFilters((prev) => ({ ...prev, document_type_id: e.target.value }))}
+            >
+              <MenuItem value=""><em>Todos</em></MenuItem>
+              {filteredTypes.map((type) => (
+                <MenuItem key={type.id} value={type.id}>{type.nome}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Sigilo</InputLabel>
+            <Select
+              value={filters.sigilo}
+              label="Sigilo"
+              onChange={(e) => setFilters((prev) => ({ ...prev, sigilo: e.target.value }))}
+            >
+              <MenuItem value=""><em>Todos</em></MenuItem>
+              {Object.entries(SIGILO_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filters.status}
+              label="Status"
+              onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+            >
+              <MenuItem value=""><em>Todos</em></MenuItem>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
+            <Button variant="contained" onClick={() => loadDocuments(0, rowsPerPage)}>Filtrar</Button>
             <Fab
               className="queue-page__fab queue-page__fab--add"
               onClick={openNew}
@@ -325,74 +366,6 @@ export default function Documentos() {
         <Typography variant="body2" color="text.secondary">
           Listagem, filtros e ações do módulo de documentos.
         </Typography>
-      </BaseCard>
-
-      <BaseCard title="Filtros" sx={{ mb: 3 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
-            <Typography variant="body2" color="text.secondary" sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
-              Refine a listagem usando tipo, sigilo e status.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2.5}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo</InputLabel>
-              <Select
-                value={filters.document_type_id}
-                label="Tipo"
-                onChange={(e) => setFilters((prev) => ({ ...prev, document_type_id: e.target.value }))}
-              >
-                <MenuItem value=""><em>Todos</em></MenuItem>
-                {filteredTypes.map((type) => (
-                  <MenuItem key={type.id} value={type.id}>{type.nome}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2.5}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Sigilo</InputLabel>
-              <Select
-                value={filters.sigilo}
-                label="Sigilo"
-                onChange={(e) => setFilters((prev) => ({ ...prev, sigilo: e.target.value }))}
-              >
-                <MenuItem value=""><em>Todos</em></MenuItem>
-                {Object.entries(SIGILO_LABELS).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>{label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2.5}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={filters.status}
-                label="Status"
-                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-              >
-                <MenuItem value=""><em>Todos</em></MenuItem>
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>{label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={1}>
-            <Button fullWidth variant="contained" onClick={() => loadDocuments(0, rowsPerPage)}>Filtrar</Button>
-          </Grid>
-        </Grid>
-
-      </BaseCard>
-
-      <BaseCard title="Ações" sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', display: 'none' }}>
-          <Button variant="contained" onClick={openNew}>Novo documento</Button>
-          <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
-                                                                                                                       
-        </Stack>
-
       </BaseCard>
 
       <BaseCard title="Listagem">
@@ -424,6 +397,7 @@ export default function Documentos() {
                   <TableCell>{doc.creator?.name || '—'}</TableCell>
                   <TableCell align="center">
                     <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
+                      <Button size="small" variant="outlined" href={`/documentos/${doc.id}`}>Visualizar</Button>
                       <Button size="small" variant="outlined" onClick={() => openVersions(doc)}>Versões</Button>
                       <Button className="queue-page__action queue-page__action--success" color="success" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => openEdit(doc)} title="Editar documento">
                         <FeatherIcon icon="edit" width="18" height="18" />
@@ -487,6 +461,9 @@ export default function Documentos() {
                   ))}
                 </Select>
               </FormControl>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
+              </Box>
               <FormControl fullWidth>
                 <InputLabel>Sigilo</InputLabel>
                 <Select
