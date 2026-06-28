@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Button, Chip, Divider, Drawer, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import { api } from '../../services/api';
 
@@ -35,9 +34,10 @@ const formatDateTime = (value) => {
 
 const formatAction = (value) => ACTION_LABELS[value] || String(value || 'Evento').replaceAll('_', ' ').toLowerCase().replace(/^./, (char) => char.toUpperCase());
 
-export default function DocumentoDetalhe() {
+export default function DocumentoDetalhe({ documentId = null, embedded = false, onClose = null }) {
   const router = useRouter();
   const { id } = router.query;
+  const activeId = documentId || id;
   const [documento, setDocumento] = useState(null);
   const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,15 +46,15 @@ export default function DocumentoDetalhe() {
   const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
 
   const latestDownloadUrl = useMemo(() => {
-    if (!documento?.id || !documento?.latest_version_id) {
+    if (!documento?.id || !documento?.latestVersion?.id) {
       return null;
     }
 
-    return `/documentos/${documento.id}/versoes/${documento.latest_version_id}/download`;
+    return `/documentos/${documento.id}/versoes/${documento.latestVersion.id}/download`;
   }, [documento]);
 
   useEffect(() => {
-    if (!router.isReady || !id) {
+    if ((!embedded && !router.isReady) || !activeId) {
       return;
     }
 
@@ -63,7 +63,7 @@ export default function DocumentoDetalhe() {
     const load = async () => {
       setLoading(true);
       try {
-        const { data } = await api.get(`/documentos/${id}`);
+        const { data } = await api.get(`/documentos/${activeId}`);
         if (active) {
           setDocumento(data);
         }
@@ -87,9 +87,9 @@ export default function DocumentoDetalhe() {
     return () => {
       active = false;
     };
-  }, [id, router.isReady]);
+  }, [activeId, embedded, router.isReady]);
 
-  const handleOpenFile = async () => {
+  const handleDownloadFile = async () => {
     if (!latestDownloadUrl) {
       setAlertState({ visible: true, type: 'error', message: 'Este documento não possui arquivo disponível.' });
       return;
@@ -98,7 +98,7 @@ export default function DocumentoDetalhe() {
     try {
       const response = await api.get(latestDownloadUrl, { responseType: 'blob' });
       const blob = new Blob([response.data], {
-        type: documento?.latest_version?.mime_type || 'application/octet-stream',
+        type: documento?.latestVersion?.mime_type || 'application/octet-stream',
       });
       const url = window.URL.createObjectURL(blob);
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -148,13 +148,15 @@ export default function DocumentoDetalhe() {
 
       <BaseCard title={documento?.titulo || 'Documento'} sx={{ mb: 3 }}>
         <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap' }}>
-          <Button variant="outlined" href="/documentos">Voltar</Button>
+          {!embedded && <Button variant="outlined" href="/documentos">Voltar</Button>}
           <Button variant="outlined" onClick={handleOpenHistory} disabled={loading}>
             Histórico
           </Button>
-          <Button variant="contained" onClick={handleOpenFile} disabled={!latestDownloadUrl || loading}>
-            Abrir arquivo
-          </Button>
+          {embedded && onClose && (
+            <Button variant="outlined" onClick={onClose}>
+              Fechar
+            </Button>
+          )}
         </Stack>
 
         {loading ? (
@@ -182,7 +184,14 @@ export default function DocumentoDetalhe() {
                 Última atualização: <strong>{formatDateTime(documento.updated_at)}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Último arquivo: <strong>{documento.latest_version?.original_name || '—'}</strong>
+                Último arquivo:{' '}
+                {latestDownloadUrl ? (
+                  <Button variant="text" sx={{ p: 0, minWidth: 'auto', textTransform: 'none', verticalAlign: 'baseline' }} onClick={handleDownloadFile}>
+                    {documento.latestVersion?.original_name || 'arquivo'}
+                  </Button>
+                ) : (
+                  <strong>{documento.latestVersion?.original_name || '—'}</strong>
+                )}
               </Typography>
             </Box>
           </Stack>

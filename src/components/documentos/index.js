@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -29,8 +29,10 @@ import {
 } from '@mui/material';
 import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
+import DocumentoDetalhe from './detalhe';
 import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import { AuthContext } from '../../contexts/AuthContext';
 import FeatherIcon from 'feather-icons-react';
 
 const initialForm = {
@@ -78,6 +80,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default function Documentos() {
+  const { profile } = useContext(AuthContext);
   const [documents, setDocuments] = useState([]);
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,22 +99,24 @@ export default function Documentos() {
   const [versions, setVersions] = useState([]);
   const [currentDocument, setCurrentDocument] = useState(null);
   const [versionFile, setVersionFile] = useState(null);
+  const [viewDocumentId, setViewDocumentId] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
 
   const loadTypes = async () => {
     const res = await api.get('/documentos/tipos');
     setTypes(res.data || []);
   };
 
-  const loadDocuments = async (nextPage = page, nextRowsPerPage = rowsPerPage) => {
+  const loadDocuments = async (nextPage = page, nextRowsPerPage = rowsPerPage, overrides = {}) => {
     setLoading(true);
     try {
       const params = {
         page: nextPage + 1,
         per_page: nextRowsPerPage,
-        search: search || undefined,
-        document_type_id: filters.document_type_id || undefined,
-        sigilo: filters.sigilo || undefined,
-        status: filters.status || undefined,
+        search: overrides.search !== undefined ? (overrides.search || undefined) : (search || undefined),
+        document_type_id: overrides.document_type_id !== undefined ? (overrides.document_type_id || undefined) : (filters.document_type_id || undefined),
+        sigilo: overrides.sigilo !== undefined ? (overrides.sigilo || undefined) : (filters.sigilo || undefined),
+        status: overrides.status !== undefined ? (overrides.status || undefined) : (filters.status || undefined),
       };
       const res = await api.get('/documentos', { params });
       setDocuments(res.data?.data || []);
@@ -131,16 +136,46 @@ export default function Documentos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const handler = window.setTimeout(() => {
+      setPage(0);
+      loadDocuments(0, rowsPerPage, { search });
+    }, 250);
+
+    return () => window.clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
   const filteredTypes = useMemo(() => types.filter((type) => type.ativo !== false), [types]);
+  const isAdmin = profile === 'admin';
+
+  const loadDocumentVersions = async (documentId) => {
+    if (!documentId) {
+      setVersions([]);
+      return;
+    }
+
+    setVersionsLoading(true);
+    try {
+      const res = await api.get(`/documentos/${documentId}/versoes`);
+      setVersions(res.data || []);
+    } catch (error) {
+      setVersions([]);
+      setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível carregar os anexos do documento.' });
+    } finally {
+      setVersionsLoading(false);
+    }
+  };
 
   const openNew = () => {
     setForm(initialForm);
     setFile(null);
     setCurrentDocument(null);
+    setVersions([]);
     setIsModalOpen(true);
   };
 
-  const openEdit = (doc) => {
+  const openEdit = async (doc) => {
     setForm({
       id: doc.id,
       document_type_id: doc.document_type_id || '',
@@ -152,6 +187,12 @@ export default function Documentos() {
     setFile(null);
     setCurrentDocument(doc);
     setIsModalOpen(true);
+    await loadDocumentVersions(doc.id);
+  };
+
+  const openView = (doc) => {
+    setViewDocumentId(doc.id);
+    setViewOpen(true);
   };
 
   const closeModal = () => {
@@ -159,6 +200,12 @@ export default function Documentos() {
     setForm(initialForm);
     setFile(null);
     setCurrentDocument(null);
+    setVersions([]);
+  };
+
+  const closeView = () => {
+    setViewOpen(false);
+    setViewDocumentId(null);
   };
 
   const saveDocument = async () => {
@@ -242,6 +289,29 @@ export default function Documentos() {
     } catch (error) {
       setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível enviar a nova versão.' });
     }
+  };
+
+  const confirmDeleteVersion = async (version) => {
+    if (!currentDocument?.id) return;
+
+    try {
+      await api.delete(`/documentos/${currentDocument.id}/versoes/${version.id}`);
+      setAlertState({ visible: true, type: 'success', message: 'Anexo removido com sucesso.' });
+      await loadDocumentVersions(currentDocument.id);
+      await loadDocuments();
+      setConfirmDialog({ isOpen: false, title: '', subTitle: '', onConfirm: null });
+    } catch (error) {
+      setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Nao foi possivel excluir o anexo.' });
+    }
+  };
+
+  const askDeleteVersion = (version) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Excluir anexo',
+      subTitle: 'Somente administrador pode excluir um anexo de documento. Deseja continuar?',
+      onConfirm: () => confirmDeleteVersion(version),
+    });
   };
 
   const confirmDelete = async (documentId) => {
@@ -397,7 +467,9 @@ export default function Documentos() {
                   <TableCell>{doc.creator?.name || '—'}</TableCell>
                   <TableCell align="center">
                     <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
-                      <Button size="small" variant="outlined" href={`/documentos/${doc.id}`}>Visualizar</Button>
+                      <Button size="medium" variant="outlined" onClick={() => openView(doc)} title="Visualizar documento" sx={{ minWidth: 44, px: 1.25 }}>
+                        <FeatherIcon icon="eye" width="18" height="18" />
+                      </Button>
                       <Button size="small" variant="outlined" onClick={() => openVersions(doc)}>Versões</Button>
                       <Button className="queue-page__action queue-page__action--success" color="success" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => openEdit(doc)} title="Editar documento">
                         <FeatherIcon icon="edit" width="18" height="18" />
@@ -509,6 +581,45 @@ export default function Documentos() {
                   Se anexar um arquivo, o sistema criará uma nova versão.
                 </Typography>
               )}
+              {form.id && (
+                <Box sx={{ display: 'grid', gap: 1 }}>
+                  <Typography variant="subtitle2">Anexos do documento</Typography>
+                  {versionsLoading && <Typography color="text.secondary">Carregando anexos...</Typography>}
+                  {!versionsLoading && versions.length === 0 && <Typography color="text.secondary">Nenhum anexo registrado.</Typography>}
+                  {!versionsLoading && versions.map((version) => (
+                    <Box
+                      key={version.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                        py: 1,
+                        borderBottom: '1px solid rgba(0,0,0,0.08)',
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {version.original_name || 'arquivo'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Versao {version.version_number}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1}>
+                        <Button variant="outlined" size="small" onClick={() => handleDownloadVersion(version)}>
+                          Baixar
+                        </Button>
+                        {isAdmin && (
+                          <Button variant="outlined" color="error" size="small" onClick={() => askDeleteVersion(version)}>
+                            Excluir
+                          </Button>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Stack>
 
             <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
@@ -520,6 +631,12 @@ export default function Documentos() {
               </Button>
             </Box>
           </BaseCard>
+        </Box>
+      </Modal>
+
+      <Modal open={viewOpen} onClose={closeView}>
+        <Box sx={{ ...modalShellSx, width: 'min(1100px, calc(100vw - 32px))' }}>
+          <DocumentoDetalhe documentId={viewDocumentId} embedded onClose={closeView} />
         </Box>
       </Modal>
 

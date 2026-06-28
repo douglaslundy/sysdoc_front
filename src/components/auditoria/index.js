@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Chip, Collapse, FormControl, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableContainer, TableHead,
@@ -10,6 +10,7 @@ import { getAuditLogs } from '../../store/fetchActions/auditLogs';
 import BaseCard from '../baseCard/BaseCard';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { auditoriaPDF } from '../../reports/auditoria';
+import { api } from '../../services/api';
 
 const ACTION_COLORS = {
     LOGIN: 'info', LOGOUT: 'default', CREATE: 'success',
@@ -121,20 +122,31 @@ export default function Auditoria() {
     const [filters, setFilters]   = useState(FORM_INICIAL);
     const [page, setPage]         = useState(0);
     const [expanded, setExpanded] = useState({});
+    const [usuarios, setUsuarios] = useState([]);
 
     useEffect(() => {
         dispatch(getAuditLogs(FORM_INICIAL, 1));
     }, []);
 
-    const usuarios = useMemo(() => (
-        Array.from(
-            new Map(
-                logs
-                    .filter((log) => log?.user_name)
-                    .map((log) => [log.user_name, { user_id: log.user_id, user_name: log.user_name }])
-            ).values()
-        )
-    ), [logs]);
+    useEffect(() => {
+        let active = true;
+
+        api.get('/audit-logs/users')
+            .then((response) => {
+                if (active) {
+                    setUsuarios(Array.isArray(response.data) ? response.data : []);
+                }
+            })
+            .catch(() => {
+                if (active) {
+                    setUsuarios([]);
+                }
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const load = (pg = 0, nextFilters = filters) => {
         const active = Object.fromEntries(Object.entries(nextFilters).filter(([, v]) => v !== ''));
