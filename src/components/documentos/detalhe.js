@@ -32,7 +32,12 @@ const formatDateTime = (value) => {
   }).format(new Date(value));
 };
 
-const formatAction = (value) => ACTION_LABELS[value] || String(value || 'Evento').replaceAll('_', ' ').toLowerCase().replace(/^./, (char) => char.toUpperCase());
+const formatAction = (value) =>
+  ACTION_LABELS[value] ||
+  String(value || 'Evento')
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/^./, (char) => char.toUpperCase());
 
 export default function DocumentoDetalhe({ documentId = null, embedded = false, onClose = null }) {
   const router = useRouter();
@@ -44,14 +49,6 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
-
-  const latestDownloadUrl = useMemo(() => {
-    if (!documento?.id || !documento?.latestVersion?.id) {
-      return null;
-    }
-
-    return `/documentos/${documento.id}/versoes/${documento.latestVersion.id}/download`;
-  }, [documento]);
 
   useEffect(() => {
     if ((!embedded && !router.isReady) || !activeId) {
@@ -89,16 +86,15 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
     };
   }, [activeId, embedded, router.isReady]);
 
-  const handleDownloadFile = async () => {
-    if (!latestDownloadUrl) {
-      setAlertState({ visible: true, type: 'error', message: 'Este documento não possui arquivo disponível.' });
-      return;
-    }
-
+  const handleDownloadVersion = async (version) => {
+    if (!documento?.id || !version?.id) return;
     try {
-      const response = await api.get(latestDownloadUrl, { responseType: 'blob' });
+      const response = await api.get(
+        `/documentos/${documento.id}/versoes/${version.id}/download`,
+        { responseType: 'blob' },
+      );
       const blob = new Blob([response.data], {
-        type: documento?.latestVersion?.mime_type || 'application/octet-stream',
+        type: version.mime_type || 'application/octet-stream',
       });
       const url = window.URL.createObjectURL(blob);
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -107,15 +103,13 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
       setAlertState({
         visible: true,
         type: 'error',
-        message: error?.response?.data?.message || 'Não foi possível abrir o arquivo do documento.',
+        message: error?.response?.data?.message || 'Não foi possível abrir o arquivo.',
       });
     }
   };
 
   const handleOpenHistory = async () => {
-    if (!documento?.id) {
-      return;
-    }
+    if (!documento?.id) return;
 
     setHistoryOpen(true);
     setHistoryLoading(true);
@@ -133,7 +127,40 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
     }
   };
 
-  return (
+  const sortedVersions = useMemo(
+    () => [...(documento?.versions || [])].sort((a, b) => b.version_number - a.version_number),
+    [documento],
+  );
+
+  const historyPanel = (
+    <>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="h5">Histórico</Typography>
+        <Button variant="outlined" size="small" onClick={() => setHistoryOpen(false)}>
+          Fechar
+        </Button>
+      </Stack>
+
+      {historyLoading ? (
+        <Typography color="text.secondary">Carregando histórico...</Typography>
+      ) : historico.length === 0 ? (
+        <Typography color="text.secondary">Nenhum registro encontrado para este documento.</Typography>
+      ) : (
+        <Stack divider={<Divider flexItem />} spacing={0}>
+          {historico.map((item) => (
+            <Box key={item.id} sx={{ py: 1.5 }}>
+              <Typography variant="subtitle2">{formatAction(item.action)}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {item.user_name || 'Sistema'} • {formatDateTime(item.created_at)}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      )}
+    </>
+  );
+
+  const mainArea = (
     <Box className="queue-page documentos-page">
       {alertState.visible && (
         <Alert
@@ -148,7 +175,11 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
 
       <BaseCard title={documento?.titulo || 'Documento'} sx={{ mb: 3 }}>
         <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap' }}>
-          {!embedded && <Button variant="outlined" href="/documentos">Voltar</Button>}
+          {!embedded && (
+            <Button variant="outlined" href="/documentos">
+              Voltar
+            </Button>
+          )}
           <Button variant="outlined" onClick={handleOpenHistory} disabled={loading}>
             Histórico
           </Button>
@@ -164,42 +195,110 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
         ) : documento ? (
           <Stack spacing={2.5}>
             <Box>
-              <Typography variant="overline" color="text.secondary">Tipo</Typography>
+              <Typography variant="overline" color="text.secondary">
+                Tipo
+              </Typography>
               <Typography variant="h6">{documento.type?.nome || '—'}</Typography>
             </Box>
+
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip label={SIGILO_LABELS[documento.sigilo] || documento.sigilo || '—'} size="small" />
               <Chip label={STATUS_LABELS[documento.status] || documento.status || '—'} size="small" />
               <Chip label={`Versão ${documento.current_version_number || 0}`} size="small" />
             </Box>
+
             <Box>
-              <Typography variant="overline" color="text.secondary">Resumo</Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{documento.resumo || 'Sem resumo informado.'}</Typography>
+              <Typography variant="overline" color="text.secondary">
+                Resumo
+              </Typography>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {documento.resumo || 'Sem resumo informado.'}
+              </Typography>
             </Box>
-            <Box sx={{ display: 'grid', gap: 1 }}>
+
+            <Box sx={{ display: 'grid', gap: 0.5 }}>
               <Typography variant="body2" color="text.secondary">
                 Criado por: <strong>{documento.creator?.name || '—'}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Última atualização: <strong>{formatDateTime(documento.updated_at)}</strong>
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Último arquivo:{' '}
-                {latestDownloadUrl ? (
-                  <Button variant="text" sx={{ p: 0, minWidth: 'auto', textTransform: 'none', verticalAlign: 'baseline' }} onClick={handleDownloadFile}>
-                    {documento.latestVersion?.original_name || 'arquivo'}
-                  </Button>
-                ) : (
-                  <strong>{documento.latestVersion?.original_name || '—'}</strong>
-                )}
-              </Typography>
             </Box>
+
+            {sortedVersions.length > 0 && (
+              <Box>
+                <Typography variant="overline" color="text.secondary">
+                  Arquivos anexados
+                </Typography>
+                <Stack spacing={0} sx={{ mt: 1 }}>
+                  {sortedVersions.map((v) => (
+                    <Box
+                      key={v.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                        py: 1,
+                        borderBottom: '1px solid rgba(0,0,0,0.08)',
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" fontWeight={700} noWrap>
+                          {v.original_name || 'arquivo'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Versão {v.version_number}
+                          {v.uploader?.name ? ` • ${v.uploader.name}` : ''}
+                        </Typography>
+                      </Box>
+                      <Button variant="outlined" size="small" onClick={() => handleDownloadVersion(v)}>
+                        Baixar
+                      </Button>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {sortedVersions.length === 0 && (
+              <Typography variant="body2" color="text.secondary">
+                Nenhum arquivo anexado a este documento.
+              </Typography>
+            )}
           </Stack>
         ) : (
           <Typography color="text.secondary">Documento não encontrado.</Typography>
         )}
       </BaseCard>
+    </Box>
+  );
 
+  if (embedded) {
+    return (
+      <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>{mainArea}</Box>
+
+        <Box
+          sx={{
+            width: historyOpen ? { xs: 300, sm: 400 } : 0,
+            flexShrink: 0,
+            overflow: 'hidden',
+            transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
+            borderLeft: historyOpen ? '1px solid var(--lg-border)' : 'none',
+          }}
+        >
+          <Box sx={{ width: { xs: 300, sm: 400 }, height: '100%', overflow: 'auto', p: 2.5 }}>
+            {historyPanel}
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      {mainArea}
       <Drawer
         anchor="right"
         open={historyOpen}
@@ -211,27 +310,7 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
           },
         }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h5">Histórico</Typography>
-          <Button variant="outlined" size="small" onClick={() => setHistoryOpen(false)}>Fechar</Button>
-        </Stack>
-
-        {historyLoading ? (
-          <Typography color="text.secondary">Carregando histórico...</Typography>
-        ) : historico.length === 0 ? (
-          <Typography color="text.secondary">Nenhum registro encontrado para este documento.</Typography>
-        ) : (
-          <Stack divider={<Divider flexItem />} spacing={0}>
-            {historico.map((item) => (
-              <Box key={item.id} sx={{ py: 1.5 }}>
-                <Typography variant="subtitle2">{formatAction(item.action)}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.user_name || 'Sistema'} • {formatDateTime(item.created_at)}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        )}
+        {historyPanel}
       </Drawer>
     </Box>
   );

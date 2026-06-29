@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -94,6 +94,7 @@ export default function Documentos() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', onConfirm: null });
+  const hasLoadedInitial = useRef(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [versions, setVersions] = useState([]);
@@ -129,12 +130,22 @@ export default function Documentos() {
   };
 
   useEffect(() => {
-    (async () => {
-      await loadTypes();
-      await loadDocuments(0, rowsPerPage);
-    })();
+    Promise.all([loadTypes(), loadDocuments(0, rowsPerPage)]).then(() => {
+      hasLoadedInitial.current = true;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!hasLoadedInitial.current) return;
+    setPage(0);
+    loadDocuments(0, rowsPerPage, {
+      document_type_id: filters.document_type_id,
+      sigilo: filters.sigilo,
+      status: filters.status,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.document_type_id, filters.sigilo, filters.status]);
 
   useEffect(() => {
     const handler = window.setTimeout(() => {
@@ -421,7 +432,6 @@ export default function Documentos() {
           </FormControl>
 
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Button variant="contained" onClick={() => loadDocuments(0, rowsPerPage)}>Filtrar</Button>
             <Fab
               className="queue-page__fab queue-page__fab--add"
               onClick={openNew}
@@ -634,11 +644,20 @@ export default function Documentos() {
         </Box>
       </Modal>
 
-      <Modal open={viewOpen} onClose={closeView}>
-        <Box sx={{ ...modalShellSx, width: 'min(1100px, calc(100vw - 32px))' }}>
-          <DocumentoDetalhe documentId={viewDocumentId} embedded onClose={closeView} />
-        </Box>
-      </Modal>
+      <Dialog
+        open={viewOpen}
+        onClose={closeView}
+        fullScreen
+        PaperProps={{
+          sx: {
+            background: 'var(--lg-glass-modal)',
+            backdropFilter: 'var(--lg-blur-modal)',
+            WebkitBackdropFilter: 'var(--lg-blur-modal)',
+          },
+        }}
+      >
+        <DocumentoDetalhe documentId={viewDocumentId} embedded onClose={closeView} />
+      </Dialog>
 
       <Dialog open={versionsOpen} onClose={() => setVersionsOpen(false)} fullWidth maxWidth="md">
         <DialogTitle>Versões do documento</DialogTitle>
