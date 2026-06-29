@@ -117,45 +117,41 @@ const citizenActionTarget = (log) => {
 
 export default function Auditoria() {
     const dispatch = useDispatch();
-    const { logs, total, perPage } = useSelector(s => s.auditLogs);
+    const { logs, total } = useSelector(s => s.auditLogs);
 
-    const [filters, setFilters]   = useState(FORM_INICIAL);
-    const [page, setPage]         = useState(0);
-    const [expanded, setExpanded] = useState({});
-    const [usuarios, setUsuarios] = useState([]);
+    const [filters, setFilters]       = useState(FORM_INICIAL);
+    const [page, setPage]             = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [expanded, setExpanded]     = useState({});
+    const [usuarios, setUsuarios]     = useState([]);
 
-    useEffect(() => {
-        dispatch(getAuditLogs(FORM_INICIAL, 1));
-    }, []);
-
-    useEffect(() => {
-        let active = true;
-
-        api.get('/audit-logs/users')
-            .then((response) => {
-                if (active) {
-                    setUsuarios(Array.isArray(response.data) ? response.data : []);
-                }
-            })
-            .catch(() => {
-                if (active) {
-                    setUsuarios([]);
-                }
-            });
-
-        return () => {
-            active = false;
-        };
-    }, []);
-
-    const load = (pg = 0, nextFilters = filters) => {
-        const active = Object.fromEntries(Object.entries(nextFilters).filter(([, v]) => v !== ''));
-        dispatch(getAuditLogs(active, pg + 1));
+    const loadUsers = (activeFilters) => {
+        const { user_name: _, ...params } = activeFilters;
+        const cleanParams = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== ''));
+        api.get('/audit-logs/users', { params: cleanParams })
+            .then(res => setUsuarios(Array.isArray(res.data) ? res.data : []))
+            .catch(() => setUsuarios([]));
     };
 
-    const handleFilter = () => { setPage(0); load(0); };
-    const handleReset  = () => { setFilters(FORM_INICIAL); setPage(0); load(0, FORM_INICIAL); };
+    useEffect(() => {
+        dispatch(getAuditLogs(FORM_INICIAL, 1, 50));
+        loadUsers(FORM_INICIAL);
+    }, []);
+
+    const load = (pg = 0, nextFilters = filters, perPage = rowsPerPage) => {
+        const active = Object.fromEntries(Object.entries(nextFilters).filter(([, v]) => v !== ''));
+        dispatch(getAuditLogs(active, pg + 1, perPage));
+    };
+
+    const handleFilter = () => { setPage(0); load(0); loadUsers(filters); };
+    const handleReset  = () => { setFilters(FORM_INICIAL); setPage(0); load(0, FORM_INICIAL, rowsPerPage); loadUsers(FORM_INICIAL); };
     const handlePage   = (_, p) => { setPage(p); load(p); };
+    const handleChangeRowsPerPage = (event) => {
+        const value = parseInt(event.target.value, 10);
+        setRowsPerPage(value);
+        setPage(0);
+        load(0, filters, value);
+    };
     const toggle       = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
     const renderDiff = (log) => {
@@ -374,14 +370,14 @@ export default function Auditoria() {
                         )}
                     </TableBody>
                 </Table>
-                <TablePagination className="queue-page__pagination"
+                <TablePagination
+                    className="queue-page__pagination"
                     component="div"
                     count={total}
                     page={page}
                     onPageChange={handlePage}
-                    rowsPerPage={perPage}
-                    rowsPerPageOptions={[50]}
-                    labelRowsPerPage="Por página:"
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </TableContainer>
         </BaseCard>
