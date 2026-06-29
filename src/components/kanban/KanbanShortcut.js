@@ -38,7 +38,7 @@ const KanbanShortcut = () => {
 
     const loadCount = async () => {
       try {
-        const { data } = await api.get("/kanban");
+        const { data } = await api.get("/kanban", { params: { pending_only: 1 } });
         setTotal(Array.isArray(data) ? data.length : 0);
       } catch (_) {
         setTotal(0);

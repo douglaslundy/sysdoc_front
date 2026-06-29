@@ -83,6 +83,30 @@ const formatDate = (value) => {
   return date.toISOString().slice(0, 10);
 };
 
+const formatDateBR = (value) => {
+  if (!value) return null;
+  try {
+    return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(value));
+  } catch (_) {
+    return null;
+  }
+};
+
+const vencimentoLabel = (value) => {
+  if (!value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(value);
+  if (Number.isNaN(due.getTime())) return null;
+  const diffDays = Math.ceil((due - today) / 86400000);
+  if (diffDays < 0) return { text: `Vencida há ${Math.abs(diffDays)} dia${Math.abs(diffDays) !== 1 ? "s" : ""}`, color: "error.main", bold: true };
+  if (diffDays === 0) return { text: "Vence hoje", color: "warning.main", bold: true };
+  if (diffDays <= 3) return { text: `Vence em ${diffDays} dia${diffDays !== 1 ? "s" : ""}`, color: "warning.main", bold: false };
+  return { text: `Vence ${formatDateBR(value)}`, color: "text.secondary", bold: false };
+};
+
+const CONCLUIDO_VISIVEL_DIAS = 30;
+
 const formatHistoryText = (value) => {
   const readable = String(value || "")
     .replace(/_/g, " ")
@@ -247,7 +271,18 @@ function KanbanCard({ item, onOpen, onDragStart, dragging }) {
         ) : null}
       </Stack>
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+      {(() => {
+        const vc = vencimentoLabel(item.vencimento);
+        return vc ? (
+          <Typography
+            variant="caption"
+            sx={{ display: "block", mt: 0.75, color: vc.color, fontWeight: vc.bold ? 700 : 400 }}
+          >
+            {vc.text}
+          </Typography>
+        ) : null;
+      })()}
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
         Atualizado em {formatDateTime(item.updated_at)}
       </Typography>
     </Box>
@@ -627,6 +662,7 @@ export default function KanbanPage() {
   const [createStatus, setCreateStatus] = useState("novo");
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState("");
+  const [showOldConcluidos, setShowOldConcluidos] = useState(false);
 
   const loadItems = useCallback(async () => {
     setRefreshing(true);
@@ -663,17 +699,30 @@ export default function KanbanPage() {
   }, [items, search, priorityFilter, statusFilter]);
 
   const columns = useMemo(() => {
-    return BOARD_COLUMNS.map((column) => ({
-      ...column,
-      items: filteredItems
+    const limiteDate = new Date();
+    limiteDate.setDate(limiteDate.getDate() - CONCLUIDO_VISIVEL_DIAS);
+
+    return BOARD_COLUMNS.map((column) => {
+      const allForColumn = filteredItems
         .filter((item) => String(item.status || "").toLowerCase() === column.value)
         .sort((a, b) => {
           const left = new Date(b.updated_at || b.created_at || 0).getTime();
           const right = new Date(a.updated_at || a.created_at || 0).getTime();
           return left - right;
-        }),
-    }));
-  }, [filteredItems]);
+        });
+
+      if (column.value !== "concluido" || showOldConcluidos) {
+        return { ...column, items: allForColumn, hiddenCount: 0 };
+      }
+
+      const visible = allForColumn.filter((item) => {
+        if (!item.concluido_at) return true;
+        return new Date(item.concluido_at) >= limiteDate;
+      });
+
+      return { ...column, items: visible, hiddenCount: allForColumn.length - visible.length };
+    });
+  }, [filteredItems, showOldConcluidos]);
 
   const totals = useMemo(() => {
     return columns.reduce(
@@ -984,6 +1033,28 @@ export default function KanbanPage() {
                   >
                     Adicionar tarefa
                   </Button>
+                  {column.value === "concluido" && column.hiddenCount > 0 && (
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="text"
+                      onClick={() => setShowOldConcluidos(true)}
+                      sx={{ mt: 0.5, fontSize: "0.7rem", color: "text.secondary" }}
+                    >
+                      + {column.hiddenCount} concluído{column.hiddenCount !== 1 ? "s" : ""} anteriores
+                    </Button>
+                  )}
+                  {column.value === "concluido" && showOldConcluidos && (
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="text"
+                      onClick={() => setShowOldConcluidos(false)}
+                      sx={{ mt: 0.5, fontSize: "0.7rem", color: "text.secondary" }}
+                    >
+                      Ocultar anteriores
+                    </Button>
+                  )}
                 </Box>
                 <Box
                   sx={{
