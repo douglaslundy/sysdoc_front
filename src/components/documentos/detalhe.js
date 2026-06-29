@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Button, Chip, Divider, Drawer, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Divider, Drawer, Link, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 import BaseCard from '../baseCard/BaseCard';
 import { api } from '../../services/api';
@@ -244,17 +244,21 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
                       }}
                     >
                       <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography variant="body2" fontWeight={700} noWrap>
+                        <Link
+                          component="button"
+                          variant="body2"
+                          fontWeight={700}
+                          underline="hover"
+                          onClick={() => handleDownloadVersion(v)}
+                          sx={{ textAlign: 'left', display: 'block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
                           {v.original_name || 'arquivo'}
-                        </Typography>
+                        </Link>
                         <Typography variant="caption" color="text.secondary">
                           Versão {v.version_number}
                           {v.uploader?.name ? ` • ${v.uploader.name}` : ''}
                         </Typography>
                       </Box>
-                      <Button variant="outlined" size="small" onClick={() => handleDownloadVersion(v)}>
-                        Baixar
-                      </Button>
                     </Box>
                   ))}
                 </Stack>
