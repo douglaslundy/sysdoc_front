@@ -21,37 +21,41 @@ export const getAllAlvaras = (params = {}) => {
     };
 };
 
-export const addAlvaraFetch = (dados, onSuccess) => {
+export const addAlvaraFetch = (dados, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/alvaras', dados)
             .then((res) => {
                 dispatch(addAlvara(res.data));
-                dispatch(addMessage(`Alvará ${res.data.numero_alvara} cadastrado com sucesso!`));
+                dispatch(addMessage(`Alvara ${res.data.numero_alvara} cadastrado com sucesso!`));
                 dispatch(turnAlert());
                 dispatch(turnLoading());
                 onSuccess && onSuccess();
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao cadastrar alvará'));
+                const message = error?.response?.data?.message || 'Erro ao cadastrar alvara';
+                dispatch(addAlertMessage(message));
+                onError && onError(message);
                 dispatch(turnLoading());
             });
     };
 };
 
-export const editAlvaraFetch = (id, dados, onSuccess) => {
+export const editAlvaraFetch = (id, dados, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.put(`/alvaras/${id}`, dados)
             .then((res) => {
                 dispatch(editAlvara(res.data));
-                dispatch(addMessage(`Alvará ${res.data.numero_alvara} atualizado com sucesso!`));
+                dispatch(addMessage(`Alvara ${res.data.numero_alvara} atualizado com sucesso!`));
                 dispatch(turnAlert());
                 dispatch(turnLoading());
                 onSuccess && onSuccess();
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao atualizar alvará'));
+                const message = error?.response?.data?.message || 'Erro ao atualizar alvara';
+                dispatch(addAlertMessage(message));
+                onError && onError(message);
                 dispatch(turnLoading());
             });
     };
@@ -63,12 +67,12 @@ export const removeAlvaraFetch = (id) => {
         api.delete(`/alvaras/${id}`)
             .then(() => {
                 dispatch(removeAlvara({ id }));
-                dispatch(addMessage('Alvará excluído com sucesso!'));
+                dispatch(addMessage('Alvara excluido com sucesso!'));
                 dispatch(turnAlert());
                 dispatch(turnLoading());
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao excluir alvará'));
+                dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao excluir alvara'));
                 dispatch(turnLoading());
             });
     };
@@ -102,18 +106,19 @@ export const downloadAlvaraPdf = (id, numeroAlvara) => async (dispatch) => {
         const backendMsg = await parseBlobJsonMessage(error?.response?.data);
 
         if (status === 401) {
-            dispatch(addAlertMessage('Sessão expirada. Faça login novamente.'));
+            dispatch(addAlertMessage('Sessao expirada. Faca login novamente.'));
             return;
         }
         if (status === 404) {
-            dispatch(addAlertMessage(backendMsg || 'Alvará não encontrado para geração do PDF.'));
+            dispatch(addAlertMessage(backendMsg || 'Alvara nao encontrado para geracao do PDF.'));
             return;
         }
         if (status === 422) {
-            dispatch(addAlertMessage(backendMsg || 'Dados inválidos para gerar o PDF do alvará.'));
+            dispatch(addAlertMessage(backendMsg || 'Dados invalidos para gerar o PDF do alvara.'));
             return;
         }
 
-        dispatch(addAlertMessage(backendMsg || 'Erro ao gerar PDF do alvará.'));
+        dispatch(addAlertMessage(backendMsg || 'Erro ao gerar PDF do alvara.'));
     }
 };
+

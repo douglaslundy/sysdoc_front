@@ -1,8 +1,8 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import {
-    Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
+    Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
 } from '@mui/material';
 import { modalBackdropSx, modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
@@ -28,10 +28,12 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
     const dispatch = useDispatch();
     const { selectList } = useSelector(state => state.estabelecimentos);
     const [form, setForm] = useState(EMPTY);
+    const [localError, setLocalError] = useState('');
 
     useEffect(() => {
         if (open) {
             dispatch(getEstabelecimentosSelect());
+            setLocalError('');
             setForm(alvara
                 ? {
                     estabelecimento_id: alvara.estabelecimento_id || '',
@@ -49,15 +51,16 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
     const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
 
     const handleSalvar = () => {
+        setLocalError('');
         const dados = {
             ...form,
             vencimento_alvara: form.vencimento_alvara || null,
             contato: form.contato || null,
         };
         if (alvara?.id) {
-            dispatch(editAlvaraFetch(alvara.id, dados, onSuccess));
+            dispatch(editAlvaraFetch(alvara.id, dados, onSuccess, setLocalError));
         } else {
-            dispatch(addAlvaraFetch(dados, onSuccess));
+            dispatch(addAlvaraFetch(dados, onSuccess, setLocalError));
         }
     };
 
@@ -81,6 +84,11 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
             <Box sx={{ ...modalFormRootSx, overflowY: 'auto', p: 3.2 }}>
                 <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
                     <Stack spacing={2}>
+                    {localError && (
+                        <Alert severity="error" variant="filled">
+                            {localError}
+                        </Alert>
+                    )}
                     {alvara?.id && (
                         <Typography variant="body2" color="textSecondary">
                             Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)
