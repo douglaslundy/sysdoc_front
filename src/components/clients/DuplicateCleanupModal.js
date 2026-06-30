@@ -232,6 +232,48 @@ export default function DuplicateCleanupModal({ open, onClose, onReload }) {
                           </Box>
                         ))}
                       </Stack>
+
+                      {!!group.blocked_records?.length && (
+                        <Box sx={{ mt: 1.6 }}>
+                          <Typography color="textSecondary" sx={{ fontSize: "13px", mb: 0.8 }}>
+                            Registros preservados por vinculo operacional
+                          </Typography>
+                          <Stack spacing={1}>
+                            {group.blocked_records.map((record) => {
+                              const reasons = Object.entries(record.references || {})
+                                .filter(([, count]) => Number(count) > 0)
+                                .map(([key, count]) => `${key}: ${count}`)
+                                .join(" | ");
+
+                              return (
+                                <Box
+                                  key={record.id}
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 1.2,
+                                    border: "0.5px solid var(--lg-border)",
+                                    borderRadius: "12px",
+                                    p: 1.2,
+                                    background: "var(--queue-row-bg)",
+                                  }}
+                                >
+                                  <Box>
+                                    <Typography sx={{ fontWeight: 700 }}>
+                                      #{record.id} - {record.name}
+                                    </Typography>
+                                    <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
+                                      {reasons || "Possui vinculos operacionais"}
+                                    </Typography>
+                                  </Box>
+                                  <Chip label="Preservado" color="info" size="small" />
+                                </Box>
+                              );
+                            })}
+                          </Stack>
+                        </Box>
+                      )}
                     </Box>
                   )) : (
                     <Typography color="textSecondary">
