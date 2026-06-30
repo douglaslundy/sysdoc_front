@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Typography,
   Box,
@@ -20,6 +20,7 @@ import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
 import ClientViewModal from "../modal/client/view";
+import DuplicateCleanupModal from "./DuplicateCleanupModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { useSelector, useDispatch } from "react-redux";
 import { api } from "../../services/api";
@@ -32,6 +33,7 @@ import { showClient } from "../../store/ducks/clients";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from "date-fns";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const safeText = (value, max = 30) => {
   if (!value) return "-";
@@ -76,6 +78,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default function Clients() {
+  const { profile } = useContext(AuthContext);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
@@ -91,7 +94,9 @@ export default function Clients() {
   const [viewOpen, setViewOpen] = useState(false);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState('');
+  const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const searchRef = useRef(null);
+  const isAdmin = profile === 'admin';
 
   const buildParams = (overrides = {}) => ({
     page: page + 1,
@@ -215,6 +220,20 @@ export default function Clients() {
               <FeatherIcon icon="user-plus" />
             </Fab>
           </ClientModal>
+
+          {isAdmin && (
+            <Button
+              className="queue-page__action queue-page__action--warning"
+              onClick={() => setDuplicatesOpen(true)}
+              color="warning"
+              size="medium"
+              variant="contained"
+              sx={{ minWidth: 180, height: 48, borderRadius: "14px" }}
+            >
+              <FeatherIcon icon="copy" width="18" height="18" />
+              <Box sx={{ ml: 1 }}>Duplicados</Box>
+            </Button>
+          )}
         </Box>
 
         <TableContainer className="queue-page__table-wrap">
@@ -350,6 +369,14 @@ export default function Clients() {
           error={viewError}
           onClose={handleCloseViewClient}
         />
+
+        {isAdmin && (
+          <DuplicateCleanupModal
+            open={duplicatesOpen}
+            onClose={() => setDuplicatesOpen(false)}
+            onReload={() => dispatch(getAllClients(buildParams({ page: page + 1 })))}
+          />
+        )}
       </BaseCard>
     </Box>
   );
