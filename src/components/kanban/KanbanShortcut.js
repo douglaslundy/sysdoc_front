@@ -20,21 +20,25 @@ const hasPermissionForPath = (allowedPaths, targetPath) => {
 const KanbanShortcut = () => {
   const router = useRouter();
   const isKanbanPage = router.pathname === "/kanban";
-  const { profile, myPermissions, authorizedPages } = useContext(AuthContext);
+  const { profile, myPermissions, authorizedPages, permissionsLoaded } = useContext(AuthContext);
   const [total, setTotal] = useState(0);
 
   const canAccessKanban = useMemo(() => {
-    if (profile === "admin") return true;
+    // profile vem de um cookie lido de forma sincrona: no servidor (SSR) ele
+    // ainda nao existe, mas no cliente ja esta disponivel no primeiro render.
+    // So confiamos nele apos permissionsLoaded para o SSR e o primeiro render
+    // do cliente baterem e evitar warning de hidratacao.
+    if (permissionsLoaded && profile === "admin") return true;
 
     const hasDirectPermission = hasPermissionForPath(myPermissions, "/kanban");
     const hasAuthorizedPage = Array.isArray(authorizedPages)
       && authorizedPages.some((page) => page?.ativo && normalizePath(page?.path) === "/kanban");
 
     return isKanbanPage || hasDirectPermission || hasAuthorizedPage;
-  }, [authorizedPages, isKanbanPage, myPermissions, profile]);
+  }, [authorizedPages, isKanbanPage, myPermissions, profile, permissionsLoaded]);
 
   useEffect(() => {
-    if (!canAccessKanban) return undefined;
+    if (!permissionsLoaded || !canAccessKanban) return undefined;
 
     const loadCount = async () => {
       try {
@@ -48,7 +52,7 @@ const KanbanShortcut = () => {
     loadCount();
     const intervalId = setInterval(loadCount, 60000);
     return () => clearInterval(intervalId);
-  }, [canAccessKanban]);
+  }, [canAccessKanban, permissionsLoaded]);
 
   if (!canAccessKanban) {
     return null;

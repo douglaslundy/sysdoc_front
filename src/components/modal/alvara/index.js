@@ -162,6 +162,7 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
                         onChange={change}
                         fullWidth
                         InputLabelProps={{ shrink: true }}
+                        helperText="Se não preenchido, é calculado automaticamente para 365 dias após a data do alvará"
                     />
 
                     <TextField

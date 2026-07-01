@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import FeatherIcon from "feather-icons-react";
 import {
   Badge,
@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { api } from "../../services/api";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const formatDateTime = (value) => {
   if (!value) return "—";
@@ -27,6 +28,7 @@ const formatDateTime = (value) => {
 
 const ProtocolBell = () => {
   const router = useRouter();
+  const { permissionsLoaded } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [data, setData] = useState({ novos: 0, vence_em_breve: 0, vencidos: 0, recentes: [] });
 
@@ -45,10 +47,12 @@ const ProtocolBell = () => {
   };
 
   useEffect(() => {
+    if (!permissionsLoaded) return undefined;
+
     loadCounts();
     const intervalId = setInterval(loadCounts, 60000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [permissionsLoaded]);
 
   const total = useMemo(
     () => Number(data.novos || 0),

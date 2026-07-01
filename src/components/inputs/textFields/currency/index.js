@@ -25,7 +25,7 @@ const Currency = React.forwardRef((props, ref) => {
     ...defaultMaskOptions,
   })
 
-  return <MaskedInput mask={currencyMask} {...styles} />
+  return <MaskedInput mask={currencyMask} {...styles} ref={ref} />
 
 });
 

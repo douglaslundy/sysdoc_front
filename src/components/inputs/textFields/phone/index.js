@@ -5,9 +5,9 @@ import InputMask from 'react-input-mask';
 const PhoneMask = React.forwardRef((props, ref) => {
     const { inputRef, ...styles } = props;
     return (
-        <InputMask 
+        <InputMask
         {...styles}
-        ref={inputRef}
+        ref={inputRef || ref}
         mask="(99) 99999-9999" maskChar={null} />
     );
 });

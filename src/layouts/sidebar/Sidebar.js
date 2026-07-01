@@ -60,7 +60,7 @@ const hasPermissionForPath = (allowedPaths, targetPath) => {
 };
 
 const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
-  const { profile, myPermissions, authorizedPages } = useContext(AuthContext);
+  const { profile, myPermissions, authorizedPages, permissionsLoaded } = useContext(AuthContext);
   const { pathname } = useRouter();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
@@ -70,7 +70,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
   useEffect(() => {
     let isMounted = true;
 
-    if (profile !== "admin") {
+    if (!permissionsLoaded || profile !== "admin") {
       setAdminCategories([]);
       return undefined;
     }
@@ -90,7 +90,7 @@ const Sidebar = ({ isSidebarOpen, onSidebarClose }) => {
     return () => {
       isMounted = false;
     };
-  }, [profile]);
+  }, [profile, permissionsLoaded]);
 
   const resolveCategory = (pg) => {
     const category = pg?.category || null;
