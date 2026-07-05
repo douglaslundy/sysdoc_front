@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Button, Chip, CircularProgress, Grid, LinearProgress,
@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { monitorApsApi, isMonitorApsCanceled } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
@@ -67,6 +67,7 @@ export default function VinculoTerritorial() {
     const [data, setData]     = useState([]);
     const [loading, setLoading] = useState(true);
     const [erro, setErro]     = useState(null);
+    const requestRef = useRef(0);
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
@@ -79,18 +80,34 @@ export default function VinculoTerritorial() {
             if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
-        monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
+        monitorApsApi.get('/config/equipes')
+            .then(d => setEquipes(d.equipes ?? []))
+            .catch(e => { if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro no servidor ao carregar a lista de equipes.'); });
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
+        const ctrl = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
+
         setLoading(true);
         setErro(null);
         setData([]);
         const params = `/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}${ine ? `&ine=${ine}` : ''}`;
-        monitorApsApi.get(params)
-            .then(d => { const eq = d.equipes ?? []; setData(eq); })
-            .catch(e => setErro(e.message))
-            .finally(() => setLoading(false));
+        monitorApsApi.get(params, { signal: ctrl.signal })
+            .then(d => {
+                if (requestId !== requestRef.current) return;
+                setData(d.equipes ?? []);
+            })
+            .catch(e => {
+                if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar o vínculo territorial.');
+            })
+            .finally(() => {
+                if (requestId === requestRef.current) setLoading(false);
+            });
+
+        return () => ctrl.abort();
     }, [ano, quad, ine]);
 
     const totais = data.reduce((acc, e) => ({

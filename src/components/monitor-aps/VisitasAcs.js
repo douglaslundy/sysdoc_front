@@ -173,7 +173,10 @@ export default function VisitasAcs() {
         const ctrl = new AbortController();
         monitorApsApi.get('/config/equipes', { signal: ctrl.signal })
             .then(d => setEquipes(d.equipes ?? []))
-            .catch(() => {});
+            .catch(e => {
+                if (isMonitorApsCanceled(e)) return;
+                setErros(prev => ({ ...prev, equipes: e.message || 'Erro no servidor ao carregar a lista de equipes.' }));
+            });
         return () => ctrl.abort();
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
@@ -344,7 +347,7 @@ export default function VisitasAcs() {
         setDetalhe(null);
     }, []);
 
-    const erroAtivo = erros.resumo || erros.agentes || erros.visitas || erros.mapa;
+    const erroAtivo = erros.equipes || erros.resumo || erros.agentes || erros.visitas || erros.mapa;
 
     const totais = resumo?.totais ?? {
         total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,

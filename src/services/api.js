@@ -6,8 +6,9 @@ const ensureApiSuffix = (value) => {
   if (!normalized) return "";
   return /\/api$/i.test(normalized) ? normalized : `${normalized}/api`;
 };
+const envBase = ensureApiSuffix(process.env.NEXT_PUBLIC_API_URL);
 const apiBaseCandidates = [
-  ensureApiSuffix(process.env.NEXT_PUBLIC_API_URL),
+  envBase,
   "http://127.0.0.1:8010/api",
   "http://localhost:8010/api",
 ].map(ensureApiSuffix).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
@@ -29,6 +30,13 @@ export function setAuthToken(token) {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Requisição cancelada (AbortController) não é erro de rede: repassa
+    // imediatamente, senão o fallback de baseURL redirecionaria todo o
+    // tráfego para localhost sempre que o usuário trocasse um filtro.
+    if (axios.isCancel(error) || error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+      return Promise.reject(error);
+    }
+
     const cfg = error.config || {};
     const currentBase = normalize(cfg.baseURL || api.defaults.baseURL);
     const currentIndex = apiBaseCandidates.indexOf(currentBase);
@@ -44,7 +52,9 @@ api.interceptors.response.use(
 
     const networkError = !error.response;
 
-    if ((networkError || notFoundWrongBackend) && nextBase && !cfg._baseRetry) {
+    // Fallback de base só faz sentido em dev local sem NEXT_PUBLIC_API_URL;
+    // em produção um erro de rede transitório não pode trocar o backend.
+    if (!envBase && (networkError || notFoundWrongBackend) && nextBase && !cfg._baseRetry) {
       cfg._baseRetry = true;
       cfg.baseURL = nextBase;
       api.defaults.baseURL = nextBase;

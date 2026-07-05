@@ -181,7 +181,7 @@ export default function CidadaosPage() {
         const ctrl = new AbortController();
         monitorApsApi.get('/config/equipes', { signal: ctrl.signal })
             .then(d => setEquipes(d.equipes ?? []))
-            .catch(() => {});
+            .catch(e => { if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro no servidor ao carregar a lista de equipes.'); });
         return () => ctrl.abort();
     }, [isRestrito, minhasEquipes, loadingPerms]);
 

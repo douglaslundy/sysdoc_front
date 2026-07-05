@@ -6,7 +6,7 @@ import {
     TableRow, Typography,
 } from '@mui/material';
 import Chart from '../charts/ApexChartSafe';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { monitorApsApi, isMonitorApsCanceled } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
@@ -61,7 +61,7 @@ export default function PorEquipe() {
             const eq = d.equipes ?? [];
             setEquipes(eq);
             if (eq.length === 1) setIne(eq[0].nu_ine);
-        }).catch(() => {});
+        }).catch(e => { if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro no servidor ao carregar a lista de equipes.'); });
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
@@ -89,7 +89,7 @@ export default function PorEquipe() {
             setRepasse(r.repasse?.find(x => x.ine === ine) ?? null);
             setHistorico(h.historico ?? []);
         }).catch(e => {
-            if (requestId !== requestRef.current || e?.code === 'ERR_CANCELED') return;
+            if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
             setErro(e.message || 'Erro no servidor ao consultar dados da equipe.');
         }).finally(() => {
             if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);

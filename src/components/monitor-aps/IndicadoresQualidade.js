@@ -105,7 +105,9 @@ export default function IndicadoresQualidade() {
             if (minhasEquipes.length === 1) setIne(minhasEquipes[0].nu_ine);
             return;
         }
-        monitorApsApi.get('/config/equipes').then(d => setEquipes(d.equipes ?? [])).catch(() => {});
+        monitorApsApi.get('/config/equipes')
+            .then(d => setEquipes(d.equipes ?? []))
+            .catch(e => { if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro no servidor ao carregar a lista de equipes.'); });
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {

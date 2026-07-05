@@ -94,7 +94,7 @@ export default function VisitasEvolucao() {
         }
         monitorApsApi.get('/config/equipes')
             .then(d => setEquipes(d.equipes ?? []))
-            .catch(() => {});
+            .catch(e => { if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro no servidor ao carregar a lista de equipes.'); });
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {

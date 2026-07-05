@@ -27,10 +27,20 @@ const shouldRetry = (error, attempt, retries) => {
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const withRetry = async (request, options = {}) => {
-    const retries = options.retries ?? 1;
+const retryDelay = (error, attempt) => {
+    if (error?.response?.status === 429) {
+        // Throttle do Laravel: aguarda o Retry-After (limitado a 3s por tentativa)
+        const retryAfter = Number(error.response.headers?.['retry-after']);
+        if (Number.isFinite(retryAfter) && retryAfter > 0) return Math.min(retryAfter * 1000, 3000);
+        return 1500 * (attempt + 1);
+    }
+    return 300 * (attempt + 1);
+};
 
-    for (let attempt = 0; attempt <= retries; attempt += 1) {
+const withRetry = async (request, options = {}) => {
+    const retries = options.retries ?? 2;
+
+    for (let attempt = 0; ; attempt += 1) {
         try {
             const res = await request();
             return res.data;
@@ -39,11 +49,9 @@ const withRetry = async (request, options = {}) => {
                 error.message = getMonitorApsErrorMessage(error);
                 throw error;
             }
-            await wait(250 * (attempt + 1));
+            await wait(retryDelay(error, attempt));
         }
     }
-
-    return null;
 };
 
 const get = async (path, options = {}) => (

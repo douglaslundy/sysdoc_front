@@ -6,7 +6,7 @@ import {
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { monitorApsApi, isMonitorApsCanceled } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
@@ -47,17 +47,32 @@ export default function MonitorApsDashboard() {
     const [data, setData]   = useState(null);
     const [loading, setLoading] = useState(true);
     const [erro, setErro]   = useState(null);
+    const requestRef = useRef(0);
 
     useMonitorApsAudit('/monitor-aps', 'Monitor APS - Resumo', { ano, quadrimestre: quad });
 
     useEffect(() => {
+        const ctrl = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
+
         setLoading(true);
         setErro(null);
         setData(null);
-        monitorApsApi.get(`/indicadores/resumo?ano=${ano}&quadrimestre=${quad}`)
-            .then(d => { setData(d); })
-            .catch(e => setErro(e.message))
-            .finally(() => setLoading(false));
+        monitorApsApi.get(`/indicadores/resumo?ano=${ano}&quadrimestre=${quad}`, { signal: ctrl.signal })
+            .then(d => {
+                if (requestId !== requestRef.current) return;
+                setData(d);
+            })
+            .catch(e => {
+                if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar o resumo do Monitor APS.');
+            })
+            .finally(() => {
+                if (requestId === requestRef.current) setLoading(false);
+            });
+
+        return () => ctrl.abort();
     }, [ano, quad]);
 
     const chart = useMemo(() => {
