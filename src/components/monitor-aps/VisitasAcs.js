@@ -1,15 +1,14 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getCached, setCached } from '../../services/monitorApsCache';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Button, Card, CardContent, Chip, CircularProgress, LinearProgress,
+    Alert, Box, Button, Card, CardContent, Chip, CircularProgress, LinearProgress,
     FormControl, Grid, InputLabel, MenuItem,
     Select, Table, TableBody, TableCell, TableHead, TableRow,
     TablePagination, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 import generateVisitasAcsPDF from '../../reports/visitasAcs';
@@ -140,6 +139,7 @@ export default function VisitasAcs() {
     const [loadingVisitas, setLoadingVisitas] = useState(false);
     const [loading, setLoading]       = useState(false);
     const [loadingMapa, setLoadingMapa] = useState(false);
+    const [erros, setErros] = useState({});
     const [printLoading, setPrintLoading] = useState(false);
     const [aba, setAba]               = useState('tabela');
     const resumoRequestRef = useRef(0);
@@ -213,21 +213,21 @@ export default function VisitasAcs() {
         if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
-        const key = `visitas_resumo_${params}`;
-        const cached = getCached(key);
         const requestId = ++resumoRequestRef.current;
         setLoadingResumo(true);
         setResumo(null);
-        if (cached) { setResumo(cached); setLoadingResumo(false); return; }
+        setErros(prev => ({ ...prev, resumo: null }));
 
         const ctrl = new AbortController();
         monitorApsApi.get(`/visitas/resumo?${params}`, { signal: ctrl.signal })
             .then(d => {
                 if (requestId !== resumoRequestRef.current || ctrl.signal.aborted) return;
-                setCached(key, d);
                 setResumo(d);
             })
-            .catch(() => {})
+            .catch(e => {
+                if (requestId !== resumoRequestRef.current || isMonitorApsCanceled(e)) return;
+                setErros(prev => ({ ...prev, resumo: e.message || 'Erro no servidor ao consultar o resumo de visitas.' }));
+            })
             .finally(() => {
                 if (requestId === resumoRequestRef.current) setLoadingResumo(false);
             });
@@ -241,21 +241,21 @@ export default function VisitasAcs() {
         if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
-        const key = `visitas_agentes_${params}`;
-        const cached = getCached(key);
         const requestId = ++agentesRequestRef.current;
         setLoadingAgentes(true);
         setAgentes([]);
-        if (cached) { setAgentes(cached.agentes ?? []); setLoadingAgentes(false); return; }
+        setErros(prev => ({ ...prev, agentes: null }));
 
         const ctrl = new AbortController();
         monitorApsApi.get(`/visitas/agentes?${params}`, { signal: ctrl.signal })
             .then(d => {
                 if (requestId !== agentesRequestRef.current || ctrl.signal.aborted) return;
-                setCached(key, d);
                 setAgentes(d.agentes ?? []);
             })
-            .catch(() => {})
+            .catch(e => {
+                if (requestId !== agentesRequestRef.current || isMonitorApsCanceled(e)) return;
+                setErros(prev => ({ ...prev, agentes: e.message || 'Erro no servidor ao consultar agentes.' }));
+            })
             .finally(() => {
                 if (requestId === agentesRequestRef.current) setLoadingAgentes(false);
             });
@@ -276,13 +276,17 @@ export default function VisitasAcs() {
         setLoadingVisitas(true);
         setVisitas([]);
         setTotalVisitas(0);
+        setErros(prev => ({ ...prev, visitas: null }));
         monitorApsApi.get(`/visitas/lista?${params}`, { signal: ctrl.signal })
             .then(d => {
                 if (requestId !== visitasRequestRef.current || ctrl.signal.aborted) return;
                 setVisitas(d.visitas ?? []);
                 setTotalVisitas(d.total ?? 0);
             })
-            .catch(e => { if (e?.code !== 'ERR_CANCELED') setVisitas([]); })
+            .catch(e => {
+                if (requestId !== visitasRequestRef.current || isMonitorApsCanceled(e)) return;
+                setErros(prev => ({ ...prev, visitas: e.message || 'Erro no servidor ao consultar visitas.' }));
+            })
             .finally(() => {
                 if (requestId === visitasRequestRef.current) {
                     setLoading(false);
@@ -300,20 +304,21 @@ export default function VisitasAcs() {
         if (filtroAgente)   params.set('agente_cns', filtroAgente);
         if (filtroDesfecho) params.set('desfecho', filtroDesfecho);
         if (filtroGeo)      params.set('has_geo', filtroGeo);
-        const key = `visitas_mapa_all_${params}`;
-        const cached = getCached(key);
         const requestId = ++mapaRequestRef.current;
-        if (cached) { setPontosMapa(cached.pontos ?? []); return; }
 
         const ctrl = new AbortController();
         setLoadingMapa(true);
+        setPontosMapa([]);
+        setErros(prev => ({ ...prev, mapa: null }));
         monitorApsApi.get(`/visitas/mapa?${params}`, { signal: ctrl.signal })
             .then(d => {
                 if (requestId !== mapaRequestRef.current || ctrl.signal.aborted) return;
-                setCached(key, d);
                 setPontosMapa(d.pontos ?? []);
             })
-            .catch(e => { if (e?.code !== 'ERR_CANCELED') setPontosMapa([]); })
+            .catch(e => {
+                if (requestId !== mapaRequestRef.current || isMonitorApsCanceled(e)) return;
+                setErros(prev => ({ ...prev, mapa: e.message || 'Erro no servidor ao consultar o mapa.' }));
+            })
             .finally(() => {
                 if (requestId === mapaRequestRef.current) setLoadingMapa(false);
             });
@@ -338,6 +343,8 @@ export default function VisitasAcs() {
         setModalAberto(false);
         setDetalhe(null);
     }, []);
+
+    const erroAtivo = erros.resumo || erros.agentes || erros.visitas || erros.mapa;
 
     const totais = resumo?.totais ?? {
         total: 0, realizadas: 0, recusadas: 0, ausentes: 0, cidadaos: 0,
@@ -588,6 +595,11 @@ export default function VisitasAcs() {
                 <AbaBtn label="Mapa"       aba="mapa"    atual={aba} icon="map"   onClick={() => setAba('mapa')} />
             </Box>
 
+            {erroAtivo && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {erroAtivo}
+                </Alert>
+            )}
             {loading && aba !== 'mapa' ? (
                 <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
             ) : (
@@ -684,7 +696,7 @@ export default function VisitasAcs() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {visitas.length === 0 && (
+                                            {!erros.visitas && visitas.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={8} align="center"
                                                         sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
@@ -809,7 +821,7 @@ export default function VisitasAcs() {
                                                 </TableCell>
                                             </TableRow>
                                         ))}
-                                        {agentes.length === 0 && (
+                                        {!erros.agentes && agentes.length === 0 && (
                                             <TableRow>
                                                 <TableCell colSpan={14} align="center"
                                                     sx={{ py: 4, color: 'var(--lg-text-muted)' }}>

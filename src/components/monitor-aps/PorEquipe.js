@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getCached, setCached } from '../../services/monitorApsCache';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Card, CardContent, Chip, CircularProgress, FormControl, Grid,
+    Alert, Box, Card, CardContent, Chip, CircularProgress, FormControl, Grid,
     InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableHead,
     TableRow, Typography,
 } from '@mui/material';
@@ -44,6 +43,8 @@ export default function PorEquipe() {
     const [repasse, setRepasse]   = useState(null);
     const [historico, setHistorico] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [erro, setErro] = useState(null);
+    const requestRef = useRef(0);
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
@@ -65,33 +66,36 @@ export default function PorEquipe() {
 
     useEffect(() => {
         if (!ine) return;
-        const key = `porequipe_${ine}_${ano}_${quad}`;
-        const cached = getCached(key);
-        if (cached) {
-            setVinculo(cached.vinculo);
-            setIndicadores(cached.indicadores);
-            setRepasse(cached.repasse);
-            setHistorico(cached.historico);
-            setLoading(false);
-            return;
-        }
+        const ctrl = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
+
         setLoading(true);
+        setErro(null);
+        setVinculo(null);
+        setIndicadores([]);
+        setRepasse(null);
+        setHistorico([]);
+
         Promise.all([
-            monitorApsApi.get(`/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}&ine=${ine}`),
-            monitorApsApi.get(`/indicadores/qualidade?ano=${ano}&quadrimestre=${quad}&ine=${ine}`),
-            monitorApsApi.get(`/indicadores/repasse?ano=${ano}&quadrimestre=${quad}`),
-            monitorApsApi.get(`/indicadores/historico?ine=${ine}&indicador_id=8&anos=${ano}`),
+            monitorApsApi.get(`/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}&ine=${ine}`, { signal: ctrl.signal }),
+            monitorApsApi.get(`/indicadores/qualidade?ano=${ano}&quadrimestre=${quad}&ine=${ine}`, { signal: ctrl.signal }),
+            monitorApsApi.get(`/indicadores/repasse?ano=${ano}&quadrimestre=${quad}`, { signal: ctrl.signal }),
+            monitorApsApi.get(`/indicadores/historico?ine=${ine}&indicador_id=8&anos=${ano}`, { signal: ctrl.signal }),
         ]).then(([v, q, r, h]) => {
-            const vinculo     = v.equipes?.[0] ?? null;
-            const indicadores = q.indicadores ?? [];
-            const repasse     = r.repasse?.find(x => x.ine === ine) ?? null;
-            const historico   = h.historico ?? [];
-            setCached(key, { vinculo, indicadores, repasse, historico });
-            setVinculo(vinculo);
-            setIndicadores(indicadores);
-            setRepasse(repasse);
-            setHistorico(historico);
-        }).catch(() => {}).finally(() => setLoading(false));
+            if (requestId !== requestRef.current || ctrl.signal.aborted) return;
+            setVinculo(v.equipes?.[0] ?? null);
+            setIndicadores(q.indicadores ?? []);
+            setRepasse(r.repasse?.find(x => x.ine === ine) ?? null);
+            setHistorico(h.historico ?? []);
+        }).catch(e => {
+            if (requestId !== requestRef.current || e?.code === 'ERR_CANCELED') return;
+            setErro(e.message || 'Erro no servidor ao consultar dados da equipe.');
+        }).finally(() => {
+            if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);
+        });
+
+        return () => ctrl.abort();
     }, [ine, ano, quad]);
 
     const radar = useMemo(() => {
@@ -158,6 +162,11 @@ export default function PorEquipe() {
                 </Box>
             </Box>
 
+            {erro && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {erro}
+                </Alert>
+            )}
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}><CircularProgress /></Box>
             ) : (

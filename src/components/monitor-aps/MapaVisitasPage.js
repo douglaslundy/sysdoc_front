@@ -2,12 +2,12 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Button, Card, CardContent, CircularProgress, FormControl, IconButton,
+    Alert, Box, Button, Card, CardContent, CircularProgress, FormControl, IconButton,
     InputAdornment, InputLabel, MenuItem, Select, TextField,
     ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
@@ -36,6 +36,9 @@ export default function MapaVisitasPage() {
     const [agentes, setAgentes]   = useState([]);
     const [pontos, setPontos]     = useState([]);
     const [loading, setLoading]   = useState(false);
+    const [erro, setErro]         = useState(null);
+    const pontosCtrlRef = useRef(null);
+    const pontosRequestRef = useRef(0);
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
@@ -113,11 +116,29 @@ export default function MapaVisitasPage() {
         if (agenteCns)    params.set('agente_cns', agenteCns);
         if (searchAtivo)  params.set('busca', searchAtivo);
 
+        if (pontosCtrlRef.current) pontosCtrlRef.current.abort();
+        const ctrl = new AbortController();
+        const requestId = pontosRequestRef.current + 1;
+        pontosCtrlRef.current = ctrl;
+        pontosRequestRef.current = requestId;
+
         setLoading(true);
-        monitorApsApi.get(`/visitas/mapa?${params}`)
-            .then(d => setPontos(d.pontos ?? []))
-            .catch(() => setPontos([]))
-            .finally(() => setLoading(false));
+        setErro(null);
+        setPontos([]);
+        monitorApsApi.get(`/visitas/mapa?${params}`, { signal: ctrl.signal })
+            .then(d => {
+                if (requestId !== pontosRequestRef.current || ctrl.signal.aborted) return;
+                setPontos(d.pontos ?? []);
+            })
+            .catch(e => {
+                if (requestId !== pontosRequestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar o mapa de visitas.');
+            })
+            .finally(() => {
+                if (requestId === pontosRequestRef.current && !ctrl.signal.aborted) setLoading(false);
+            });
+
+        return () => ctrl.abort();
     }, [ano, mes, equipeIne, agenteCns, searchAtivo]);
 
     const abrirDetalhe = useCallback(async (id) => {
@@ -316,6 +337,11 @@ export default function MapaVisitasPage() {
             {/* Mapa */}
             <Card className="monitor-aps-panel">
                 <CardContent>
+                    {erro && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {erro}
+                        </Alert>
+                    )}
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={8}>
                             <CircularProgress />

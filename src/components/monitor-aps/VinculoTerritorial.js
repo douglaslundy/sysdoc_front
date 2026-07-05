@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getCached, setCached } from '../../services/monitorApsCache';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Button, Chip, CircularProgress, Grid, LinearProgress,
@@ -84,13 +83,12 @@ export default function VinculoTerritorial() {
     }, [isRestrito, minhasEquipes, loadingPerms]);
 
     useEffect(() => {
-        const key = `vinculo_${ano}_${quad}_${ine || 'all'}`;
-        const cached = getCached(key);
-        if (cached) { setData(cached); setLoading(false); return; }
-        setLoading(true); setErro(null);
+        setLoading(true);
+        setErro(null);
+        setData([]);
         const params = `/indicadores/vinculo?ano=${ano}&quadrimestre=${quad}${ine ? `&ine=${ine}` : ''}`;
         monitorApsApi.get(params)
-            .then(d => { const eq = d.equipes ?? []; setCached(key, eq); setData(eq); })
+            .then(d => { const eq = d.equipes ?? []; setData(eq); })
             .catch(e => setErro(e.message))
             .finally(() => setLoading(false));
     }, [ano, quad, ine]);

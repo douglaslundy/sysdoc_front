@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
-import { getCached, setCached } from '../../services/monitorApsCache';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
     Box, Button, CircularProgress, FormControl, InputLabel,
@@ -9,7 +8,7 @@ import {
 import VetorPanel from './VetorPanel';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import FeatherIcon from 'feather-icons-react';
 import generateVisitasEvolucaoPDF from '../../reports/visitasEvolucao';
@@ -60,6 +59,7 @@ export default function VisitasEvolucao() {
     const [loading,      setLoading]      = useState(true);
     const [erro,         setErro]         = useState(null);
     const ctrlRef = useRef(null);
+    const requestRef = useRef(0);
 
     // ── modo comparação ──────────────────────────────────────────────
     const [modoComparacao,  setModoComparacao]  = useState(false);
@@ -114,19 +114,26 @@ export default function VisitasEvolucao() {
         if (desfecho) params.set('desfecho', desfecho);
         if (geo)      params.set('has_geo',  geo);
 
-        const key = `visitas_evolucao_${ine}_${agenteCns}_${desfecho}_${geo}`;
-        const cached = getCached(key);
-        if (cached) { setSeries(cached.series ?? []); setLoading(false); return; }
-
         if (ctrlRef.current) ctrlRef.current.abort();
         ctrlRef.current = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
 
         setLoading(true);
         setErro(null);
+        setSeries([]);
         monitorApsApi.get(`/visitas/evolucao?${params}`, { signal: ctrlRef.current.signal })
-            .then(d => { setCached(key, d); setSeries(d.series ?? []); })
-            .catch(e => { if (e?.code !== 'ERR_CANCELED') setErro(e.message); })
-            .finally(() => setLoading(false));
+            .then(d => {
+                if (requestId !== requestRef.current || ctrlRef.current.signal.aborted) return;
+                setSeries(d.series ?? []);
+            })
+            .catch(e => {
+                if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar evolução de visitas.');
+            })
+            .finally(() => {
+                if (requestId === requestRef.current && !ctrlRef.current.signal.aborted) setLoading(false);
+            });
     }, [ine, agenteCns, desfecho, geo]);
 
     function ativarComparacao() {
@@ -164,21 +171,14 @@ export default function VisitasEvolucao() {
             return p.toString();
         };
 
-        const fetchVetor = async (v, cacheKey) => {
-            const cached = getCached(cacheKey);
-            if (cached) return cached;
-            const data = await monitorApsApi.get(`/visitas/evolucao?${buildParams(v)}`);
-            setCached(cacheKey, data);
-            return data;
-        };
-
-        const keyV1 = `visitas_evolucao_cmp_${anoComparacao}_${vetor1.ine}_${vetor1.agente_cns}_${vetor1.desfecho}_${vetor1.geo}`;
-        const keyV2 = `visitas_evolucao_cmp_${anoComparacao}_${vetor2.ine}_${vetor2.agente_cns}_${vetor2.desfecho}_${vetor2.geo}`;
+        const fetchVetor = async (v) => (
+            monitorApsApi.get(`/visitas/evolucao?${buildParams(v)}`)
+        );
 
         try {
             const [res1, res2] = await Promise.all([
-                fetchVetor(vetor1, keyV1),
-                fetchVetor(vetor2, keyV2),
+                fetchVetor(vetor1),
+                fetchVetor(vetor2),
             ]);
 
             setSeriesComp([
@@ -194,7 +194,7 @@ export default function VisitasEvolucao() {
                 },
             ]);
         } catch (e) {
-            setErroComp(e.message ?? 'Erro ao comparar vetores.');
+            setErroComp(e.message ?? 'Erro no servidor ao comparar vetores.');
         } finally {
             setLoadingComp(false);
         }

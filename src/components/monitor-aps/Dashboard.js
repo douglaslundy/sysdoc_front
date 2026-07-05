@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getCached, setCached } from '../../services/monitorApsCache';
 import {
     Box, Card, CardContent, Chip, CircularProgress, Grid, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -52,12 +51,11 @@ export default function MonitorApsDashboard() {
     useMonitorApsAudit('/monitor-aps', 'Monitor APS - Resumo', { ano, quadrimestre: quad });
 
     useEffect(() => {
-        const key = `resumo_${ano}_${quad}`;
-        const cached = getCached(key);
-        if (cached) { setData(cached); setLoading(false); return; }
-        setLoading(true); setErro(null);
+        setLoading(true);
+        setErro(null);
+        setData(null);
         monitorApsApi.get(`/indicadores/resumo?ano=${ano}&quadrimestre=${quad}`)
-            .then(d => { setCached(key, d); setData(d); })
+            .then(d => { setData(d); })
             .catch(e => setErro(e.message))
             .finally(() => setLoading(false));
     }, [ano, quad]);

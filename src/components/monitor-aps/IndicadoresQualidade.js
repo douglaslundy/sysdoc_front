@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getCached, setCached } from '../../services/monitorApsCache';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
+    Alert, Box, Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
     Grid, IconButton, MenuItem, Select, Table, TableBody, TableCell,
     TableHead, TableRow, Typography, Card, CardContent, LinearProgress,
     FormControl, InputLabel,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import Chart from '../charts/ApexChartSafe';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
@@ -91,7 +90,9 @@ export default function IndicadoresQualidade() {
     const [equipes, setEquipes] = useState([]);
     const [data, setData]   = useState([]);
     const [loading, setLoading] = useState(true);
+    const [erro, setErro] = useState(null);
     const [detalhe, setDetalhe] = useState(null);
+    const requestRef = useRef(0);
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
@@ -111,14 +112,26 @@ export default function IndicadoresQualidade() {
         const p = new URLSearchParams({ ano, quadrimestre: quad });
         if (ine)   p.set('ine', ine);
         if (bloco) p.set('bloco', bloco);
-        const key = `qualidade_${p}`;
-        const cached = getCached(key);
-        if (cached) { setData(cached); setLoading(false); return; }
+        const ctrl = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
         setLoading(true);
-        monitorApsApi.get(`/indicadores/qualidade?${p}`)
-            .then(d => { const ind = d.indicadores ?? []; setCached(key, ind); setData(ind); })
-            .catch(() => setData([]))
-            .finally(() => setLoading(false));
+        setErro(null);
+        setData([]);
+        monitorApsApi.get(`/indicadores/qualidade?${p}`, { signal: ctrl.signal })
+            .then(d => {
+                if (requestId !== requestRef.current || ctrl.signal.aborted) return;
+                const ind = d.indicadores ?? [];
+                setData(ind);
+            })
+            .catch(e => {
+                if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar indicadores de qualidade.');
+            })
+            .finally(() => {
+                if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);
+            });
+        return () => ctrl.abort();
     }, [ano, quad, ine, bloco]);
 
     // Deduplica por ID de indicador
@@ -180,6 +193,11 @@ export default function IndicadoresQualidade() {
                 </Box>
             </Box>
 
+            {erro && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {erro}
+                </Alert>
+            )}
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}><CircularProgress /></Box>
             ) : (
@@ -190,7 +208,7 @@ export default function IndicadoresQualidade() {
                                 <IndicadorCard indicador={i.indicador} onDetalhes={setDetalhe} />
                             </Grid>
                         ))}
-                        {lista.length === 0 && (
+                        {!erro && lista.length === 0 && (
                             <Grid item xs={12}>
                                 <Typography color="textSecondary" textAlign="center" py={6}>
                                     Nenhum indicador encontrado para os filtros selecionados.

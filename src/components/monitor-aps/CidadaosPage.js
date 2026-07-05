@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import {
-    Box, Card, CardContent, Chip, CircularProgress,
+    Alert, Box, Card, CardContent, Chip, CircularProgress,
     FormControl, InputLabel, MenuItem, Select, Table,
     TableBody, TableCell, TableHead, TablePagination, TableRow, Tooltip, Typography, IconButton, TextField,
 } from '@mui/material';
-import { monitorApsApi } from '../../services/monitorApsApi';
+import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
 
 const CHIP_CONDICOES = [
@@ -13,7 +13,7 @@ const CHIP_CONDICOES = [
     { key: 'st_has',      label: 'HAS',      cor: '#FF8C00' },
     { key: 'st_dm',       label: 'DM',       cor: '#7B2D8B' },
     { key: 'st_idoso',    label: 'Idoso',    cor: '#168821' },
-    { key: 'st_obito',    label: 'Obito',    cor: '#DC2626' },
+    { key: 'st_obito',    label: 'Óbito',    cor: '#DC2626' },
 ];
 
 const FILTROS_CONDICOES = [
@@ -21,7 +21,7 @@ const FILTROS_CONDICOES = [
     { value: 'has', label: 'HAS' },
     { value: 'dm', label: 'DM' },
     { value: 'idoso', label: 'Idoso' },
-    { value: 'obito', label: 'Obito' },
+    { value: 'obito', label: 'Óbito' },
 ];
 
 const onlyDigits = (value) => String(value ?? '').replace(/\D/g, '');
@@ -163,8 +163,10 @@ export default function CidadaosPage() {
     const [page,      setPage]      = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(50);
     const [loading,   setLoading]   = useState(false);
+    const [erro,      setErro]      = useState(null);
     const debounceRef = useRef(null);
     const ctrlRef     = useRef(null);
+    const requestRef  = useRef(0);
 
     const { isRestrito, equipes: minhasEquipes, loading: loadingPerms } = useEquipesPermitidas();
 
@@ -198,6 +200,8 @@ export default function CidadaosPage() {
     const fetchCidadaos = useCallback((overridePage = 0) => {
         if (ctrlRef.current) ctrlRef.current.abort();
         const ctrl = new AbortController();
+        const requestId = requestRef.current + 1;
+        requestRef.current = requestId;
         ctrlRef.current = ctrl;
 
         const params = new URLSearchParams({ page: overridePage + 1, per_page: rowsPerPage });
@@ -212,13 +216,22 @@ export default function CidadaosPage() {
         }
 
         setLoading(true);
+        setErro(null);
+        setCidadaos([]);
+        setMeta({ total: 0, page: overridePage + 1, per_page: rowsPerPage, pages: 0 });
         monitorApsApi.get(`/cidadaos?${params}`, { signal: ctrl.signal })
             .then(d => {
+                if (requestId !== requestRef.current || ctrl.signal.aborted) return;
                 setCidadaos(d.cidadaos ?? []);
                 setMeta(d.meta ?? { total: 0, page: 1, per_page: 50, pages: 0 });
             })
-            .catch(e => { if (e?.code !== 'ERR_CANCELED') setCidadaos([]); })
-            .finally(() => setLoading(false));
+            .catch(e => {
+                if (requestId !== requestRef.current || isMonitorApsCanceled(e)) return;
+                setErro(e.message || 'Erro no servidor ao consultar cidadãos.');
+            })
+            .finally(() => {
+                if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);
+            });
     }, [ine, agenteCns, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
     // Fetch com debounce de 400ms para campo de busca
@@ -279,9 +292,14 @@ export default function CidadaosPage() {
         <Box className="dashboard-neon-page monitor-aps-page queue-page">
             <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-cidadaos-page queue-page">
             <Box mb={3} mt="20px">
-                <Typography variant="h5" fontWeight={700}>
-                    Cidadaos ({meta.total.toLocaleString('pt-BR')})
-                </Typography>
+                <Box display="flex" alignItems="baseline" gap={1}>
+                    <Typography variant="h5" fontWeight={700}>
+                        Cidadãos
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'var(--lg-text-muted)', fontWeight: 600 }}>
+                        ({meta.total.toLocaleString('pt-BR')})
+                    </Typography>
+                </Box>
                 <Box className="queue-page__toolbar" display="flex" gap={1.5} flexWrap="wrap" mt={2}>
                     <TextField
                         size="small"
@@ -319,7 +337,7 @@ export default function CidadaosPage() {
                     {isRestrito && !loadingPerms && equipes.length === 0 && (
                         <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
                             <Typography variant="body2" color="warning.dark">
-                                Nenhuma equipe autorizada para o seu usuario. Entre em contato com o administrador.
+                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
                             </Typography>
                         </Box>
                     )}
@@ -334,8 +352,8 @@ export default function CidadaosPage() {
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 180, ...selectControlSx }}>
-                        <InputLabel>Condicao</InputLabel>
-                        <Select label="Condicao" value={condicao}
+                        <InputLabel>Condição</InputLabel>
+                        <Select label="Condição" value={condicao}
                             onChange={e => { setCondicao(e.target.value); setPage(0); }}>
                             <MenuItem value="">Todas</MenuItem>
                             {FILTROS_CONDICOES.map(item => (
@@ -344,9 +362,9 @@ export default function CidadaosPage() {
                         </Select>
                     </FormControl>
 
-                    <Tooltip title="Exibe apenas cidadaos vinculados a mais de um domicilio e substitui a coluna Agente pelos domicilios">
+                    <Tooltip title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios">
                         <Chip
-                            label="Multiplos domicilios"
+                            label="Múltiplos domicílios"
                             clickable
                             onClick={() => { setMultiDomicilio(v => !v); setPage(0); }}
                             color={multiDomicilio ? 'primary' : 'default'}
@@ -365,6 +383,11 @@ export default function CidadaosPage() {
 
             <Card className="monitor-aps-panel queue-page__table-wrap">
                 <CardContent>
+                    {erro && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {erro}
+                        </Alert>
+                    )}
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={6}>
                             <CircularProgress />
@@ -382,7 +405,7 @@ export default function CidadaosPage() {
                                         },
                                     }}>
                                         <TableCell className="queue-page__th">#</TableCell>
-                                        <TableCell>Nome / Ult. Atualizacao</TableCell>
+                                        <TableCell>Nome</TableCell>
                                         <TableCell>CPF / CNS</TableCell>
                                         <TableCell>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -399,12 +422,12 @@ export default function CidadaosPage() {
                                             </Box>
                                         </TableCell>
                                         <TableCell>Equipe</TableCell>
-                                        <TableCell>{multiDomicilio ? 'Domicilios' : 'Agente'}</TableCell>
-                                        <TableCell>Condicoes</TableCell>
+                                        <TableCell>{multiDomicilio ? 'Domicílios' : 'Agente'}</TableCell>
+                                        <TableCell>Condições</TableCell>
                                         {condicao === 'obito' && (
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    Data obito
+                                                    Data óbito
                                                     <IconButton
                                                         size="small"
                                                         aria-label={`Ordenar data de obito ${sortConfig.field === 'obito' && sortConfig.dir === 'asc' ? 'decrescente' : 'crescente'}`}
@@ -417,7 +440,7 @@ export default function CidadaosPage() {
                                                 </Box>
                                             </TableCell>
                                         )}
-                                        {condicao === 'obito' && <TableCell>Fonte obito</TableCell>}
+                                        {condicao === 'obito' && <TableCell>Fonte óbito</TableCell>}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -490,11 +513,11 @@ export default function CidadaosPage() {
                                             )}
                                         </TableRow>
                                     ))}
-                                    {cidadaos.length === 0 && (
+                                    {!erro && cidadaos.length === 0 && (
                                         <TableRow>
                                             <TableCell colSpan={condicao === 'obito' ? 9 : 7} align="center"
                                                 sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                Nenhum cidadao encontrado com os filtros aplicados.
+                                                Nenhum cidadão encontrado com os filtros aplicados.
                                             </TableCell>
                                         </TableRow>
                                     )}
