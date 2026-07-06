@@ -99,7 +99,9 @@ export default function FilaEsus() {
     useEffect(() => {
         if (!cnes) return;
         const ac = new AbortController();
-        painelEsusApi.filtros({ cnes, data_inicio: dataInicio, data_fim: dataFim }, { signal: ac.signal })
+        const params = { cnes, data_inicio: dataInicio, data_fim: dataFim };
+        if (equipeId) params.equipe = equipeId;
+        painelEsusApi.filtros(params, { signal: ac.signal })
             .then(d => {
                 const eqs = d.equipes ?? [];
                 setEquipes(eqs);
@@ -113,7 +115,7 @@ export default function FilaEsus() {
                 setErro('Erro no servidor ao carregar os filtros de equipe e profissional.');
             });
         return () => ac.abort();
-    }, [cnes, dataInicio, dataFim]);
+    }, [cnes, dataInicio, dataFim, equipeId]);
 
     // Intervalo máximo de 30 dias: ajusta a outra data quando o limite é excedido
     const handleDataInicio = (valor) => {
