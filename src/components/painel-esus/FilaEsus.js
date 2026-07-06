@@ -46,6 +46,7 @@ export default function FilaEsus() {
     const [loadingUnidades, setLoadingUnidades] = useState(true);
     const [erroUnidades,    setErroUnidades]    = useState('');
     const [equipes,         setEquipes]         = useState([]);
+    const [restrito,        setRestrito]        = useState(false);
     const [profissionais,   setProfissionais]   = useState([]);
     const [equipeId,        setEquipeId]        = useState('');
     const [profId,          setProfId]          = useState('');
@@ -81,10 +82,17 @@ export default function FilaEsus() {
         const ac = new AbortController();
         painelEsusApi.filtros({ cnes, data: dataFiltro }, { signal: ac.signal })
             .then(d => {
-                setEquipes(d.equipes ?? []);
+                const eqs = d.equipes ?? [];
+                setEquipes(eqs);
                 setProfissionais(d.profissionais ?? []);
+                setRestrito(Boolean(d.restrito));
+                // RT restrito a uma única equipe: pré-seleciona (select fica desabilitado)
+                if (d.restrito && eqs.length === 1) setEquipeId(eqs[0].id);
             })
-            .catch(() => {});
+            .catch(e => {
+                if (e?.code === 'ERR_CANCELED' || e?.message === 'canceled') return;
+                setErro('Erro no servidor ao carregar os filtros de equipe e profissional.');
+            });
         return () => ac.abort();
     }, [cnes, dataFiltro]);
 
@@ -241,9 +249,14 @@ export default function FilaEsus() {
                                         <Select
                                             label="Equipe"
                                             value={equipeId}
+                                            disabled={restrito && equipes.length === 1}
                                             onChange={e => { setEquipeId(e.target.value); setProfId(''); }}
                                         >
-                                            <MenuItem value=""><em>Todas</em></MenuItem>
+                                            {!(restrito && equipes.length === 1) && (
+                                                <MenuItem value="">
+                                                    <em>{restrito ? 'Todas as minhas equipes' : 'Todas'}</em>
+                                                </MenuItem>
+                                            )}
                                             {equipes.map(eq => (
                                                 <MenuItem key={eq.id} value={eq.id}>{eq.nome}</MenuItem>
                                             ))}
