@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Box, Button, Card, CardContent, CircularProgress, FormControl,
     Grid, InputLabel, MenuItem, Select, Table, TableBody,
@@ -40,6 +40,23 @@ const hojeIso = () => {
     return new Date(now.getTime() - offset * 60000).toISOString().slice(0, 10);
 };
 
+const MAX_DIAS_INTERVALO = 30;
+
+const addDiasIso = (iso, dias) => {
+    const d = new Date(`${iso}T12:00:00`);
+    d.setDate(d.getDate() + dias);
+    const offset = d.getTimezoneOffset();
+    return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 10);
+};
+
+const diffDias = (inicio, fim) =>
+    Math.round((new Date(`${fim}T12:00:00`) - new Date(`${inicio}T12:00:00`)) / 86400000);
+
+const normalizaTexto = (s) => (s ?? '').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+const somenteDigitos = (s) => (s ?? '').toString().replace(/\D/g, '');
+
 export default function FilaEsus() {
     const [cnes,            setCnes]            = useState(null);
     const [unidades,        setUnidades]        = useState([]);
@@ -50,7 +67,9 @@ export default function FilaEsus() {
     const [profissionais,   setProfissionais]   = useState([]);
     const [equipeId,        setEquipeId]        = useState('');
     const [profId,          setProfId]          = useState('');
-    const [dataFiltro,      setDataFiltro]      = useState(hojeIso());
+    const [dataInicio,      setDataInicio]      = useState(hojeIso());
+    const [dataFim,         setDataFim]         = useState(hojeIso());
+    const [busca,           setBusca]           = useState('');
     const [situacao,        setSituacao]        = useState('aguardando');
     const [dados,           setDados]           = useState(null);
     const [loading,         setLoading]         = useState(false);
@@ -80,7 +99,7 @@ export default function FilaEsus() {
     useEffect(() => {
         if (!cnes) return;
         const ac = new AbortController();
-        painelEsusApi.filtros({ cnes, data: dataFiltro }, { signal: ac.signal })
+        painelEsusApi.filtros({ cnes, data_inicio: dataInicio, data_fim: dataFim }, { signal: ac.signal })
             .then(d => {
                 const eqs = d.equipes ?? [];
                 setEquipes(eqs);
@@ -94,7 +113,42 @@ export default function FilaEsus() {
                 setErro('Erro no servidor ao carregar os filtros de equipe e profissional.');
             });
         return () => ac.abort();
-    }, [cnes, dataFiltro]);
+    }, [cnes, dataInicio, dataFim]);
+
+    // Intervalo máximo de 30 dias: ajusta a outra data quando o limite é excedido
+    const handleDataInicio = (valor) => {
+        const v = valor || hojeIso();
+        setDataInicio(v);
+        if (dataFim < v) setDataFim(v);
+        else if (diffDias(v, dataFim) > MAX_DIAS_INTERVALO) setDataFim(addDiasIso(v, MAX_DIAS_INTERVALO));
+        setEquipeId('');
+        setProfId('');
+    };
+
+    const handleDataFim = (valor) => {
+        const v = valor || hojeIso();
+        setDataFim(v);
+        if (v < dataInicio) setDataInicio(v);
+        else if (diffDias(dataInicio, v) > MAX_DIAS_INTERVALO) setDataInicio(addDiasIso(v, -MAX_DIAS_INTERVALO));
+        setEquipeId('');
+        setProfId('');
+    };
+
+    // Busca local por nome, CPF ou CNS sobre a lista carregada
+    const listaFiltrada = useMemo(() => {
+        const rows = dados?.aguardando ?? [];
+        const q = busca.trim();
+        if (!q) return rows;
+        const qTexto = normalizaTexto(q);
+        const qDigitos = somenteDigitos(q);
+        return rows.filter(r =>
+            normalizaTexto(r.cidadao).includes(qTexto) ||
+            (qDigitos && (
+                somenteDigitos(r.cpf).includes(qDigitos) ||
+                somenteDigitos(r.cns).includes(qDigitos)
+            ))
+        );
+    }, [dados, busca]);
 
     const handlePrint = async () => {
         setPrintLoading(true);
@@ -102,10 +156,11 @@ export default function FilaEsus() {
             const equipeNome      = equipes.find(e => String(e.id) === String(equipeId))?.nome ?? '';
             const profissionalNome = profissionais.find(p => String(p.id) === String(profId))?.nome ?? '';
             await generateFilaEsusPDF({
-                dados,
+                dados: { ...dados, aguardando: listaFiltrada },
                 unidadeNome: unidades.find(u => u.cnes === cnes)?.nome ?? '',
                 cnes,
-                dataFiltro,
+                dataFiltro: dataInicio,
+                dataFim,
                 situacao,
                 equipeNome,
                 profissionalNome,
@@ -122,7 +177,7 @@ export default function FilaEsus() {
         abortRef.current = ac;
         setLoading(true);
         setErro(null);
-        const params = { cnes, data: dataFiltro, situacao };
+        const params = { cnes, data_inicio: dataInicio, data_fim: dataFim, situacao };
         if (equipeId) params.equipe = equipeId;
         if (profId)   params.profissional = profId;
         painelEsusApi.fila(params, { signal: ac.signal })
@@ -132,7 +187,7 @@ export default function FilaEsus() {
                 setErro('Erro ao carregar a fila. Tente novamente.');
             })
             .finally(() => setLoading(false));
-    }, [cnes, dataFiltro, equipeId, profId, situacao]);
+    }, [cnes, dataInicio, dataFim, equipeId, profId, situacao]);
 
     // Re-fetch quando qualquer filtro muda
     useEffect(() => {
@@ -186,7 +241,7 @@ export default function FilaEsus() {
                         <CardContent>
                             <Grid container spacing={2} alignItems="center">
                                 {unidades.length > 1 && (
-                                    <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                    <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
                                         <FormControl fullWidth size="small" sx={selSx}>
                                             <InputLabel>Unidade de Saúde</InputLabel>
                                             <Select
@@ -209,25 +264,35 @@ export default function FilaEsus() {
                                     </Grid>
                                 )}
                                 {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
                                     <TextField
                                         fullWidth
                                         size="small"
-                                        label="Data"
+                                        label="Data inicial"
                                         type="date"
-                                        value={dataFiltro}
-                                        onChange={e => {
-                                            setDataFiltro(e.target.value || hojeIso());
-                                            setEquipeId('');
-                                            setProfId('');
-                                        }}
+                                        value={dataInicio}
+                                        onChange={e => handleDataInicio(e.target.value)}
                                         InputLabelProps={{ shrink: true }}
                                         sx={selSx}
                                     />
                                 </Grid>
                                 )}
                                 {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Data final"
+                                        type="date"
+                                        value={dataFim}
+                                        onChange={e => handleDataFim(e.target.value)}
+                                        InputLabelProps={{ shrink: true }}
+                                        sx={selSx}
+                                    />
+                                </Grid>
+                                )}
+                                {cnes && (
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
                                     <FormControl fullWidth size="small" sx={selSx}>
                                         <InputLabel>Situação</InputLabel>
                                         <Select
@@ -243,7 +308,7 @@ export default function FilaEsus() {
                                 </Grid>
                                 )}
                                 {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
                                     <FormControl fullWidth size="small" sx={selSx}>
                                         <InputLabel>Equipe</InputLabel>
                                         <Select
@@ -265,7 +330,7 @@ export default function FilaEsus() {
                                 </Grid>
                                 )}
                                 {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2.4 : 3}>
+                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
                                     <FormControl fullWidth size="small" sx={selSx}>
                                         <InputLabel>Profissional</InputLabel>
                                         <Select
@@ -306,20 +371,36 @@ export default function FilaEsus() {
                     {/* Lista de atendimentos */}
                     <Card>
                         <CardContent>
-                            <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                            <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5} sx={{ mb: 2 }}>
                                 <Typography variant="h6" fontWeight={700}>
                                     {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
                                 </Typography>
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    disabled={printLoading || loading || !dados}
-                                    onClick={handlePrint}
-                                    startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
-                                    sx={{ textTransform: 'none', borderRadius: 1.5 }}
-                                >
-                                    {printLoading ? 'Gerando...' : 'Imprimir PDF'}
-                                </Button>
+                                <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+                                    <TextField
+                                        size="small"
+                                        placeholder="Buscar por nome, CPF ou CNS"
+                                        value={busca}
+                                        onChange={e => setBusca(e.target.value)}
+                                        sx={{ ...selSx, minWidth: 260 }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <Box component="span" sx={{ display: 'flex', mr: 1, color: 'var(--lg-text-muted)' }}>
+                                                    <FeatherIcon icon="search" width={16} height={16} />
+                                                </Box>
+                                            ),
+                                        }}
+                                    />
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        disabled={printLoading || loading || !dados}
+                                        onClick={handlePrint}
+                                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
+                                        sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                                    >
+                                        {printLoading ? 'Gerando...' : 'Imprimir PDF'}
+                                    </Button>
+                                </Box>
                             </Box>
 
                             {loading && (
@@ -347,8 +428,8 @@ export default function FilaEsus() {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {dados?.aguardando?.length > 0 ? (
-                                                dados.aguardando.map((row, i) => (
+                                            {listaFiltrada.length > 0 ? (
+                                                listaFiltrada.map((row, i) => (
                                                     <TableRow key={row.id} hover>
                                                         <TableCell sx={{ color: 'var(--lg-text-muted)', fontSize: 12 }}>{i + 1}</TableCell>
                                                         <TableCell sx={{ fontWeight: 600 }}>{row.cidadao}</TableCell>

@@ -38,10 +38,14 @@ export default async function generateFilaEsusPDF({
     unidadeNome,
     cnes,
     dataFiltro,
+    dataFim,
     situacao,
     equipeNome,
     profissionalNome,
 }) {
+    const periodoTexto = dataFim && dataFim !== dataFiltro
+        ? `${formatDate(dataFiltro)} a ${formatDate(dataFim)}`
+        : formatDate(dataFiltro);
     const logo = await loadImageAsDataUrl(LOGO_URL);
     const tituloSituacao = SITUACAO_LABEL[situacao] ?? situacao;
     const registros = dados?.aguardando ?? [];
@@ -75,7 +79,7 @@ export default async function generateFilaEsusPDF({
                     { text: 'Profissional', fontSize: 8, color: '#666', border: [false, false, false, false] },
                 ],
                 [
-                    { text: formatDate(dataFiltro), fontSize: 9, bold: true, border: [false, false, false, false] },
+                    { text: periodoTexto, fontSize: 9, bold: true, border: [false, false, false, false] },
                     { text: tituloSituacao, fontSize: 9, bold: true, border: [false, false, false, false] },
                     { text: equipeNome || 'Todas', fontSize: 9, bold: true, border: [false, false, false, false] },
                     { text: profissionalNome || 'Todos', fontSize: 9, bold: true, border: [false, false, false, false] },
