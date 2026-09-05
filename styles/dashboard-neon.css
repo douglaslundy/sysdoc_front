@@ -224,10 +224,6 @@
     0 16px 34px rgba(239, 68, 68, 0.18) !important;
 }
 
-[data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi--alerta .MuiTypography-body2 {
-  color: #ef4444 !important;
-}
-
 [data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi .MuiTypography-subtitle1,
 [data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi .MuiTypography-subtitle2 {
   color: #334155 !important;
@@ -243,6 +239,10 @@
 [data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi .MuiTypography-body2,
 [data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi .MuiTypography-caption {
   color: #475569 !important;
+}
+
+[data-theme="light"] .dashboard-neon-home .dashboard-neon-kpi--alerta .MuiTypography-body2 {
+  color: #ef4444 !important;
 }
 
 [data-theme="light"] .dashboard-neon-home .card.info-card,
