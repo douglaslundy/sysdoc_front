@@ -32,6 +32,34 @@ const createConnectionId = () => {
 
 const createClientMessageId = () => `pending-${createConnectionId()}`;
 
+// O som de notificação depende de AudioContext, que o navegador mantém suspenso
+// sem uma interação recente do usuário — quando isso acontece, o som falha em
+// silêncio. A notificação nativa do navegador é o reforço visível para esse caso.
+const canUseBrowserNotification = () =>
+  typeof window !== "undefined" && "Notification" in window;
+
+const showBrowserNotification = (title, body, onClick) => {
+  if (!canUseBrowserNotification() || Notification.permission !== "granted") {
+    return;
+  }
+  try {
+    const notification = new Notification(title, {
+      body,
+      icon: "/favicon.ico",
+      tag: "sysdoc-chat",
+    });
+    if (onClick) {
+      notification.onclick = () => {
+        window.focus();
+        onClick();
+        notification.close();
+      };
+    }
+  } catch {
+    // Alguns navegadores/contextos (ex: iframe) bloqueiam Notification silenciosamente.
+  }
+};
+
 export function ChatProvider({ children }) {
   const { isAuthenticated, user, canUseChat } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
@@ -515,6 +543,9 @@ export function ChatProvider({ children }) {
             : Boolean(realtimeConfig?.play_sound_on_message),
       };
       setChatBehavior(behavior);
+      if (canUseBrowserNotification() && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
       setAttachmentRules({
         maxAttachmentKb: Number(realtimeConfig?.max_attachment_kb || 0),
         maxAttachmentBytes: Number(realtimeConfig?.max_attachment_bytes || 0),
@@ -581,10 +612,20 @@ export function ChatProvider({ children }) {
             : current
         );
         playNotificationSound();
-        if (
+        const viewingThisConversationNow =
           activeConversationRef.current?.id === message.conversation_id &&
-          isOpenRef.current
+          isOpenRef.current;
+        if (
+          !viewingThisConversationNow &&
+          (document.hidden || !document.hasFocus())
         ) {
+          showBrowserNotification(
+            message.sender?.name || "Nova mensagem",
+            message.display_body || message.body || "Nova mensagem no chat",
+            () => focusConversationById(message.conversation_id).catch(() => {})
+          );
+        }
+        if (viewingThisConversationNow) {
           markRead(message.conversation_id).catch(() => {});
         } else if (shouldFocusConversation) {
           focusConversationById(message.conversation_id).catch(() => {

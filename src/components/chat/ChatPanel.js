@@ -654,7 +654,7 @@ export default function ChatPanel() {
                         </Button>
                       </Box>
                     )}
-                    {messages.map((message) => {
+                    {messages.filter((message) => !message.is_deleted).map((message) => {
                     const mine = String(message.sender_id) === String(currentUserId);
                     return (
                       <Box
