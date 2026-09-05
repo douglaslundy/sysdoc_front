@@ -2,6 +2,15 @@ import { api } from "../../../services/api";
 import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination } from "../../ducks/queues";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
+import { format } from 'date-fns';
+
+// date_of_realized é uma data pura (coluna `date` no banco). Usar new Date(...).toISOString()
+// aqui desloca o dia em fusos diferentes de UTC — extrair os componentes locais em vez de converter para UTC.
+const toRealizedDate = (value) => {
+    if (!value) return format(new Date(), 'yyyy-MM-dd');
+    if (value instanceof Date) return format(value, 'yyyy-MM-dd');
+    return String(value).substring(0, 10);
+};
 
 export const getAllQueues = (params = {}) => {
 
@@ -88,7 +97,7 @@ export const editDoneQueue = (queue, cleanForm) => {
 
         queue = {
             ...queue,
-            'date_of_realized': queue.date_of_realized ? (new Date(queue.date_of_realized).toISOString().slice(0, 19).replace('T', ' ')) : new Date().toISOString().slice(0, 19).replace('T', ' '),
+            'date_of_realized': toRealizedDate(queue.date_of_realized),
             'done': true,
             'obs': queue.obs + "\n" + queue.obsConclusion?.toUpperCase(),
         }

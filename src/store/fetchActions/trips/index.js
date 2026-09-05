@@ -5,6 +5,14 @@ import { parseCookies } from "nookies";
 import { format } from 'date-fns';
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 
+// departure_date é uma data pura (coluna `date` no banco). Usar new Date(...).toISOString()
+// aqui desloca um dia em fusos negativos (ex: Brasil, UTC-3) — extrair os componentes locais em vez de converter para UTC.
+const toDepartureDate = (value) => {
+    if (!value) return null;
+    if (value instanceof Date) return format(value, 'yyyy-MM-dd');
+    return String(value).substring(0, 10);
+};
+
 export const getAllTrips = () => {
 
     return (dispatch) => {
@@ -29,7 +37,7 @@ export const addTripFetch = (trip, cleanForm) => {
 
         trip = {
             ...trip,
-            'departure_date': trip.departure_date ? (new Date(trip.departure_date).toISOString().slice(0, 19).replace('T', ' ')) : null,
+            'departure_date': toDepartureDate(trip.departure_date),
             'user_id': user
         }
 
@@ -62,7 +70,7 @@ export const editTripFetch = (trip, cleanForm) => {
 
         trip = {
             ...trip,
-            'departure_date': trip.departure_date ? (new Date(trip.departure_date).toISOString().slice(0, 19).replace('T', ' ')) : null
+            'departure_date': toDepartureDate(trip.departure_date)
         },
 
             api.patch(`/trips/${trip.id}`, trip)
