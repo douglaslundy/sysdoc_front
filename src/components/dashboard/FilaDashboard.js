@@ -99,7 +99,7 @@ export default function FilaDashboard() {
                     <CardTotal
                         icon="users"
                         titulo="Total na Fila"
-                        valor={totais?.total_fila}
+                        valor={totais?.total_na_fila}
                         cor="#2196f3"
                     />
                 </Grid>
