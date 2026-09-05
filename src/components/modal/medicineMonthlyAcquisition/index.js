@@ -2,6 +2,7 @@
 import InputMask from 'react-input-mask';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+    Alert,
     Box,
     Button,
     Dialog,
@@ -34,6 +35,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
     const [form, setForm] = useState(EMPTY);
     const [units, setUnits] = useState([]);
     const [sources, setSources] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const toApiMonth = (masked) => {
         const parts = (masked || '').replace(/_/g, '').split('/');
@@ -47,6 +49,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
             const now = new Date();
             const maskedDefault = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
             setForm({ ...EMPTY, reference_month: maskedDefault });
+            setErrorMessage('');
             api.get('/pharmacy/catalogs')
                 .then((res) => {
                     setUnits(res.data?.units || []);
@@ -56,16 +59,32 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
         }
     }, [open]);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target }) => {
+        setForm(f => ({ ...f, [target.name]: target.value }));
+        if (errorMessage) setErrorMessage('');
+    };
+
+    const validate = () => {
+        if (!form.medicine_item_id) return 'Selecione um medicamento.';
+        if (!toApiMonth(form.reference_month)) return 'Informe o mês de referência (MM/AAAA).';
+        if (form.acquired_quantity === '' || Number(form.acquired_quantity) < 0) return 'Informe a quantidade adquirida.';
+        if (!form.unit_measure) return 'Selecione a unidade de medida.';
+        return '';
+    };
 
     const save = () => {
+        const validationError = validate();
+        if (validationError) {
+            setErrorMessage(validationError);
+            return;
+        }
         dispatch(upsertMonthlyAcquisitionFetch({
             ...form,
             reference_month: toApiMonth(form.reference_month),
             acquired_quantity: Number(form.acquired_quantity || 0),
             source_document: form.source_document || null,
             note: form.note || null,
-        }, onSuccess));
+        }, onSuccess, setErrorMessage));
     };
 
     return (
@@ -78,6 +97,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
         >
             <BaseCard title="Aquisição Mensal">
                 <Stack spacing={2}>
+                    {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
                     <FormControl fullWidth required>
                         <InputLabel>Medicamento</InputLabel>
                         <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>
