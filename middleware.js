@@ -1,22 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const PUBLIC_PATHS = [
-    '/login',
-    '/consulta-exame',
-    '/esqueci-senha',
-    '/redefinir-senha',
-    '/attendance/panel',
-    '/transparency/medicines',
-    '/transparency/medicines-panel',
-    '/transparency/medicines-monthly-acquisitions',
-];
-
-function isPublicPath(pathname) {
-    return (
-        PUBLIC_PATHS.includes(pathname) ||
-        pathname.startsWith('/showqueue')
-    );
-}
+import { isPublicPath } from './src/constants/publicPaths';
 
 // request.cookies.get() in Next.js 12 Edge Runtime does not correctly parse
 // cookie names that contain dots (e.g. "sysvendas.id"). Parsing the raw

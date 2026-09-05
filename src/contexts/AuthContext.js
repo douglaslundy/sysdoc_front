@@ -2,14 +2,9 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import { parseCookies, destroyCookie } from 'nookies';
 import Router from 'next/router';
 import { api, setAuthToken } from '../services/api';
+import { isPublicPath } from '../constants/publicPaths';
 
 export const AuthContext = createContext({});
-
-const PUBLIC_PATHS = ['/login', '/consulta-exame', '/esqueci-senha', '/redefinir-senha', '/attendance/panel', '/transparency/medicines', '/transparency/medicines-panel', '/transparency/medicines-monthly-acquisitions'];
-
-function isPublicPath(pathname) {
-    return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/showqueue');
-}
 
 export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);

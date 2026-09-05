@@ -73,8 +73,17 @@ export default function NoticeModal() {
         setSanitizedBody(DOMPurify.sanitize(formatNoticeBody(current?.body)));
       })
       .catch(() => {
+        // Se o DOMPurify não carregar, cair para HTML bruto seria inseguro — sempre escapar neste fallback,
+        // mesmo que o aviso originalmente contivesse HTML confiável.
         if (!active) return;
-        setSanitizedBody(formatNoticeBody(current?.body));
+        const escaped = String(current?.body || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+          .replace(/\n/g, '<br />');
+        setSanitizedBody(escaped);
       });
 
     return () => {
