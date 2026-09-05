@@ -1,6 +1,6 @@
 # Apostila: Segurança, Performance e Auditoria — Sysdoc
 
-**Projeto:** Sysdoc (Jr Ferragens)
+**Projeto:** Sysdoc
 **Stack:** Laravel 10 (backend) + Next.js 12 / React 17 (frontend)
 **Última atualização:** Maio 2026 — Fases A–N concluídas
 

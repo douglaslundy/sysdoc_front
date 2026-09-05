@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Sysdoc** is a monorepo containing a full-stack document management and customer service system built for Jr Ferragens. It has two sub-projects:
+**Sysdoc** is a monorepo containing a full-stack document management and customer service system. It has two sub-projects:
 
 - `sysdoc_back/` — Laravel 10 REST API (PHP 8.1+, MySQL)
 - `sysdoc_front/` — Next.js 12 frontend (React 17, Redux Toolkit, MUI v5)

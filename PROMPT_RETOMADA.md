@@ -1,7 +1,7 @@
 # Prompt para retomada de sessão — Sysdoc
 
 ## Contexto do projeto
-Sysdoc — sistema de gestão para Jr Ferragens.
+Sysdoc — sistema de gestão.
 - Backend: `C:\Users\dougl\workspace\sysdoc_back\` — Laravel 10, MySQL, Sanctum+JWT
 - Frontend: `C:\Users\dougl\workspace\sysdoc_front\` — Next.js 12, React 17, Redux Toolkit, MUI v5
 - Arquivos de controle: `C:\Users\dougl\workspace\TASK_STATE.md`, `TASK_TODO.md`, `TASK_DECISIONS.md`, `HANDOFF.md`
