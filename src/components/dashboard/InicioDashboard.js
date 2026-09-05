@@ -1,63 +1,56 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, CircularProgress, Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Grid, Box, Typography, Card, CardContent, CircularProgress } from '@mui/material';
+import { useRouter } from 'next/router';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
-import BaseCard from '../baseCard/BaseCard';
-import Chart from '../charts/ApexChartSafe';
 import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 
-const KPI_STYLES = {
-  blue: {
-    iconColor: '#93c5fd',
-    border: '1px solid rgba(37, 99, 235, 0.75)',
-    shadow: '0 18px 45px rgba(0,0,0,0.28), 0 0 24px rgba(37,99,235,0.24), inset 0 0 28px rgba(37,99,235,0.06)',
-    iconBg: 'rgba(37, 99, 235, 0.16)',
-    iconShadow: '0 0 28px rgba(37,99,235,0.22), inset 0 0 24px rgba(37,99,235,0.10)',
-  },
-  orange: {
-    iconColor: '#fcd34d',
-    border: '1px solid rgba(245, 158, 11, 0.55)',
-    shadow: '0 18px 45px rgba(0,0,0,0.28), 0 0 24px rgba(245,158,11,0.18), inset 0 0 28px rgba(245,158,11,0.05)',
-    iconBg: 'rgba(245, 158, 11, 0.16)',
-    iconShadow: '0 0 28px rgba(245,158,11,0.20), inset 0 0 24px rgba(245,158,11,0.09)',
-  },
-  purple: {
-    iconColor: '#d8b4fe',
-    border: '1px solid rgba(147, 51, 234, 0.70)',
-    shadow: '0 18px 45px rgba(0,0,0,0.28), 0 0 24px rgba(147,51,234,0.22), inset 0 0 28px rgba(147,51,234,0.06)',
-    iconBg: 'rgba(147, 51, 234, 0.16)',
-    iconShadow: '0 0 28px rgba(147,51,234,0.22), inset 0 0 24px rgba(147,51,234,0.10)',
-  },
-  cyan: {
-    iconColor: '#67e8f9',
-    border: '1px solid rgba(6, 182, 212, 0.70)',
-    shadow: '0 18px 45px rgba(0,0,0,0.28), 0 0 24px rgba(6,182,212,0.22), inset 0 0 28px rgba(6,182,212,0.06)',
-    iconBg: 'rgba(6, 182, 212, 0.16)',
-    iconShadow: '0 0 28px rgba(6,182,212,0.22), inset 0 0 24px rgba(6,182,212,0.10)',
-  },
+const SETOR_META = {
+  farmacia: { icon: 'archive', permissao: '/dashboard/farmacia' },
+  vigilancia: { icon: 'shield', permissao: '/dashboard/vigilancia' },
+  almoxarifado: { icon: 'package', permissao: '/dashboard/almoxarifado' },
+  protocolo: { icon: 'file-text', permissao: '/protocolo/caixa-entrada' },
+  laboratorio: { icon: 'thermometer', permissao: '/dashboard/laboratorio' },
+  fila: { icon: 'users', permissao: '/dashboard/fila' },
+  tfd: { icon: 'truck', permissao: '/dashboard/tfd' },
 };
 
-function CardTotal({ icon, titulo, valor, variant }) {
-  const s = KPI_STYLES[variant] || KPI_STYLES.blue;
+const ORDEM_SETORES = ['farmacia', 'vigilancia', 'almoxarifado', 'protocolo', 'laboratorio', 'fila', 'tfd'];
+
+function SetorCard({ chave, setor, onClick }) {
+  const meta = SETOR_META[chave];
+  const alerta = Boolean(setor.alerta);
+
+  const cores = alerta
+    ? { border: 'rgba(239, 68, 68, 0.7)', iconBg: 'rgba(239, 68, 68, 0.16)', iconColor: '#f87171', shadow: '0 18px 45px rgba(0,0,0,0.28), 0 0 24px rgba(239,68,68,0.24)' }
+    : { border: 'rgba(37, 99, 235, 0.5)', iconBg: 'rgba(37, 99, 235, 0.14)', iconColor: '#93c5fd', shadow: '0 18px 45px rgba(0,0,0,0.24), 0 0 20px rgba(37,99,235,0.16)' };
+
   return (
-    <Card className={`dashboard-neon-kpi dashboard-neon-kpi--${variant}`} sx={{ height: '100%', border: s.border, boxShadow: s.shadow }}>
+    <Card
+      onClick={onClick}
+      sx={{
+        height: '100%',
+        cursor: 'pointer',
+        border: `1px solid ${cores.border}`,
+        boxShadow: cores.shadow,
+        transition: 'transform 0.15s ease',
+        '&:hover': { transform: 'translateY(-2px)' },
+      }}
+    >
       <CardContent>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography color="textSecondary" variant="subtitle1">{titulo}</Typography>
-            <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
-            <Typography color="textSecondary" variant="body1" mt={1}>Total cadastrados</Typography>
+            <Typography color="textSecondary" variant="subtitle1">{setor.label}</Typography>
+            <Typography variant="h3" fontWeight="bold" mt={0.5}>{setor.valor}</Typography>
+            <Typography color={alerta ? 'error' : 'textSecondary'} variant="body2" mt={1} fontWeight={alerta ? 700 : 400}>
+              {alerta ? 'Requer atenção' : 'Sem pendências críticas'}
+            </Typography>
           </Box>
           <Box sx={{
-            width: 82,
-            height: 82,
-            borderRadius: '50%',
-            background: s.iconBg,
-            boxShadow: s.iconShadow,
-            display: 'grid',
-            placeItems: 'center',
+            width: 72, height: 72, borderRadius: '50%',
+            background: cores.iconBg, display: 'grid', placeItems: 'center',
           }}>
-            <FeatherIcon icon={icon} color={s.iconColor} width="32" height="32" />
+            <FeatherIcon icon={meta.icon} color={cores.iconColor} width="28" height="28" />
           </Box>
         </Box>
       </CardContent>
@@ -65,21 +58,8 @@ function CardTotal({ icon, titulo, valor, variant }) {
   );
 }
 
-function gerarMeses(mapa) {
-  const meses = [];
-  const valores = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    const chave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-    meses.push(label.toUpperCase());
-    valores.push(mapa[chave] || 0);
-  }
-  return { meses, valores };
-}
-
-export default function InicioDashboard() {
+export default function InicioDashboard({ onNavigateToSetor }) {
+  const router = useRouter();
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
@@ -91,11 +71,6 @@ export default function InicioDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const chart = useMemo(() => {
-    if (!dados) return null;
-    return { clientes: gerarMeses(dados.clientes_por_mes || {}) };
-  }, [dados]);
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
@@ -104,52 +79,36 @@ export default function InicioDashboard() {
     );
   }
 
-  if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Inicio', erro)} />;
+  if (erro || !dados?.setores) return <DashboardErro message={getDashboardErrorMessage('Inicio', erro)} />;
 
-  const { totais } = dados;
-  const chartFont = { fontFamily: "'DM Sans', sans-serif" };
+  const handleClick = (chave) => {
+    const permissao = SETOR_META[chave].permissao;
+    if (chave === 'protocolo') {
+      router.push(permissao);
+      return;
+    }
+    onNavigateToSetor && onNavigateToSetor(permissao);
+  };
+
+  const setoresVisiveis = ORDEM_SETORES.filter((chave) => dados.setores[chave]);
+
+  if (setoresVisiveis.length === 0) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+        <Typography color="text.secondary">Nenhum setor disponível para o seu perfil.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box className="dashboard-neon-home" sx={{ mt: 1 }}>
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} sm={6} md={3}><CardTotal icon="users" titulo="Clientes" valor={totais.clientes} variant="blue" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><CardTotal icon="file-text" titulo="Ofícios" valor={totais.oficios} variant="orange" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><CardTotal icon="book" titulo="Portarias" valor={totais.portarias} variant="purple" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><CardTotal icon="cpu" titulo="Modelos IA" valor={totais.modelos_ia} variant="cyan" /></Grid>
+      <Grid container spacing={3}>
+        {setoresVisiveis.map((chave) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={chave}>
+            <SetorCard chave={chave} setor={dados.setores[chave]} onClick={() => handleClick(chave)} />
+          </Grid>
+        ))}
       </Grid>
-
-      <BaseCard title="Clientes Cadastrados por Mês (últimos 12 meses)">
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Button variant="outlined" size="small">Últimos 12 meses</Button>
-        </Box>
-        <Chart
-          type="area"
-          height={420}
-          options={{
-            chart: { ...chartFont, toolbar: { show: false } },
-            colors: ['#1b7eff'],
-            xaxis: { categories: chart.clientes.meses, labels: { style: { colors: '#8eb8ff', fontSize: '12px' } } },
-            yaxis: { labels: { style: { colors: '#8eb8ff' } } },
-            fill: {
-              type: 'gradient',
-              gradient: {
-                type: 'vertical',
-                shadeIntensity: 1,
-                gradientToColors: ['#0f3a9d'],
-                opacityFrom: 0.52,
-                opacityTo: 0.08,
-                stops: [0, 100],
-              },
-            },
-            stroke: { curve: 'smooth', width: 3 },
-            markers: { size: 4, colors: ['#cbe6ff'], strokeColors: '#1b7eff', strokeWidth: 2 },
-            dataLabels: { enabled: false },
-            tooltip: { theme: 'dark' },
-            grid: { borderColor: 'rgba(88,140,230,0.20)', strokeDashArray: 6 },
-          }}
-          series={[{ name: 'Clientes', data: chart.clientes.valores }]}
-        />
-      </BaseCard>
     </Box>
   );
 }
