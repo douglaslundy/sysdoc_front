@@ -20,7 +20,9 @@ export default function DashboardPage() {
 
     const handleNavigateToSetor = (permissao) => {
         const indice = abasVisiveis.findIndex((item) => item.permission === permissao);
-        if (indice >= 0) setAba(indice);
+        if (indice < 0) return false;
+        setAba(indice);
+        return true;
     };
 
     const ABAS = [
