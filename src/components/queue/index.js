@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/router";
 import {
     Typography,
     Box,
@@ -28,6 +29,7 @@ import QueueModal from "../modal/queue";
 import QueueOutcomeModal from "../modal/outcomequeue";
 import { modalFormRootSx, modalSecondaryButtonSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
+import TreatmentPlanPanel from "./TreatmentPlanPanel";
 
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -118,6 +120,7 @@ export default () => {
     const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
 
     const dispatch = useDispatch();
+    const router = useRouter();
     const { queues, pagination } = useSelector(state => state.queues);
     const { specialities } = useSelector(state => state.specialities);
     const { specialityOptions } = useSelector(state => state.queues);
@@ -471,6 +474,16 @@ export default () => {
                 </Fab>
 
                 <ActionCreateFab onClick={() => { HandleAddQueue() }} title="inserir na fila" sx={fabControlSx} className="queue-page__fab queue-page__fab--add" />
+
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => router.push('/queue/agenda-tratamentos')}
+                    sx={{ ml: 1 }}
+                    className="queue-page__agenda-link"
+                >
+                    Agenda de Tratamentos
+                </Button>
             </Box>
 
             <TableContainer className="queue-page__table-wrap">
@@ -816,6 +829,20 @@ export default () => {
                         <Box>
                             <Typography variant="caption" color="text.secondary">ESPECIALIDADE</Typography>
                             <Typography fontWeight={600}>{viewQueue.speciality?.name?.toUpperCase() ?? '—'}</Typography>
+                            {viewQueue.speciality?.allows_session_scheduling && (
+                                <TreatmentPlanPanel
+                                    queueId={viewQueue.id}
+                                    speciality={viewQueue.speciality}
+                                    onChanged={() => dispatch(getAllQueues({
+                                        page: page + 1,
+                                        per_page: rowsPerPage,
+                                        search: debouncedSearch || undefined,
+                                        speciality_id: speci || undefined,
+                                        done,
+                                        urgency,
+                                    }))}
+                                />
+                            )}
                         </Box>
                         {viewQueue.obs && (
                             <Box>
