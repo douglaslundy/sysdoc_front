@@ -29,6 +29,11 @@ import {
   Autocomplete,
   Checkbox,
   Chip,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
 } from '@mui/material';
 import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
@@ -64,6 +69,7 @@ export default function UserModal(props) {
   const [equipesOpcoes, setEquipesOpcoes] = useState([]);
   const [loadingEquipes, setLoadingEquipes] = useState(false);
   const [protocolUnits, setProtocolUnits] = useState([]);
+  const [specialityPermissions, setSpecialityPermissions] = useState([]);
 
   const { user } = useSelector((state) => state.users);
   const { isOpenUserModal } = useSelector((state) => state.layout);
@@ -103,6 +109,7 @@ export default function UserModal(props) {
     setEquipesRt([]);
     setEquipesOpcoes([]);
     setProtocolUnits([]);
+    setSpecialityPermissions([]);
     dispatch(turnUserModal());
     dispatch(showUser({}));
   };
@@ -125,15 +132,24 @@ export default function UserModal(props) {
       return;
     }
 
-    // Wrap cleanForm so that equipes are saved before the modal closes.
+    // Wrap cleanForm so that equipes and speciality permissions are saved before the modal closes.
     // editUserFetch calls the second argument synchronously in .then(),
-    // so we pass an async wrapper that fires the equipes PUT first.
+    // so we pass an async wrapper that fires the PUT calls first.
     const cleanFormWithEquipes = async () => {
       if (userProfile === 'admin' && user?.id) {
         await api.put(`/users/${user.id}/equipe-aps`, {
           is_rt_psf: form.is_rt_psf,
           rt_all_teams: form.rt_all_teams,
           equipes: form.is_rt_psf && !form.rt_all_teams ? equipesRt : [],
+        }).catch(() => {});
+
+        await api.put(`/users/${user.id}/speciality-permissions`, {
+          permissions: specialityPermissions.map((item) => ({
+            speciality_id: item.speciality_id,
+            can_view: item.can_view,
+            can_edit: item.can_edit,
+            can_insert: item.can_insert,
+          })),
         }).catch(() => {});
       }
       cleanForm();
@@ -148,6 +164,25 @@ export default function UserModal(props) {
       ...form,
       is_driver: isDriver,
     });
+  };
+
+  const toggleSpecialityPermission = (specialityId, field) => {
+    setSpecialityPermissions((current) => current.map((item) => {
+      if (item.speciality_id !== specialityId) return item;
+
+      const next = { ...item, [field]: !item[field] };
+
+      if ((field === 'can_edit' || field === 'can_insert') && next[field]) {
+        next.can_view = true;
+      }
+
+      if (field === 'can_view' && !next.can_view) {
+        next.can_edit = false;
+        next.can_insert = false;
+      }
+
+      return next;
+    }));
   };
 
   const handleClose = () => {
@@ -170,6 +205,9 @@ export default function UserModal(props) {
       if (userProfile === 'admin') {
         api.get(`/users/${user.id}/equipe-aps`)
           .then(r => setEquipesRt(r.data.equipes ?? []))
+          .catch(() => {});
+        api.get(`/users/${user.id}/speciality-permissions`)
+          .then(r => setSpecialityPermissions(r.data ?? []))
           .catch(() => {});
       }
     }
@@ -422,6 +460,58 @@ export default function UserModal(props) {
                             />
                           )}
                         />
+                      )}
+
+                      {Boolean(user && user.id) && (
+                        <>
+                          <Typography
+                            sx={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              color: 'var(--lg-text-muted)',
+                              letterSpacing: '0.07em',
+                              textTransform: 'uppercase',
+                              mt: 1,
+                            }}
+                          >
+                            Permissões por especialidade da Fila
+                          </Typography>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Especialidade</TableCell>
+                                <TableCell align="center">Ver</TableCell>
+                                <TableCell align="center">Editar</TableCell>
+                                <TableCell align="center">Inserir paciente</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {specialityPermissions.map((item) => (
+                                <TableRow key={item.speciality_id}>
+                                  <TableCell>{item.speciality_name}</TableCell>
+                                  <TableCell align="center">
+                                    <Checkbox
+                                      checked={Boolean(item.can_view)}
+                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_view')}
+                                    />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Checkbox
+                                      checked={Boolean(item.can_edit)}
+                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_edit')}
+                                    />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Checkbox
+                                      checked={Boolean(item.can_insert)}
+                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_insert')}
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </>
                       )}
                     </>
                   )}
