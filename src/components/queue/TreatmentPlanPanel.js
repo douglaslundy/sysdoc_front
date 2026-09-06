@@ -56,9 +56,13 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
 
     const loadPlan = () => {
         setLoading(true);
+        setError('');
         getTreatmentPlanForQueue(queueId)
             .then((data) => setPlan(data.plan !== undefined ? data.plan : data))
-            .catch(() => setPlan(null))
+            .catch((err) => {
+                setPlan(null);
+                setError(err?.response?.data?.message || 'Erro ao carregar o agendamento por sessões. Tente novamente.');
+            })
             .finally(() => setLoading(false));
     };
 
@@ -190,7 +194,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                         <>
                             <Alert severity="warning">
                                 Ao confirmar, o paciente sairá da fila de espera imediatamente. As sessões
-                                ficarão agendadas nas datas abaixo.
+                                ficarão agendadas nas datas geradas abaixo.
                             </Alert>
                             <Typography variant="body2">
                                 {previewDates.join(', ')}

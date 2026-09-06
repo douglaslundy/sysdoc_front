@@ -821,7 +821,14 @@ export default () => {
                                 <TreatmentPlanPanel
                                     queueId={viewQueue.id}
                                     speciality={viewQueue.speciality}
-                                    onChanged={() => dispatch(getAllQueues({ per_page: rowsPerPage, page: page + 1 }))}
+                                    onChanged={() => dispatch(getAllQueues({
+                                        page: page + 1,
+                                        per_page: rowsPerPage,
+                                        search: debouncedSearch || undefined,
+                                        speciality_id: speci || undefined,
+                                        done,
+                                        urgency,
+                                    }))}
                                 />
                             )}
                         </Box>
