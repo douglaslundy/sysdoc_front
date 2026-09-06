@@ -120,7 +120,7 @@ export default function TfdDashboard() {
                     <CardTotal
                         icon="users"
                         titulo="Pessoas Transportadas (mês)"
-                        valor={totais?.pessoas_transportadas}
+                        valor={totais?.pessoas_transportadas_mes}
                         cor="#2196f3"
                     />
                 </Grid>

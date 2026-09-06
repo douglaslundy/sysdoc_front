@@ -1,4 +1,4 @@
-﻿import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Box, Tabs, Tab, Typography, useTheme } from '@mui/material';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import ConformidadesDashboard from '../src/components/dashboard/ConformidadesDashboard';
@@ -13,24 +13,31 @@ import AlmoxarifadoDashboard from '../src/components/dashboard/AlmoxarifadoDashb
 import ArquivoDashboard from '../src/components/dashboard/ArquivoDashboard';
 import { AuthContext } from '../src/contexts/AuthContext';
 
-const ABAS = [
-    { label: 'Início',               permission: '/dashboard/inicio',      component: <InicioDashboard /> },
-    { label: 'Conformidades',        permission: '/dashboard/conformidades', component: <ConformidadesDashboard /> },
-    { label: 'Vigilância Sanitária', permission: '/dashboard/vigilancia',  component: <VigilanciaDashboard /> },
-    { label: 'Laboratório',          permission: '/dashboard/laboratorio', component: <LabDashboard /> },
-    { label: 'Fila',                 permission: '/dashboard/fila',        component: <FilaDashboard /> },
-    { label: 'TFD',                  permission: '/dashboard/tfd',         component: <TfdDashboard /> },
-    { label: 'Farmácia',             permission: '/dashboard/farmacia',    component: <FarmaciaDashboard /> },
-    { label: 'Logs/QR',             permission: '/dashboard/logs',        component: <LogsDashboard /> },
-    { label: 'Chat',                permission: '/dashboard/chat',        component: <ChatDashboard /> },
-    { label: 'Almoxarifado',        permission: '/dashboard/almoxarifado', component: <AlmoxarifadoDashboard /> },
-    { label: 'Arquivo',             permission: '/dashboard/arquivo',      component: <ArquivoDashboard /> },
-];
-
 export default function DashboardPage() {
     const theme = useTheme();
     const { myPermissions, authorizedPages, profile, canUseChat } = useContext(AuthContext);
     const [aba, setAba] = useState(0);
+
+    const handleNavigateToSetor = (permissao) => {
+        const indice = abasVisiveis.findIndex((item) => item.permission === permissao);
+        if (indice < 0) return false;
+        setAba(indice);
+        return true;
+    };
+
+    const ABAS = [
+        { label: 'Início',               permission: '/dashboard/inicio',      component: <InicioDashboard onNavigateToSetor={handleNavigateToSetor} /> },
+        { label: 'Conformidades',        permission: '/dashboard/conformidades', component: <ConformidadesDashboard /> },
+        { label: 'Vigilância Sanitária', permission: '/dashboard/vigilancia',  component: <VigilanciaDashboard /> },
+        { label: 'Laboratório',          permission: '/dashboard/laboratorio', component: <LabDashboard /> },
+        { label: 'Fila',                 permission: '/dashboard/fila',        component: <FilaDashboard /> },
+        { label: 'TFD',                  permission: '/dashboard/tfd',         component: <TfdDashboard /> },
+        { label: 'Farmácia',             permission: '/dashboard/farmacia',    component: <FarmaciaDashboard /> },
+        { label: 'Logs/QR',             permission: '/dashboard/logs',        component: <LogsDashboard /> },
+        { label: 'Chat',                permission: '/dashboard/chat',        component: <ChatDashboard /> },
+        { label: 'Almoxarifado',        permission: '/dashboard/almoxarifado', component: <AlmoxarifadoDashboard /> },
+        { label: 'Arquivo',             permission: '/dashboard/arquivo',      component: <ArquivoDashboard /> },
+    ];
 
     const abasVisiveis = useMemo(() => {
         const permitted = profile === 'admin'
@@ -43,9 +50,9 @@ export default function DashboardPage() {
         return [...visible].sort(
             (a, b) => (orderByPath.get(a.permission) ?? 999) - (orderByPath.get(b.permission) ?? 999)
         );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authorizedPages, canUseChat, myPermissions, profile]);
 
-    // Garante que o índice selecionado não fique fora dos limites após mudança de perfil
     const abaSegura = Math.min(aba, Math.max(0, abasVisiveis.length - 1));
 
     if (abasVisiveis.length === 0) {
