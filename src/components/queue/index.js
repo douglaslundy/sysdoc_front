@@ -37,7 +37,8 @@ import {
     listQueueAttachments,
     uploadQueueAttachment,
     deleteQueueAttachment,
-    downloadQueueAttachment
+    downloadQueueAttachment,
+    getQueueSpecialityOptions
 } from "../../store/fetchActions/queues";
 import { getAllSpecialities } from "../../store/fetchActions/specialities";
 import { showQueue } from "../../store/ducks/queues";
@@ -119,6 +120,17 @@ export default () => {
     const dispatch = useDispatch();
     const { queues, pagination } = useSelector(state => state.queues);
     const { specialities } = useSelector(state => state.specialities);
+    const { specialityOptions } = useSelector(state => state.queues);
+
+    const viewableSpecialities = specialityOptions.length > 0
+        ? specialities.filter((s) => specialityOptions.some((opt) => opt.id === s.id && opt.can_view))
+        : specialities;
+
+    const canEditSpeciality = (specialityId) => {
+        if (specialityOptions.length === 0) return true;
+        const opt = specialityOptions.find((o) => o.id === specialityId);
+        return opt ? opt.can_edit : false;
+    };
     const [searchValue, setSearchValue] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [option, setOption] = useState('add'); // Você já tem esse estado definido
@@ -185,6 +197,10 @@ export default () => {
 
     useEffect(() => {
         dispatch(getAllSpecialities());
+    }, [dispatch]);
+
+    useEffect(() => {
+        dispatch(getQueueSpecialityOptions());
     }, [dispatch]);
 
     useEffect(() => {
@@ -398,7 +414,7 @@ export default () => {
                     label="Especialidade"
                     name="speci"
                     value={speci}
-                    store={specialities}
+                    store={viewableSpecialities}
                     changeItem={changeSpeci}
                     valueDefault="TODAS"
                     wd={"18%"}
@@ -711,7 +727,7 @@ export default () => {
                                                     <FeatherIcon icon="printer" width="20" height="20" />
                                                 </Button>
 
-                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1'} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--primary">
+                                                <Button title="Informar Desfecho" onClick={() => { HandleDoneQueue(queue) }} color="primary" size="medium" variant="contained" disabled={queue.done == '1' || !canEditSpeciality(queue.id_specialities)} sx={{ height: `${controlHeight}px`, minWidth: `${controlHeight}px` }} className="queue-page__action queue-page__action--primary">
                                                     <FeatherIcon icon="book-open" width="20" height="20" />
                                                 </Button>
 
