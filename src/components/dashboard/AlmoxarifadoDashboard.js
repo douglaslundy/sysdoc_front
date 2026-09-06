@@ -3,8 +3,8 @@ import {
   Alert,
   Box,
   Card,
-  CircularProgress,
   Grid,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -45,7 +45,24 @@ export default function AlmoxarifadoDashboard() {
   }, []);
 
   if (error) return <Alert severity="error">{error}</Alert>;
-  if (!data) return <Box sx={{ display: "grid", placeItems: "center", minHeight: 280 }}><CircularProgress /></Box>;
+  if (!data) return (
+    <Box className="dashboard-neon-home">
+      <Grid container spacing={2}>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Grid item xs={12} sm={6} lg={3} key={`metric-${index}`}>
+            <Skeleton variant="rounded" height={126} />
+          </Grid>
+        ))}
+      </Grid>
+      <Grid container spacing={2} sx={{ mt: 0.2 }}>
+        {Array.from({ length: 2 }).map((_, index) => (
+          <Grid item xs={12} lg={6} key={`table-${index}`}>
+            <Skeleton variant="rounded" height={320} />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
 
   return (
     <Box className="dashboard-neon-home">

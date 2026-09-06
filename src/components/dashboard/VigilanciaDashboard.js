@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
+import { Grid, Box, Typography, Card, CardContent, Skeleton, Chip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import { normalizeIconName } from '../../utils/iconResolver';
@@ -103,8 +103,33 @@ export default function VigilanciaDashboard() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-        <CircularProgress />
+      <Box className="dashboard-neon-home">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(5, minmax(0, 1fr))',
+            },
+            gap: 1,
+            mb: 3,
+          }}
+        >
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Skeleton variant="rounded" height={96} key={`metric-${index}`} />
+          ))}
+        </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={300} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={300} />
+          </Grid>
+          <Grid item xs={12}>
+            <Skeleton variant="rounded" height={320} />
+          </Grid>
+        </Grid>
       </Box>
     );
   }

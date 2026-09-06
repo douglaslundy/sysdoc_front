@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Box, Typography, Card, CardActionArea, CardContent, CircularProgress } from '@mui/material';
+import { Grid, Box, Typography, Card, CardActionArea, CardContent, Skeleton } from '@mui/material';
 import { useRouter } from 'next/router';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -73,8 +73,14 @@ export default function InicioDashboard({ onNavigateToSetor }) {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-        <CircularProgress />
+      <Box className="dashboard-neon-home" sx={{ mt: 1 }}>
+        <Grid container spacing={3}>
+          {ORDEM_SETORES.map((chave) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={chave}>
+              <Skeleton variant="rounded" height={190} />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
     );
   }

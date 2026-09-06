@@ -3,9 +3,9 @@ import {
   Alert,
   Box,
   Card,
-  CircularProgress,
   Grid,
   LinearProgress,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -74,8 +74,28 @@ export default function ChatDashboard() {
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!data) {
     return (
-      <Box sx={{ display: "grid", placeItems: "center", minHeight: 280 }}>
-        <CircularProgress />
+      <Box>
+        <Grid container spacing={2}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Grid item xs={12} sm={6} lg={3} key={`metric-${index}`}>
+              <Skeleton variant="rounded" height={126} />
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={2} sx={{ mt: 0.2 }}>
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Grid item xs={12} md={6} key={`progress-${index}`}>
+              <Skeleton variant="rounded" height={150} />
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={2} sx={{ mt: 0.2 }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Grid item xs={6} md={3} key={`small-${index}`}>
+              <Skeleton variant="rounded" height={100} />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
     );
   }
