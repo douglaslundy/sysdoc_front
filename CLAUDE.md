@@ -24,13 +24,13 @@ Goal: maximize useful, correct work per token spent. This governs *exploration, 
 - This project's history has real, expensive bugs (a PHI access-control bypass, a silent permission-wipe, a data-loss migration bug) that were caught *only* because of full verification — token savings never override this.
 
 **Everywhere else, default to minimum-sufficient context:**
-- Search/grep for the specific symbol or line range before reading a whole file. Read full files only when you genuinely need the whole shape (e.g., before a large rewrite).
+- Search/grep for the specific symbol or line range before reading a whole file. Read the whole file when: (a) you're about to rewrite or restructure a meaningful part of it, (b) it's short enough that a full read costs about the same as a targeted search (roughly under 250 lines), or (c) the edit's correctness depends on surrounding control/data flow, not just the target line. Otherwise, grep for the symbol first.
 - Reuse what this session already established — don't reread an unchanged file or redo a search whose answer is already known and still valid.
-- Prefer diffs over rerereading a file you just edited; prefer targeted single-test runs over the full suite while iterating (the full suite still runs before marking a task done, per the exemption above).
-- When dispatching a subagent, give it only the context its task needs (never the whole conversation history) and require a concise structured return: conclusion, essential evidence, affected files/lines, remaining risks — not a full transcript.
+- Prefer diffs over rereading a file you just edited; prefer targeted single-test runs over the full suite while iterating (the full suite still runs before marking a task done, per the exemption above).
+- When dispatching a subagent, give it only the context its task needs (never the whole conversation history). If a dispatch prompt is about to include more than roughly one file's worth of pasted background, stop — point to a file/ledger entry instead of pasting it. Require a structured return: conclusion, essential evidence, affected files/lines, remaining risks — not a full transcript.
 - Compress a finished investigation into a short conclusion (cause / evidence / affected / decision / remaining risk) instead of carrying the raw exploration forward.
-- Keep status updates and explanations concise — report findings, decisions, and changes, not restated context or obvious intermediate steps.
-- Stop investigating once you have enough evidence for a reliable decision; don't keep digging for marginal confidence.
+- Routine status updates: 1-3 sentences, no restated context. Full detail only when reporting a finding that requires a human decision (a bug, a ruling, a scope question) or documenting something for the ledger.
+- Stop investigating when either: (a) you can cite the specific line(s)/behavior that directly answers the question, or (b) two independent signals agree (e.g., the code and a passing test, or two different searches). If the next read would not change your decision, stop.
 
 If token economy and correctness ever genuinely conflict, correctness wins.
 
