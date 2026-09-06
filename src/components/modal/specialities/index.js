@@ -16,6 +16,8 @@ import {
     TextField,
     Alert,
     Button,
+    FormControlLabel,
+    Switch,
 } from "@mui/material";
 import { showSpeciality } from '../../../store/ducks/specialities';
 import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
@@ -25,10 +27,11 @@ export default function SpecialityModal(props) {
 
 
     const [form, setForm] = useState({
-        name: ""
+        name: "",
+        allows_session_scheduling: false,
     });
 
-    const { name } = form;
+    const { name, allows_session_scheduling } = form;
     const { speciality } = useSelector(state => state.specialities);
     const { isOpenModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
@@ -40,7 +43,8 @@ export default function SpecialityModal(props) {
 
     const cleanForm = () => {
         setForm({
-            name: ""
+            name: "",
+            allows_session_scheduling: false,
         });
         setTexto('');
         dispatch(closeModal());
@@ -116,6 +120,16 @@ export default function SpecialityModal(props) {
                                             maxLength: 50,
                                             autoComplete: "off", // Desativa o preenchimento automático
                                         }}
+                                    />
+
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={Boolean(allows_session_scheduling)}
+                                                onChange={(e) => setForm({ ...form, allows_session_scheduling: e.target.checked })}
+                                            />
+                                        }
+                                        label="Permite agendamento por sessões (ex: Fisioterapia)"
                                     />
 
                                 </Stack>
