@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import {
+    Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FeatherIcon from 'feather-icons-react';
 import { api } from '../../services/api';
@@ -94,6 +97,10 @@ export default function FarmaciaDashboard() {
 
         const seriesMeses = normalizeMeses(dados.aquisicoes_por_mes || [], janelaMeses);
 
+        const consumo = dados.consumo_ranking || [];
+        const consumoNomes = consumo.map((c) => c.nome).reverse();
+        const consumoValores = consumo.map((c) => Number(c.consumo_medio_mensal || 0)).reverse();
+
         return {
             statusLabels,
             disponiveisDia,
@@ -103,6 +110,8 @@ export default function FarmaciaDashboard() {
             fontesLabels,
             fontesValores,
             seriesMeses,
+            consumoNomes,
+            consumoValores,
         };
     }, [dados, janelaMeses]);
 
@@ -252,6 +261,71 @@ export default function FarmaciaDashboard() {
                                 series={chart.fontesValores}
                             />
                         ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                    </BaseCard>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Medicamentos Mais Consumidos (média mensal, últimos 3 meses)">
+                        <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                            Consumo estimado a partir do status diário de disponibilidade — depende de lançamento consistente.
+                        </Typography>
+                        {chart.consumoNomes.length > 0 ? (
+                            <Chart
+                                type="bar"
+                                height={Math.max(300, chart.consumoNomes.length * 36)}
+                                options={{
+                                    chart: { ...chartFont, ...toolbarOff },
+                                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                                    colors: ['#1e88e5'],
+                                    xaxis: { categories: chart.consumoNomes, labels: { style: { colors: '#b0bec5' } } },
+                                    yaxis: { labels: { style: { colors: '#b0bec5', fontSize: '11px' } } },
+                                    dataLabels: { enabled: false },
+                                    tooltip: { theme: 'dark' },
+                                    grid: { borderColor: 'transparent' },
+                                }}
+                                series={[{ name: 'Consumo médio mensal', data: chart.consumoValores }]}
+                            />
+                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados suficientes</Typography>}
+                    </BaseCard>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <BaseCard title="Risco de Falta (menos de 15 dias de estoque)">
+                        <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                            Consumo estimado a partir do status diário de disponibilidade — depende de lançamento consistente.
+                        </Typography>
+                        {(dados.risco_falta || []).length > 0 ? (
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Medicamento</TableCell>
+                                            <TableCell align="right">Estoque Atual</TableCell>
+                                            <TableCell align="right">Consumo/dia</TableCell>
+                                            <TableCell align="right">Dias Restantes</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {(dados.risco_falta || []).map((item) => (
+                                            <TableRow key={item.medicine_item_id}>
+                                                <TableCell>{item.nome}</TableCell>
+                                                <TableCell align="right">{item.estoque_atual}</TableCell>
+                                                <TableCell align="right">{item.consumo_medio_diario}</TableCell>
+                                                <TableCell
+                                                    align="right"
+                                                    sx={{
+                                                        color: item.dias_restantes < 5 ? '#e53935' : '#fb8c00',
+                                                        fontWeight: 700,
+                                                    }}
+                                                >
+                                                    {item.dias_restantes}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Nenhum medicamento em risco de falta no momento</Typography>}
                     </BaseCard>
                 </Grid>
             </Grid>
