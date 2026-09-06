@@ -28,6 +28,7 @@ import QueueModal from "../modal/queue";
 import QueueOutcomeModal from "../modal/outcomequeue";
 import { modalFormRootSx, modalSecondaryButtonSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
+import TreatmentPlanPanel from "./TreatmentPlanPanel";
 
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -816,6 +817,13 @@ export default () => {
                         <Box>
                             <Typography variant="caption" color="text.secondary">ESPECIALIDADE</Typography>
                             <Typography fontWeight={600}>{viewQueue.speciality?.name?.toUpperCase() ?? '—'}</Typography>
+                            {viewQueue.speciality?.allows_session_scheduling && (
+                                <TreatmentPlanPanel
+                                    queueId={viewQueue.id}
+                                    speciality={viewQueue.speciality}
+                                    onChanged={() => dispatch(getAllQueues({ per_page: rowsPerPage, page: page + 1 }))}
+                                />
+                            )}
                         </Box>
                         {viewQueue.obs && (
                             <Box>
