@@ -42,6 +42,22 @@ const toIsoDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+const formatDate = (isoDate) => {
+    if (!isoDate) return '—';
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
+};
+
+const STATUS_LABELS = {
+    active: 'Ativo',
+    completed: 'Concluído',
+    cancelled: 'Cancelado',
+    pending: 'Pendente',
+    rescheduled_pending: 'Reagendado (pendente)',
+    done: 'Concluída',
+};
+const statusLabel = (status) => STATUS_LABELS[status] || status;
+
 export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
     const { profile } = useContext(AuthContext);
     const [plan, setPlan] = useState(null);
@@ -53,6 +69,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
     const [cancelReason, setCancelReason] = useState('');
     const [showCancelForm, setShowCancelForm] = useState(false);
     const [error, setError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     const loadPlan = () => {
         setLoading(true);
@@ -79,16 +96,20 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
 
     const handlePreview = async () => {
         setError('');
+        setSubmitting(true);
         try {
             const result = await previewTreatmentPlan(speciality.id, weekdays, totalSessions);
             setPreviewDates(result.dates);
         } catch (err) {
             setError(err?.response?.data?.message || 'Erro ao calcular as datas.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleConfirm = async () => {
         setError('');
+        setSubmitting(true);
         try {
             await createTreatmentPlan(queueId, weekdays, totalSessions);
             setPreviewDates(null);
@@ -96,12 +117,15 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
             onChanged && onChanged();
         } catch (err) {
             setError(err?.response?.data?.message || 'Erro ao criar o agendamento.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleReschedule = async () => {
         if (!rescheduling?.date || !rescheduling?.reason) return;
         setError('');
+        setSubmitting(true);
         try {
             const updated = await rescheduleTreatmentSession(
                 rescheduling.sessionId,
@@ -113,17 +137,23 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
             onChanged && onChanged();
         } catch (err) {
             setError(err?.response?.data?.message || 'Erro ao adiar a sessão.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleComplete = async (sessionId) => {
+        if (!window.confirm('Confirmar conclusão desta sessão?')) return;
         setError('');
+        setSubmitting(true);
         try {
             const updated = await completeTreatmentSession(sessionId);
             setPlan(updated);
             onChanged && onChanged();
         } catch (err) {
             setError(err?.response?.data?.message || 'Erro ao concluir a sessão.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -133,6 +163,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
             return;
         }
         setError('');
+        setSubmitting(true);
         try {
             const updated = await cancelTreatmentPlan(plan.id, cancelReason.trim());
             setPlan(updated);
@@ -141,11 +172,49 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
             onChanged && onChanged();
         } catch (err) {
             setError(err?.response?.data?.message || 'Erro ao cancelar o plano.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
+    const renderSessionsTable = (sessions, { readOnly = false } = {}) => (
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell>Data</TableCell>
+                    <TableCell>Status</TableCell>
+                    {!readOnly && <TableCell align="right">Ações</TableCell>}
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {sessions.map((session) => (
+                    <TableRow key={session.id}>
+                        <TableCell>{formatDate(session.scheduled_date)}</TableCell>
+                        <TableCell>{statusLabel(session.status)}</TableCell>
+                        {!readOnly && (
+                            <TableCell align="right">
+                                {['pending', 'rescheduled_pending'].includes(session.status) && (
+                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                        <Button size="small" disabled={submitting} onClick={() => handleComplete(session.id)}>
+                                            Concluir
+                                        </Button>
+                                        <Button size="small" disabled={submitting} onClick={() => setRescheduling({ sessionId: session.id, date: null, reason: '' })}>
+                                            Adiar
+                                        </Button>
+                                    </Stack>
+                                )}
+                            </TableCell>
+                        )}
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+
     if (!speciality?.allows_session_scheduling) return null;
     if (loading) return <Typography variant="body2">Carregando agendamento por sessões…</Typography>;
+
+    const hasActivePlan = plan && plan.status === 'active';
 
     return (
         <Box sx={{ mt: 2, p: 2, border: '1px solid var(--lg-border)', borderRadius: 1 }}>
@@ -155,7 +224,16 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
 
             {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
 
-            {!plan && (
+            {plan && !hasActivePlan && (
+                <Stack spacing={1.5} sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                        Histórico: <strong>{statusLabel(plan.status)}</strong> — Previsão de término: {formatDate(plan.expected_end_at)}
+                    </Typography>
+                    {renderSessionsTable(plan.sessions, { readOnly: true })}
+                </Stack>
+            )}
+
+            {!hasActivePlan && (
                 <Stack spacing={1.5}>
                     <Typography variant="body2">Dias da semana:</Typography>
                     <Stack direction="row" flexWrap="wrap">
@@ -183,7 +261,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                     {!previewDates && (
                         <Button
                             variant="outlined"
-                            disabled={weekdays.length === 0}
+                            disabled={weekdays.length === 0 || submitting}
                             onClick={handlePreview}
                         >
                             Calcular datas
@@ -197,13 +275,13 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                                 ficarão agendadas nas datas geradas abaixo.
                             </Alert>
                             <Typography variant="body2">
-                                {previewDates.join(', ')}
+                                {previewDates.map(formatDate).join(', ')}
                             </Typography>
                             <Stack direction="row" spacing={1}>
-                                <Button variant="contained" onClick={handleConfirm}>
+                                <Button variant="contained" disabled={submitting} onClick={handleConfirm}>
                                     Confirmar agendamento
                                 </Button>
-                                <Button variant="text" onClick={() => setPreviewDates(null)}>
+                                <Button variant="text" disabled={submitting} onClick={() => setPreviewDates(null)}>
                                     Voltar
                                 </Button>
                             </Stack>
@@ -212,41 +290,13 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                 </Stack>
             )}
 
-            {plan && (
+            {hasActivePlan && (
                 <Stack spacing={1.5}>
                     <Typography variant="body2">
-                        Status: <strong>{plan.status}</strong> — Previsão de término: {plan.expected_end_at}
+                        Status: <strong>{statusLabel(plan.status)}</strong> — Previsão de término: {formatDate(plan.expected_end_at)}
                     </Typography>
 
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Data</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell align="right">Ações</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {plan.sessions.map((session) => (
-                                <TableRow key={session.id}>
-                                    <TableCell>{session.scheduled_date}</TableCell>
-                                    <TableCell>{session.status}</TableCell>
-                                    <TableCell align="right">
-                                        {['pending', 'rescheduled_pending'].includes(session.status) && (
-                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                <Button size="small" onClick={() => handleComplete(session.id)}>
-                                                    Concluir
-                                                </Button>
-                                                <Button size="small" onClick={() => setRescheduling({ sessionId: session.id, date: null, reason: '' })}>
-                                                    Adiar
-                                                </Button>
-                                            </Stack>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    {renderSessionsTable(plan.sessions)}
 
                     {rescheduling && (
                         <Stack spacing={1} sx={{ p: 1.5, border: '1px dashed var(--lg-border)' }}>
@@ -264,8 +314,8 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                                 minRows={2}
                             />
                             <Stack direction="row" spacing={1}>
-                                <Button variant="contained" onClick={handleReschedule}>Salvar adiamento</Button>
-                                <Button variant="text" onClick={() => setRescheduling(null)}>Cancelar</Button>
+                                <Button variant="contained" disabled={submitting} onClick={handleReschedule}>Salvar adiamento</Button>
+                                <Button variant="text" disabled={submitting} onClick={() => setRescheduling(null)}>Cancelar</Button>
                             </Stack>
                         </Stack>
                     )}
@@ -286,10 +336,10 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
                                         minRows={2}
                                     />
                                     <Stack direction="row" spacing={1}>
-                                        <Button color="error" variant="contained" onClick={handleCancelPlan}>
+                                        <Button color="error" variant="contained" disabled={submitting} onClick={handleCancelPlan}>
                                             Confirmar cancelamento
                                         </Button>
-                                        <Button variant="text" onClick={() => setShowCancelForm(false)}>
+                                        <Button variant="text" disabled={submitting} onClick={() => setShowCancelForm(false)}>
                                             Voltar
                                         </Button>
                                     </Stack>

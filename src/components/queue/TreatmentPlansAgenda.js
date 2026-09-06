@@ -15,6 +15,12 @@ import BaseCard from '../baseCard/BaseCard';
 import TreatmentPlanPanel from './TreatmentPlanPanel';
 import { api } from '../../services/api';
 
+const formatDate = (isoDate) => {
+    if (!isoDate) return '—';
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
+};
+
 export default function TreatmentPlansAgenda() {
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -54,7 +60,7 @@ export default function TreatmentPlansAgenda() {
                                 <TableCell>{plan.client_name}</TableCell>
                                 <TableCell>{plan.speciality_name}</TableCell>
                                 <TableCell>{doneCount(plan)} de {plan.total_sessions} sessões concluídas</TableCell>
-                                <TableCell>{plan.expected_end_at}</TableCell>
+                                <TableCell>{formatDate(plan.expected_end_at)}</TableCell>
                             </TableRow>
                         ))}
                         {plans.length === 0 && (
