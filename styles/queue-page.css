@@ -187,7 +187,13 @@
 }
 
 .queue-page .queue-page__toolbar .lg-search-field {
-  min-width: 320px;
+  min-width: min(320px, 100%);
+}
+
+@media (max-width: 480px) {
+  .queue-page .queue-page__toolbar {
+    gap: 8px;
+  }
 }
 
 .queue-page .queue-page__toolbar .trips-search-field {
