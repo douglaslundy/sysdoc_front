@@ -32,6 +32,11 @@ Goal: maximize useful, correct work per token spent. This governs *exploration, 
 - Routine status updates: 1-3 sentences, no restated context. Full detail only when reporting a finding that requires a human decision (a bug, a ruling, a scope question) or documenting something for the ledger.
 - Stop investigating when either: (a) you can cite the specific line(s)/behavior that directly answers the question, or (b) two independent signals agree (e.g., the code and a passing test, or two different searches). If the next read would not change your decision, stop.
 
+**Encoding guard (this codebase has PT-BR text with accented characters everywhere — code, commit messages, UI strings, docs):**
+- Never guess file/text encoding. Write or edit any file containing non-ASCII characters (á, ã, ç, é, ê, í, ó, õ, ú, etc.) with the Write/Edit tools directly, not via shell heredocs, `echo`, or output redirection — those go through the shell's console codepage and can silently mangle UTF-8 into mojibake (garbled sequences like `Ã£`, `Â´`, `â€™`).
+- When a shell command must itself carry accented text (e.g., a `git commit -m` message), confirm you're on UTF-8 first; on Windows PowerShell specifically, never use `Out-File`/`Set-Content` on such text without `-Encoding utf8`, since the default is not UTF-8.
+- After any command that generates or transports accented text, spot-check the result (a quick read-back or `git log`/`git show`) for mojibake before trusting it — don't assume it came through clean.
+
 If token economy and correctness ever genuinely conflict, correctness wins.
 
 ---
