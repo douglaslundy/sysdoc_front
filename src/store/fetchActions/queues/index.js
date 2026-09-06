@@ -47,7 +47,7 @@ export const getQueueSpecialityOptions = () => {
         api
             .get('/queues/specialities-options')
             .then((res) => {
-                dispatch(setQueueSpecialityOptions(res.data || []));
+                dispatch(setQueueSpecialityOptions(Array.isArray(res.data) ? res.data : []));
             })
             .catch(() => {})
     }

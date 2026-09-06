@@ -70,6 +70,7 @@ export default function UserModal(props) {
   const [loadingEquipes, setLoadingEquipes] = useState(false);
   const [protocolUnits, setProtocolUnits] = useState([]);
   const [specialityPermissions, setSpecialityPermissions] = useState([]);
+  const [specialityPermissionsLoaded, setSpecialityPermissionsLoaded] = useState(false);
 
   const { user } = useSelector((state) => state.users);
   const { isOpenUserModal } = useSelector((state) => state.layout);
@@ -110,6 +111,7 @@ export default function UserModal(props) {
     setEquipesOpcoes([]);
     setProtocolUnits([]);
     setSpecialityPermissions([]);
+    setSpecialityPermissionsLoaded(false);
     dispatch(turnUserModal());
     dispatch(showUser({}));
   };
@@ -143,14 +145,16 @@ export default function UserModal(props) {
           equipes: form.is_rt_psf && !form.rt_all_teams ? equipesRt : [],
         }).catch(() => {});
 
-        await api.put(`/users/${user.id}/speciality-permissions`, {
-          permissions: specialityPermissions.map((item) => ({
-            speciality_id: item.speciality_id,
-            can_view: item.can_view,
-            can_edit: item.can_edit,
-            can_insert: item.can_insert,
-          })),
-        }).catch(() => {});
+        if (specialityPermissionsLoaded) {
+          await api.put(`/users/${user.id}/speciality-permissions`, {
+            permissions: specialityPermissions.map((item) => ({
+              speciality_id: item.speciality_id,
+              can_view: item.can_view,
+              can_edit: item.can_edit,
+              can_insert: item.can_insert,
+            })),
+          }).catch(() => {});
+        }
       }
       cleanForm();
     };
@@ -207,7 +211,10 @@ export default function UserModal(props) {
           .then(r => setEquipesRt(r.data.equipes ?? []))
           .catch(() => {});
         api.get(`/users/${user.id}/speciality-permissions`)
-          .then(r => setSpecialityPermissions(r.data ?? []))
+          .then(r => {
+            setSpecialityPermissions(r.data ?? []);
+            setSpecialityPermissionsLoaded(true);
+          })
           .catch(() => {});
       }
     }
@@ -462,7 +469,7 @@ export default function UserModal(props) {
                         />
                       )}
 
-                      {Boolean(user && user.id) && (
+                      {Boolean(user && user.id) && specialityPermissionsLoaded && specialityPermissions.length > 0 && (
                         <>
                           <Typography
                             sx={{
