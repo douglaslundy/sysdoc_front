@@ -1,5 +1,5 @@
 import { api } from "../../../services/api";
-import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination } from "../../ducks/queues";
+import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination, setQueueSpecialityOptions } from "../../ducks/queues";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 import { format } from 'date-fns';
@@ -38,6 +38,18 @@ export const getAllQueues = (params = {}) => {
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
+export const getQueueSpecialityOptions = () => {
+
+    return (dispatch) => {
+        api
+            .get('/queues/specialities-options')
+            .then((res) => {
+                dispatch(setQueueSpecialityOptions(Array.isArray(res.data) ? res.data : []));
+            })
+            .catch(() => {})
     }
 }
 

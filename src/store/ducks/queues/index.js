@@ -3,6 +3,7 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 const INITIAL_STATE = {
   queues: [],
   queue: {},
+  specialityOptions: [],
   pagination: {
     current_page: 1,
     per_page: 10,
@@ -16,6 +17,7 @@ export const addQueues = createAction('ADD_QUEUES');
 export const setQueuesPagination = createAction('SET_QUEUES_PAGINATION');
 export const showQueue = createAction('SHOW_QUEUE');
 export const inactiveQueue = createAction('INACTIVE_QUEUE');
+export const setQueueSpecialityOptions = createAction('SET_QUEUE_SPECIALITY_OPTIONS');
 
 const queueReducer = createReducer(INITIAL_STATE, (builder) => {
   builder
@@ -36,6 +38,9 @@ const queueReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(showQueue, (state, action) => {
       state.queue = action.payload;
+    })
+    .addCase(setQueueSpecialityOptions, (state, action) => {
+      state.specialityOptions = action.payload;
     });
 });
 
