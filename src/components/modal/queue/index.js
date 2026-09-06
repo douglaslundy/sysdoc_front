@@ -69,6 +69,17 @@ export default function QueueModal(props) {
     const dispatch = useDispatch();
     const { clients } = useSelector(state => state.clients);
     const { specialities } = useSelector(state => state.specialities);
+    const { specialityOptions } = useSelector(state => state.queues);
+
+    const isEditingExistingQueue = Boolean(form?.id);
+
+    const selectableSpecialities = specialityOptions.length === 0
+        ? specialities
+        : specialities.filter((s) => {
+            const opt = specialityOptions.find((o) => o.id === s.id);
+            if (!opt) return false;
+            return isEditingExistingQueue ? (opt.can_edit || s.id === form.speciality) : opt.can_insert;
+        });
 
     const [cli, setClient] = useState([]);
 
@@ -456,7 +467,7 @@ export default function QueueModal(props) {
                                         value={speciality}
                                         label={'Especialidade'}
                                         name={'speciality'}
-                                        store={specialities}
+                                        store={selectableSpecialities}
                                         changeItem={changeItem}
                                         wd={"100%"}
                                         selectSx={selectControlSx}
