@@ -308,7 +308,7 @@ export default function TripModal(props) {
                         Viagem cadastrada com sucesso!
                     </Typography>
                     <Typography variant="body2">
-                        Deseja replicar esta viagem para outras datas?
+                        Deseja replicar a rota e as observações desta viagem para outras datas? Motorista, veículo e pacientes são adicionados depois, em cada viagem.
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
