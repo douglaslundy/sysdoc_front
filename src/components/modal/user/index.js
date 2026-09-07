@@ -189,6 +189,28 @@ export default function UserModal(props) {
     }));
   };
 
+  const toggleAllSpecialityPermissions = (field) => {
+    setSpecialityPermissions((current) => {
+      const allChecked = current.length > 0 && current.every((item) => item[field]);
+      const nextValue = !allChecked;
+
+      return current.map((item) => {
+        const next = { ...item, [field]: nextValue };
+
+        if ((field === 'can_edit' || field === 'can_insert') && nextValue) {
+          next.can_view = true;
+        }
+
+        if (field === 'can_view' && !nextValue) {
+          next.can_edit = false;
+          next.can_insert = false;
+        }
+
+        return next;
+      });
+    });
+  };
+
   const handleClose = () => {
     cleanForm();
   };
@@ -487,9 +509,45 @@ export default function UserModal(props) {
                             <TableHead>
                               <TableRow>
                                 <TableCell>Especialidade</TableCell>
-                                <TableCell align="center">Ver</TableCell>
-                                <TableCell align="center">Editar</TableCell>
-                                <TableCell align="center">Inserir paciente</TableCell>
+                                <TableCell align="center">
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Checkbox
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_view)}
+                                      indeterminate={
+                                        !specialityPermissions.every((item) => item.can_view) &&
+                                        specialityPermissions.some((item) => item.can_view)
+                                      }
+                                      onChange={() => toggleAllSpecialityPermissions('can_view')}
+                                    />
+                                    Ver
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Checkbox
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_edit)}
+                                      indeterminate={
+                                        !specialityPermissions.every((item) => item.can_edit) &&
+                                        specialityPermissions.some((item) => item.can_edit)
+                                      }
+                                      onChange={() => toggleAllSpecialityPermissions('can_edit')}
+                                    />
+                                    Editar
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Checkbox
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_insert)}
+                                      indeterminate={
+                                        !specialityPermissions.every((item) => item.can_insert) &&
+                                        specialityPermissions.some((item) => item.can_insert)
+                                      }
+                                      onChange={() => toggleAllSpecialityPermissions('can_insert')}
+                                    />
+                                    Inserir paciente
+                                  </Box>
+                                </TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
