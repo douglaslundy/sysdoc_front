@@ -26,6 +26,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import NoticeRichTextEditor from './NoticeRichTextEditor';
+import NoticeModal from './NoticeModal';
 
 const EMPTY = {
   title: '',
@@ -53,6 +54,7 @@ export default function AdminSystemNotices() {
     confirm: null,
     onConfirm: null,
   });
+  const [previewNotice, setPreviewNotice] = useState(null);
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -276,6 +278,14 @@ export default function AdminSystemNotices() {
                     <Chip size="small" color={notice.is_active ? 'success' : 'default'} label={notice.is_active ? 'Ativo' : 'Inativo'} />
                   </TableCell>
                   <TableCell>
+                    <Button
+                      color="primary"
+                      startIcon={<FeatherIcon icon="eye" width="16" height="16" />}
+                      onClick={() => setPreviewNotice(notice)}
+                      sx={{ mr: 1 }}
+                    >
+                      Preview
+                    </Button>
                     <Button color="error" onClick={() => confirmRemove(notice)}>
                       Excluir
                     </Button>
@@ -294,6 +304,7 @@ export default function AdminSystemNotices() {
         </TableContainer>
       </BaseCard>
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+      <NoticeModal previewNotice={previewNotice} onPreviewClose={() => setPreviewNotice(null)} />
     </Box>
   );
 }
