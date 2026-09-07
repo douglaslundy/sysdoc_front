@@ -13,6 +13,7 @@ import {
     listFiscalizacaoAttachments,
     uploadFiscalizacaoAttachments,
     deleteFiscalizacaoAttachment,
+    downloadFiscalizacaoAttachment,
 } from '../../../services/fiscalizacaoAttachments';
 import BaseCard from '../../baseCard/BaseCard';
 
@@ -88,6 +89,15 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
             setAttachments((current) => current.filter((a) => a.id !== attachmentId));
         } catch (err) {
             setLocalError(err?.response?.data?.message || 'Erro ao remover anexo.');
+        }
+    };
+
+    const handleDownloadAttachment = async (attachment) => {
+        if (!fiscalizacao?.id) return;
+        try {
+            await downloadFiscalizacaoAttachment(fiscalizacao.id, attachment);
+        } catch (err) {
+            setLocalError(err?.response?.data?.message || 'Erro ao baixar anexo.');
         }
     };
 
@@ -193,9 +203,14 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                                         <ListItem
                                             key={a.id}
                                             secondaryAction={
-                                                <IconButton edge="end" onClick={() => handleRemoveAttachment(a.id)} title="Remover">
-                                                    <FeatherIcon icon="trash" width="16" height="16" />
-                                                </IconButton>
+                                                <>
+                                                    <IconButton edge="end" onClick={() => handleDownloadAttachment(a)} title="Baixar" sx={{ mr: 0.5 }}>
+                                                        <FeatherIcon icon="download" width="16" height="16" />
+                                                    </IconButton>
+                                                    <IconButton edge="end" onClick={() => handleRemoveAttachment(a.id)} title="Remover">
+                                                        <FeatherIcon icon="trash" width="16" height="16" />
+                                                    </IconButton>
+                                                </>
                                             }
                                         >
                                             <ListItemText primary={a.original_name} />

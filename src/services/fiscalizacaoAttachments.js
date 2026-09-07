@@ -14,5 +14,19 @@ export const uploadFiscalizacaoAttachments = (fiscalizacaoId, files) => {
 export const deleteFiscalizacaoAttachment = (fiscalizacaoId, attachmentId) =>
     api.delete(`/fiscalizacoes/${fiscalizacaoId}/attachments/${attachmentId}`).then((res) => res.data);
 
-export const downloadFiscalizacaoAttachmentUrl = (fiscalizacaoId, attachmentId) =>
-    `/fiscalizacoes/${fiscalizacaoId}/attachments/${attachmentId}/download`;
+export const downloadFiscalizacaoAttachment = async (fiscalizacaoId, attachment) => {
+    const response = await api.get(
+        `/fiscalizacoes/${fiscalizacaoId}/attachments/${attachment.id}/download`,
+        { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], { type: attachment.mime_type || 'application/octet-stream' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = attachment.original_name || `anexo-${attachment.id}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
+};
