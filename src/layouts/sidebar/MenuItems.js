@@ -130,6 +130,7 @@ const Menuitems = [
     children: [
       { title: "Estabelecimentos", icon: "home", href: "/estabelecimentos" },
       { title: "Alvarás", icon: "award", href: "/alvaras" },
+      { title: "Fiscalizações", icon: "clipboard", href: "/fiscalizacoes" },
       { title: "Configurações", icon: "settings", href: "/vigilancia/configuracoes", profile: ["admin"] },
     ],
   },
