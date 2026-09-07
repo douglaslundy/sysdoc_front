@@ -34,6 +34,7 @@ import {
 } from "@mui/material";
 import BaseCard from "../../src/components/baseCard/BaseCard";
 import AlertModal from "../../src/components/messagesModal";
+import NewProtocolModal from "../../src/components/protocolo/NewProtocolModal";
 import {
   modalFormRootSx,
   modalSecondaryButtonSx,
@@ -392,6 +393,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [loadingVisualizations, setLoadingVisualizations] = useState(false);
   const [historicoMovements, setHistoricoMovements] = useState([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [novoModalOpen, setNovoModalOpen] = useState(false);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
   const unitById = useMemo(() => {
@@ -814,7 +816,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         </Grid>
       </Grid>
 
-      <BaseCard title="Protocolos recentes">
+      <BaseCard title="Protocolos">
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mb: 2 }}>
           <TextField
             className="lg-search-field"
@@ -822,11 +824,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
+              setPage(0);
             }}
             sx={{ minWidth: 280, flex: 1 }}
           />
-          <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>
-            Ver caixa de entrada
+          <Button variant="contained" onClick={() => setNovoModalOpen(true)}>
+            + Novo Protocolo
           </Button>
         </Box>
 
@@ -842,7 +845,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRecentProtocols.length > 0 ? filteredRecentProtocols.map((protocol) => (
+            {protocols.length > 0 ? protocols.map((protocol) => (
               <TableRow
                 key={protocol.id}
                 hover
@@ -871,8 +874,28 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             )}
           </TableBody>
         </Table>
-
+        <TablePagination
+          component="div"
+          count={total}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+        />
       </BaseCard>
+
+      <NewProtocolModal
+        open={novoModalOpen}
+        onClose={() => setNovoModalOpen(false)}
+        onCreated={(successMessage) => {
+          setNovoModalOpen(false);
+          setMessage(successMessage);
+          loadList();
+        }}
+      />
     </Box>
   );
   const renderDetail = () => {
