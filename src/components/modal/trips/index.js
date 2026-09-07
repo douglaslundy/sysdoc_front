@@ -31,6 +31,9 @@ import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
 import DateTime from '../../inputs/dateTime';
 import BasicDatePicker from '../../inputs/datePicker';
+import { format } from 'date-fns';
+import ReplicateTripModal from '../trips/replicate';
+
 export default function TripModal(props) {
 
 
@@ -55,6 +58,8 @@ export default function TripModal(props) {
     // const [driv, setDriver] = useState([]);
     const [texto, setTexto] = useState();
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [createdTrip, setCreatedTrip] = useState(null);
+    const [replicateOpen, setReplicateOpen] = useState(false);
 
     const formatDisplayDate = (date) => {
         try {
@@ -98,7 +103,7 @@ export default function TripModal(props) {
 
     const handlePostData = async () => {
         dispatch(changeTitleAlert(`Viagem Cadastrada com sucesso!`));
-        dispatch(addTripFetch(form, cleanForm));
+        dispatch(addTripFetch(form, cleanForm, (trip) => setCreatedTrip(trip)));
     };
 
     const handlePutData = async () => {
@@ -290,6 +295,44 @@ export default function TripModal(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Viagem cadastrada: oferece replicar para outras datas */}
+            <Dialog
+                open={!!createdTrip}
+                onClose={() => setCreatedTrip(null)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogContent sx={{ textAlign: 'center', pt: 5, pb: 3 }}>
+                    <Typography variant="body1" sx={{ mb: 1, fontSize: 18 }}>
+                        Viagem cadastrada com sucesso!
+                    </Typography>
+                    <Typography variant="body2">
+                        Deseja replicar esta viagem para outras datas?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={() => setReplicateOpen(true)}
+                    >
+                        Replicar Viagem
+                    </Button>
+                    <Button variant="outlined" size="large" onClick={() => setCreatedTrip(null)}>
+                        Fechar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <ReplicateTripModal
+                open={replicateOpen}
+                trip={createdTrip}
+                onClose={() => {
+                    setReplicateOpen(false);
+                    setCreatedTrip(null);
+                }}
+            />
         </div >
     );
 }

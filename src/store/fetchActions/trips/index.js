@@ -27,7 +27,7 @@ export const getAllTrips = () => {
     }
 }
 
-export const addTripFetch = (trip, cleanForm) => {
+export const addTripFetch = (trip, cleanForm, onCreated) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -54,6 +54,7 @@ export const addTripFetch = (trip, cleanForm) => {
                 dispatch(addMessage(`Viagem cadastrado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
+                onCreated && onCreated(res.trip),
                 cleanForm()
             ))
             .catch((error) => {
