@@ -97,7 +97,6 @@ const Menuitems = [
     icon: "inbox",
     group: true,
     children: [
-      { title: "Protocolo", icon: "inbox", href: "/protocolo" },
       { title: "Caixa de Entrada", icon: "mail", href: "/protocolo/caixa-entrada" },
       { title: "Novo Protocolo", icon: "plus-circle", href: "/protocolo/novo" },
       { title: "Estrutura Organizacional", icon: "layers", href: "/protocolo/estrutura" },
