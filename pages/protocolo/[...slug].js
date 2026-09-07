@@ -49,9 +49,8 @@ const routes = {
 };
 
 const modeLabels = {
-  home: "Protocolo",
+  home: "Caixa de Entrada",
   inbox: "Caixa de Entrada",
-  novo: "Novo Protocolo",
   estrutura: "Estrutura Organizacional",
   alertas: "Alertas",
   detail: "Detalhes do Protocolo",
