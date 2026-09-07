@@ -270,7 +270,7 @@ export const getAllTripsPerDate = (dateBegin, dateEnd) => {
     }
 }
 
-export const replicateTripFetch = (tripId, dates, onSuccess) => {
+export const replicateTripFetch = (tripId, dates, onSuccess, onError) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
@@ -285,6 +285,7 @@ export const replicateTripFetch = (tripId, dates, onSuccess) => {
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
+                onError && onError(error);
             })
     };
 };

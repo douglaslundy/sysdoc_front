@@ -45,6 +45,8 @@ export default function ReplicateTripModal({ open, trip, onClose }) {
 
         dispatch(replicateTripFetch(trip.id, dates, () => {
             handleClose();
+        }, () => {
+            setSubmitting(false);
         }));
     };
 
