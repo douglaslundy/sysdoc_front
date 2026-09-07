@@ -2,7 +2,6 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
     fiscalizacoes: [],
-    fiscalizacao: {},
     pagination: null,
 };
 
@@ -10,7 +9,6 @@ export const addFiscalizacao = createAction('ADD_FISCALIZACAO');
 export const editFiscalizacao = createAction('EDIT_FISCALIZACAO');
 export const removeFiscalizacao = createAction('REMOVE_FISCALIZACAO');
 export const addFiscalizacoes = createAction('ADD_FISCALIZACOES');
-export const showFiscalizacao = createAction('SHOW_FISCALIZACAO');
 export const setFiscalizacaoPagination = createAction('SET_FISCALIZACAO_PAGINATION');
 
 const fiscalizacaoReducer = createReducer(INITIAL_STATE, (builder) => {
@@ -32,9 +30,6 @@ const fiscalizacaoReducer = createReducer(INITIAL_STATE, (builder) => {
         })
         .addCase(setFiscalizacaoPagination, (state, action) => {
             state.pagination = action.payload;
-        })
-        .addCase(showFiscalizacao, (state, action) => {
-            state.fiscalizacao = action.payload;
         });
 });
 

@@ -26,7 +26,7 @@ const EMPTY = {
     observacoes: '',
 };
 
-export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSuccess }) {
+export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSuccess, onCreateSuccess }) {
     const dispatch = useDispatch();
     const { selectList } = useSelector(state => state.estabelecimentos);
     const [form, setForm] = useState(EMPTY);
@@ -63,7 +63,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         if (fiscalizacao?.id) {
             dispatch(editFiscalizacaoFetch(fiscalizacao.id, dados, onSuccess, setLocalError));
         } else {
-            dispatch(addFiscalizacaoFetch(dados, onSuccess, setLocalError));
+            dispatch(addFiscalizacaoFetch(dados, onCreateSuccess || onSuccess, setLocalError));
         }
     };
 
@@ -182,22 +182,38 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                                     Fotos e documentos
                                 </Typography>
-                                <Button
-                                    component="label"
-                                    variant="outlined"
-                                    disabled={uploading}
-                                    startIcon={<FeatherIcon icon="camera" width="18" height="18" />}
-                                >
-                                    {uploading ? 'Enviando...' : 'Adicionar foto ou documento'}
-                                    <input
-                                        type="file"
-                                        hidden
-                                        multiple
-                                        accept="image/*,application/pdf"
-                                        capture="environment"
-                                        onChange={handleUpload}
-                                    />
-                                </Button>
+                                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+                                    <Button
+                                        component="label"
+                                        variant="outlined"
+                                        disabled={uploading}
+                                        startIcon={<FeatherIcon icon="camera" width="18" height="18" />}
+                                    >
+                                        {uploading ? 'Enviando...' : 'Tirar foto'}
+                                        <input
+                                            type="file"
+                                            hidden
+                                            accept="image/*"
+                                            capture="environment"
+                                            onChange={handleUpload}
+                                        />
+                                    </Button>
+                                    <Button
+                                        component="label"
+                                        variant="outlined"
+                                        disabled={uploading}
+                                        startIcon={<FeatherIcon icon="paperclip" width="18" height="18" />}
+                                    >
+                                        {uploading ? 'Enviando...' : 'Escolher arquivo'}
+                                        <input
+                                            type="file"
+                                            hidden
+                                            multiple
+                                            accept="image/*,application/pdf"
+                                            onChange={handleUpload}
+                                        />
+                                    </Button>
+                                </Stack>
                                 <List dense>
                                     {attachments.map((a) => (
                                         <ListItem
@@ -217,7 +233,9 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                                         </ListItem>
                                     ))}
                                     {attachments.length === 0 && (
-                                        <Typography variant="body2" color="textSecondary">Nenhum anexo ainda.</Typography>
+                                        <ListItem>
+                                            <ListItemText primary="Nenhum anexo ainda." primaryTypographyProps={{ color: 'textSecondary' }} />
+                                        </ListItem>
                                     )}
                                 </List>
                             </Box>

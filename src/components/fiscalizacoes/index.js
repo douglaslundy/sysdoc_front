@@ -128,6 +128,14 @@ export default function ListaFiscalizacoes() {
         dispatch(getAllFiscalizacoes(buildParams()));
     };
 
+    // Apos criar, mantem o dialogo aberto em modo edicao (em vez de fechar)
+    // para que o fiscal consiga anexar fotos/documentos na mesma sessao,
+    // sem precisar reabrir o registro recem-criado.
+    const handleCreateSuccess = (criada) => {
+        setEditando(criada);
+        dispatch(getAllFiscalizacoes(buildParams()));
+    };
+
     return (
         <Box sx={modalFormRootSx} className="queue-page fiscalizacoes-page">
         <BaseCard title={`Fiscalizações${pagination ? ` — ${pagination.total} registros` : ''}`}>
@@ -221,6 +229,7 @@ export default function ListaFiscalizacoes() {
                 onClose={() => setDialogOpen(false)}
                 fiscalizacao={editando}
                 onSuccess={handleSuccess}
+                onCreateSuccess={handleCreateSuccess}
             />
 
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
