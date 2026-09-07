@@ -3,10 +3,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import {
     Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField,
+    Typography, List, ListItem, ListItemText, IconButton,
 } from '@mui/material';
+import FeatherIcon from 'feather-icons-react';
 import { modalBackdropSx, modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addFiscalizacaoFetch, editFiscalizacaoFetch } from '../../../store/fetchActions/fiscalizacoes';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
+import {
+    listFiscalizacaoAttachments,
+    uploadFiscalizacaoAttachments,
+    deleteFiscalizacaoAttachment,
+} from '../../../services/fiscalizacaoAttachments';
 import BaseCard from '../../baseCard/BaseCard';
 
 const RESULTADO_OPTIONS = ['Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
@@ -23,6 +30,8 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
     const { selectList } = useSelector(state => state.estabelecimentos);
     const [form, setForm] = useState(EMPTY);
     const [localError, setLocalError] = useState('');
+    const [attachments, setAttachments] = useState([]);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -37,6 +46,11 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                 }
                 : EMPTY
             );
+            if (fiscalizacao?.id) {
+                listFiscalizacaoAttachments(fiscalizacao.id).then(setAttachments).catch(() => setAttachments([]));
+            } else {
+                setAttachments([]);
+            }
         }
     }, [open, fiscalizacao?.id]);
 
@@ -49,6 +63,31 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
             dispatch(editFiscalizacaoFetch(fiscalizacao.id, dados, onSuccess, setLocalError));
         } else {
             dispatch(addFiscalizacaoFetch(dados, onSuccess, setLocalError));
+        }
+    };
+
+    const handleUpload = async (event) => {
+        const files = event.target.files;
+        if (!files || files.length === 0 || !fiscalizacao?.id) return;
+        setUploading(true);
+        try {
+            const result = await uploadFiscalizacaoAttachments(fiscalizacao.id, files);
+            setAttachments((current) => [...result.attachments, ...current]);
+        } catch (err) {
+            setLocalError(err?.response?.data?.message || 'Erro ao enviar anexo.');
+        } finally {
+            setUploading(false);
+            event.target.value = '';
+        }
+    };
+
+    const handleRemoveAttachment = async (attachmentId) => {
+        if (!fiscalizacao?.id) return;
+        try {
+            await deleteFiscalizacaoAttachment(fiscalizacao.id, attachmentId);
+            setAttachments((current) => current.filter((a) => a.id !== attachmentId));
+        } catch (err) {
+            setLocalError(err?.response?.data?.message || 'Erro ao remover anexo.');
         }
     };
 
@@ -127,6 +166,47 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                             minRows={3}
                             inputProps={{ maxLength: 2000 }}
                         />
+
+                        {fiscalizacao?.id && (
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                                    Fotos e documentos
+                                </Typography>
+                                <Button
+                                    component="label"
+                                    variant="outlined"
+                                    disabled={uploading}
+                                    startIcon={<FeatherIcon icon="camera" width="18" height="18" />}
+                                >
+                                    {uploading ? 'Enviando...' : 'Adicionar foto ou documento'}
+                                    <input
+                                        type="file"
+                                        hidden
+                                        multiple
+                                        accept="image/*,application/pdf"
+                                        capture="environment"
+                                        onChange={handleUpload}
+                                    />
+                                </Button>
+                                <List dense>
+                                    {attachments.map((a) => (
+                                        <ListItem
+                                            key={a.id}
+                                            secondaryAction={
+                                                <IconButton edge="end" onClick={() => handleRemoveAttachment(a.id)} title="Remover">
+                                                    <FeatherIcon icon="trash" width="16" height="16" />
+                                                </IconButton>
+                                            }
+                                        >
+                                            <ListItemText primary={a.original_name} />
+                                        </ListItem>
+                                    ))}
+                                    {attachments.length === 0 && (
+                                        <Typography variant="body2" color="textSecondary">Nenhum anexo ainda.</Typography>
+                                    )}
+                                </List>
+                            </Box>
+                        )}
                     </Stack>
                     <Box sx={{ display: 'flex', gap: 1, mt: 2.2, justifyContent: 'flex-end' }}>
                         <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
