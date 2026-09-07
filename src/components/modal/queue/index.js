@@ -102,20 +102,25 @@ export default function QueueModal(props) {
     });
 
     const syncQueueSnapshot = async (queueId) => {
-        const res = await getQueueById(queueId);
-        const updatedQueue = res.data;
+        try {
+            const res = await getQueueById(queueId);
+            const updatedQueue = res.data;
 
-        dispatch(showQueue(updatedQueue));
-        dispatch(editQueue(updatedQueue));
+            dispatch(showQueue(updatedQueue));
+            dispatch(editQueue(updatedQueue));
 
-        setForm((prev) => ({
-            ...prev,
-            ...updatedQueue,
-            client: updatedQueue.id_client ?? prev.client,
-            speciality: updatedQueue.id_specialities ?? prev.speciality,
-            urgency: Boolean(updatedQueue.urgency),
-            obs: updatedQueue.obs ?? '',
-        }));
+            setForm((prev) => ({
+                ...prev,
+                ...updatedQueue,
+                client: updatedQueue.id_client ?? prev.client,
+                speciality: updatedQueue.id_specialities ?? prev.speciality,
+                urgency: Boolean(updatedQueue.urgency),
+                obs: updatedQueue.obs ?? '',
+            }));
+        } catch (error) {
+            // Não deixar essa atualização em segundo plano travar o modal (ver handlePostData/handlePutData,
+            // que sempre liberam isSubmittingQueue em um finally mesmo se esta chamada falhar).
+        }
     };
 
 
@@ -158,51 +163,62 @@ export default function QueueModal(props) {
             showGlobalMessage: false,
             cleanForm,
             onSuccess: async (createdQueue) => {
-                setAlertState({
-                    visible: true,
-                    type: 'success',
-                    message: 'Cadastro salvo com sucesso.'
-                });
-                dispatch(showQueue(createdQueue));
-                dispatch(editQueue(createdQueue));
-                setForm((prev) => ({
-                    ...prev,
-                    ...createdQueue,
-                    client: createdQueue.id_client,
-                    speciality: createdQueue.id_specialities,
-                    urgency: Boolean(createdQueue.urgency),
-                    obs: createdQueue.obs ?? '',
-                }));
-
-                if (pendingFiles.length > 0) {
-                    try {
-                        await uploadQueueAttachment(createdQueue.id, pendingFiles);
-                        setAlertState({
-                            visible: true,
-                            type: 'success',
-                            message: pendingFiles.length > 1
-                                ? 'Cadastro e anexos salvos com sucesso.'
-                                : 'Cadastro e anexo salvo com sucesso.'
-                        });
-                        setPendingFiles([]);
-                    } catch (error) {
-                        setAlertState({
-                            visible: true,
-                            type: 'warning',
-                            message: error?.response?.data?.message || 'Cadastro salvo, mas houve erro ao enviar anexo(s).'
-                        });
-                    }
-                } else {
+                try {
                     setAlertState({
                         visible: true,
                         type: 'success',
-                        message: 'Cadastro salvo. Agora você pode anexar arquivos e gerar o recibo.'
+                        message: 'Cadastro salvo com sucesso.'
                     });
-                }
+                    dispatch(showQueue(createdQueue));
+                    dispatch(editQueue(createdQueue));
+                    setForm((prev) => ({
+                        ...prev,
+                        ...createdQueue,
+                        client: createdQueue.id_client,
+                        speciality: createdQueue.id_specialities,
+                        urgency: Boolean(createdQueue.urgency),
+                        obs: createdQueue.obs ?? '',
+                    }));
 
-                await loadQueueAttachments(createdQueue.id);
-                await syncQueueSnapshot(createdQueue.id);
-                setIsSubmittingQueue(false);
+                    if (pendingFiles.length > 0) {
+                        try {
+                            await uploadQueueAttachment(createdQueue.id, pendingFiles);
+                            setAlertState({
+                                visible: true,
+                                type: 'success',
+                                message: pendingFiles.length > 1
+                                    ? 'Cadastro e anexos salvos com sucesso.'
+                                    : 'Cadastro e anexo salvo com sucesso.'
+                            });
+                            setPendingFiles([]);
+                        } catch (error) {
+                            setAlertState({
+                                visible: true,
+                                type: 'warning',
+                                message: error?.response?.data?.message || 'Cadastro salvo, mas houve erro ao enviar anexo(s).'
+                            });
+                        }
+                    } else {
+                        setAlertState({
+                            visible: true,
+                            type: 'success',
+                            message: 'Cadastro salvo. Agora você pode anexar arquivos e gerar o recibo.'
+                        });
+                    }
+
+                    await loadQueueAttachments(createdQueue.id);
+                    await syncQueueSnapshot(createdQueue.id);
+                } catch (error) {
+                    // O registro já foi criado com sucesso (estamos no onSuccess) — uma falha aqui é só na
+                    // atualização da tela, nunca deve deixar o modal preso sem poder salvar/cancelar de novo.
+                    setAlertState({
+                        visible: true,
+                        type: 'warning',
+                        message: 'Cadastro salvo, mas houve um erro ao atualizar as informações na tela.'
+                    });
+                } finally {
+                    setIsSubmittingQueue(false);
+                }
             },
             onError: () => {
                 setAlertState({
@@ -224,23 +240,34 @@ export default function QueueModal(props) {
             showGlobalMessage: false,
             cleanForm,
             onSuccess: async (updatedQueue) => {
-                setAlertState({
-                    visible: true,
-                    type: 'success',
-                    message: 'Cadastro atualizado com sucesso.'
-                });
-                dispatch(showQueue(updatedQueue));
-                dispatch(editQueue(updatedQueue));
-                setForm((prev) => ({
-                    ...prev,
-                    ...updatedQueue,
-                    client: updatedQueue.id_client ?? prev.client,
-                    speciality: updatedQueue.id_specialities ?? prev.speciality,
-                    urgency: Boolean(updatedQueue.urgency),
-                    obs: updatedQueue.obs ?? '',
-                }));
-                await loadQueueAttachments(updatedQueue.id);
-                setIsSubmittingQueue(false);
+                try {
+                    setAlertState({
+                        visible: true,
+                        type: 'success',
+                        message: 'Cadastro atualizado com sucesso.'
+                    });
+                    dispatch(showQueue(updatedQueue));
+                    dispatch(editQueue(updatedQueue));
+                    setForm((prev) => ({
+                        ...prev,
+                        ...updatedQueue,
+                        client: updatedQueue.id_client ?? prev.client,
+                        speciality: updatedQueue.id_specialities ?? prev.speciality,
+                        urgency: Boolean(updatedQueue.urgency),
+                        obs: updatedQueue.obs ?? '',
+                    }));
+                    await loadQueueAttachments(updatedQueue.id);
+                } catch (error) {
+                    // O registro já foi atualizado com sucesso (estamos no onSuccess) — uma falha aqui é só na
+                    // atualização da tela, nunca deve deixar o modal preso sem poder salvar/cancelar de novo.
+                    setAlertState({
+                        visible: true,
+                        type: 'warning',
+                        message: 'Cadastro atualizado, mas houve um erro ao atualizar as informações na tela.'
+                    });
+                } finally {
+                    setIsSubmittingQueue(false);
+                }
             },
             onError: () => {
                 setAlertState({

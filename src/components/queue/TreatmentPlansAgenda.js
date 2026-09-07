@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
+    Button,
     Dialog,
     DialogContent,
     DialogTitle,
@@ -11,6 +12,8 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
+import { useRouter } from 'next/router';
+import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import TreatmentPlanPanel from './TreatmentPlanPanel';
 import { api } from '../../services/api';
@@ -22,6 +25,7 @@ const formatDate = (isoDate) => {
 };
 
 export default function TreatmentPlansAgenda() {
+    const router = useRouter();
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
@@ -41,7 +45,18 @@ export default function TreatmentPlansAgenda() {
     const doneCount = (plan) => plan.sessions.filter((s) => s.status === 'done').length;
 
     return (
-        <BaseCard title="Agenda de Tratamentos">
+        <BaseCard
+            title="Agenda de Tratamentos"
+            action={(
+                <Button
+                    size="small"
+                    startIcon={<FeatherIcon icon="arrow-left" width="20" height="20" />}
+                    onClick={() => router.push('/queue')}
+                >
+                    Voltar
+                </Button>
+            )}
+        >
             {loading ? (
                 <Typography>Carregando…</Typography>
             ) : (
