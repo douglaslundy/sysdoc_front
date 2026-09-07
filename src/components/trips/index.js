@@ -26,10 +26,11 @@ import {
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from "../actions";
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton, ActionViewButton } from "../actions";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
+import ReplicateTripModal from "../modal/trips/replicate";
 import tripPDF from "../../reports/trip";
 import tripsPDF from "../../reports/trips";
 import bpaTripsPdf from "../../reports/bpaTrips";
@@ -123,6 +124,7 @@ export default function Trips() {
     numeroAutorizacao: "",
   });
   const [bpaErrors, setBpaErrors] = useState({});
+  const [replicateTrip, setReplicateTrip] = useState(null);
 
   useEffect(() => {
     dispatch(getAllTripsPerDate(dateBegin, dateEnd));
@@ -569,6 +571,14 @@ export default function Trips() {
                         }}
                       />
 
+                      <ActionViewButton
+                        title="Replicar Viagem"
+                        icon="copy"
+                        onClick={() => {
+                          setReplicateTrip(trip);
+                        }}
+                      />
+
                       <ActionDeleteButton
                         title="Excluir Viagem"
                         onClick={() => {
@@ -592,6 +602,12 @@ export default function Trips() {
       </TableContainer>
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+
+      <ReplicateTripModal
+        open={!!replicateTrip}
+        trip={replicateTrip}
+        onClose={() => setReplicateTrip(null)}
+      />
 
       <Dialog
         className="queue-page__dialog"

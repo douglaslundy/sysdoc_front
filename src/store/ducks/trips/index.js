@@ -10,6 +10,7 @@ export const editTrip = createAction('EDIT_TRIP');
 export const addTrips = createAction('ADD_TRIPS');
 export const showTrip = createAction('SHOW_TRIP');
 export const inactiveTrip = createAction('INACTIVE_TRIP');
+export const addReplicatedTrips = createAction('ADD_REPLICATED_TRIPS');
 
 const tripReducer = createReducer(INITIAL_STATE, (builder) => {
   builder
@@ -27,6 +28,9 @@ const tripReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(showTrip, (state, action) => {
       state.trip = action.payload;
+    })
+    .addCase(addReplicatedTrips, (state, action) => {
+      state.trips = [...action.payload, ...state.trips];
     });
 });
 

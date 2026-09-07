@@ -1,6 +1,6 @@
 import { api } from "../../../services/api";
-import { inactiveTrip, addTrip, addTrips, editTrip, showTrip } from "../../ducks/trips";
-import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
+import { inactiveTrip, addTrip, addTrips, editTrip, showTrip, addReplicatedTrips } from "../../ducks/trips";
+import { turnAlert, addMessage, addAlertMessage, turnLoading, changeTitleAlert } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 import { format } from 'date-fns';
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
@@ -27,7 +27,7 @@ export const getAllTrips = () => {
     }
 }
 
-export const addTripFetch = (trip, cleanForm) => {
+export const addTripFetch = (trip, cleanForm, onCreated) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -54,6 +54,7 @@ export const addTripFetch = (trip, cleanForm) => {
                 dispatch(addMessage(`Viagem cadastrado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
+                onCreated && onCreated(res.trip),
                 cleanForm()
             ))
             .catch((error) => {
@@ -269,3 +270,24 @@ export const getAllTripsPerDate = (dateBegin, dateEnd) => {
             .catch(() => { dispatch(turnLoading()) })
     }
 }
+
+export const replicateTripFetch = (tripId, dates, onSuccess, onError) => {
+    return (dispatch) => {
+        dispatch(turnLoading());
+
+        api.post(`/trips/${tripId}/replicate`, { dates })
+            .then((res) => {
+                dispatch(addReplicatedTrips(res.data.trips));
+                dispatch(addMessage(`${res.data.trips.length} viagem(ns) replicada(s) com sucesso!`));
+                dispatch(changeTitleAlert(`${res.data.trips.length} viagem(ns) replicada(s) com sucesso!`));
+                dispatch(turnAlert());
+                dispatch(turnLoading());
+                onSuccess && onSuccess(res.data.trips);
+            })
+            .catch((error) => {
+                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(turnLoading());
+                onError && onError(error);
+            })
+    };
+};
