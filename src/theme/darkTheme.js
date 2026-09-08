@@ -8,6 +8,8 @@ const darkTheme = createTheme({
     mode: "dark",
     primary: {
       main: "#4f8ef7",
+      // dark deve continuar igual a --lg-accent-hover do bloco [data-theme="dark"] em styles/theme-liquid-glass.css
+      dark: "#6ba3ff",
       contrastText: "#ffffff",
     },
     secondary: {
@@ -52,7 +54,7 @@ const darkTheme = createTheme({
     action: {
       disabledBackground: "rgba(255,255,255,0.08)",
       hoverOpacity: 0.05,
-      hover: "rgba(37,99,235,0.08)",
+      hover: "rgba(79,142,247,0.08)",
     },
     background: {
       default: "#030712",

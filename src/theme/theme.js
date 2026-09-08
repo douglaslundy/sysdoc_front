@@ -8,6 +8,8 @@ const theme = createTheme({
   palette: {
     primary: {
       main: "#2563eb",
+      // dark deve continuar igual a --lg-accent-hover do bloco [data-theme="light"] em styles/theme-liquid-glass.css
+      dark: "#1d4ed8",
       contrastText: "#ffffff",
     },
     secondary: {
@@ -37,9 +39,8 @@ const theme = createTheme({
     },
     warning: {
       main: "#fec90f",
-
       dark: "#dcb014",
-      contrastText: "#ffffff",
+      contrastText: "#0F172A",
     },
     text: {
       primary: "#0F172A",
