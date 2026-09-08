@@ -10,7 +10,7 @@ import {
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showExame } from '../../../store/ducks/exames';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeExameModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { addExameFetch, editExameFetch } from '../../../store/fetchActions/exames';
 import { getAllCategorias } from '../../../store/fetchActions/categoriasExame';
 import {
@@ -27,7 +27,7 @@ export default function ExameModal(props) {
     const dispatch = useDispatch();
     const router = useRouter();
     const { exame } = useSelector(state => state.exames);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenExameModal } = useSelector(state => state.layout);
     const { categorias } = useSelector(state => state.categoriasExame);
 
     const [form, setForm] = useState(FORM_INICIAL);
@@ -38,7 +38,7 @@ export default function ExameModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(closeModal());
+        dispatch(closeExameModal());
         dispatch(showExame({}));
     };
 
@@ -49,7 +49,7 @@ export default function ExameModal(props) {
         } else {
             dispatch(changeTitleAlert(`Exame ${form.nome} criado com sucesso!`));
             dispatch(addExameFetch(form, (saved) => {
-                dispatch(closeModal());
+                dispatch(closeExameModal());
                 dispatch(showExame({}));
                 router.push(`/laboratorio/exames/${saved.id}/campos`);
             }));
@@ -81,7 +81,7 @@ export default function ExameModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenExameModal}
                 onClose={cleanForm}
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >

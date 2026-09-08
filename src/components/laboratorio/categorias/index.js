@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { getAllCategorias, removeCategoriaFetch } from '../../../store/fetchActions/categoriasExame';
 import { showCategoria } from '../../../store/ducks/categoriasExame';
-import { turnModal } from '../../../store/ducks/Layout';
+import { openCategoriaExameModal } from '../../../store/ducks/Layout';
 import CategoriaExameModal from '../../modal/categoriaExame';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
@@ -46,12 +46,12 @@ export default function CategoriasExame() {
 
     const handleNova = () => {
         dispatch(showCategoria({}));
-        dispatch(turnModal());
+        dispatch(openCategoriaExameModal());
     };
 
     const handleEditar = (categoria) => {
         dispatch(showCategoria(categoria));
-        dispatch(turnModal());
+        dispatch(openCategoriaExameModal());
     };
 
     return (

@@ -6,7 +6,7 @@ import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/m
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showCategoria } from '../../../store/ducks/categoriasExame';
-import { closeModal } from '../../../store/ducks/Layout';
+import { closeCategoriaExameModal } from '../../../store/ducks/Layout';
 import { addCategoriaFetch, editCategoriaFetch } from '../../../store/fetchActions/categoriasExame';
 import {
     modalBackdropSx,
@@ -21,7 +21,7 @@ const FORM_INICIAL = { nome: '', ativo: true };
 export default function CategoriaExameModal(props) {
     const dispatch = useDispatch();
     const { categoria } = useSelector(state => state.categoriasExame);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenCategoriaExameModal } = useSelector(state => state.layout);
 
     const [form, setForm] = useState(FORM_INICIAL);
 
@@ -29,7 +29,7 @@ export default function CategoriaExameModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(closeModal());
+        dispatch(closeCategoriaExameModal());
         dispatch(showCategoria({}));
     };
 
@@ -54,7 +54,7 @@ export default function CategoriaExameModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenCategoriaExameModal}
                 onClose={cleanForm}
                 slotProps={{ backdrop: { sx: modalBackdropSx } }}
             >

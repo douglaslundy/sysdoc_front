@@ -28,7 +28,7 @@ import {
   getAllClients,
   inactiveClientFetch,
 } from "../../store/fetchActions/clients";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openClientModal } from "../../store/ducks/Layout";
 import { showClient } from "../../store/ducks/clients";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
@@ -112,7 +112,7 @@ export default function Clients() {
       title: `Deseja editar o cliente ${client.name}`,
       onConfirm: () => {
         dispatch(showClient(client));
-        dispatch(turnModal());
+        dispatch(openClientModal());
       },
     });
   };
@@ -210,7 +210,7 @@ export default function Clients() {
           <ClientModal>
             <Fab
               onClick={() => {
-                dispatch(turnModal());
+                dispatch(openClientModal());
               }}
               color="primary"
               aria-label="add"

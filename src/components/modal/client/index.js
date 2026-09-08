@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import { showClient } from '../../../store/ducks/clients';
 import { editClientFetch, addClientFetch } from '../../../store/fetchActions/clients';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeClientModal, changeTitleAlert } from '../../../store/ducks/Layout';
 export default function ClientModal(props) {
   const [form, setForm] = useState({
     name: '',
@@ -54,7 +54,7 @@ export default function ClientModal(props) {
   });
 
   const { client } = useSelector((state) => state.clients);
-  const { isOpenModal } = useSelector((state) => state.layout);
+  const { isOpenClientModal } = useSelector((state) => state.layout);
   const dispatch = useDispatch();
 
   const {
@@ -104,7 +104,7 @@ export default function ClientModal(props) {
       complement: '',
     });
     setTexto('');
-    dispatch(closeModal());
+    dispatch(closeClientModal());
     dispatch(showClient({}));
   };
 
@@ -157,7 +157,7 @@ export default function ClientModal(props) {
       {props.children}
       <Modal
         keepMounted
-        open={isOpenModal}
+        open={isOpenClientModal}
         onClose={handleClose}
         aria-labelledby="keep-mounted-modal-title"
         aria-describedby="keep-mounted-modal-description"

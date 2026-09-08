@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { getAllExames, removeExameFetch, editExameFetch } from '../../../store/fetchActions/exames';
 import { showExame } from '../../../store/ducks/exames';
-import { turnModal } from '../../../store/ducks/Layout';
+import { openExameModal } from '../../../store/ducks/Layout';
 import ExameModal from '../../modal/exame';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
@@ -48,12 +48,12 @@ export default function ExameCatalogo() {
 
     const handleNovoExame = () => {
         dispatch(showExame({}));
-        dispatch(turnModal());
+        dispatch(openExameModal());
     };
 
     const handleEditarExame = (exame) => {
         dispatch(showExame(exame));
-        dispatch(turnModal());
+        dispatch(openExameModal());
     };
 
     const handleToggleAtivo = (exame) => {
