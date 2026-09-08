@@ -105,7 +105,8 @@ const vencimentoLabel = (value) => {
   return { text: `Vence ${formatDateBR(value)}`, color: "text.secondary", bold: false };
 };
 
-const CONCLUIDO_VISIVEL_DIAS = 30;
+const CONCLUIDO_VISIVEL_DIAS = 7;
+const CONCLUIDO_MAX_VISIVEIS = 5;
 
 const formatHistoryText = (value) => {
   const readable = String(value || "")
@@ -662,7 +663,6 @@ export default function KanbanPage() {
   const [createStatus, setCreateStatus] = useState("novo");
   const [draggedItemId, setDraggedItemId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState("");
-  const [showOldConcluidos, setShowOldConcluidos] = useState(false);
 
   const loadItems = useCallback(async () => {
     setRefreshing(true);
@@ -711,18 +711,29 @@ export default function KanbanPage() {
           return left - right;
         });
 
-      if (column.value !== "concluido" || showOldConcluidos) {
-        return { ...column, items: allForColumn, hiddenCount: 0 };
+      if (column.value !== "concluido") {
+        return { ...column, items: allForColumn };
       }
 
-      const visible = allForColumn.filter((item) => {
+      // Regra 1: tarefas concluídas somem da coluna 7 dias após concluido_at.
+      // Regra 2: mesmo dentro da janela de 7 dias, no máximo as 5 mais
+      // recentes ficam visíveis (a mais restritiva das duas vale por tarefa).
+      // Itens sem concluido_at (dados legados) não são filtrados pela regra
+      // de dias, mas ainda entram na disputa pelo limite de 5 mais recentes.
+      const withinWindow = allForColumn.filter((item) => {
         if (!item.concluido_at) return true;
         return new Date(item.concluido_at) >= limiteDate;
       });
 
-      return { ...column, items: visible, hiddenCount: allForColumn.length - visible.length };
+      const maisRecentesPrimeiro = [...withinWindow].sort((a, b) => {
+        const left = new Date(b.concluido_at || b.updated_at || b.created_at || 0).getTime();
+        const right = new Date(a.concluido_at || a.updated_at || a.created_at || 0).getTime();
+        return left - right;
+      });
+
+      return { ...column, items: maisRecentesPrimeiro.slice(0, CONCLUIDO_MAX_VISIVEIS) };
     });
-  }, [filteredItems, showOldConcluidos]);
+  }, [filteredItems]);
 
   const totals = useMemo(() => {
     return columns.reduce(
@@ -1033,28 +1044,6 @@ export default function KanbanPage() {
                   >
                     Adicionar tarefa
                   </Button>
-                  {column.value === "concluido" && column.hiddenCount > 0 && (
-                    <Button
-                      fullWidth
-                      size="small"
-                      variant="text"
-                      onClick={() => setShowOldConcluidos(true)}
-                      sx={{ mt: 0.5, fontSize: "0.7rem", color: "text.secondary" }}
-                    >
-                      + {column.hiddenCount} concluído{column.hiddenCount !== 1 ? "s" : ""} anteriores
-                    </Button>
-                  )}
-                  {column.value === "concluido" && showOldConcluidos && (
-                    <Button
-                      fullWidth
-                      size="small"
-                      variant="text"
-                      onClick={() => setShowOldConcluidos(false)}
-                      sx={{ mt: 0.5, fontSize: "0.7rem", color: "text.secondary" }}
-                    >
-                      Ocultar anteriores
-                    </Button>
-                  )}
                 </Box>
                 <Box
                   sx={{
