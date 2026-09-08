@@ -2,7 +2,8 @@ import { createAction, createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_STATE = {
   trips: [],
-  trip: {}
+  trip: {},
+  drivers: []
 };
 
 export const addTrip = createAction('ADD_TRIP');
@@ -11,6 +12,7 @@ export const addTrips = createAction('ADD_TRIPS');
 export const showTrip = createAction('SHOW_TRIP');
 export const inactiveTrip = createAction('INACTIVE_TRIP');
 export const addReplicatedTrips = createAction('ADD_REPLICATED_TRIPS');
+export const addDrivers = createAction('ADD_DRIVERS');
 
 const tripReducer = createReducer(INITIAL_STATE, (builder) => {
   builder
@@ -31,6 +33,9 @@ const tripReducer = createReducer(INITIAL_STATE, (builder) => {
     })
     .addCase(addReplicatedTrips, (state, action) => {
       state.trips = [...action.payload, ...state.trips];
+    })
+    .addCase(addDrivers, (state, action) => {
+      state.drivers = [...action.payload];
     });
 });
 
