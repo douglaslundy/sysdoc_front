@@ -48,7 +48,6 @@ export default function QueueModal(props) {
     });
 
     const [texto, setTexto] = useState('');
-    const [localOpen, setLocalOpen] = useState(false);
 
 
     const changeItem = ({ target }) => {
@@ -60,7 +59,6 @@ export default function QueueModal(props) {
     }
 
     const cleanForm = () => {
-        setLocalOpen(false);
         setForm({
             date_of_realized: "",
         });
@@ -92,19 +90,11 @@ export default function QueueModal(props) {
 
     }, [queue]);
 
-    useEffect(() => {
-        if (isOpenOutcomeQueueModal && queue?.id) {
-            setLocalOpen(true);
-        }
-    }, [isOpenOutcomeQueueModal, queue?.id]);
-
-
     return (
         <div>
             {props.children}
             <Modal
-                keepMounted
-                open={localOpen}
+                open={isOpenOutcomeQueueModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

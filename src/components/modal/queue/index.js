@@ -451,7 +451,6 @@ export default function QueueModal(props) {
         <div>
             {props.children}
             <Modal
-                keepMounted
                 open={isOpenQueueModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"

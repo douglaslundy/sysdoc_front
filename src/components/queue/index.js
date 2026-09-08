@@ -124,6 +124,7 @@ export default () => {
     const { queues, pagination } = useSelector(state => state.queues);
     const { specialities } = useSelector(state => state.specialities);
     const { specialityOptions } = useSelector(state => state.queues);
+    const { isOpenQueueModal, isOpenOutcomeQueueModal } = useSelector(state => state.layout);
 
     const viewableSpecialities = specialityOptions.length > 0
         ? specialities.filter((s) => specialityOptions.some((opt) => opt.id === s.id && opt.can_view))
@@ -136,7 +137,6 @@ export default () => {
     };
     const [searchValue, setSearchValue] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [option, setOption] = useState('add'); // Você já tem esse estado definido
     const [speci, setSpeci] = useState('');
     const [done, setDone] = useState(0);
     const [urgency, setUrgency] = useState(2);
@@ -240,12 +240,10 @@ export default () => {
 
     const HandleDoneQueue = (queue) => {
         dispatch(showQueue(queue));
-        setOption('outcome');
         dispatch(openOutcomeQueueModal());
     };
 
     const HandleAddQueue = () => {
-        setOption('add');
         dispatch(openQueueModal());
     };
 
@@ -392,7 +390,8 @@ export default () => {
         <Box sx={modalFormRootSx} className="queue-page queue-main-page">
         <BaseCard title={`Você possui ${pagination?.total ?? queues.length} registros cadastrados`}>
             <AlertModal />
-            {option === 'outcome' ? <QueueOutcomeModal /> : <QueueModal />}
+            {isOpenOutcomeQueueModal && <QueueOutcomeModal />}
+            {isOpenQueueModal && <QueueModal />}
 
             <Box sx={{
                 '& > :not(style)': { mb: 0, mt: 2 },
