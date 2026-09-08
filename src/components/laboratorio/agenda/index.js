@@ -8,7 +8,7 @@ import BasicDatePicker from '../../inputs/datePicker';
 import PedidoModal from '../../modal/pedido';
 import { api } from '../../../services/api';
 import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
-import { openModal } from '../../../store/ducks/Layout';
+import { openPedidoModal } from '../../../store/ducks/Layout';
 
 const addDays = (date, days) => {
     const value = new Date(date);
@@ -142,7 +142,7 @@ export default function AgendaColeta() {
     const openPedidoForDate = (date) => {
         const dateIso = toIsoDate(date);
         setDefaultDataColeta(dateIso);
-        dispatch(openModal());
+        dispatch(openPedidoModal());
     };
 
     const total = agenda?.total ?? 0;

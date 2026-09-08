@@ -25,7 +25,7 @@ import {
 import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showLetter, editLetter } from '../../../store/ducks/letters';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeLetterFormModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
     modalFormRootSx,
     modalPrimaryButtonSx,
@@ -49,7 +49,7 @@ export default function LetterModal(props) {
     const [form, setForm] = useState({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
     const { sender, recipient, subject_matter, obs, summary } = form;
     const { letter, textOpenAi } = useSelector(state => state.letters);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenLetterFormModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
@@ -86,7 +86,7 @@ export default function LetterModal(props) {
         setDestinationUnitId('');
         setDestinationUserId('');
         dispatch(getTextOpenAi(""));
-        dispatch(closeModal());
+        dispatch(closeLetterFormModal());
         dispatch(showLetter({}));
     };
 
@@ -380,9 +380,9 @@ export default function LetterModal(props) {
     }, [letter?.id]);
 
     useEffect(() => {
-        if (isOpenModal && letter?.id) loadAttachments(letter.id);
-        if (!isOpenModal) setAttachments([]);
-    }, [isOpenModal, letter?.id]);
+        if (isOpenLetterFormModal && letter?.id) loadAttachments(letter.id);
+        if (!isOpenLetterFormModal) setAttachments([]);
+    }, [isOpenLetterFormModal, letter?.id]);
 
     useEffect(() => {
         if (!destinationUserId) return;
@@ -395,7 +395,7 @@ export default function LetterModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
+            <Modal keepMounted open={isOpenLetterFormModal} onClose={cleanForm}>
                 <Box className="lab-letter-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>

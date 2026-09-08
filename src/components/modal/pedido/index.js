@@ -15,7 +15,7 @@ import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import BasicDatePicker from '../../inputs/datePicker';
-import { closeModal } from '../../../store/ducks/Layout';
+import { closePedidoModal } from '../../../store/ducks/Layout';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { getAllMedicos } from '../../../store/fetchActions/medicosSolicitantes';
@@ -44,7 +44,7 @@ const formatExamLabel = (name) => {
 
 export default function PedidoModal(props) {
     const dispatch = useDispatch();
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenPedidoModal } = useSelector(state => state.layout);
     const { exames } = useSelector(state => state.exames);
     const { medicos } = useSelector(state => state.medicosSolicitantes);
     const defaultDataColeta = props.defaultDataColeta || '';
@@ -58,14 +58,14 @@ export default function PedidoModal(props) {
     const [credenciais, setCredenciais] = useState(null);
 
     useEffect(() => {
-        if (isOpenModal) {
+        if (isOpenPedidoModal) {
             dispatch(getAllExames({ ativo: true, per_page: 200 }));
             dispatch(getAllMedicos({ all: true, ativo: true }));
             if (defaultDataColeta) {
                 setForm(f => ({ ...f, data_coleta: defaultDataColeta }));
             }
         }
-    }, [isOpenModal, defaultDataColeta]);
+    }, [isOpenPedidoModal, defaultDataColeta]);
 
     const buscarPaciente = async () => {
         const termo = cpfCns.replace(/\D/g, '');
@@ -112,7 +112,7 @@ export default function PedidoModal(props) {
         setCpfCns('');
         setPaciente(null);
         setErroPaciente('');
-        dispatch(closeModal());
+        dispatch(closePedidoModal());
     };
 
     const handleSave = () => {
@@ -172,7 +172,7 @@ export default function PedidoModal(props) {
             </Dialog>
 
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
+            <Modal keepMounted open={isOpenPedidoModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
                 <Box className="lab-pedido-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>

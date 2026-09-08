@@ -9,7 +9,7 @@ import FeatherIcon from 'feather-icons-react';
 import { api } from '../../../services/api';
 import { getAllPedidos, removePedidoFetch, viewPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { iniciarResultado, getResultado } from '../../../store/fetchActions/resultadoExames';
-import { turnModal, turnResultadoModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { openPedidoModal, turnResultadoModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import PedidoModal from '../../modal/pedido';
 import ResultadoModal from '../../modal/resultado';
 import AlertModal from '../../messagesModal';
@@ -168,7 +168,7 @@ export default function ListaPedidos() {
                         onChange={e => handleBusca(e.target.value)}
                         sx={{ minWidth: 0, width: '100%' }}
                     />
-                    <Fab className="queue-page__fab queue-page__fab--add" color="primary" title="Novo Pedido" onClick={() => dispatch(turnModal())}>
+                    <Fab className="queue-page__fab queue-page__fab--add" color="primary" title="Novo Pedido" onClick={() => dispatch(openPedidoModal())}>
                         <FeatherIcon icon="plus" />
                     </Fab>
                 </Box>
