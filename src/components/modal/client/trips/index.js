@@ -52,10 +52,9 @@ const getDriverVehicleText = (trip) => ({
     : "VEÍCULO NÃO ATRIBUÍDO",
 });
 
-// Busca todas as viagens (endpoint /trips já retorna driver/vehicle/route/clients
-// carregados) e filtra no client-side pelas viagens que incluem este cliente.
-// Dataset pequeno (uma unica prefeitura) — evita criar endpoint novo no backend
-// só para esse filtro.
+// Busca só as viagens deste cliente via ?client_id no backend (filtro por
+// whereHas na relação trip_clients) — evita trazer a tabela inteira de
+// viagens do sistema para filtrar no navegador a cada abertura do modal.
 export default function ClientTripsModal({ client, onClose }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,11 +74,10 @@ export default function ClientTripsModal({ client, onClose }) {
     setError("");
 
     api
-      .get("/trips")
+      .get("/trips", { params: { client_id: client.id } })
       .then(({ data }) => {
         if (cancelled) return;
         const clientTrips = (Array.isArray(data) ? data : [])
-          .filter((trip) => (trip?.clients || []).some((c) => c.id === client.id))
           .sort((a, b) => new Date(b?.departure_date || 0) - new Date(a?.departure_date || 0));
         setTrips(clientTrips);
       })
