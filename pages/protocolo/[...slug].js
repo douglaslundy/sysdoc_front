@@ -314,7 +314,7 @@ const flattenUnits = (items, level = 0) =>
   }, []);
 
 export default function ProtocoloPage({ forcedMode = null } = {}) {
-  const { username } = useContext(AuthContext);
+  const { username, user: loggedUserId, profile: loggedProfile } = useContext(AuthContext);
   const router = useRouter();
   const slug = useMemo(() => {
     const raw = router.query.slug;
@@ -798,7 +798,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
           <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 3, mb: 1 }}>
             <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>Voltar</Button>
-            {!p.recebido_em && <Button variant="contained" onClick={() => handleDetailAction("receber")}>Receber</Button>}
+            {!p.recebido_em && (
+              loggedProfile === "admin"
+              || (p.responsavel_atual_id ? String(p.responsavel_atual_id) === String(loggedUserId) : String(p.criado_por_id) !== String(loggedUserId))
+            ) && (
+              <Button variant="contained" onClick={() => handleDetailAction("receber")}>Receber</Button>
+            )}
             <Button variant="outlined" onClick={() => setForwardDialogOpen(true)}>
               Encaminhar
             </Button>
@@ -1028,7 +1033,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     const logs = [...accessLogs, ...movementLogs]
       .filter((log) => log.timestamp)
       .sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
     const loadingLogs = loadingVisualizations || loadingHistorico;
 
