@@ -348,6 +348,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [search, setSearch] = useState("");
   const [detailForwardUnit, setDetailForwardUnit] = useState("");
   const [detailForwardUser, setDetailForwardUser] = useState("");
+  const [forwardEligibleUsers, setForwardEligibleUsers] = useState([]);
   const [detailForwardObservation, setDetailForwardObservation] = useState("");
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -483,6 +484,34 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, mode]);
+
+  // Só usuários que pertencem à unidade escolhida E cujo perfil tem acesso à
+  // página /protocolo podem ser escolhidos como responsável no encaminhamento
+  // — do contrário o protocolo fica endereçado a alguém que nunca vai
+  // conseguir abrir a tela para vê-lo/recebê-lo.
+  useEffect(() => {
+    let cancelled = false;
+
+    setDetailForwardUser("");
+
+    if (!detailForwardUnit) {
+      setForwardEligibleUsers([]);
+      return undefined;
+    }
+
+    api
+      .get("/protocolos/usuarios-elegiveis", { params: { unit_id: detailForwardUnit } })
+      .then(({ data }) => {
+        if (!cancelled) setForwardEligibleUsers(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setForwardEligibleUsers([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detailForwardUnit]);
 
   useEffect(() => {
     setLogDrawerOpen(false);
@@ -856,7 +885,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 onChange={(e) => setDetailForwardUser(e.target.value)}
               >
                 <MenuItem value="">Nenhum</MenuItem>
-                {users.map((user) => (
+                {forwardEligibleUsers.map((user) => (
                   <MenuItem key={user.id} value={String(user.id)}>
                     {user.name}
                   </MenuItem>

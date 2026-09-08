@@ -62,52 +62,17 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [units, setUnits] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [destinationUsers, setDestinationUsers] = useState([]);
   const [protocolTypes, setProtocolTypes] = useState([]);
   const [creationContext, setCreationContext] = useState(null);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
   const [attachmentFiles, setAttachmentFiles] = useState([]);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
-  const unitById = useMemo(() => {
-    const map = new Map();
-    unitOptions.forEach((unit) => {
-      map.set(String(unit.id), unit);
-    });
-    return map;
-  }, [unitOptions]);
   const secretariatOptions = useMemo(
     () => unitOptions.filter((unit) => unit.ativo !== false && unit.tipo === "secretaria"),
     [unitOptions]
   );
-  const resolveSecretariatId = (unitId) => {
-    let current = unitById.get(String(unitId || ""));
-    while (current) {
-      if (current.tipo === "secretaria") {
-        return String(current.id);
-      }
-      current = current.parent_id ? unitById.get(String(current.parent_id)) : null;
-    }
-    return "";
-  };
-  const destinationUsers = useMemo(() => {
-    const selectedSecretariatId = String(protocolForm.destino_unit_id || "");
-    if (!selectedSecretariatId) return [];
-
-    return users.filter((user) => {
-      const links = Array.isArray(user?.protocol_units)
-        ? user.protocol_units
-        : Array.isArray(user?.protocolUnits)
-          ? user.protocolUnits
-          : [];
-
-      return links.some((link) => {
-        if (link?.ativo === false) return false;
-        const linkedUnitId = link?.protocol_organizational_unit_id ?? link?.unit?.id;
-        return resolveSecretariatId(linkedUnitId) === selectedSecretariatId;
-      });
-    });
-  }, [protocolForm.destino_unit_id, resolveSecretariatId, users]);
   const protocolTypeOptions = useMemo(() => {
     const activeTypes = protocolTypes.filter((type) => type?.ativo !== false);
     return activeTypes.length > 0 ? activeTypes : protocolTypeFallbackOptions;
@@ -119,13 +84,11 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     setError("");
     Promise.all([
       api.get("/protocolos/unidades-organizacionais"),
-      api.get("/users"),
       api.get("/protocolos/tipos"),
       api.get("/protocolos/contexto-novo"),
     ])
-      .then(([unitsRes, usersRes, typesRes, contextRes]) => {
+      .then(([unitsRes, typesRes, contextRes]) => {
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
-        setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
         setProtocolTypes(Array.isArray(typesRes?.data) ? typesRes.data : []);
         setCreationContext(contextRes?.data || null);
         setProtocolForm((current) => ({
@@ -135,6 +98,32 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
       })
       .catch(() => setError("Não foi possível carregar os dados do formulário."));
   }, [open]);
+
+  // Só usuários que pertencem à secretaria (ou unidade filha) escolhida E cujo
+  // perfil tem acesso à página /protocolo podem ser destinatário específico —
+  // do contrário o protocolo fica endereçado a alguém que nunca vai conseguir
+  // abrir a tela para vê-lo/recebê-lo.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!protocolForm.destino_unit_id) {
+      setDestinationUsers([]);
+      return undefined;
+    }
+
+    api
+      .get("/protocolos/usuarios-elegiveis", { params: { unit_id: protocolForm.destino_unit_id } })
+      .then(({ data }) => {
+        if (!cancelled) setDestinationUsers(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setDestinationUsers([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [protocolForm.destino_unit_id]);
 
   useEffect(() => {
     if (!protocolForm.destino_user_id) return;
