@@ -61,6 +61,7 @@
   --lg-text-danger: #ff7e82;
 
   --lg-accent: #4f8ef7;
+  /* Espelhado manualmente em palette.primary.dark de src/theme/darkTheme.js — atualize os dois juntos */
   --lg-accent-hover: #6ba3ff;
   --lg-accent-rgb: 79, 142, 247;
 
@@ -137,6 +138,7 @@
   --lg-text-danger: #b91c1c;
 
   --lg-accent: #2563eb;
+  /* Espelhado manualmente em palette.primary.dark de src/theme/theme.js — atualize os dois juntos */
   --lg-accent-hover: #1d4ed8;
   --lg-accent-rgb: 37, 99, 235;
 
