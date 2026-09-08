@@ -25,7 +25,7 @@ import {
 
 
 import BaseCard from "../../../baseCard/BaseCard";
-import { closeModal, changeTitleAlert } from '../../../../store/ducks/Layout';
+import { closeTripClientsModal, changeTitleAlert } from '../../../../store/ducks/Layout';
 import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
@@ -59,7 +59,7 @@ export default function TripClientsModal(props) {
 
     const dispatch = useDispatch();
     const { trip } = useSelector(state => state.trips);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenTripClientsModal } = useSelector(state => state.layout);
     const { clients } = useSelector(state => state.clients);
     const [form, setForm] = useState({
         id: "",
@@ -101,7 +101,7 @@ export default function TripClientsModal(props) {
         });
         setClient([]);
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeTripClientsModal());
         dispatch(showTrip({}));
     }
 
@@ -221,7 +221,7 @@ export default function TripClientsModal(props) {
         <div>
             {props.children}
             <Modal
-                open={isOpenModal}
+                open={isOpenTripClientsModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { getAllMedicos, removeMedicoFetch } from '../../../store/fetchActions/medicosSolicitantes';
 import { showMedico } from '../../../store/ducks/medicosSolicitantes';
-import { turnModal } from '../../../store/ducks/Layout';
+import { openMedicoSolicitanteModal } from '../../../store/ducks/Layout';
 import MedicoSolicitanteModal from '../../modal/medicoSolicitante';
 import AlertModal from '../../messagesModal';
 import BaseCard from '../../baseCard/BaseCard';
@@ -48,12 +48,12 @@ export default function MedicosSolicitantes() {
 
     const handleNovo = () => {
         dispatch(showMedico({}));
-        dispatch(turnModal());
+        dispatch(openMedicoSolicitanteModal());
     };
 
     const handleEditar = (medico) => {
         dispatch(showMedico(medico));
-        dispatch(turnModal());
+        dispatch(openMedicoSolicitanteModal());
     };
 
     return (

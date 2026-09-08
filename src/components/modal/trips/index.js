@@ -22,7 +22,7 @@ import {
     Typography,
 } from "@mui/material";
 import { showTrip } from '../../../store/ducks/trips';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeTripModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
 import { editTripFetch, addTripFetch } from '../../../store/fetchActions/trips';
 import AlertModal from '../../messagesModal';
@@ -49,7 +49,7 @@ export default function TripModal(props) {
 
     const { vehicle_id, route_id, driver_id, departure_time, departure_date, obs } = form;
     const { vehicles } = useSelector(state => state.vehicles);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenTripModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const { users } = useSelector(state => state.users);
@@ -83,7 +83,7 @@ export default function TripModal(props) {
             obs: ""
         });
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeTripModal());
         dispatch(showTrip({}));
     }
 
@@ -147,18 +147,18 @@ export default function TripModal(props) {
     }, [trip]);
 
     useEffect(() => {
-        if (isOpenModal) {
+        if (isOpenTripModal) {
             dispatch(getAllUsers());
             dispatch(getAllRoutes());
             dispatch(getAllVehicles());
         }
-    }, [isOpenModal]);
+    }, [isOpenTripModal]);
 
     return (
         <div>
             {props.children}
             <Modal
-                open={isOpenModal}
+                open={isOpenTripModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

@@ -6,7 +6,7 @@ import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/m
 import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showMedico } from '../../../store/ducks/medicosSolicitantes';
-import { closeModal } from '../../../store/ducks/Layout';
+import { closeMedicoSolicitanteModal } from '../../../store/ducks/Layout';
 import { addMedicoFetch, editMedicoFetch } from '../../../store/fetchActions/medicosSolicitantes';
 import {
     modalBackdropSx,
@@ -21,7 +21,7 @@ const FORM_INICIAL = { nome: '', crm: '', uf_crm: '', especialidade: '', telefon
 export default function MedicoSolicitanteModal(props) {
     const dispatch = useDispatch();
     const { medico } = useSelector(state => state.medicosSolicitantes);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenMedicoSolicitanteModal } = useSelector(state => state.layout);
 
     const [form, setForm] = useState(FORM_INICIAL);
 
@@ -29,7 +29,7 @@ export default function MedicoSolicitanteModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
-        dispatch(closeModal());
+        dispatch(closeMedicoSolicitanteModal());
         dispatch(showMedico({}));
     };
 
@@ -61,7 +61,7 @@ export default function MedicoSolicitanteModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
+            <Modal keepMounted open={isOpenMedicoSolicitanteModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
                 <Box className="lab-medico-solicitante-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>

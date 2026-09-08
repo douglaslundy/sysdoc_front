@@ -40,7 +40,7 @@ import loteTxt from "../../reports/loteTxt";
 import { useSelector, useDispatch } from "react-redux";
 import { excludeTripFetch, getAllTripsPerDate } from "../../store/fetchActions/trips";
 import { showTrip } from "../../store/ducks/trips";
-import { changeTitleAlert, openModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openTripModal, openTripClientsModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
@@ -166,7 +166,7 @@ export default function Trips() {
   const handleGoAddClients = (trip) => {
     setOption("addCli");
     dispatch(showTrip(trip));
-    dispatch(openModal());
+    dispatch(openTripClientsModal());
   };
 
   const handleGoTrip = (trip) => {
@@ -174,7 +174,7 @@ export default function Trips() {
     if (trip) {
       dispatch(showTrip(trip));
     }
-    dispatch(openModal());
+    dispatch(openTripModal());
   };
 
   const handleChangePage = (_, newPage) => {
