@@ -232,19 +232,36 @@ export default function UserModal(props) {
         chat_access_override: user.chat_access_override ?? '',
         protocol_unit_ids: Array.isArray(user.protocol_unit_ids) ? user.protocol_unit_ids : [],
       });
-      if (userProfile === 'admin') {
-        api.get(`/users/${user.id}/equipe-aps`)
-          .then(r => setEquipesRt(r.data.equipes ?? []))
-          .catch(() => {});
-        api.get(`/users/${user.id}/speciality-permissions`)
-          .then(r => {
-            setSpecialityPermissions(r.data ?? []);
-            setSpecialityPermissionsLoaded(true);
-          })
-          .catch(() => {});
-      }
     }
   }, [user]);
+
+  // Busca equipe-aps e permissoes por especialidade quando o usuario editado muda.
+  // Guard de cancelamento evita que uma resposta atrasada de um usuario visto
+  // anteriormente sobrescreva, silenciosamente, o que o admin acabou de marcar/
+  // desmarcar para o usuario atual (ex: trocar de usuario rapido no modal global do header).
+  useEffect(() => {
+    let cancelled = false;
+
+    setSpecialityPermissions([]);
+    setSpecialityPermissionsLoaded(false);
+
+    if (user && user.id && userProfile === 'admin') {
+      api.get(`/users/${user.id}/equipe-aps`)
+        .then(r => { if (!cancelled) setEquipesRt(r.data.equipes ?? []); })
+        .catch(() => {});
+      api.get(`/users/${user.id}/speciality-permissions`)
+        .then(r => {
+          if (cancelled) return;
+          setSpecialityPermissions(r.data ?? []);
+          setSpecialityPermissionsLoaded(true);
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, userProfile]);
 
   // Load equipes options when RT toggle is turned on
   useEffect(() => {
