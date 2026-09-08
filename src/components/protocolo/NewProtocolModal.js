@@ -106,6 +106,8 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   useEffect(() => {
     let cancelled = false;
 
+    setProtocolForm((current) => (current.destino_user_id ? { ...current, destino_user_id: "" } : current));
+
     if (!protocolForm.destino_unit_id) {
       setDestinationUsers([]);
       return undefined;
