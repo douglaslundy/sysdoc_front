@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 import { showRoute } from '../../../store/ducks/routes';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeRoutesModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editRouteFetch, addRouteFetch } from '../../../store/fetchActions/routes';
 import { getAllStates } from '../../../store/fetchActions/states';
 import AlertModal from '../../messagesModal';
@@ -42,7 +42,7 @@ export default function RouteModal(props) {
 
     const { origin, origin_state, destination, destination_state, distance } = form;
     const { route } = useSelector(state => state.routes);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenRoutesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const [texto, setTexto] = useState();
@@ -60,7 +60,7 @@ export default function RouteModal(props) {
             distance: ""
         });
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeRoutesModal());
         dispatch(showRoute({}));
     }
 
@@ -112,7 +112,7 @@ export default function RouteModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenRoutesModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

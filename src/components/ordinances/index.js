@@ -25,7 +25,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllOrdinances, inactiveOrdinanceFetch } from "../../store/fetchActions/ordinances";
 import { showOrdinance } from "../../store/ducks/ordinances";
-import { changeTitleAlert, turnModal, turnModalViewLetter } from "../../store/ducks/Layout";
+import { changeTitleAlert, openOrdinanceModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
 
@@ -130,7 +130,7 @@ export default () => {
 
     const HandleEditOrdinance = async ordinance => {
         dispatch(showOrdinance(ordinance));
-        dispatch(turnModal());
+        dispatch(openOrdinanceModal());
     };
 
     const HandleInactiveOrdinance = async ordinance => {
@@ -208,7 +208,7 @@ export default () => {
                 />
 
                 <OrdinanceModal>
-                    <ActionCreateFab onClick={() => { dispatch(turnModal()) }} />
+                    <ActionCreateFab onClick={() => { dispatch(openOrdinanceModal()) }} />
                 </OrdinanceModal>
             </Box>
 

@@ -7,7 +7,7 @@ import { Grid, Stack, TextField, Alert, Button, FormControl, InputLabel, Select,
 import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeOrdinanceModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import {
     modalFormRootSx,
     modalPrimaryButtonSx,
@@ -46,7 +46,7 @@ export default function OrdinanceModal(props) {
 
     const { type, title, subject, summary, content, legal_basis, signatory_name, signatory_role, notes, additional_instructions } = form;
     const { ordinance, textOpenAi } = useSelector(state => state.ordinances);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenOrdinanceModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
@@ -83,7 +83,7 @@ export default function OrdinanceModal(props) {
         setAttachments([]);
         setIsSubmitting(false);
         dispatch(getTextOpenAi(""));
-        dispatch(closeModal());
+        dispatch(closeOrdinanceModal());
         dispatch(showOrdinance({}));
     };
 
@@ -215,14 +215,14 @@ export default function OrdinanceModal(props) {
     }, [ordinance?.id]);
 
     useEffect(() => {
-        if (isOpenModal && ordinance?.id) loadAttachments(ordinance.id);
-        if (!isOpenModal) setAttachments([]);
-    }, [isOpenModal, ordinance?.id]);
+        if (isOpenOrdinanceModal && ordinance?.id) loadAttachments(ordinance.id);
+        if (!isOpenOrdinanceModal) setAttachments([]);
+    }, [isOpenOrdinanceModal, ordinance?.id]);
 
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenModal} onClose={cleanForm}>
+            <Modal keepMounted open={isOpenOrdinanceModal} onClose={cleanForm}>
                 <Box className="lab-ordinance-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
                     <AlertModal />
                     <Grid container spacing={0}>

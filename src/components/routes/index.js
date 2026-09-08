@@ -24,7 +24,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllRoutes, inactiveRouteFetch } from "../../store/fetchActions/routes";
 import { showRoute } from "../../store/ducks/routes";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openRoutesModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
@@ -73,7 +73,7 @@ export default () => {
 
     const HandleEditRoute = async route => {
         dispatch(showRoute(route));
-        dispatch(turnModal());
+        dispatch(openRoutesModal());
     }
 
     const HandleInactiveRoute = async route => {
@@ -135,7 +135,7 @@ export default () => {
                 />
 
                 <RouteModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
+                    <Fab onClick={() => { dispatch(openRoutesModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
                         <FeatherIcon icon="plus" />
                     </Fab>
                 </RouteModal>

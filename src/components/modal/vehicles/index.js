@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 import { showVehicle } from '../../../store/ducks/vehicles';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeVehiclesModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editVehicleFetch, addVehicleFetch } from '../../../store/fetchActions/vehicles';
 import AlertModal from '../../messagesModal';
 import {
@@ -40,7 +40,7 @@ export default function VehicleModal(props) {
 
     const { brand, model, color, license_plate, renavan, chassis, capacity, year } = form;
     const { vehicle } = useSelector(state => state.vehicles);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenVehiclesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const [texto, setTexto] = useState();
@@ -61,7 +61,7 @@ export default function VehicleModal(props) {
             year: ""
         });
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeVehiclesModal());
         dispatch(showVehicle({}));
     }
 
@@ -95,7 +95,7 @@ export default function VehicleModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenVehiclesModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

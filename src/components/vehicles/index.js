@@ -24,7 +24,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useSelector, useDispatch } from 'react-redux';
 import { getAllVehicles, inactiveVehicleFetch } from "../../store/fetchActions/vehicles";
 import { showVehicle } from "../../store/ducks/vehicles";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openVehiclesModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 
 import AlertModal from "../messagesModal";
@@ -73,7 +73,7 @@ export default () => {
 
     const HandleEditVehicle = async vehicle => {
         dispatch(showVehicle(vehicle));
-        dispatch(turnModal());
+        dispatch(openVehiclesModal());
     }
 
     const HandleInactiveVehicle = async vehicle => {
@@ -135,7 +135,7 @@ export default () => {
                 />
 
                 <VehicleModal>
-                    <Fab onClick={() => { dispatch(turnModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
+                    <Fab onClick={() => { dispatch(openVehiclesModal()) }} color="primary" aria-label="add" sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}>
                         <FeatherIcon icon="plus" />
                     </Fab>
                 </VehicleModal>
