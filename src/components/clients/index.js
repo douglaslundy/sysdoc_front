@@ -4,6 +4,7 @@ import {
   Box,
   Fab,
   Button,
+  Badge,
   TextField,
   Table,
   TableBody,
@@ -16,13 +17,12 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-import { useRouter } from "next/router";
-
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
 import ClientViewModal from "../modal/client/view";
 import ClientTripsModal from "../modal/client/trips";
+import ClientReportModal from "../modal/client/report";
 import DuplicateCleanupModal from "./DuplicateCleanupModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { useSelector, useDispatch } from "react-redux";
@@ -81,8 +81,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default function Clients() {
-  const { profile } = useContext(AuthContext);
-  const router = useRouter();
+  const { profile, canViewClientTrips, canViewClientReport } = useContext(AuthContext);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
@@ -101,6 +100,8 @@ export default function Clients() {
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [tripsClient, setTripsClient] = useState(null);
   const [tripsOpen, setTripsOpen] = useState(false);
+  const [reportClient, setReportClient] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const searchRef = useRef(null);
   const isAdmin = profile === 'admin';
 
@@ -159,8 +160,17 @@ export default function Clients() {
     setTripsClient(null);
   };
 
-  const handleOpenClientReport = (client) => {
-    router.push(`/client_report?value=${encodeURIComponent(client.id)}`);
+  // Relatório detalhado só é buscado quando o botão é clicado (lazy) — o
+  // modal só é montado quando reportOpen é true, mesmo padrão do
+  // ClientTripsModal (mesmo motivo: evitar fetch antecipado por linha).
+  const handleOpenReport = (client) => {
+    setReportClient(client);
+    setReportOpen(true);
+  };
+
+  const handleCloseReport = () => {
+    setReportOpen(false);
+    setReportClient(null);
   };
 
   const handleInactiveClient = (client) => {
@@ -352,6 +362,7 @@ export default function Clients() {
                         >
                           <FeatherIcon icon="trash" width="20" height="20" />
                         </Button>
+                        {canViewClientTrips && (
                         <Button
                           className="queue-page__action queue-page__action--trips"
                           title="Ver viagens do cliente"
@@ -361,19 +372,48 @@ export default function Clients() {
                           variant="contained"
                           sx={{ minWidth: 62, height: 40 }}
                         >
-                          <FeatherIcon icon="truck" width="20" height="20" />
+                          <Badge
+                            badgeContent={client?.trips_count || 0}
+                            color="info"
+                            invisible={!client?.trips_count}
+                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                            sx={{ "& .MuiBadge-badge": { fontSize: 10, height: 16, minWidth: 16 } }}
+                          >
+                            <FeatherIcon icon="truck" width="20" height="20" />
+                          </Badge>
                         </Button>
+                        )}
+                        {canViewClientReport && (
                         <Button
                           className="queue-page__action queue-page__action--report"
                           title="Relatório detalhado do cliente"
-                          onClick={() => handleOpenClientReport(client)}
+                          onClick={() => handleOpenReport(client)}
                           color="secondary"
                           size="medium"
                           variant="contained"
                           sx={{ minWidth: 62, height: 40 }}
                         >
-                          <FeatherIcon icon="bar-chart-2" width="20" height="20" />
+                          <Badge
+                            badgeContent={
+                              (client?.trips_count || 0) +
+                              (client?.queue_count || 0) +
+                              (client?.pedidos_exame_count || 0)
+                            }
+                            color="info"
+                            invisible={
+                              !(
+                                (client?.trips_count || 0) +
+                                (client?.queue_count || 0) +
+                                (client?.pedidos_exame_count || 0)
+                              )
+                            }
+                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                            sx={{ "& .MuiBadge-badge": { fontSize: 10, height: 16, minWidth: 16 } }}
+                          >
+                            <FeatherIcon icon="bar-chart-2" width="20" height="20" />
+                          </Badge>
                         </Button>
+                        )}
                       </Box>
                     </TableCell>
                   </StyledTableRow>
@@ -417,6 +457,10 @@ export default function Clients() {
 
         {tripsOpen && (
           <ClientTripsModal client={tripsClient} onClose={handleCloseTrips} />
+        )}
+
+        {reportOpen && (
+          <ClientReportModal client={reportClient} onClose={handleCloseReport} />
         )}
 
         {isAdmin && (
