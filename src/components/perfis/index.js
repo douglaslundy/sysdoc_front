@@ -34,6 +34,8 @@ const FORM_INICIAL = {
     almoxarifado_create_enabled: true,
     almoxarifado_approve_enabled: false,
     almoxarifado_deliver_enabled: false,
+    client_trips_view_enabled: false,
+    client_report_view_enabled: false,
     page_ids: [],
 };
 const StyledTableRow = styled(TableRow)(() => ({
@@ -107,6 +109,8 @@ export default function Perfis() {
             almoxarifado_create_enabled: Boolean(profile.almoxarifado_create_enabled),
             almoxarifado_approve_enabled: Boolean(profile.almoxarifado_approve_enabled),
             almoxarifado_deliver_enabled: Boolean(profile.almoxarifado_deliver_enabled),
+            client_trips_view_enabled: Boolean(profile.client_trips_view_enabled),
+            client_report_view_enabled: Boolean(profile.client_report_view_enabled),
             page_ids: profile.pages?.map((p) => p.id) || [],
         });
         setOpenModal(true);
@@ -288,6 +292,18 @@ export default function Perfis() {
                                     <FormControlLabel
                                         control={<Switch checked={form.almoxarifado_deliver_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_deliver_enabled: e.target.checked }))} />}
                                         label="Separar e entregar requisições"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.client_trips_view_enabled} onChange={(e) => setForm((f) => ({ ...f, client_trips_view_enabled: e.target.checked }))} />}
+                                        label="Ver viagens do cliente (Cidadãos)"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <FormControlLabel
+                                        control={<Switch checked={form.client_report_view_enabled} onChange={(e) => setForm((f) => ({ ...f, client_report_view_enabled: e.target.checked }))} />}
+                                        label="Ver relatório detalhado do cliente"
                                     />
                                 </Grid>
                             </Grid>
