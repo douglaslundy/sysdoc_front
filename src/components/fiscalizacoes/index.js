@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Box, Fab, FormControl, InputLabel, MenuItem, Select,
+    Box, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     TablePagination, TextField, Typography, styled, Button,
 } from '@mui/material';
@@ -188,12 +188,7 @@ export default function ListaFiscalizacoes() {
                                     <Typography variant="body2">{formatDate(f.data_visita)}</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Box sx={{
-                                        display: 'inline-block', px: 1.2, py: 0.4, borderRadius: 1,
-                                        bgcolor: `${RESULTADO_COR[f.resultado] || 'default'}.main`, color: '#fff',
-                                    }}>
-                                        <Typography variant="caption" fontWeight={600}>{f.resultado}</Typography>
-                                    </Box>
+                                    <Chip label={f.resultado} color={RESULTADO_COR[f.resultado] || 'default'} size="small" />
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2">{f.fiscal?.name || '—'}</Typography>
