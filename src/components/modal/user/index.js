@@ -211,6 +211,10 @@ export default function UserModal(props) {
     });
   };
 
+  const perfilTemAcessoAFila = dbProfiles.some(
+    (p) => p.slug === profile && (p.pages || []).some((pg) => pg.path === '/queue')
+  );
+
   const handleClose = () => {
     cleanForm();
   };
@@ -491,7 +495,7 @@ export default function UserModal(props) {
                         />
                       )}
 
-                      {Boolean(user && user.id) && specialityPermissionsLoaded && specialityPermissions.length > 0 && (
+                      {Boolean(user && user.id) && specialityPermissionsLoaded && specialityPermissions.length > 0 && perfilTemAcessoAFila && (
                         <>
                           <Typography
                             sx={{
