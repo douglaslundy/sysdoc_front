@@ -1,5 +1,5 @@
 import { api } from "../../../services/api";
-import { inactiveTrip, addTrip, addTrips, editTrip, showTrip, addReplicatedTrips } from "../../ducks/trips";
+import { inactiveTrip, addTrip, addTrips, editTrip, showTrip, addReplicatedTrips, addDrivers } from "../../ducks/trips";
 import { turnAlert, addMessage, addAlertMessage, turnLoading, changeTitleAlert } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 import { format } from 'date-fns';
@@ -24,6 +24,22 @@ export const getAllTrips = () => {
                 dispatch(turnLoading());
             })
             .catch(() => { dispatch(turnLoading()) })
+    }
+}
+
+// Lista mínima de motoristas (id + nome) para o select de motorista do modal de
+// viagens. Usa /trips/drivers-options (mesmo nível de acesso de /vehicles e
+// /routes) em vez de /trips/fetchActions/user::getAllUsers -> GET /users, que
+// desde a correção de escalonamento de privilégio é restrito a admin e por
+// isso ficava vazio para perfis como "tfd".
+export const getDriversOptions = () => {
+    return (dispatch) => {
+        api
+            .get('/trips/drivers-options')
+            .then((res) => {
+                dispatch(addDrivers(res.data));
+            })
+            .catch(() => { })
     }
 }
 

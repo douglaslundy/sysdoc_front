@@ -24,9 +24,8 @@ import {
 import { showTrip } from '../../../store/ducks/trips';
 import { closeTripModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
-import { editTripFetch, addTripFetch } from '../../../store/fetchActions/trips';
+import { editTripFetch, addTripFetch, getDriversOptions } from '../../../store/fetchActions/trips';
 import AlertModal from '../../messagesModal';
-import { getAllUsers } from '../../../store/fetchActions/user';
 import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
 import DateTime from '../../inputs/dateTime';
@@ -52,9 +51,8 @@ export default function TripModal(props) {
     const { isOpenTripModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
-    const { users } = useSelector(state => state.users);
     const { routes } = useSelector(state => state.routes);
-    const { trip } = useSelector(state => state.trips);
+    const { trip, drivers } = useSelector(state => state.trips);
     // const [driv, setDriver] = useState([]);
     const [texto, setTexto] = useState();
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -131,13 +129,11 @@ export default function TripModal(props) {
             name: `${origin} X ${destination}` // Concatenar 'origin' e 'destination'
         }));
 
-    const getDrivers = (users) =>
-        users
-            .filter((user) => Number(user.is_driver) === 1) // Filtra somente os usuários com profile "driver"
-            .map(({ id, name }) => ({
-                id,
-                name
-            }));
+    const getDrivers = (drivers) =>
+        (drivers || []).map(({ id, name }) => ({
+            id,
+            name
+        }));
 
 
     useEffect(() => {
@@ -148,7 +144,7 @@ export default function TripModal(props) {
 
     useEffect(() => {
         if (isOpenTripModal) {
-            dispatch(getAllUsers());
+            dispatch(getDriversOptions());
             dispatch(getAllRoutes());
             dispatch(getAllVehicles());
         }
@@ -216,7 +212,7 @@ export default function TripModal(props) {
                                         label={'SELECIONE O MOTORISTA'}
                                         name={'driver_id'}
                                         value={driver_id}
-                                        store={getDrivers(users)}
+                                        store={getDrivers(drivers)}
                                         changeItem={changeItem}
                                     />
 
