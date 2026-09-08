@@ -20,7 +20,7 @@ import {
     Switch,
 } from "@mui/material";
 import { showSpeciality } from '../../../store/ducks/specialities';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeSpecialitiesModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
 import AlertModal from '../../messagesModal';
 export default function SpecialityModal(props) {
@@ -33,7 +33,7 @@ export default function SpecialityModal(props) {
 
     const { name, allows_session_scheduling } = form;
     const { speciality } = useSelector(state => state.specialities);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenSpecialitiesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
     const [texto, setTexto] = useState();
 
@@ -47,7 +47,7 @@ export default function SpecialityModal(props) {
             allows_session_scheduling: false,
         });
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeSpecialitiesModal());
         dispatch(showSpeciality({}));
     }
 
@@ -82,7 +82,7 @@ export default function SpecialityModal(props) {
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenSpecialitiesModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"

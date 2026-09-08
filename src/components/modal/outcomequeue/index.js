@@ -14,7 +14,7 @@ import {
     FormControlLabel
 } from "@mui/material";
 import { showQueue } from '../../../store/ducks/queues';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeOutcomeQueueModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues';
 import AlertModal from '../../messagesModal';
 import ConfirmDialog from "../../confirmDialog";
@@ -37,7 +37,7 @@ export default function QueueModal(props) {
 
     const { date_of_realized, obsConclusion } = form;
     const { queue } = useSelector(state => state.queues);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenOutcomeQueueModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
 
@@ -65,7 +65,7 @@ export default function QueueModal(props) {
             date_of_realized: "",
         });
         setTexto('');
-        dispatch(closeModal());
+        dispatch(closeOutcomeQueueModal());
         dispatch(showQueue({}));
         if (typeof props.onAfterClose === 'function') {
             props.onAfterClose();
@@ -93,10 +93,10 @@ export default function QueueModal(props) {
     }, [queue]);
 
     useEffect(() => {
-        if (isOpenModal && queue?.id) {
+        if (isOpenOutcomeQueueModal && queue?.id) {
             setLocalOpen(true);
         }
-    }, [isOpenModal, queue?.id]);
+    }, [isOpenOutcomeQueueModal, queue?.id]);
 
 
     return (
@@ -130,7 +130,7 @@ export default function QueueModal(props) {
 
 
                                     {
-                                        isOpenModal &&
+                                        isOpenOutcomeQueueModal &&
                                         <BasicDatePicker
                                             label="Informe a data do desfecho"
                                             name="date_of_realized"

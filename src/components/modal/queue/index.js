@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import ConfirmDialog from '../../confirmDialog';
 import { showQueue, editQueue } from '../../../store/ducks/queues';
-import { closeModal, changeTitleAlert } from '../../../store/ducks/Layout';
+import { closeQueueModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editQueueFetch, addQueueFetch } from '../../../store/fetchActions/queues';
 import {
     listQueueAttachments,
@@ -65,7 +65,7 @@ export default function QueueModal(props) {
 
     const { speciality, obs } = form;
     const { queue } = useSelector(state => state.queues);
-    const { isOpenModal } = useSelector(state => state.layout);
+    const { isOpenQueueModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
     const { clients } = useSelector(state => state.clients);
     const { specialities } = useSelector(state => state.specialities);
@@ -142,7 +142,7 @@ export default function QueueModal(props) {
         });
         setAlertState({ visible: false, type: 'success', message: '' });
         setPendingFiles([]);
-        dispatch(closeModal());
+        dispatch(closeQueueModal());
         dispatch(showQueue({}));
     }
 
@@ -410,13 +410,13 @@ export default function QueueModal(props) {
     }, [queue]);
 
     useEffect(() => {
-        if (isOpenModal && queue?.id) {
+        if (isOpenQueueModal && queue?.id) {
             loadQueueAttachments(queue.id);
         }
-        if (!isOpenModal) {
+        if (!isOpenQueueModal) {
             setAttachments([]);
         }
-    }, [isOpenModal, queue?.id]);
+    }, [isOpenQueueModal, queue?.id]);
 
 
     useEffect(() => {
@@ -433,26 +433,26 @@ export default function QueueModal(props) {
 
 
     useEffect(() => {
-        if (isOpenModal === true) {
+        if (isOpenQueueModal === true) {
             if (clients.length <= 0) {
                 dispatch(getClientsSelect({ limit: 50 }));
                 dispatch(getAllSpecialities());
             }
         }
 
-        if (isOpenModal === false) {
+        if (isOpenQueueModal === false) {
             setClient({});
             // cleanForm();
         }
 
-    }, [isOpenModal]);
+    }, [isOpenQueueModal]);
 
     return (
         <div>
             {props.children}
             <Modal
                 keepMounted
-                open={isOpenModal}
+                open={isOpenQueueModal}
                 onClose={handleClose}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
@@ -477,7 +477,7 @@ export default function QueueModal(props) {
                                 <Stack spacing={3}>
 
                                     {
-                                        isOpenModal &&
+                                        isOpenQueueModal &&
 
                                         <InputSelectClient
                                             id="client"

@@ -27,7 +27,7 @@ import {
   inactiveSpecialityFetch,
 } from "../../store/fetchActions/specialities";
 import { showSpeciality } from "../../store/ducks/specialities";
-import { changeTitleAlert, turnModal } from "../../store/ducks/Layout";
+import { changeTitleAlert, openSpecialitiesModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from "date-fns";
@@ -89,7 +89,7 @@ export default function Specialities() {
 
   const handleEditSpeciality = (speciality) => {
     dispatch(showSpeciality(speciality));
-    dispatch(turnModal());
+    dispatch(openSpecialitiesModal());
   };
 
   const handleInactiveSpeciality = (speciality) => {
@@ -154,7 +154,7 @@ export default function Specialities() {
             <Fab
               className="queue-page__fab queue-page__fab--add"
               onClick={() => {
-                dispatch(turnModal());
+                dispatch(openSpecialitiesModal());
               }}
               color="primary"
               aria-label="add"

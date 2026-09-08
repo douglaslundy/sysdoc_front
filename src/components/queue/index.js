@@ -44,7 +44,7 @@ import {
 } from "../../store/fetchActions/queues";
 import { getAllSpecialities } from "../../store/fetchActions/specialities";
 import { showQueue } from "../../store/ducks/queues";
-import { openModal } from "../../store/ducks/Layout";
+import { openQueueModal, openOutcomeQueueModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
 
@@ -241,12 +241,12 @@ export default () => {
     const HandleDoneQueue = (queue) => {
         dispatch(showQueue(queue));
         setOption('outcome');
-        dispatch(openModal());
+        dispatch(openOutcomeQueueModal());
     };
 
     const HandleAddQueue = () => {
         setOption('add');
-        dispatch(openModal());
+        dispatch(openQueueModal());
     };
 
     const handlePrintList = async () => {
