@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
     Typography,
     Box,
@@ -68,6 +69,7 @@ const InfoItem = ({ label, value }) => (
 
 export default () => {
     const dispatch = useDispatch();
+    const router = useRouter();
     const { clientReport } = useSelector((state) => state.clients);
 
     const [searchValue, setSearchValue] = useState("");
@@ -164,6 +166,21 @@ export default () => {
             dispatch(clearClientReport());
         };
     }, [dispatch]);
+
+    // Permite abrir o relatório já preenchido a partir de outra página, ex:
+    // /client_report?value=<id> (o endpoint /detailed-client-report já aceita
+    // cpf, cns OU id no parâmetro "value").
+    useEffect(() => {
+        if (!router.isReady) return;
+
+        const queryValue = router.query.value;
+        if (!queryValue) return;
+
+        const value = Array.isArray(queryValue) ? queryValue[0] : queryValue;
+        setSearchValue(value);
+        HandleSearchClient(value);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query.value]);
 
     return (
         <Box sx={modalFormRootSx} className="queue-page">

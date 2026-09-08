@@ -16,10 +16,13 @@ import {
   InputAdornment,
 } from "@mui/material";
 
+import { useRouter } from "next/router";
+
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
 import ClientViewModal from "../modal/client/view";
+import ClientTripsModal from "../modal/client/trips";
 import DuplicateCleanupModal from "./DuplicateCleanupModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { useSelector, useDispatch } from "react-redux";
@@ -79,6 +82,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 
 export default function Clients() {
   const { profile } = useContext(AuthContext);
+  const router = useRouter();
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
@@ -95,6 +99,8 @@ export default function Clients() {
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError] = useState('');
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
+  const [tripsClient, setTripsClient] = useState(null);
+  const [tripsOpen, setTripsOpen] = useState(false);
   const searchRef = useRef(null);
   const isAdmin = profile === 'admin';
 
@@ -138,6 +144,23 @@ export default function Clients() {
     setViewClient(null);
     setViewError('');
     setViewLoading(false);
+  };
+
+  // Viagens só são buscadas quando o botão é clicado (lazy) — o modal só é
+  // montado quando tripsOpen é true, então o fetch (dentro do modal) nunca
+  // roda por antecipação para cada linha da lista.
+  const handleOpenTrips = (client) => {
+    setTripsClient(client);
+    setTripsOpen(true);
+  };
+
+  const handleCloseTrips = () => {
+    setTripsOpen(false);
+    setTripsClient(null);
+  };
+
+  const handleOpenClientReport = (client) => {
+    router.push(`/client_report?value=${encodeURIComponent(client.id)}`);
   };
 
   const handleInactiveClient = (client) => {
@@ -329,6 +352,28 @@ export default function Clients() {
                         >
                           <FeatherIcon icon="trash" width="20" height="20" />
                         </Button>
+                        <Button
+                          className="queue-page__action queue-page__action--trips"
+                          title="Ver viagens do cliente"
+                          onClick={() => handleOpenTrips(client)}
+                          color="primary"
+                          size="medium"
+                          variant="contained"
+                          sx={{ minWidth: 62, height: 40 }}
+                        >
+                          <FeatherIcon icon="truck" width="20" height="20" />
+                        </Button>
+                        <Button
+                          className="queue-page__action queue-page__action--report"
+                          title="Relatório detalhado do cliente"
+                          onClick={() => handleOpenClientReport(client)}
+                          color="secondary"
+                          size="medium"
+                          variant="contained"
+                          sx={{ minWidth: 62, height: 40 }}
+                        >
+                          <FeatherIcon icon="bar-chart-2" width="20" height="20" />
+                        </Button>
                       </Box>
                     </TableCell>
                   </StyledTableRow>
@@ -369,6 +414,10 @@ export default function Clients() {
           error={viewError}
           onClose={handleCloseViewClient}
         />
+
+        {tripsOpen && (
+          <ClientTripsModal client={tripsClient} onClose={handleCloseTrips} />
+        )}
 
         {isAdmin && (
           <DuplicateCleanupModal

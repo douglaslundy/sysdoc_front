@@ -67,7 +67,7 @@ const BPA_AUTORIZACAO_MAX_LENGTH = 13;
 const BPA_CNES_MAX_LENGTH = 7;
 const ROUTE_TIME_MAX_LENGTH = 30;
 
-const getRouteDisplayText = (route) => {
+export const getRouteDisplayText = (route) => {
   const routeText = [route?.origin, route?.destination]
     .filter(Boolean)
     .map((value) => value.toUpperCase())
@@ -76,7 +76,7 @@ const getRouteDisplayText = (route) => {
   return (routeText || "ROTA NÃO ATRIBUÍDA").slice(0, ROUTE_TIME_MAX_LENGTH);
 };
 
-const getRouteTitleText = (route) => {
+export const getRouteTitleText = (route) => {
   const routeText = [route?.origin, route?.destination]
     .filter(Boolean)
     .map((value) => value.toUpperCase())
