@@ -7,9 +7,7 @@ import typography from "./Typoraphy";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#2563EB",
-      light: "#3B82F6",
-      dark: "#1D4ED8",
+      main: "#2563eb",
       contrastText: "#ffffff",
     },
     secondary: {
