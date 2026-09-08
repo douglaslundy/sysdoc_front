@@ -62,15 +62,18 @@ export const detailed_client_report = (value) => {
     return (dispatch) => {
         dispatch(turnLoading());
         dispatch(clearClientReport());
-        
-        api.get('/detailed-client-report', { params: { value } })
+
+        return api.get('/detailed-client-report', { params: { value } })
             .then((res) => {
-                dispatch(addClientReport(res.data.client || null));
+                const client = res.data.client || null;
+                dispatch(addClientReport(client));
                 dispatch(turnLoading());
+                return client;
             })
             .catch((error) => {
                 dispatch(clearClientReport());
                 dispatch(turnLoading());
+                return null;
             });
     };
 }

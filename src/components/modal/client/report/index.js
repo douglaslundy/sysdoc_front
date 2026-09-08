@@ -15,16 +15,11 @@ import { detailed_client_report } from "../../../../store/fetchActions/clients";
 import { clearClientReport } from "../../../../store/ducks/clients";
 import ClientReportContent, { deriveReportData, hasClientData } from "../_shared/ClientReportContent";
 
-// detailed_client_report (store/fetchActions/clients) é uma thunk
-// "fire-and-forget": ela não devolve a Promise da chamada HTTP — apenas
-// dispatcha addClientReport/clearClientReport internamente quando a
-// requisição termina. Por isso não há como "aguardar" o dispatch para saber
-// quando o carregamento acabou (a própria página /client_report tem essa
-// mesma limitação, no HandleSearchClient). Aqui lemos o resultado de volta
-// via Redux (state.clients.clientReport), igual à página, e liberamos o
-// spinner logo após disparar a requisição — assim que os dados chegam via
-// Redux, o conteúdo entra reativamente no lugar da mensagem de "não
-// encontrado".
+// detailed_client_report (store/fetchActions/clients) agora devolve a
+// Promise da chamada HTTP (resolve para o cliente ou null). Aguardamos essa
+// Promise para saber exatamente quando o carregamento terminou, em vez de
+// aproximar com um microtask. Os dados em si continuam lidos via Redux
+// (state.clients.clientReport), igual à página /client_report.
 export default function ClientReportModal({ client, onClose }) {
   const dispatch = useDispatch();
   const { clientReport } = useSelector((state) => state.clients);
@@ -40,9 +35,7 @@ export default function ClientReportModal({ client, onClose }) {
 
     setLoading(true);
     dispatch(clearClientReport());
-    dispatch(detailed_client_report(client.id));
-
-    Promise.resolve().then(() => {
+    dispatch(detailed_client_report(client.id)).finally(() => {
       if (!cancelled) setLoading(false);
     });
 
