@@ -28,6 +28,8 @@ const initialProtocolForm = {
   prazo_atendimento: "",
 };
 
+const MAX_ATTACHMENTS = 10;
+
 const protocolPriorityOptions = [
   { value: "normal", label: "Normal" },
   { value: "baixa", label: "Baixa" },
@@ -64,7 +66,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   const [protocolTypes, setProtocolTypes] = useState([]);
   const [creationContext, setCreationContext] = useState(null);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
-  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [attachmentFiles, setAttachmentFiles] = useState([]);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
   const unitById = useMemo(() => {
@@ -145,7 +147,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
 
   const resetAndClose = () => {
     setProtocolForm(initialProtocolForm);
-    setAttachmentFile(null);
+    setAttachmentFiles([]);
     setError("");
     onClose();
   };
@@ -164,19 +166,27 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
       });
 
       let successMessage = "Protocolo criado com sucesso.";
-      if (attachmentFile) {
-        try {
-          const formData = new FormData();
-          formData.append("arquivo", attachmentFile);
-          await api.post(`/protocolos/${created.id}/anexos`, formData);
-        } catch (attachError) {
-          successMessage = "Protocolo criado com sucesso, mas não foi possível enviar o anexo. Anexe pela tela de detalhe do protocolo.";
+      if (attachmentFiles.length > 0) {
+        let falhas = 0;
+        for (const file of attachmentFiles) {
+          try {
+            const formData = new FormData();
+            formData.append("arquivo", file);
+            await api.post(`/protocolos/${created.id}/anexos`, formData);
+          } catch (attachError) {
+            falhas += 1;
+          }
+        }
+        if (falhas > 0) {
+          successMessage = falhas === attachmentFiles.length
+            ? "Protocolo criado com sucesso, mas não foi possível enviar os anexos. Anexe pela tela de detalhe do protocolo."
+            : `Protocolo criado com sucesso, mas ${falhas} anexo(s) não puderam ser enviados. Anexe-os pela tela de detalhe do protocolo.`;
         }
       }
 
       setSaving(false);
       setProtocolForm(initialProtocolForm);
-      setAttachmentFile(null);
+      setAttachmentFiles([]);
       onCreated(successMessage);
       onClose();
     } catch (submitError) {
@@ -303,13 +313,40 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
             </Grid>
             <Grid item xs={12}>
               <Button variant="outlined" component="label">
-                {attachmentFile ? attachmentFile.name : "Anexar arquivo (opcional)"}
+                {attachmentFiles.length > 0
+                  ? `${attachmentFiles.length} arquivo(s) selecionado(s)`
+                  : `Anexar arquivos (opcional, até ${MAX_ATTACHMENTS})`}
                 <input
                   hidden
                   type="file"
-                  onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.files || []);
+                    if (selected.length > MAX_ATTACHMENTS) {
+                      setError(`Selecione no máximo ${MAX_ATTACHMENTS} arquivos.`);
+                    } else {
+                      setError("");
+                    }
+                    setAttachmentFiles(selected.slice(0, MAX_ATTACHMENTS));
+                  }}
                 />
               </Button>
+              {attachmentFiles.length > 0 && (
+                <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                  {attachmentFiles.map((file, index) => (
+                    <Box key={`${file.name}-${index}`} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                      <span>{file.name}</span>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => setAttachmentFiles((prev) => prev.filter((_, i) => i !== index))}
+                      >
+                        Remover
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Grid>
           </Grid>
         </DialogContent>
