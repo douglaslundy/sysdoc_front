@@ -300,7 +300,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
                 </Select>
                 {protocolForm.destino_unit_id && destinationUsers.length === 0 && (
                   <FormHelperText>
-                    Ninguém desta secretaria tem a página "Protocolo" liberada no perfil ainda — libere em Gestão de Perfis para poder escolher um usuário específico.
+                    Nenhum usuário com acesso à página "Protocolo" foi encontrado — libere a página em Gestão de Perfis para poder escolher um usuário específico. Sem usuário, o protocolo fica endereçado à secretaria inteira.
                   </FormHelperText>
                 )}
               </FormControl>

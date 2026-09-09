@@ -260,6 +260,7 @@ const statusColor = (status) => {
     encerrado: "default",
     cancelado: "error",
     reaberto: "info",
+    devolvido: "warning",
     vencido: "error",
   };
   return map[String(status || "").toLowerCase()] || "default";
@@ -352,6 +353,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [forwardEligibleUsers, setForwardEligibleUsers] = useState([]);
   const [detailForwardObservation, setDetailForwardObservation] = useState("");
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [returnMotivo, setReturnMotivo] = useState("");
   const [commentText, setCommentText] = useState("");
   const [commentPrivate, setCommentPrivate] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState(null);
@@ -546,15 +549,17 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   };
 
   const handleDetailAction = async (action, payload = {}) => {
-    if (!protocolId) return;
+    if (!protocolId) return false;
     setSaving(true);
     setMessage("");
     try {
       const { data } = await api.post(`/protocolos/${protocolId}/${action}`, payload);
       setProtocolDetail(data || null);
       setMessage("Ação executada com sucesso.");
+      return true;
     } catch (error) {
-      setMessage("Não foi possível executar a ação.");
+      setMessage(error?.response?.data?.message || "Não foi possível executar a ação.");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -567,6 +572,14 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       observacao: detailForwardObservation || null,
     });
     setForwardDialogOpen(false);
+  };
+
+  const handleSubmitReturn = async () => {
+    const ok = await handleDetailAction("devolver", { motivo: returnMotivo.trim() });
+    if (ok) {
+      setReturnDialogOpen(false);
+      setReturnMotivo("");
+    }
   };
 
   const handleSubmitUnit = async (event) => {
@@ -817,6 +830,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </Stack>
           </Stack>
 
+          {p.status === "devolvido" && p.justificativa_devolucao && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Protocolo devolvido{p.devolvido_em ? ` em ${formatDateTime(p.devolvido_em)}` : ""}
+              </Typography>
+              {p.justificativa_devolucao}
+            </Alert>
+          )}
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "—"}</Typography></Grid>
             <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "—"}</Typography></Grid>
@@ -837,6 +859,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <Button variant="outlined" onClick={() => setForwardDialogOpen(true)}>
               Encaminhar
             </Button>
+            {p.pode_devolver && (
+              <Button variant="outlined" color="warning" onClick={() => setReturnDialogOpen(true)}>
+                Devolver ao remetente
+              </Button>
+            )}
             <Button variant="contained" color="error" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuário" })}>
               Encerrar
             </Button>
@@ -894,7 +921,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </Select>
               {detailForwardUnit && forwardEligibleUsers.length === 0 && (
                 <FormHelperText>
-                  Nenhum usuário desta unidade tem a página "Protocolo" liberada no perfil ainda — libere em Gestão de Perfis para poder escolher um responsável específico.
+                  Nenhum usuário com acesso à página "Protocolo" foi encontrado — libere a página em Gestão de Perfis para poder escolher um responsável específico. Sem responsável, o protocolo fica endereçado à unidade inteira.
                 </FormHelperText>
               )}
             </FormControl>
@@ -919,6 +946,52 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               disabled={saving || !detailForwardUnit}
             >
               {saving ? "Encaminhando..." : "Encaminhar"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={returnDialogOpen}
+          onClose={() => setReturnDialogOpen(false)}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              border: "1px solid var(--lg-border)",
+              background: "var(--lg-glass-panel)",
+              backdropFilter: "var(--lg-blur-panel)",
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 700 }}>Devolver protocolo ao remetente</DialogTitle>
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1, bgcolor: "transparent" }}>
+            {p.devolver_para && (
+              <Typography variant="body2" color="text.secondary">
+                O protocolo voltará para <strong>{p.devolver_para}</strong>, que fez o último encaminhamento.
+              </Typography>
+            )}
+            <TextField
+              required
+              fullWidth
+              multiline
+              minRows={3}
+              label="Motivo da devolução e adequações necessárias"
+              placeholder="Descreva por que o protocolo está sendo devolvido e o que precisa ser ajustado antes de reenviar."
+              value={returnMotivo}
+              onChange={(e) => setReturnMotivo(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setReturnDialogOpen(false)} variant="outlined">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitReturn}
+              variant="contained"
+              color="warning"
+              disabled={saving || returnMotivo.trim().length < 5}
+            >
+              {saving ? "Devolvendo..." : "Devolver"}
             </Button>
           </DialogActions>
         </Dialog>
