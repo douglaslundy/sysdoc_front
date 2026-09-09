@@ -16,6 +16,7 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   Grid,
   InputLabel,
   ListItemText,
@@ -884,13 +885,18 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 label="Responsável opcional"
                 onChange={(e) => setDetailForwardUser(e.target.value)}
               >
-                <MenuItem value="">Nenhum</MenuItem>
+                <MenuItem value="">Nenhum (fica endereçado à unidade inteira)</MenuItem>
                 {forwardEligibleUsers.map((user) => (
                   <MenuItem key={user.id} value={String(user.id)}>
                     {user.name}
                   </MenuItem>
                 ))}
               </Select>
+              {detailForwardUnit && forwardEligibleUsers.length === 0 && (
+                <FormHelperText>
+                  Nenhum usuário desta unidade tem a página "Protocolo" liberada no perfil ainda — libere em Gestão de Perfis para poder escolher um responsável específico.
+                </FormHelperText>
+              )}
             </FormControl>
 
             <TextField
