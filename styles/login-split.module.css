@@ -288,6 +288,29 @@
   transition: background-color 9999s ease-in-out 0s;
 }
 
+/* Firefox (e navegadores modernos): pseudo-classe padrao :autofill.
+   Sem isto o Firefox pinta o texto preenchido com a cor de campo dele
+   (escura) sobre o input escuro, deixando a senha "invisivel" ate ser
+   selecionada. */
+.inputShell input:autofill,
+.inputShell input:autofill:hover,
+.inputShell input:autofill:focus,
+.inputShell input:autofill:active {
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  box-shadow: 0 0 0 1000px #04102b inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #04102b inset !important;
+  caret-color: var(--text);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.inputShell input:-moz-autofill,
+.inputShell input:-moz-autofill:focus {
+  color: var(--text) !important;
+  box-shadow: 0 0 0 1000px #04102b inset !important;
+  caret-color: var(--text);
+}
+
 .togglePassword {
   border: 0;
   background: transparent;
