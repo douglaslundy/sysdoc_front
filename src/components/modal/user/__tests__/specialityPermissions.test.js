@@ -110,3 +110,34 @@ test('desmarcar "Ver" tambem desmarca Editar e Inserir da mesma linha', async ()
     expect(inserir).not.toBeChecked();
   });
 });
+
+test('desmarca mesmo quando o backend devolve "1"/"0" como string e a lista e grande', async () => {
+  const nomes = ['ALERGISTA', 'ANGIOLOGISTA', 'Angioressonancia', 'ANGIOTOMOGRAFIA', 'AUDIOMETRIA'];
+  const big = [];
+  for (let i = 0; i < 60; i++) {
+    big.push({
+      speciality_id: String(100 + i),
+      speciality_name: i < nomes.length ? nomes[i] : `ESPECIALIDADE ${i}`,
+      can_view: '1',
+      can_edit: '1',
+      can_insert: '1',
+    });
+  }
+  apiGet.mockImplementation((url) => {
+    if (String(url).includes('/speciality-permissions')) return Promise.resolve({ data: big });
+    if (String(url).includes('/equipe-aps')) return Promise.resolve({ data: { equipes: [] } });
+    if (String(url).includes('/monitor-aps/config/equipes')) return Promise.resolve({ data: { equipes: [] } });
+    return Promise.resolve({ data: [] });
+  });
+
+  renderModal();
+  await screen.findByText('Permissões por especialidade da Fila');
+
+  const row = screen.getByText('ANGIOTOMOGRAFIA').closest('tr');
+  const ver = row.querySelectorAll('input[type="checkbox"]')[0];
+  expect(ver).toBeChecked();
+
+  fireEvent.click(ver);
+
+  await waitFor(() => expect(ver).not.toBeChecked());
+});
