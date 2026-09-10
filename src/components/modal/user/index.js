@@ -531,42 +531,33 @@ export default function UserModal(props) {
                               <TableRow>
                                 <TableCell>Especialidade</TableCell>
                                 <TableCell align="center">
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Checkbox
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_view)}
-                                      indeterminate={
-                                        !specialityPermissions.every((item) => item.can_view) &&
-                                        specialityPermissions.some((item) => item.can_view)
-                                      }
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    Ver
+                                    <Switch
+                                      size="small"
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_view))}
                                       onChange={() => toggleAllSpecialityPermissions('can_view')}
                                     />
-                                    Ver
                                   </Box>
                                 </TableCell>
                                 <TableCell align="center">
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Checkbox
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_edit)}
-                                      indeterminate={
-                                        !specialityPermissions.every((item) => item.can_edit) &&
-                                        specialityPermissions.some((item) => item.can_edit)
-                                      }
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    Editar
+                                    <Switch
+                                      size="small"
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_edit))}
                                       onChange={() => toggleAllSpecialityPermissions('can_edit')}
                                     />
-                                    Editar
                                   </Box>
                                 </TableCell>
                                 <TableCell align="center">
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Checkbox
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => item.can_insert)}
-                                      indeterminate={
-                                        !specialityPermissions.every((item) => item.can_insert) &&
-                                        specialityPermissions.some((item) => item.can_insert)
-                                      }
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    Inserir paciente
+                                    <Switch
+                                      size="small"
+                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_insert))}
                                       onChange={() => toggleAllSpecialityPermissions('can_insert')}
                                     />
-                                    Inserir paciente
                                   </Box>
                                 </TableCell>
                               </TableRow>
@@ -576,19 +567,22 @@ export default function UserModal(props) {
                                 <TableRow key={item.speciality_id}>
                                   <TableCell>{item.speciality_name}</TableCell>
                                   <TableCell align="center">
-                                    <Checkbox
+                                    <Switch
+                                      size="small"
                                       checked={Boolean(item.can_view)}
                                       onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_view')}
                                     />
                                   </TableCell>
                                   <TableCell align="center">
-                                    <Checkbox
+                                    <Switch
+                                      size="small"
                                       checked={Boolean(item.can_edit)}
                                       onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_edit')}
                                     />
                                   </TableCell>
                                   <TableCell align="center">
-                                    <Checkbox
+                                    <Switch
+                                      size="small"
                                       checked={Boolean(item.can_insert)}
                                       onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_insert')}
                                     />
