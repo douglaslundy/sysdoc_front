@@ -45,15 +45,30 @@ export default function AuthGuard({ children }) {
 
     if (profile === ADMIN_SLUG) return children;
 
-    // Exact match (top-level menu pages)
-    if (myPermissions.includes(router.pathname)) return children;
+    // Caminho real da URL (ex: /protocolo/novo), sem query/hash. Necessario
+    // porque em rotas catch-all o router.pathname vem como template
+    // (/protocolo/[...slug]) e nunca casa com uma pagina especifica concedida.
+    const realPath = (router.asPath || router.pathname).split(/[?#]/)[0] || router.pathname;
 
-    // Prefix match: sub-routes inherit from their parent menu page.
-    // The '/' suffix prevents /dashboard from granting access to /dashboards.
-    const hasParentPermission = myPermissions.some(
-        allowed => router.pathname.startsWith(allowed + '/')
-    );
-    if (hasParentPermission) return children;
+    const isAllowed = (path) =>
+        myPermissions.includes(path) ||
+        // Sub-rotas herdam do menu pai. O sufixo '/' evita que /dashboard
+        // libere /dashboards.
+        myPermissions.some(allowed => path.startsWith(allowed + '/'));
+
+    if (isAllowed(realPath) || isAllowed(router.pathname)) return children;
+
+    // Rota catch-all (/protocolo/[...slug], /almoxarifado/[[...x]]): basta ter
+    // acesso a QUALQUER pagina da secao para carregar a pagina catch-all — os
+    // controles finos ficam dentro do proprio componente.
+    const catchAll = router.pathname.match(/^(.+?)\/\[\[?\.\.\./);
+    if (catchAll) {
+        const base = catchAll[1];
+        const hasSectionAccess = myPermissions.some(
+            allowed => allowed === base || allowed.startsWith(base + '/')
+        );
+        if (hasSectionAccess) return children;
+    }
 
     return (
         <Box
