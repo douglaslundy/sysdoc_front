@@ -47,6 +47,14 @@ import { showQueue } from "../../store/ducks/queues";
 import { openQueueModal, openOutcomeQueueModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
+import {
+    DEFAULT_DONE_SORT,
+    DONE_SORT_FIELDS,
+    SORT_DIRECTIONS,
+    firstColumnDate,
+    isDoneFilter,
+    sortParams,
+} from './queueDates';
 
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
@@ -140,6 +148,8 @@ export default () => {
     const [speci, setSpeci] = useState('');
     const [done, setDone] = useState(0);
     const [urgency, setUrgency] = useState(2);
+    const [sortBy, setSortBy] = useState(DEFAULT_DONE_SORT.sortBy);
+    const [sortDir, setSortDir] = useState(DEFAULT_DONE_SORT.sortDir);
     const { user, profile } = useContext(AuthContext);
 
     const changeSpeci = ({ target }) => {
@@ -192,6 +202,16 @@ export default () => {
         name: item.name,
     }));
 
+    const changeSortBy = ({ target }) => {
+        setSortBy(target.value)
+        setPage(0)
+    }
+
+    const changeSortDir = ({ target }) => {
+        setSortDir(target.value)
+        setPage(0)
+    }
+
     const changeUrgency = ({ target }) => {
         setUrgency(target.value)
         setPage(0)
@@ -226,8 +246,9 @@ export default () => {
             speciality_id: speci || undefined,
             done,
             urgency,
+            ...sortParams(done, sortBy, sortDir),
         }));
-    }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency]);
+    }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency, sortBy, sortDir]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -255,6 +276,7 @@ export default () => {
             if (speci)           baseParams.speciality_id = speci;
             baseParams.done    = done;
             baseParams.urgency = urgency;
+            Object.assign(baseParams, sortParams(done, sortBy, sortDir));
 
             // Busca a primeira página para saber o total
             const first = await api.get('/queues', { params: { ...baseParams, page: 1 } });
@@ -451,6 +473,35 @@ export default () => {
                     menuItemSx={{ fontSize: "10px" }}
                 />
 
+                {isDoneFilter(done) && (
+                    <>
+                        <Select
+                            label="Ordenar por"
+                            name="sortBy"
+                            value={sortBy}
+                            store={DONE_SORT_FIELDS}
+                            changeItem={changeSortBy}
+                            wd={"14%"}
+                            size="small"
+                            labelSx={{ fontSize: "12px" }}
+                            selectSx={selectControlSx}
+                            menuItemSx={{ fontSize: "10px" }}
+                        />
+                        <Select
+                            label="Ordem"
+                            name="sortDir"
+                            value={sortDir}
+                            store={SORT_DIRECTIONS}
+                            changeItem={changeSortDir}
+                            wd={"12%"}
+                            size="small"
+                            labelSx={{ fontSize: "12px" }}
+                            selectSx={selectControlSx}
+                            menuItemSx={{ fontSize: "10px" }}
+                        />
+                    </>
+                )}
+
                 {/* <Select
                     label="Ano"
                     name="year"
@@ -596,7 +647,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        <span> {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy')} / <strong style={{ color: 'var(--lg-text-primary)' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
+                                                        <span> {isDoneFilter(done) && 'Baixa: '}{firstColumnDate(queue, done)} / <strong style={{ color: 'var(--lg-text-primary)' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
