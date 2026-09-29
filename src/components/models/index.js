@@ -58,11 +58,19 @@ const StyledTableRow = styled(TableRow)(() => ({
     },
 }));
 
+const safeText = (value, max) => String(value ?? '').substring(0, max).toUpperCase();
+
+const safeDate = (value) => {
+    if (!value) return '';
+    const date = parseISO(String(value));
+    return Number.isNaN(date.getTime()) ? '' : format(date, 'dd/MM/yyyy HH:mm:ss');
+};
+
 export default () => {
 
     const dispatch = useDispatch();
     const { models } = useSelector(state => state.models);
-    const [searchValue, setSearchValue] = useState();
+    const [searchValue, setSearchValue] = useState('');
     const [allModels, setAllModels] = useState(models);
     const { profile } = useContext(AuthContext);
 
@@ -71,7 +79,7 @@ export default () => {
     }, []);
 
     useEffect(() => {
-        setAllModels(searchValue ? [...models.filter(lett => lett.number.toString().includes(searchValue.toString()))] : models);
+        setAllModels(searchValue ? [...models.filter(lett => String(lett.number ?? '').includes(searchValue.toString()))] : models);
     }, [models]);
 
     useEffect(() => {
@@ -197,7 +205,7 @@ export default () => {
                                                             fontSize: "16px",
                                                         }}
                                                     >
-                                                        {model && model.user.name.substring(0, 30).toUpperCase()}
+                                                        {safeText(model?.user?.name, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -205,7 +213,7 @@ export default () => {
                                                             fontSize: "13px",
                                                         }}
                                                     >
-                                                        {model && format(parseISO(model.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                                                        {safeDate(model?.created_at)}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -225,7 +233,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {model.sender && model.sender.substring(0, 30).toUpperCase()}
+                                                        {safeText(model.sender, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -233,7 +241,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {model.recipient && model.recipient.substring(0, 30).toUpperCase()}
+                                                        {safeText(model.recipient, 30)}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -253,7 +261,7 @@ export default () => {
                                                             fontWeight: "600",
                                                         }}
                                                     >
-                                                        {model.summary && model.summary.substring(0, 30).toUpperCase()}
+                                                        {safeText(model.summary, 30)}
                                                     </Typography>
                                                     <Typography
                                                         color="textSecondary"
@@ -261,7 +269,7 @@ export default () => {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {model.model && model.model.substring(0, 40).toUpperCase()}
+                                                        {safeText(model.model, 40)}
                                                     </Typography>
                                                 </Box>
                                             </Box>

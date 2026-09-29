@@ -125,6 +125,7 @@ export default function VisitasAcs() {
 
     const [resumo, setResumo]         = useState(null);
     const [agentes, setAgentes]       = useState([]);
+    const [responsabilidade, setResponsabilidade] = useState([]);
     const [agenteOpcoes, setAgenteOpcoes] = useState([]);
     const [visitas, setVisitas]        = useState([]);
     const [pontosMapa, setPontosMapa]  = useState([]);
@@ -190,6 +191,35 @@ export default function VisitasAcs() {
             .catch(() => {});
         return () => ctrl.abort();
     }, [ano, mes, ine]);
+
+    // Cidadaos cadastrados (responsabilidade) por ACS, para a coluna "Cadastrados"
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (ine) params.set('ine', ine);
+        const ctrl = new AbortController();
+        setResponsabilidade([]);
+        monitorApsApi.get(`/visitas/responsabilidade?${params}`, { signal: ctrl.signal })
+            .then(d => setResponsabilidade(d.responsabilidade ?? []))
+            .catch(() => {});
+        return () => ctrl.abort();
+    }, [ine]);
+
+    const cadastradosPorAgente = useMemo(() => {
+        const porCns = new Map();
+        const porNome = new Map();
+        responsabilidade.forEach((r) => {
+            const total = Number(r.cadastrados) || 0;
+            if (r.cns) porCns.set(String(r.cns).trim(), (porCns.get(String(r.cns).trim()) ?? 0) + total);
+            const nome = (r.agente ?? '').trim().toLowerCase();
+            if (nome) porNome.set(nome, (porNome.get(nome) ?? 0) + total);
+        });
+        return (agente) => {
+            const cns = String(agente?.agente_cns ?? '').trim();
+            if (cns && porCns.has(cns)) return porCns.get(cns);
+            const nome = (agente?.agente ?? '').trim().toLowerCase();
+            return porNome.has(nome) ? porNome.get(nome) : null;
+        };
+    }, [responsabilidade]);
 
     const handleEquipeChange = useCallback((event) => {
         setIne(event.target.value);
@@ -741,6 +771,7 @@ export default function VisitasAcs() {
                                         }}>
                                             <TableCell>Agente</TableCell>
                                             <TableCell>Equipe</TableCell>
+                                            <TableCell align="right">Cadastrados</TableCell>
                                             <TableCell align="right">Cidadãos</TableCell>
                                             <TableCell align="right">Realizadas</TableCell>
                                             <TableCell align="right">Recusadas</TableCell>
@@ -771,6 +802,7 @@ export default function VisitasAcs() {
                                                 <TableCell>
                                                     <Typography variant="body2" noWrap title={equipeLabel(a.equipe?.nome)}>{(() => { const equipeNome = equipeLabel(a.equipe?.nome) ?? ''; const equipeVisivel = equipeNome.includes(' - ') ? equipeNome.split(' - ').slice(1).join(' - ') : equipeNome; return equipeVisivel.length > 20 ? equipeVisivel.slice(0, 20) + '…' : equipeVisivel; })()}</Typography>
                                                 </TableCell>
+                                                <TableCell align="right">{(() => { const c = cadastradosPorAgente(a); return c != null ? c.toLocaleString('pt-BR') : '—'; })()}</TableCell>
                                                 <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
                                                 <TableCell align="right" sx={{ color: '#168821' }}>
                                                     {a.realizadas.toLocaleString('pt-BR')}
@@ -826,7 +858,7 @@ export default function VisitasAcs() {
                                         ))}
                                         {!erros.agentes && agentes.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={14} align="center"
+                                                <TableCell colSpan={15} align="center"
                                                     sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
                                                     Nenhum agente encontrado para o período.
                                                 </TableCell>

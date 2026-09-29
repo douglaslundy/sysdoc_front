@@ -365,6 +365,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [historicoMovements, setHistoricoMovements] = useState([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [novoModalOpen, setNovoModalOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState(null);
+  const [deletingUnit, setDeletingUnit] = useState(null);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
   const unitById = useMemo(() => {
@@ -457,9 +459,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setMessage("");
     try {
       if (mode === "estrutura" || mode === "detail") {
+        // /users é restrito a administradores (403 para os demais); a lista só
+        // serve para rotular nomes no log, então a falha não pode derrubar a tela.
         const [unitsRes, usersRes] = await Promise.all([
           api.get("/protocolos/unidades-organizacionais"),
-          api.get("/users"),
+          api.get("/users").catch(() => ({ data: [] })),
         ]);
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
         setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
@@ -596,6 +600,74 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       await loadData();
     } catch (error) {
       setMessage("Não foi possível cadastrar a unidade.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditUnit = (unit) =>
+    setEditingUnit({
+      id: unit.id,
+      parent_id: unit.parent_id ? String(unit.parent_id) : "",
+      tipo: unit.tipo || "secretaria",
+      codigo: unit.codigo || "",
+      nome: unit.nome || "",
+      descricao: unit.descricao || "",
+      ativo: Boolean(unit.ativo),
+    });
+
+  // Unidade pai não pode ser a própria unidade nem uma de suas subunidades.
+  const editParentOptions = useMemo(() => {
+    if (!editingUnit) return [];
+    const blocked = new Set([String(editingUnit.id)]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      unitOptions.forEach((unit) => {
+        if (unit.parent_id && blocked.has(String(unit.parent_id)) && !blocked.has(String(unit.id))) {
+          blocked.add(String(unit.id));
+          changed = true;
+        }
+      });
+    }
+    return unitOptions.filter((unit) => !blocked.has(String(unit.id)));
+  }, [editingUnit, unitOptions]);
+
+  const handleSubmitEditUnit = async (event) => {
+    event.preventDefault();
+    if (!editingUnit) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.put(`/protocolos/unidades-organizacionais/${editingUnit.id}`, {
+        parent_id: editingUnit.parent_id || null,
+        tipo: editingUnit.tipo,
+        codigo: editingUnit.codigo || null,
+        nome: editingUnit.nome,
+        descricao: editingUnit.descricao || null,
+        ativo: editingUnit.ativo,
+      });
+      setEditingUnit(null);
+      setMessage("Unidade atualizada com sucesso.");
+      await loadData();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível atualizar a unidade.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmDeleteUnit = async () => {
+    if (!deletingUnit) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.delete(`/protocolos/unidades-organizacionais/${deletingUnit.id}`);
+      setDeletingUnit(null);
+      setMessage("Unidade excluída (inativada) com sucesso.");
+      await loadData();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível excluir a unidade.");
     } finally {
       setSaving(false);
     }
@@ -802,7 +874,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     </Box>
   );
   const renderDetail = () => {
-    const p = protocolDetail || {};
+    if (!protocolDetail?.id) {
+      return (
+        <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>Voltar</Button>
+      );
+    }
+    const p = protocolDetail;
     const attachments = Array.isArray(p.attachments) ? p.attachments : [];
     const comments = (Array.isArray(p.comments) ? [...p.comments] : [])
       .filter((comment) => comment?.created_at)
@@ -1265,6 +1342,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <TableCell>Tipo</TableCell>
               <TableCell>Código</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1274,15 +1352,83 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 <TableCell>{unit.tipo}</TableCell>
                 <TableCell>{unit.codigo || "—"}</TableCell>
                 <TableCell><Chip size="small" color={unit.ativo ? "success" : "default"} label={unit.ativo ? "Ativo" : "Inativo"} /></TableCell>
+                <TableCell align="right">
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button size="small" variant="outlined" onClick={() => openEditUnit(unit)}>Editar</Button>
+                    <Button size="small" variant="outlined" color="error" disabled={!unit.ativo} onClick={() => setDeletingUnit(unit)}>Excluir</Button>
+                  </Stack>
+                </TableCell>
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={4} align="center">Nenhuma unidade cadastrada.</TableCell>
+                <TableCell colSpan={5} align="center">Nenhuma unidade cadastrada.</TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </BaseCard>
+
+      <Dialog open={Boolean(editingUnit)} onClose={() => setEditingUnit(null)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700 }}>Editar unidade organizacional</DialogTitle>
+        {editingUnit ? (
+          <Box component="form" onSubmit={handleSubmitEditUnit}>
+            <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+              <FormControl fullWidth sx={{ mt: 1 }}>
+                <InputLabel>Unidade pai</InputLabel>
+                <Select
+                  value={editingUnit.parent_id}
+                  label="Unidade pai"
+                  onChange={(e) => setEditingUnit((prev) => ({ ...prev, parent_id: e.target.value }))}
+                >
+                  <MenuItem value="">Nenhuma</MenuItem>
+                  {editParentOptions.map((unit) => (
+                    <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                select
+                fullWidth
+                label="Tipo"
+                value={editingUnit.tipo}
+                onChange={(e) => setEditingUnit((prev) => ({ ...prev, tipo: e.target.value }))}
+              >
+                {protocolUnitTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                ))}
+              </TextField>
+              <TextField fullWidth label="Código" value={editingUnit.codigo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, codigo: e.target.value }))} />
+              <TextField fullWidth required label="Nome" value={editingUnit.nome} onChange={(e) => setEditingUnit((prev) => ({ ...prev, nome: e.target.value }))} />
+              <TextField fullWidth label="Descrição" value={editingUnit.descricao} onChange={(e) => setEditingUnit((prev) => ({ ...prev, descricao: e.target.value }))} />
+              <FormControlLabel
+                control={<Switch checked={editingUnit.ativo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, ativo: e.target.checked }))} />}
+                label="Ativo"
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button variant="outlined" onClick={() => setEditingUnit(null)}>Cancelar</Button>
+              <Button type="submit" variant="contained" disabled={saving || !editingUnit.nome.trim()}>
+                {saving ? "Salvando..." : "Salvar"}
+              </Button>
+            </DialogActions>
+          </Box>
+        ) : null}
+      </Dialog>
+
+      <Dialog open={Boolean(deletingUnit)} onClose={() => setDeletingUnit(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 700 }}>Excluir unidade</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Excluir a unidade "{deletingUnit?.nome}"? Ela será inativada e deixará de aparecer para novos protocolos; os protocolos já existentes são preservados.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setDeletingUnit(null)}>Cancelar</Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDeleteUnit} disabled={saving}>
+            {saving ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 

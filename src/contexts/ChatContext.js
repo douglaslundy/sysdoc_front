@@ -3,21 +3,35 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import Router from "next/router";
 import { AuthContext } from "./AuthContext";
 import { api } from "../services/api";
+import {
+  appendMessageOnce,
+  applyIncomingMessage,
+  applyPresenceEvent,
+  applySentMessage,
+  createSingleFlight,
+  markConversationRead,
+  sortConversations,
+  unreadTotalOf,
+  upsertConversation,
+} from "./chatState";
 
 export const ChatContext = createContext({});
 
-const sortConversations = (items) =>
-  [...items].sort(
-    (a, b) =>
-      new Date(b.last_message_at || b.created_at || 0) -
-      new Date(a.last_message_at || a.created_at || 0)
-  );
+// Sincronização de segurança (o tempo real é a via principal). Só roda com a aba
+// visível e busca apenas as conversas — a lista de usuários chega por eventos.
+const RECONCILE_MS_REALTIME = 120000;
+const RECONCILE_MS_POLLING = 20000;
+const USERS_MIN_INTERVAL_MS = 30000;
+// Só marca "ausente" depois de a aba ficar oculta por um tempo, para não gerar uma
+// rajada de eventos de presença (um para cada usuário) a cada troca de aba.
+const AWAY_GRACE_MS = 20000;
 
 const createConnectionId = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -70,7 +84,6 @@ export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [messagePage, setMessagePage] = useState(1);
   const [hasOlderMessages, setHasOlderMessages] = useState(false);
-  const [unreadTotal, setUnreadTotal] = useState(0);
   const [typing, setTyping] = useState({});
   const [loading, setLoading] = useState(false);
   const [syncError, setSyncError] = useState("");
@@ -85,6 +98,11 @@ export function ChatProvider({ children }) {
     allowedExtensions: [],
   });
   const [realtimeVersion, setRealtimeVersion] = useState(0);
+  const unreadTotal = useMemo(() => unreadTotalOf(conversations), [conversations]);
+  const conversationsFlightRef = useRef(createSingleFlight());
+  const usersFlightRef = useRef(createSingleFlight());
+  const usersFetchedAtRef = useRef(0);
+  const connectedRef = useRef(false);
   const echoRef = useRef(null);
   const connectionIdRef = useRef(createConnectionId());
   const activeConversationRef = useRef(null);
@@ -105,6 +123,10 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     conversationsRef.current = conversations;
   }, [conversations]);
+
+  useEffect(() => {
+    connectedRef.current = connected;
+  }, [connected]);
 
   useEffect(() => {
     isOpenRef.current = isOpen;
@@ -205,46 +227,62 @@ export function ChatProvider({ children }) {
       .catch(() => {});
   }, [ensureAudioContext]);
 
-  const refreshLists = useCallback(async () => {
-    if (!isAuthenticated || !canUseChat) return;
-    const [usersResult, conversationsResult, unreadResult] =
-      await Promise.allSettled([
-        api.get("/chat/users"),
-        api.get("/chat/conversations"),
-        api.get("/chat/unread"),
-      ]);
-
-    if (usersResult.status === "fulfilled") {
-      setUsers(usersResult.value.data || []);
-    }
-    if (conversationsResult.status === "fulfilled") {
-      setConversations(
-        sortConversations(conversationsResult.value.data || [])
-      );
-    }
-    if (unreadResult.status === "fulfilled") {
-      setUnreadTotal(Number(unreadResult.value.data?.total || 0));
-    }
-
-    const failed = [usersResult, conversationsResult, unreadResult].find(
-      (result) => result.status === "rejected"
-    );
-    setSyncError(
-      failed
-        ? failed.reason?.response?.data?.message ||
+  // Conversas (com última mensagem e não lidas de cada uma): 1 requisição. O total
+  // de não lidas é derivado dessa lista, sem chamar /chat/unread.
+  const refreshConversations = useCallback(async () => {
+    if (!isAuthenticated || !canUseChat) return [];
+    return conversationsFlightRef.current(async () => {
+      try {
+        const response = await api.get("/chat/conversations");
+        const items = sortConversations(response.data || []);
+        setConversations(items);
+        setSyncError("");
+        return items;
+      } catch (error) {
+        setSyncError(
+          error?.response?.data?.message ||
             "Alguns dados do chat não puderam ser sincronizados."
-        : ""
-    );
+        );
+        return conversationsRef.current;
+      }
+    });
   }, [isAuthenticated, canUseChat]);
+
+  // Lista de usuários é a consulta mais pesada e quase não muda (presença chega por
+  // eventos): só busca quando o painel é aberto, respeitando um intervalo mínimo.
+  const refreshUsers = useCallback(
+    async ({ force = false } = {}) => {
+      if (!isAuthenticated || !canUseChat) return;
+      if (
+        !force &&
+        Date.now() - usersFetchedAtRef.current < USERS_MIN_INTERVAL_MS
+      ) {
+        return;
+      }
+      await usersFlightRef.current(async () => {
+        try {
+          const response = await api.get("/chat/users");
+          usersFetchedAtRef.current = Date.now();
+          setUsers(response.data || []);
+        } catch (error) {
+          setSyncError(
+            error?.response?.data?.message ||
+              "Alguns dados do chat não puderam ser sincronizados."
+          );
+        }
+      });
+    },
+    [isAuthenticated, canUseChat]
+  );
+
+  const refreshLists = useCallback(
+    () => Promise.all([refreshConversations(), refreshUsers({ force: true })]),
+    [refreshConversations, refreshUsers]
+  );
 
   const markRead = useCallback(async (conversationId) => {
     await api.post(`/chat/conversations/${conversationId}/read`);
-    setUnreadTotal((current) => Math.max(0, current));
-    setConversations((current) =>
-      current.map((item) =>
-        item.id === conversationId ? { ...item, unread_count: 0 } : item
-      )
-    );
+    setConversations((current) => markConversationRead(current, conversationId));
   }, []);
 
   const openConversation = useCallback(
@@ -268,9 +306,8 @@ export function ChatProvider({ children }) {
       }
 
       markRead(conversation.id).catch(() => {});
-      refreshLists().catch(() => {});
     },
-    [markRead, refreshLists]
+    [markRead]
   );
 
   const focusConversationById = useCallback(
@@ -288,9 +325,7 @@ export function ChatProvider({ children }) {
       );
 
       if (!conversation) {
-        const response = await api.get("/chat/conversations");
-        const items = sortConversations(response.data || []);
-        setConversations(items);
+        const items = await refreshConversations();
         conversation = items.find(
           (item) => Number(item.id) === Number(conversationId)
         );
@@ -300,7 +335,7 @@ export function ChatProvider({ children }) {
         await openConversation(conversation);
       }
     },
-    [openConversation]
+    [openConversation, refreshConversations]
   );
 
   const startConversation = useCallback(
@@ -308,10 +343,10 @@ export function ChatProvider({ children }) {
       const response = await api.post("/chat/conversations", {
         user_id: userId,
       });
-      await refreshLists();
+      setConversations((current) => upsertConversation(current, response.data));
       await openConversation(response.data);
     },
-    [openConversation, refreshLists]
+    [openConversation]
   );
 
   const loadOlderMessages = useCallback(async () => {
@@ -399,21 +434,9 @@ export function ChatProvider({ children }) {
             message.id === pendingId ? response.data : message
           )
         );
-        setConversations((current) =>
-          sortConversations(
-            current.map((conversation) =>
-              conversation.id === activeConversationId
-                ? {
-                    ...conversation,
-                    last_message: response.data,
-                    last_message_at:
-                      response.data?.created_at || conversation.last_message_at,
-                  }
-                : conversation
-            )
-          )
+        setConversations(
+          (current) => applySentMessage(current, response.data).conversations
         );
-        refreshLists().catch(() => {});
         return response.data;
       } catch (error) {
         setMessages((current) =>
@@ -432,7 +455,7 @@ export function ChatProvider({ children }) {
         throw error;
       }
     },
-    [activeConversation, refreshLists, user]
+    [activeConversation, user]
   );
 
   const retryMessage = useCallback(
@@ -517,10 +540,35 @@ export function ChatProvider({ children }) {
 
   useEffect(() => {
     if (!isAuthenticated || !canUseChat) return undefined;
-    refreshLists().catch(() => {});
-    const fallback = setInterval(() => refreshLists().catch(() => {}), 30000);
-    return () => clearInterval(fallback);
-  }, [isAuthenticated, canUseChat, refreshLists]);
+    refreshConversations().catch(() => {});
+
+    // Reconciliação: com tempo real ativo é só uma rede de segurança (a cada 2 min);
+    // sem ele vira a via principal (20 s). Nunca com a aba oculta.
+    let timer = null;
+    const schedule = () => {
+      timer = setTimeout(async () => {
+        if (!document.hidden) {
+          await refreshConversations().catch(() => {});
+        }
+        schedule();
+      }, connectedRef.current ? RECONCILE_MS_REALTIME : RECONCILE_MS_POLLING);
+    };
+    schedule();
+
+    const onVisible = () => {
+      if (!document.hidden) refreshConversations().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [isAuthenticated, canUseChat, refreshConversations]);
+
+  useEffect(() => {
+    if (isOpen) refreshUsers().catch(() => {});
+  }, [isOpen, refreshUsers]);
 
   useEffect(() => {
     const reloadRealtime = () => setRealtimeVersion((current) => current + 1);
@@ -593,28 +641,57 @@ export function ChatProvider({ children }) {
       const echo = new Echo(echoOptions);
 
       echoRef.current = echo;
-      echo.connector.pusher.connection.bind("connected", () =>
-        setConnected(true)
-      );
+      let hasConnectedOnce = false;
+      echo.connector.pusher.connection.bind("connected", () => {
+        setConnected(true);
+        // Após uma RECONEXÃO, recupera o que foi perdido enquanto estava offline.
+        if (hasConnectedOnce) {
+          refreshConversations().catch(() => {});
+          if (isOpenRef.current) refreshUsers({ force: true }).catch(() => {});
+        }
+        hasConnectedOnce = true;
+      });
       echo.connector.pusher.connection.bind("disconnected", () =>
         setConnected(false)
       );
 
       const channel = echo.private(`chat.user.${user}`);
       channel.listen(".message.new", (message) => {
-        api.post(`/chat/messages/${message.id}/delivered`).catch(() => {});
+        const isActiveConversation =
+          activeConversationRef.current?.id === message.conversation_id;
+        const viewingThisConversationNow = isActiveConversation && isOpenRef.current;
         const shouldFocusConversation =
-          chatBehaviorRef.current.autoOpenOnMessage &&
-          activeConversationRef.current?.id !== message.conversation_id;
-        setMessages((current) =>
-          activeConversationRef.current?.id === message.conversation_id
-            ? [...current, message]
-            : current
+          chatBehaviorRef.current.autoOpenOnMessage && !isActiveConversation;
+
+        // Confirmação de recebimento: se a conversa está aberta e visível, "lido" já
+        // implica "entregue" (1 requisição no lugar de 2).
+        if (viewingThisConversationNow) {
+          markRead(message.conversation_id).catch(() => {});
+        } else {
+          api.post(`/chat/messages/${message.id}/delivered`).catch(() => {});
+        }
+
+        if (isActiveConversation) {
+          setMessages((current) => appendMessageOnce(current, message));
+        }
+
+        // A lista é atualizada localmente com o conteúdo do próprio evento; só busca
+        // no servidor quando a conversa ainda é desconhecida (primeira mensagem).
+        const isKnownConversation = conversationsRef.current.some(
+          (item) => String(item.id) === String(message.conversation_id)
         );
+        setConversations(
+          (current) =>
+            applyIncomingMessage(current, message, {
+              currentUserId: user,
+              viewing: viewingThisConversationNow,
+            }).conversations
+        );
+        if (!isKnownConversation) {
+          refreshConversations().catch(() => {});
+        }
+
         playNotificationSound();
-        const viewingThisConversationNow =
-          activeConversationRef.current?.id === message.conversation_id &&
-          isOpenRef.current;
         if (
           !viewingThisConversationNow &&
           (document.hidden || !document.hasFocus())
@@ -625,19 +702,23 @@ export function ChatProvider({ children }) {
             () => focusConversationById(message.conversation_id).catch(() => {})
           );
         }
-        if (viewingThisConversationNow) {
-          markRead(message.conversation_id).catch(() => {});
-        } else if (shouldFocusConversation) {
+        if (!viewingThisConversationNow && shouldFocusConversation) {
           focusConversationById(message.conversation_id).catch(() => {
-            setUnreadTotal((current) => current + 1);
             setIsOpen(true);
           });
-        } else {
-          setUnreadTotal((current) => current + 1);
         }
-        refreshLists().catch(() => {});
       });
-      channel.listen(".message.sent", () => refreshLists().catch(() => {}));
+      channel.listen(".message.sent", (message) => {
+        const isKnownConversation = conversationsRef.current.some(
+          (item) => String(item.id) === String(message.conversation_id)
+        );
+        setConversations(
+          (current) => applySentMessage(current, message).conversations
+        );
+        if (!isKnownConversation) {
+          refreshConversations().catch(() => {});
+        }
+      });
       channel.listen(".message.delivered", (event) => {
         setMessages((current) =>
           current.map((message) =>
@@ -677,18 +758,7 @@ export function ChatProvider({ children }) {
       });
       const presenceChannel = echo.private("chat.presence");
       presenceChannel.listen(".presence.updated", (event) => {
-        setUsers((current) =>
-          current.map((item) =>
-            item.id === event.user_id
-              ? {
-                  ...item,
-                  presence: event.presence,
-                  is_online: event.is_online,
-                  last_seen_at: event.last_seen_at,
-                }
-              : item
-          )
-        );
+        setUsers((current) => applyPresenceEvent(current, event));
       });
       channel.listen(".typing.started", (event) => {
         setTyping((current) => ({
@@ -720,7 +790,8 @@ export function ChatProvider({ children }) {
     playNotificationSound,
     focusConversationById,
     realtimeVersion,
-    refreshLists,
+    refreshConversations,
+    refreshUsers,
     user,
   ]);
 
@@ -735,14 +806,31 @@ export function ChatProvider({ children }) {
         })
         .catch(() => {});
 
-    updatePresence("online");
-    const heartbeat = setInterval(() => updatePresence("online"), 60000);
-    const onVisibility = () =>
-      updatePresence(document.hidden ? "away" : "online");
+    let lastState = "online";
+    const send = (state) => {
+      lastState = state;
+      return updatePresence(state);
+    };
+
+    send("online");
+    // O heartbeat mantém a conexão viva no estado atual (online/ausente); sem ele o
+    // servidor a expira em 2 min mesmo com a aba aberta em segundo plano.
+    const heartbeat = setInterval(() => send(lastState), 60000);
+
+    let awayTimer = null;
+    const onVisibility = () => {
+      clearTimeout(awayTimer);
+      if (document.hidden) {
+        awayTimer = setTimeout(() => send("away"), AWAY_GRACE_MS);
+      } else if (lastState !== "online") {
+        send("online");
+      }
+    };
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       clearInterval(heartbeat);
+      clearTimeout(awayTimer);
       document.removeEventListener("visibilitychange", onVisibility);
       updatePresence("offline");
     };

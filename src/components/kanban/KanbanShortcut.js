@@ -50,8 +50,18 @@ const KanbanShortcut = () => {
     };
 
     loadCount();
-    const intervalId = setInterval(loadCount, 60000);
-    return () => clearInterval(intervalId);
+    // Não consulta com a aba oculta; ao voltar, atualiza na hora.
+    const intervalId = setInterval(() => {
+      if (!document.hidden) loadCount();
+    }, 60000);
+    const onVisible = () => {
+      if (!document.hidden) loadCount();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [canAccessKanban, permissionsLoaded]);
 
   if (!canAccessKanban) {

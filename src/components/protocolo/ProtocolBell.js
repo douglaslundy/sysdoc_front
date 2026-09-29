@@ -50,8 +50,18 @@ const ProtocolBell = () => {
     if (!permissionsLoaded) return undefined;
 
     loadCounts();
-    const intervalId = setInterval(loadCounts, 60000);
-    return () => clearInterval(intervalId);
+    // Não consulta com a aba oculta; ao voltar, atualiza na hora.
+    const intervalId = setInterval(() => {
+      if (!document.hidden) loadCounts();
+    }, 60000);
+    const onVisible = () => {
+      if (!document.hidden) loadCounts();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [permissionsLoaded]);
 
   const total = useMemo(
