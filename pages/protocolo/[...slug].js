@@ -33,6 +33,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import FeatherIcon from "feather-icons-react";
 import BaseCard from "../../src/components/baseCard/BaseCard";
 import AlertModal from "../../src/components/messagesModal";
 import NewProtocolModal from "../../src/components/protocolo/NewProtocolModal";
@@ -828,7 +829,20 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 onClick={() => router.push(`/protocolo/${protocol.id}`)}
               >
                 <TableCell>{protocol.numero}</TableCell>
-                <TableCell>{protocol.assunto}</TableCell>
+                <TableCell>
+                  {protocol.assunto}
+                  {Number(protocol.attachments_count) > 0 && (
+                    <Box
+                      component="span"
+                      title={`${protocol.attachments_count} arquivo(s) anexado(s)`}
+                      aria-label="Possui anexo"
+                      data-testid="protocolo-anexo-icon"
+                      sx={{ ml: 1, display: "inline-flex", verticalAlign: "middle", color: "text.secondary" }}
+                    >
+                      <FeatherIcon icon="paperclip" size={16} />
+                    </Box>
+                  )}
+                </TableCell>
                 <TableCell>
                   <Chip size="small" label={protocol.prioridade || "normal"} />
                 </TableCell>
@@ -873,10 +887,20 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       />
     </Box>
   );
+  // Volta para a página anterior do histórico do navegador; sem histórico (aba aberta
+  // direto pelo link), cai na caixa de entrada.
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/protocolo/caixa-entrada");
+    }
+  };
+
   const renderDetail = () => {
     if (!protocolDetail?.id) {
       return (
-        <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>Voltar</Button>
+        <Button variant="outlined" onClick={goBack}>Voltar</Button>
       );
     }
     const p = protocolDetail;
@@ -888,6 +912,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <BaseCard title={`Protocolo ${p.numero || ""}`}>
+          <Box sx={{ mb: 2 }}>
+            <Button variant="outlined" size="small" onClick={goBack} aria-label="Voltar à página anterior">
+              ← Voltar
+            </Button>
+          </Box>
           <Stack direction="row" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 2 }}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>{p.assunto || "Sem assunto"}</Typography>
@@ -926,7 +955,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </Grid>
 
           <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 3, mb: 1 }}>
-            <Button variant="outlined" onClick={() => router.push("/protocolo/caixa-entrada")}>Voltar</Button>
+            <Button variant="outlined" onClick={goBack}>Voltar</Button>
             {!p.recebido_em && (
               loggedProfile === "admin"
               || (p.responsavel_atual_id ? String(p.responsavel_atual_id) === String(loggedUserId) : String(p.criado_por_id) !== String(loggedUserId))

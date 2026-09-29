@@ -101,3 +101,67 @@ test("estrutura permite editar e excluir unidade", async () => {
   fireEvent.click(confirmDialog.getByRole("button", { name: "Excluir" }));
   await waitFor(() => expect(mockApi.delete).toHaveBeenCalledWith("/protocolos/unidades-organizacionais/2"));
 });
+
+test("caixa de entrada mostra o ícone de anexo só nos protocolos que têm arquivo", async () => {
+  mockRouter = { isReady: true, query: { slug: ["caixa-entrada"] }, push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+  mockApi.get.mockImplementation((url) => {
+    if (url === "/protocolos/caixa-entrada") {
+      return Promise.resolve({
+        data: {
+          total: 2,
+          data: [
+            { id: 1, numero: "PRT-1", assunto: "Com arquivo", status: "novo", attachments_count: 2 },
+            { id: 2, numero: "PRT-2", assunto: "Sem arquivo", status: "novo", attachments_count: 0 },
+          ],
+        },
+      });
+    }
+    return Promise.resolve({ data: {} });
+  });
+
+  renderPage();
+
+  await screen.findByText("Com arquivo");
+  const icons = screen.getAllByTestId("protocolo-anexo-icon");
+  expect(icons).toHaveLength(1);
+  expect(icons[0]).toHaveAttribute("title", "2 arquivo(s) anexado(s)");
+});
+
+describe("botão voltar do protocolo", () => {
+  const detailMocks = () =>
+    mockApi.get.mockImplementation((url) => {
+      if (url === "/protocolos/10") {
+        return Promise.resolve({ data: { id: 10, numero: "PRT-1", assunto: "Assunto X", status: "recebido", recebido_em: "2026-01-01", responsavel_atual_id: 7 } });
+      }
+      return Promise.resolve({ data: [] });
+    });
+
+  const setHistoryLength = (length) =>
+    Object.defineProperty(window.history, "length", { value: length, configurable: true });
+
+  test("volta para a página anterior quando há histórico", async () => {
+    mockRouter = { isReady: true, query: { slug: ["10"] }, push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+    detailMocks();
+    setHistoryLength(5);
+
+    renderPage();
+    await screen.findByText("Assunto X");
+    fireEvent.click(screen.getAllByRole("button", { name: /Voltar/ })[0]);
+
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  test("sem histórico (link aberto direto) cai na caixa de entrada", async () => {
+    mockRouter = { isReady: true, query: { slug: ["10"] }, push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+    detailMocks();
+    setHistoryLength(1);
+
+    renderPage();
+    await screen.findByText("Assunto X");
+    fireEvent.click(screen.getAllByRole("button", { name: /Voltar/ })[0]);
+
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockRouter.push).toHaveBeenCalledWith("/protocolo/caixa-entrada");
+  });
+});
