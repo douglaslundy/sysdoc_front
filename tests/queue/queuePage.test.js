@@ -66,6 +66,7 @@ test("filtro padrão (não realizados): sem ordenação e primeira coluna com a 
   await waitFor(() => expect(mockGetAllQueues).toHaveBeenCalled());
 
   expect(lastParams()).not.toHaveProperty("sort_by");
+  expect(lastParams()).not.toHaveProperty("date_from");
   expect(screen.queryByText("Ordenar por")).not.toBeInTheDocument();
   expect(screen.getByText(/05\/03\/2026/)).toBeInTheDocument();
 });

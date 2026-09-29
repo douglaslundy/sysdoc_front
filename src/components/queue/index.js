@@ -47,12 +47,16 @@ import { showQueue } from "../../store/ducks/queues";
 import { openQueueModal, openOutcomeQueueModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
+import DatePicker from '../inputs/datePicker';
 import {
     DEFAULT_DONE_SORT,
     DONE_SORT_FIELDS,
     SORT_DIRECTIONS,
+    defaultDoneRange,
+    doneByName,
     firstColumnDate,
     isDoneFilter,
+    rangeParams,
     sortParams,
 } from './queueDates';
 
@@ -150,6 +154,8 @@ export default () => {
     const [urgency, setUrgency] = useState(2);
     const [sortBy, setSortBy] = useState(DEFAULT_DONE_SORT.sortBy);
     const [sortDir, setSortDir] = useState(DEFAULT_DONE_SORT.sortDir);
+    const [doneFrom, setDoneFrom] = useState(() => defaultDoneRange().from);
+    const [doneTo, setDoneTo] = useState(() => defaultDoneRange().to);
     const { user, profile } = useContext(AuthContext);
 
     const changeSpeci = ({ target }) => {
@@ -207,6 +213,16 @@ export default () => {
         setPage(0)
     }
 
+    const changeDoneFrom = (value) => {
+        setDoneFrom(value)
+        setPage(0)
+    }
+
+    const changeDoneTo = (value) => {
+        setDoneTo(value)
+        setPage(0)
+    }
+
     const changeSortDir = ({ target }) => {
         setSortDir(target.value)
         setPage(0)
@@ -247,8 +263,9 @@ export default () => {
             done,
             urgency,
             ...sortParams(done, sortBy, sortDir),
+            ...rangeParams(done, doneFrom, doneTo),
         }));
-    }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency, sortBy, sortDir]);
+    }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency, sortBy, sortDir, doneFrom, doneTo]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -276,7 +293,7 @@ export default () => {
             if (speci)           baseParams.speciality_id = speci;
             baseParams.done    = done;
             baseParams.urgency = urgency;
-            Object.assign(baseParams, sortParams(done, sortBy, sortDir));
+            Object.assign(baseParams, sortParams(done, sortBy, sortDir), rangeParams(done, doneFrom, doneTo));
 
             // Busca a primeira página para saber o total
             const first = await api.get('/queues', { params: { ...baseParams, page: 1 } });
@@ -499,6 +516,20 @@ export default () => {
                             selectSx={selectControlSx}
                             menuItemSx={{ fontSize: "10px" }}
                         />
+                        <DatePicker
+                            label="Baixa de"
+                            name="doneFrom"
+                            value={doneFrom}
+                            setValue={changeDoneFrom}
+                            sx={{ minWidth: 150, ...controlSx }}
+                        />
+                        <DatePicker
+                            label="Baixa até"
+                            name="doneTo"
+                            value={doneTo}
+                            setValue={changeDoneTo}
+                            sx={{ minWidth: 150, ...controlSx }}
+                        />
                     </>
                 )}
 
@@ -648,6 +679,11 @@ export default () => {
                                                         }}
                                                     >
                                                         <span> {isDoneFilter(done) && 'Baixa: '}{firstColumnDate(queue, done)} / <strong style={{ color: 'var(--lg-text-primary)' }}>{queue.urgency == 1 ? 'URGENTE' : 'ROTINA'}</strong> </span>
+                                                        {isDoneFilter(done) && (
+                                                            <span style={{ display: 'block' }}>
+                                                                Baixa por: <strong style={{ color: 'var(--lg-text-primary)' }}>{doneByName(queue) || '—'}</strong>
+                                                            </span>
+                                                        )}
                                                         {/* {queue.created_at && format(parseISO(queue.created_at), 'dd/MM/yyyy HH:mm:ss')} */}
 
                                                     </Typography>
