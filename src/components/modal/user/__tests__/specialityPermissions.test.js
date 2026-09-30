@@ -2,6 +2,9 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+// Render pesado (modal de usuário completo): sob a suíte em paralelo estourava os 5 s padrão.
+jest.setTimeout(30000);
+
 const mockState = {
   users: { user: null },
   layout: { isOpenUserModal: true },

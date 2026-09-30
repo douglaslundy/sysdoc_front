@@ -137,6 +137,8 @@ export default function VigilanciaDashboard() {
   if (erro || !dados || !chart) return <DashboardErro message={getDashboardErrorMessage('Vigilância Sanitária', erro)} />;
 
   const { totais } = dados;
+  // Payload em cache anterior à T9 pode não ter o bloco; mostra zeros em vez de quebrar.
+  const fiscalizacoes = dados.fiscalizacoes || { no_ano: 0, no_mes: 0, denuncias_pendentes: 0, autos_infracao_ano: 0 };
   const chartFont = { fontFamily: "'DM Sans', sans-serif" };
   const toolbarOff = { toolbar: { show: false } };
 
@@ -167,6 +169,26 @@ export default function VigilanciaDashboard() {
         <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
         <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
         <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
+      </Box>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
+          gap: 1,
+          mb: 3,
+          '& > *': { minWidth: 0 },
+        }}
+      >
+        <CardTotal icon="clipboard" titulo="Fiscalizações no ano" valor={fiscalizacoes.no_ano} cor="#2196f3" />
+        <CardTotal icon="calendar" titulo="Fiscalizações no mês" valor={fiscalizacoes.no_mes} cor="#00acc1" />
+        <CardTotal
+          icon="message-circle"
+          titulo="Denúncias pendentes"
+          valor={fiscalizacoes.denuncias_pendentes}
+          cor={Number(fiscalizacoes.denuncias_pendentes) > 0 ? '#ff9800' : '#4caf50'}
+        />
+        <CardTotal icon="alert-octagon" titulo="Autos de infração no ano" valor={fiscalizacoes.autos_infracao_ano} cor="#f44336" />
       </Box>
 
       <Box
