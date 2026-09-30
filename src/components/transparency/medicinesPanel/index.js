@@ -2,6 +2,7 @@
 import { Box, Grid, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
+import PublicThemeToggle from '../PublicThemeToggle';
 
 const HEADER_HEIGHT = 124;
 const COLUMN_HEADER_HEIGHT = 56;
@@ -95,6 +96,7 @@ export default function MedicinesPanel() {
         },
       }}
     >
+      <PublicThemeToggle />
       <Box
         component="header"
         sx={{

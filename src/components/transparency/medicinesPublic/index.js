@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
+import PublicThemeToggle from '../PublicThemeToggle';
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -35,6 +36,7 @@ export default function MedicinesPublicList() {
 
     return (
         <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
+            <PublicThemeToggle />
             <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Medicamentos Diários</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
                 Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}

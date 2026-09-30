@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
+import PublicThemeToggle from '../PublicThemeToggle';
 
 const formatMonth = (value) => {
     if (!value || !/^\d{4}-\d{2}$/.test(value)) return value || '-';
@@ -41,6 +42,7 @@ export default function MedicinesMonthlyPublicList() {
 
     return (
         <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
+            <PublicThemeToggle />
             <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
                 Mês de referência: {formatMonth(data.reference_month)} | Última atualização: {formatDateTime(data.last_update_at)}
