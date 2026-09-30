@@ -86,19 +86,14 @@ test("botão Histórico abre o painel com a movimentação da fiscalização", a
   expect(screen.getAllByText("Público").length).toBeGreaterThan(0);
 });
 
-test("nova movimentação é enviada com a opção de visibilidade e recarrega o histórico", async () => {
+test("o histórico é só leitura: não há campo de nova movimentação", async () => {
   renderPage();
   fireEvent.click(screen.getAllByTitle("Histórico")[1]);
   await screen.findByText("Mensagem ao denunciante");
 
-  fireEvent.change(screen.getByLabelText("Nova movimentação"), { target: { value: "Visita agendada." } });
-  fireEvent.click(screen.getByLabelText("Visível ao denunciante"));
-  fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
-
-  await waitFor(() =>
-    expect(api.post).toHaveBeenCalledWith("/fiscalizacoes/2/movimentacoes", { descricao: "Visita agendada.", publico: true })
-  );
-  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2));
+  expect(screen.queryByLabelText("Nova movimentação")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Adicionar" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Imprimir PDF" })).toBeInTheDocument();
 });
 
 test("botão Imprimir PDF gera o documento interno com a movimentação", async () => {

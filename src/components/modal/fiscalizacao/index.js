@@ -25,7 +25,6 @@ const EMPTY = {
     resultado: 'Conforme',
     observacoes: '',
     visivel_ao_denunciante: false,
-    mensagem_publica: '',
 };
 
 export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSuccess, onCreateSuccess }) {
@@ -47,7 +46,6 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                     resultado: fiscalizacao.resultado || 'Conforme',
                     observacoes: fiscalizacao.observacoes || '',
                     visivel_ao_denunciante: false,
-                    mensagem_publica: '',
                 }
                 : EMPTY
             );
@@ -68,9 +66,9 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         // Denúncia ainda sem estabelecimento cadastrado/visita: não envia campos vazios.
         if (!dados.estabelecimento_id) delete dados.estabelecimento_id;
         if (!dados.data_visita) delete dados.data_visita;
+        // A caixa publica a própria observação desta gravação; nunca há um segundo texto.
         if (!isDenuncia || !dados.visivel_ao_denunciante) {
             delete dados.visivel_ao_denunciante;
-            delete dados.mensagem_publica;
         }
         if (fiscalizacao?.id) {
             dispatch(editFiscalizacaoFetch(fiscalizacao.id, dados, onSuccess, setLocalError));
@@ -208,29 +206,15 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                         />
 
                         {isDenuncia && (
-                            <>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={form.visivel_ao_denunciante}
-                                            onChange={(event) => setForm(f => ({ ...f, visivel_ao_denunciante: event.target.checked }))}
-                                        />
-                                    }
-                                    label="Informar ao denunciante"
-                                />
-                                {form.visivel_ao_denunciante && (
-                                    <TextField
-                                        label="Mensagem visível ao denunciante"
-                                        name="mensagem_publica"
-                                        value={form.mensagem_publica}
-                                        onChange={change}
-                                        fullWidth
-                                        multiline
-                                        minRows={2}
-                                        inputProps={{ maxLength: 1000 }}
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={form.visivel_ao_denunciante}
+                                        onChange={(event) => setForm(f => ({ ...f, visivel_ao_denunciante: event.target.checked }))}
                                     />
-                                )}
-                            </>
+                                }
+                                label="Visível ao denunciante"
+                            />
                         )}
 
                         {fiscalizacao?.id && (
