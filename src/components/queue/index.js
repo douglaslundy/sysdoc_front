@@ -19,12 +19,11 @@ import {
     DialogActions,
     Chip,
     Divider,
-    Fab,
 } from "@mui/material";
 
 import BaseCard from "../baseCard/BaseCard";
 import FeatherIcon from "feather-icons-react";
-import { ActionCreateFab } from "../actions";
+import QueueActionsGroup from "./QueueActionsGroup";
 import QueueModal from "../modal/queue";
 import QueueOutcomeModal from "../modal/outcomequeue";
 import { modalFormRootSx, modalSecondaryButtonSx } from "../modal/_shared/modalFormStyles";
@@ -48,7 +47,6 @@ import { openQueueModal, openOutcomeQueueModal } from "../../store/ducks/Layout"
 import ConfirmDialog from "../confirmDialog";
 import BlockingErrorDialog from "../messagesModal/BlockingErrorDialog";
 import Select from '../inputs/selects';
-import DatePicker from '../inputs/datePicker';
 import {
     DEFAULT_DONE_SORT,
     DONE_SORT_FIELDS,
@@ -531,20 +529,6 @@ export default () => {
                             selectSx={selectControlSx}
                             menuItemSx={{ fontSize: "10px" }}
                         />
-                        <DatePicker
-                            label="Baixa de"
-                            name="doneFrom"
-                            value={doneFrom}
-                            setValue={changeDoneFrom}
-                            sx={{ minWidth: 150, ...controlSx }}
-                        />
-                        <DatePicker
-                            label="Baixa até"
-                            name="doneTo"
-                            value={doneTo}
-                            setValue={changeDoneTo}
-                            sx={{ minWidth: 150, ...controlSx }}
-                        />
                     </>
                 )}
 
@@ -557,29 +541,19 @@ export default () => {
                     wd={"20%"}
                 /> */}
 
-                <Fab
-                    onClick={handlePrintList}
-                    color="success"
-                    aria-label="imprimir"
-                    title="Imprimir listagem filtrada"
-                    disabled={isPrinting}
-                    sx={fabControlSx}
-                    className="queue-page__fab queue-page__fab--print"
-                >
-                    <FeatherIcon icon={isPrinting ? 'loader' : 'printer'} />
-                </Fab>
-
-                <ActionCreateFab onClick={() => { HandleAddQueue() }} title="inserir na fila" sx={fabControlSx} className="queue-page__fab queue-page__fab--add" />
-
-                <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => router.push('/queue/agenda-tratamentos')}
-                    sx={{ ml: 1 }}
-                    className="queue-page__agenda-link"
-                >
-                    Agenda de Tratamentos
-                </Button>
+                <QueueActionsGroup
+                    isDone={isDoneFilter(done)}
+                    doneFrom={doneFrom}
+                    doneTo={doneTo}
+                    onChangeFrom={changeDoneFrom}
+                    onChangeTo={changeDoneTo}
+                    onPrint={handlePrintList}
+                    isPrinting={isPrinting}
+                    onAdd={() => { HandleAddQueue() }}
+                    onAgenda={() => router.push('/queue/agenda-tratamentos')}
+                    controlSx={controlSx}
+                    fabControlSx={fabControlSx}
+                />
             </Box>
 
             <TableContainer className="queue-page__table-wrap">
