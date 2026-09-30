@@ -129,6 +129,7 @@ const Menuitems = [
       { title: "Estabelecimentos", icon: "home", href: "/estabelecimentos" },
       { title: "Alvarás", icon: "award", href: "/alvaras" },
       { title: "Fiscalizações", icon: "clipboard", href: "/fiscalizacoes" },
+      { title: "Motivos de Petição", icon: "list", href: "/peticao-motivos" },
       { title: "Configurações", icon: "settings", href: "/vigilancia/configuracoes", profile: ["admin"] },
     ],
   },

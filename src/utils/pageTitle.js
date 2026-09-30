@@ -13,6 +13,7 @@ const TITLE_OVERRIDES = {
   "/painel-esus": "Painel eSUS",
   "/painel-esus/statuses": "Status dos Painéis",
   "/avisos": "Avisos",
+  "/peticao-motivos": "Motivos de Petição",
   "/protocolo/caixa-entrada": "Caixa de Entrada",
   "/protocolo/estrutura": "Estrutura Organizacional",
   "/protocolo/configuracoes": "Configurações",
