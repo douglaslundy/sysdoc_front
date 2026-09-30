@@ -10,12 +10,18 @@ import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
 import FiscalizacaoDialog from '../modal/fiscalizacao';
+import FiscalizacaoHistorico from './FiscalizacaoHistorico';
 import { getAllFiscalizacoes, removeFiscalizacaoFetch } from '../../store/fetchActions/fiscalizacoes';
 import { changeTitleAlert } from '../../store/ducks/Layout';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 
-const RESULTADO_OPTIONS = ['Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
+const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
+const ORIGEM_OPTIONS = [
+    { value: 'interna', label: 'Fiscalizações internas' },
+    { value: 'denuncia', label: 'Denúncias' },
+];
 const RESULTADO_COR = {
+    'Pendente de apuração': 'info',
     'Conforme': 'success',
     'Não conforme': 'warning',
     'Notificação': 'warning',
@@ -49,6 +55,8 @@ export default function ListaFiscalizacoes() {
 
     const [busca, setBusca] = useState('');
     const [resultadoFiltro, setResultadoFiltro] = useState('');
+    const [origemFiltro, setOrigemFiltro] = useState('');
+    const [historicoDe, setHistoricoDe] = useState(null);
     const [page, setPage] = useState(0);
     const [perPage, setPerPage] = useState(10);
     const buscaRef = useRef(null);
@@ -61,6 +69,7 @@ export default function ListaFiscalizacoes() {
         per_page: perPage,
         busca: busca || undefined,
         resultado: resultadoFiltro || undefined,
+        origem: origemFiltro || undefined,
         ...overrides,
     });
 
@@ -89,6 +98,13 @@ export default function ListaFiscalizacoes() {
         setResultadoFiltro(valor);
         setPage(0);
         dispatch(getAllFiscalizacoes(buildParams({ resultado: valor || undefined, page: 1 })));
+    };
+
+    const handleOrigemFiltro = ({ target }) => {
+        const valor = target.value;
+        setOrigemFiltro(valor);
+        setPage(0);
+        dispatch(getAllFiscalizacoes(buildParams({ origem: valor || undefined, page: 1 })));
     };
 
     const handlePerPage = (event) => {
@@ -146,11 +162,20 @@ export default function ListaFiscalizacoes() {
                 <TextField
                     className="lg-search-field"
                     sx={{ flex: '1 1 320px', minWidth: 260 }}
-                    placeholder="Pesquisar por estabelecimento"
+                    placeholder="Pesquisar por protocolo ou estabelecimento"
                     value={busca}
                     onChange={handleBusca}
                     inputProps={{ autoComplete: 'off' }}
                 />
+                <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
+                    <InputLabel id="fiscalizacao-origem-label">Origem</InputLabel>
+                    <Select labelId="fiscalizacao-origem-label" value={origemFiltro} label="Origem" onChange={handleOrigemFiltro}>
+                        <MenuItem value="">Todas</MenuItem>
+                        {ORIGEM_OPTIONS.map(o => (
+                            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
                     <InputLabel>Resultado</InputLabel>
                     <Select value={resultadoFiltro} label="Resultado" onChange={handleResultadoFiltro}>
@@ -169,6 +194,7 @@ export default function ListaFiscalizacoes() {
                 <Table className="queue-page__table" sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
                     <TableHead>
                         <TableRow>
+                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Protocolo</Typography></TableCell>
                             <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
                             <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Data</Typography></TableCell>
                             <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Resultado</Typography></TableCell>
@@ -179,6 +205,10 @@ export default function ListaFiscalizacoes() {
                     <TableBody>
                         {fiscalizacoes.map((f) => (
                             <StyledTableRow key={f.id} hover>
+                                <TableCell>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{f.protocolo || '—'}</Typography>
+                                    {f.origem === 'denuncia' && <Chip label="Denúncia" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
+                                </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
                                         {f.estabelecimento?.nome_estabelecimento || '—'}
@@ -195,6 +225,9 @@ export default function ListaFiscalizacoes() {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
+                                        <Button className="queue-page__action queue-page__action--history" onClick={() => setHistoricoDe(f)} color="info" variant="contained" size="small" title="Histórico">
+                                            <FeatherIcon icon="clock" width="18" height="18" />
+                                        </Button>
                                         <Button className="queue-page__action queue-page__action--success" onClick={() => handleEditar(f)} color="success" variant="contained" size="small" title="Editar">
                                             <FeatherIcon icon="edit" width="18" height="18" />
                                         </Button>
@@ -226,6 +259,8 @@ export default function ListaFiscalizacoes() {
                 onSuccess={handleSuccess}
                 onCreateSuccess={handleCreateSuccess}
             />
+
+            <FiscalizacaoHistorico open={Boolean(historicoDe)} fiscalizacao={historicoDe} onClose={() => setHistoricoDe(null)} />
 
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </BaseCard>

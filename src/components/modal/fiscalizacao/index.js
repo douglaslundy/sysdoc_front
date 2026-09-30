@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Dialog from '@mui/material/Dialog';
 import {
-    Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField,
+    Alert, Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField,
     Typography, List, ListItem, ListItemText, IconButton,
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
@@ -17,13 +17,15 @@ import {
 } from '../../../services/fiscalizacaoAttachments';
 import BaseCard from '../../baseCard/BaseCard';
 
-const RESULTADO_OPTIONS = ['Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
+const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 
 const EMPTY = {
     estabelecimento_id: '',
     data_visita: '',
     resultado: 'Conforme',
     observacoes: '',
+    visivel_ao_denunciante: false,
+    mensagem_publica: '',
 };
 
 export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSuccess, onCreateSuccess }) {
@@ -44,6 +46,8 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                     data_visita: fiscalizacao.data_visita?.substring(0, 10) || '',
                     resultado: fiscalizacao.resultado || 'Conforme',
                     observacoes: fiscalizacao.observacoes || '',
+                    visivel_ao_denunciante: false,
+                    mensagem_publica: '',
                 }
                 : EMPTY
             );
@@ -56,10 +60,18 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
     }, [open, fiscalizacao?.id]);
 
     const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const isDenuncia = fiscalizacao?.origem === 'denuncia';
 
     const handleSalvar = () => {
         setLocalError('');
         const dados = { ...form, observacoes: form.observacoes || null };
+        // Denúncia ainda sem estabelecimento cadastrado/visita: não envia campos vazios.
+        if (!dados.estabelecimento_id) delete dados.estabelecimento_id;
+        if (!dados.data_visita) delete dados.data_visita;
+        if (!isDenuncia || !dados.visivel_ao_denunciante) {
+            delete dados.visivel_ao_denunciante;
+            delete dados.mensagem_publica;
+        }
         if (fiscalizacao?.id) {
             dispatch(editFiscalizacaoFetch(fiscalizacao.id, dados, onSuccess, setLocalError));
         } else {
@@ -125,7 +137,25 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                             <Alert severity="error" variant="filled">{localError}</Alert>
                         )}
 
-                        <FormControl fullWidth required>
+                        {fiscalizacao?.protocolo && (
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                                Protocolo: {fiscalizacao.protocolo}
+                            </Typography>
+                        )}
+
+                        {isDenuncia && (
+                            <Alert severity="info">
+                                <strong>Denúncia:</strong> {fiscalizacao.assunto || '—'}
+                                {fiscalizacao.descricao_denuncia ? ` — ${fiscalizacao.descricao_denuncia}` : ''}
+                                <br />
+                                Local: {fiscalizacao.local_endereco || '—'}
+                                {fiscalizacao.estabelecimento_nome_informado ? ` • Estabelecimento informado: ${fiscalizacao.estabelecimento_nome_informado}` : ''}
+                                {fiscalizacao.denunciante_nome ? ` • Denunciante: ${fiscalizacao.denunciante_nome}` : ''}
+                                {fiscalizacao.denunciante_contato ? ` (${fiscalizacao.denunciante_contato})` : ''}
+                            </Alert>
+                        )}
+
+                        <FormControl fullWidth required={!isDenuncia}>
                             <InputLabel>Estabelecimento</InputLabel>
                             <Select
                                 name="estabelecimento_id"
@@ -147,7 +177,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                             type="date"
                             value={form.data_visita}
                             onChange={change}
-                            required
+                            required={!isDenuncia}
                             fullWidth
                             InputLabelProps={{ shrink: true }}
                         />
@@ -176,6 +206,32 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
                             minRows={3}
                             inputProps={{ maxLength: 2000 }}
                         />
+
+                        {isDenuncia && (
+                            <>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={form.visivel_ao_denunciante}
+                                            onChange={(event) => setForm(f => ({ ...f, visivel_ao_denunciante: event.target.checked }))}
+                                        />
+                                    }
+                                    label="Informar ao denunciante"
+                                />
+                                {form.visivel_ao_denunciante && (
+                                    <TextField
+                                        label="Mensagem visível ao denunciante"
+                                        name="mensagem_publica"
+                                        value={form.mensagem_publica}
+                                        onChange={change}
+                                        fullWidth
+                                        multiline
+                                        minRows={2}
+                                        inputProps={{ maxLength: 1000 }}
+                                    />
+                                )}
+                            </>
+                        )}
 
                         {fiscalizacao?.id && (
                             <Box>

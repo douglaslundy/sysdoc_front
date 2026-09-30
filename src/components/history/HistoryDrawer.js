@@ -33,6 +33,7 @@ export default function HistoryDrawer({
   error = "",
   hasMore = false,
   onLoadMore,
+  extra = null,
 }) {
   return (
     <Drawer
@@ -63,13 +64,18 @@ export default function HistoryDrawer({
 
         <Divider sx={{ my: 2 }} />
 
+        {extra ? <Box sx={{ mb: 2 }}>{extra}</Box> : null}
+
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 
         <Stack spacing={0} divider={<Divider flexItem />}>
           {items.map((item) => (
             <Box key={item.id} sx={{ py: 1.5 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                <Chip size="small" variant="outlined" label={item.usuario || "Sistema"} />
+                <Stack direction="row" spacing={0.75}>
+                  <Chip size="small" variant="outlined" label={item.usuario || "Sistema"} />
+                  {item.badge ? <Chip size="small" color="info" label={item.badge} /> : null}
+                </Stack>
                 <Typography variant="caption" color="text.secondary">
                   {formatDateTime(item.data)}
                 </Typography>
