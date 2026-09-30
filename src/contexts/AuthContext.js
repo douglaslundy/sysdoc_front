@@ -81,6 +81,7 @@ export function AuthProvider({ children }) {
                 canUseChat: Boolean(capabilities.chat),
                 canViewClientTrips: Boolean(capabilities.client_trips_view),
                 canViewClientReport: Boolean(capabilities.client_report_view),
+                canViewClientHistory: Boolean(capabilities.client_history_view),
                 permissionsLoaded,
                 loadAuth,
             }}

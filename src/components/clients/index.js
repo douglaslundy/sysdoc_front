@@ -23,6 +23,7 @@ import ClientModal from "../modal/client";
 import ClientViewModal from "../modal/client/view";
 import ClientTripsModal from "../modal/client/trips";
 import ClientReportModal from "../modal/client/report";
+import ClientHistoryDrawer from "./ClientHistoryDrawer";
 import DuplicateCleanupModal from "./DuplicateCleanupModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { useSelector, useDispatch } from "react-redux";
@@ -81,7 +82,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }));
 
 export default function Clients() {
-  const { profile, canViewClientTrips, canViewClientReport } = useContext(AuthContext);
+  const { profile, canViewClientTrips, canViewClientReport, canViewClientHistory } = useContext(AuthContext);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: "Deseja realmente excluir",
@@ -102,6 +103,7 @@ export default function Clients() {
   const [tripsOpen, setTripsOpen] = useState(false);
   const [reportClient, setReportClient] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [historyClient, setHistoryClient] = useState(null);
   const searchRef = useRef(null);
   const isAdmin = profile === 'admin';
 
@@ -383,6 +385,19 @@ export default function Clients() {
                           </Badge>
                         </Button>
                         )}
+                        {canViewClientHistory && (
+                        <Button
+                          className="queue-page__action queue-page__action--history"
+                          title="Histórico do cidadão"
+                          onClick={() => setHistoryClient(client)}
+                          color="info"
+                          size="medium"
+                          variant="contained"
+                          sx={{ minWidth: 62, height: 40 }}
+                        >
+                          <FeatherIcon icon="clock" width="20" height="20" />
+                        </Button>
+                        )}
                         {canViewClientReport && (
                         <Button
                           className="queue-page__action queue-page__action--report"
@@ -461,6 +476,14 @@ export default function Clients() {
 
         {reportOpen && (
           <ClientReportModal client={reportClient} onClose={handleCloseReport} />
+        )}
+
+        {canViewClientHistory && (
+          <ClientHistoryDrawer
+            open={Boolean(historyClient)}
+            client={historyClient}
+            onClose={() => setHistoryClient(null)}
+          />
         )}
 
         {isAdmin && (
