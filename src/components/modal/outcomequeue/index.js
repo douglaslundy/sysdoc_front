@@ -17,6 +17,7 @@ import { showQueue } from '../../../store/ducks/queues';
 import { closeOutcomeQueueModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editDoneQueue, addQueueFetch } from '../../../store/fetchActions/queues';
 import AlertModal from '../../messagesModal';
+import BlockingErrorDialog from '../../messagesModal/BlockingErrorDialog';
 import ConfirmDialog from "../../confirmDialog";
 import InputSelectClient from '../../inputs/inputSelectClient';
 import { getAllSpecialities } from '../../../store/fetchActions/specialities';
@@ -48,6 +49,8 @@ export default function QueueModal(props) {
     });
 
     const [texto, setTexto] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
 
     const changeItem = ({ target }) => {
@@ -77,7 +80,25 @@ export default function QueueModal(props) {
 
     const handlePutData = async () => {
         dispatch(changeTitleAlert(`A especialidade foi atualizada com sucesso!`));
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente finalizar a especialidade ${queue.id}`, confirm: editDoneQueue(form, cleanForm) })
+        setConfirmDialog({
+            ...confirmDialog,
+            isOpen: true,
+            title: `Deseja Realmente finalizar a especialidade ${queue.id}`,
+            confirm: null,
+            onConfirm: () => {
+                setSaving(true);
+                dispatch(editDoneQueue(form, cleanForm, {
+                    onSaved: (saved) => {
+                        setSaving(false);
+                        typeof props.onSaved === 'function' && props.onSaved(saved);
+                    },
+                    onError: (message) => {
+                        setSaving(false);
+                        setErrorMessage(message);
+                    },
+                }));
+            },
+        })
     };
 
     const handleClose = () => {
@@ -162,8 +183,8 @@ export default function QueueModal(props) {
                                 {/* </FormGroup> */}
                                 <br />
                                 <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, ...buttonSx }}>
-                                        Gravar
+                                    <Button onClick={handleSaveData} disabled={saving} variant="contained" sx={{ ...modalPrimaryButtonSx, ...buttonSx }}>
+                                        {saving ? 'Gravando...' : 'Gravar'}
                                     </Button>
 
                                     <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ ...modalSecondaryButtonSx, ...buttonSx }}>
@@ -179,6 +200,12 @@ export default function QueueModal(props) {
             <ConfirmDialog
                 confirmDialog={confirmDialog}
                 setConfirmDialog={setConfirmDialog} />
+            <BlockingErrorDialog
+                open={Boolean(errorMessage)}
+                title="Não foi possível dar baixa"
+                message={errorMessage}
+                onClose={() => setErrorMessage('')}
+            />
         </div>
     );
 }

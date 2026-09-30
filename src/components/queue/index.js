@@ -46,6 +46,7 @@ import { getAllSpecialities } from "../../store/fetchActions/specialities";
 import { showQueue } from "../../store/ducks/queues";
 import { openQueueModal, openOutcomeQueueModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
+import BlockingErrorDialog from "../messagesModal/BlockingErrorDialog";
 import Select from '../inputs/selects';
 import DatePicker from '../inputs/datePicker';
 import {
@@ -118,6 +119,7 @@ export default () => {
         minHeight: `${controlHeight}px`,
     };
 
+    const [blockingError, setBlockingError] = useState('');
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -254,18 +256,25 @@ export default () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Parâmetros da listagem com os filtros atuais (usados ao carregar e ao recarregar após uma baixa).
+    const buildListParams = () => ({
+        page: page + 1,
+        per_page: rowsPerPage,
+        search: debouncedSearch || undefined,
+        speciality_id: speci || undefined,
+        done,
+        urgency,
+        ...sortParams(done, sortBy, sortDir),
+        ...rangeParams(done, doneFrom, doneTo),
+    });
+
     useEffect(() => {
-        dispatch(getAllQueues({
-            page: page + 1,
-            per_page: rowsPerPage,
-            search: debouncedSearch || undefined,
-            speciality_id: speci || undefined,
-            done,
-            urgency,
-            ...sortParams(done, sortBy, sortDir),
-            ...rangeParams(done, doneFrom, doneTo),
-        }));
+        dispatch(getAllQueues(buildListParams()));
     }, [dispatch, page, rowsPerPage, debouncedSearch, speci, done, urgency, sortBy, sortDir, doneFrom, doneTo]);
+
+    // Depois de gravar uma baixa, recarrega do servidor com o filtro atual: o item some da lista de
+    // pendentes (ou entra na de realizados) em vez de ficar na tela com o status antigo.
+    const reloadQueues = () => dispatch(getAllQueues(buildListParams()));
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -337,7 +346,7 @@ export default () => {
     };
 
     const HandleInactiveQueue = (queue) => {
-        dispatch(inactiveQueueFetch(queue));
+        dispatch(inactiveQueueFetch(queue, { onError: setBlockingError }));
     };
 
     const loadQueueAttachments = async (queueId) => {
@@ -429,7 +438,13 @@ export default () => {
         <Box sx={modalFormRootSx} className="queue-page queue-main-page">
         <BaseCard title={`Você possui ${pagination?.total ?? queues.length} registros cadastrados`}>
             <AlertModal />
-            {isOpenOutcomeQueueModal && <QueueOutcomeModal />}
+            {isOpenOutcomeQueueModal && <QueueOutcomeModal onSaved={reloadQueues} />}
+            <BlockingErrorDialog
+                open={Boolean(blockingError)}
+                title="Não foi possível concluir a operação"
+                message={blockingError}
+                onClose={() => setBlockingError('')}
+            />
             {isOpenQueueModal && <QueueModal />}
 
             <Box sx={{

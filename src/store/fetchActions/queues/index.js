@@ -3,6 +3,7 @@ import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination, set
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
 import { format } from 'date-fns';
+import { buildConclusionObs, queueErrorMessage } from './queueErrors';
 
 // date_of_realized é uma data pura (coluna `date` no banco). Usar new Date(...).toISOString()
 // aqui desloca o dia em fusos diferentes de UTC — extrair os componentes locais em vez de converter para UTC.
@@ -103,31 +104,47 @@ export const addQueueFetch = (queue, callbacks = {}) => {
     };
 };
 
-export const editDoneQueue = (queue, cleanForm) => {
+/**
+ * Dá baixa (done = true) em um item da fila.
+ * options.onError(mensagem)  -> erro CLARO para a tela (se ausente, usa o alerta global antigo)
+ * options.onSaved(registro)  -> chamado depois de gravar (ex.: recarregar a lista com o filtro atual)
+ */
+export const editDoneQueue = (queue, cleanForm, options = {}) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
-        queue = {
+        const payload = {
             ...queue,
             'date_of_realized': toRealizedDate(queue.date_of_realized),
             'done': true,
-            'obs': queue.obs + "\n" + queue.obsConclusion?.toUpperCase(),
-        }
+            'obs': buildConclusionObs(queue.obs, queue.obsConclusion),
+        };
 
-        api.put(`/queues/${queue.id}`, queue)
-            .then((res) =>
-            (
-                dispatch(editQueue(res.data?.data || res.data)),
-                dispatch(addMessage(`A Especialidade ${(res.data?.data || res.data).id} foi atualizada com sucesso!`)),
-                dispatch(turnAlert()),
-                dispatch(turnLoading()),
-                cleanForm()
-            ))
-            .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+        return api.put(`/queues/${queue.id}`, payload)
+            .then((res) => {
+                const saved = res.data?.data || res.data;
+                // Depois que o servidor gravou, uma falha só de tela NÃO pode virar "erro ao dar baixa".
+                try {
+                    dispatch(editQueue(saved));
+                    dispatch(addMessage(`A Especialidade ${saved.id} foi atualizada com sucesso!`));
+                    dispatch(turnAlert());
+                } catch (uiError) {
+                    console.error('[editDoneQueue] falha ao atualizar a tela após gravar', uiError);
+                }
                 dispatch(turnLoading());
-                return error.response ? error.response.data : 'erro desconhecido';
+                cleanForm && cleanForm();
+                options.onSaved && options.onSaved(saved);
             })
+            .catch((error) => {
+                dispatch(turnLoading());
+                const message = queueErrorMessage(error, 'dar baixa na especialidade');
+                if (options.onError) {
+                    options.onError(message);
+                } else {
+                    dispatch(addAlertMessage(message));
+                }
+                return error.response ? error.response.data : 'erro desconhecido';
+            });
     };
 }
 
@@ -143,21 +160,30 @@ export const getQueueById = (queueId) => {
     return api.get(`/queues/${queueId}`);
 };
 
-export const inactiveQueueFetch = (queue) => {
+export const inactiveQueueFetch = (queue, options = {}) => {
     return (dispatch) => {
         dispatch(turnLoading())
 
-        api.delete(`/queues/${queue.id}`)
-            .then((res) =>
-            (
-                dispatch(inactiveQueue(queue)),
-                dispatch(addMessage(`A Especialidade foi excluida com sucesso!`)),
-                dispatch(turnAlert()),
-                dispatch(turnLoading())
-            ))
-            .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
+        return api.delete(`/queues/${queue.id}`)
+            .then(() => {
+                try {
+                    dispatch(inactiveQueue(queue));
+                    dispatch(addMessage(`A Especialidade foi excluida com sucesso!`));
+                    dispatch(turnAlert());
+                } catch (uiError) {
+                    console.error('[inactiveQueueFetch] falha ao atualizar a tela após excluir', uiError);
+                }
                 dispatch(turnLoading());
+                options.onSaved && options.onSaved(queue);
+            })
+            .catch((error) => {
+                dispatch(turnLoading());
+                const message = queueErrorMessage(error, 'excluir da fila');
+                if (options.onError) {
+                    options.onError(message);
+                } else {
+                    dispatch(addAlertMessage(message));
+                }
             })
     }
 }
