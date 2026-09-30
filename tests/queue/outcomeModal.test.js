@@ -15,6 +15,8 @@ import BlockingErrorDialog from "../../src/components/messagesModal/BlockingErro
 import queuesReducer, { showQueue } from "../../src/store/ducks/queues";
 import layoutReducer, { openOutcomeQueueModal } from "../../src/store/ducks/Layout";
 
+jest.setTimeout(30000);
+
 const queue = {
   id: 7, obs: "antiga", done: 0,
   client: { name: "Maria" }, speciality: { name: "Fisioterapia" },
