@@ -24,6 +24,7 @@ import {
   modalShellSx,
 } from "../src/components/modal/_shared/modalFormStyles";
 import { api } from "../src/services/api";
+import PeticaoChips from "../src/components/kanban/PeticaoChips";
 
 const BOARD_COLUMNS = [
   { value: "novo", label: "Novo", color: "info" },
@@ -187,7 +188,7 @@ const flattenUnits = (items, level = 0) =>
     ...flattenUnits(item.children, level + 1),
   ]);
 
-function KanbanCard({ item, onOpen, onDragStart, dragging }) {
+function KanbanCard({ item, onOpen, onDragStart, dragging, onOpenFiscalizacao }) {
   const column = BOARD_COLUMNS.find((entry) => entry.value === String(item.status || "").toLowerCase()) || BOARD_COLUMNS[0];
 
   return (
@@ -283,6 +284,7 @@ function KanbanCard({ item, onOpen, onDragStart, dragging }) {
           </Typography>
         ) : null;
       })()}
+      <PeticaoChips item={item} onOpen={onOpenFiscalizacao} />
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
         Atualizado em {formatDateTime(item.updated_at)}
       </Typography>
@@ -1060,6 +1062,7 @@ export default function KanbanPage() {
                         key={item.id}
                         item={item}
                         onOpen={openEdit}
+                        onOpenFiscalizacao={(protocolo) => router.push(`/fiscalizacoes?busca=${encodeURIComponent(protocolo)}`)}
                         onDragStart={handleDragStart}
                         dragging={draggedItemId === item.id}
                       />

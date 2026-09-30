@@ -5,6 +5,7 @@ import {
     TablePagination, TextField, Typography, styled, Button,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
@@ -51,6 +52,7 @@ const formatDate = (s) => {
 
 export default function ListaFiscalizacoes() {
     const dispatch = useDispatch();
+    const router = useRouter();
     const { fiscalizacoes, pagination } = useSelector(state => state.fiscalizacoes);
 
     const [busca, setBusca] = useState('');
@@ -73,9 +75,13 @@ export default function ListaFiscalizacoes() {
         ...overrides,
     });
 
+    // Vindo do kanban (?busca=PROTOCOLO) a lista já abre filtrada; espera o roteador ficar pronto.
     useEffect(() => {
-        dispatch(getAllFiscalizacoes({ page: 1, per_page: perPage }));
-    }, []);
+        if (router?.isReady === false) return;
+        const inicial = router?.query?.busca ? String(router.query.busca) : '';
+        if (inicial) setBusca(inicial);
+        dispatch(getAllFiscalizacoes({ page: 1, per_page: perPage, busca: inicial || undefined }));
+    }, [router?.isReady]);
 
     useEffect(() => {
         if (pagination?.current_page) {
