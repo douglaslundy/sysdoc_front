@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../../src/components/baseCard/BaseCard';
+import ContatosWhatsapp from '../../src/components/vigilancia/ContatosWhatsapp';
 import AlertModal from '../../src/components/messagesModal';
 import { modalFormRootSx } from '../../src/components/modal/_shared/modalFormStyles';
 import { getVigilanciaConfig, updateVigilanciaConfig } from '../../src/store/fetchActions/vigilanciaConfig';
@@ -239,6 +240,10 @@ export default function ConfiguracoesVigilancia() {
                         {loading ? 'Salvando...' : 'Salvar Configurações'}
                     </Button>
                 </Box>
+
+                <Divider sx={{ my: 3 }} />
+
+                <ContatosWhatsapp />
 
             </BaseCard>
         </Box>
