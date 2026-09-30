@@ -52,13 +52,9 @@ const StyledTableRow = styled(TableRow)(() => ({
 export default () => {
 
     const dispatch = useDispatch();
-    const { qrlogs } = useSelector(state => state.qrlogs);
+    const { qrlogs, total } = useSelector(state => state.qrlogs);
 
     const [allQrLogs, setAllQrLogs] = useState(qrlogs);
-
-    useEffect(() => {
-        dispatch(getAllQrCodeLogs());
-    }, []);
 
     useEffect(() => {
         setAllQrLogs(qrlogs);
@@ -68,6 +64,10 @@ export default () => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    useEffect(() => {
+        dispatch(getAllQrCodeLogs({ page, perPage: rowsPerPage }));
+    }, [page, rowsPerPage]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -80,7 +80,7 @@ export default () => {
 
     return (
         <Box sx={modalFormRootSx} className="queue-page">
-        <BaseCard title={`Você possui ${allQrLogs?.length} Logs Cadastrados`}>
+        <BaseCard title={`Você possui ${total} Logs Cadastrados`}>
             <AlertModal />
 
             <TableContainer className="queue-page__table-wrap">
@@ -128,7 +128,6 @@ export default () => {
                     {allQrLogs?.length >= 1 ?
                         <TableBody>
                             {allQrLogs
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((log, index) => (
                                     <StyledTableRow key={log.id} hover>
                                         <>
@@ -315,7 +314,7 @@ export default () => {
                 </Table>
                 <TablePagination className="queue-page__pagination"
                     component="div"
-                    count={allQrLogs?.length}
+                    count={total}
                     page={page}
                     onPageChange={handleChangePage}
                     rowsPerPage={rowsPerPage}
