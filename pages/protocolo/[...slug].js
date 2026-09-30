@@ -816,6 +816,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <TableCell>Assunto</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Criado em</TableCell>
               <TableCell>Prazo</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
@@ -849,6 +850,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 <TableCell>
                   <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "—"} />
                 </TableCell>
+                <TableCell>{formatDateTime(protocol.created_at)}</TableCell>
                 <TableCell>{formatDate(protocol.prazo_atendimento)}</TableCell>
                 <TableCell align="right">
                   <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); router.push(`/protocolo/${protocol.id}`); }}>
@@ -858,7 +860,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">Nenhum protocolo encontrado.</TableCell>
+                <TableCell colSpan={7} align="center">Nenhum protocolo encontrado.</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -1320,6 +1322,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
   const renderStructure = () => (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box>
+        <Button variant="outlined" size="small" onClick={goBack} aria-label="Voltar à página anterior">
+          ← Voltar
+        </Button>
+      </Box>
       <BaseCard title="Nova unidade organizacional">
         <Box component="form" onSubmit={handleSubmitUnit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Grid container spacing={2}>

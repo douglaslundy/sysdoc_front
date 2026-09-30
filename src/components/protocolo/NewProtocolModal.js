@@ -70,8 +70,9 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   const [attachmentFiles, setAttachmentFiles] = useState([]);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
+  // Toda a árvore ativa (secretaria › departamento › subdepartamento), com recuo por nível.
   const secretariatOptions = useMemo(
-    () => unitOptions.filter((unit) => unit.ativo !== false && unit.tipo === "secretaria"),
+    () => unitOptions.filter((unit) => unit.ativo !== false),
     [unitOptions]
   );
   const protocolTypeOptions = useMemo(() => {
@@ -257,7 +258,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
                   >
                     <MenuItem value="">Selecione a origem</MenuItem>
                     {secretariatOptions.map((unit) => (
-                      <MenuItem key={unit.id} value={String(unit.id)}>
+                      <MenuItem key={unit.id} value={String(unit.id)} sx={{ pl: 2 + unit.level * 2 }}>
                         {unit.nome}
                       </MenuItem>
                     ))}
@@ -267,16 +268,16 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
             </Grid>
             <Grid item xs={12} md={4}>
               <FormControl fullWidth>
-                <InputLabel>Secretaria de destino</InputLabel>
+                <InputLabel>Destino</InputLabel>
                 <Select
                   value={protocolForm.destino_unit_id}
-                  label="Secretaria de destino"
+                  label="Destino"
                   onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_unit_id: e.target.value }))}
                   required
                 >
-                  <MenuItem value="">Selecione a secretaria</MenuItem>
+                  <MenuItem value="">Selecione o destino</MenuItem>
                   {secretariatOptions.map((unit) => (
-                    <MenuItem key={unit.id} value={String(unit.id)}>
+                    <MenuItem key={unit.id} value={String(unit.id)} sx={{ pl: 2 + unit.level * 2 }}>
                       {unit.nome}
                     </MenuItem>
                   ))}
@@ -291,7 +292,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
                   label="Usuário de destino"
                   onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_user_id: e.target.value }))}
                 >
-                  <MenuItem value="">Todos da secretaria</MenuItem>
+                  <MenuItem value="">Todos da unidade</MenuItem>
                   {destinationUsers.map((user) => (
                     <MenuItem key={user.id} value={String(user.id)}>
                       {user.name}
@@ -300,7 +301,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
                 </Select>
                 {protocolForm.destino_unit_id && destinationUsers.length === 0 && (
                   <FormHelperText>
-                    Nenhum usuário com acesso à página "Protocolo" foi encontrado — libere a página em Gestão de Perfis para poder escolher um usuário específico. Sem usuário, o protocolo fica endereçado à secretaria inteira.
+                    Nenhum usuário lotado nesta unidade (ou nas subunidades) com acesso ao Protocolo. Cadastre a lotação em /protocolo/estrutura. Sem usuário, o protocolo fica endereçado à unidade inteira.
                   </FormHelperText>
                 )}
               </FormControl>
