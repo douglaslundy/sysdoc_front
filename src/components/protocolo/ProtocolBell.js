@@ -26,9 +26,21 @@ const formatDateTime = (value) => {
   });
 };
 
+const isProtocolPath = (value) => /^\/protocolo(\/|$)/.test(String(value || "").split("?")[0]);
+
 const ProtocolBell = () => {
   const router = useRouter();
-  const { permissionsLoaded } = useContext(AuthContext);
+  const { permissionsLoaded, profile, myPermissions, authorizedPages } = useContext(AuthContext);
+
+  // O backend só responde a quem tem alguma página de protocolo; sem ela o sino nem consulta.
+  const canAccess = useMemo(() => {
+    if (!permissionsLoaded) return false;
+    if (profile === "admin") return true;
+    return (
+      (Array.isArray(myPermissions) && myPermissions.some(isProtocolPath)) ||
+      (Array.isArray(authorizedPages) && authorizedPages.some((page) => page?.ativo && isProtocolPath(page?.path)))
+    );
+  }, [permissionsLoaded, profile, myPermissions, authorizedPages]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [data, setData] = useState({ novos: 0, vence_em_breve: 0, vencidos: 0, recentes: [] });
 
@@ -47,7 +59,7 @@ const ProtocolBell = () => {
   };
 
   useEffect(() => {
-    if (!permissionsLoaded) return undefined;
+    if (!canAccess) return undefined;
 
     loadCounts();
     // Não consulta com a aba oculta; ao voltar, atualiza na hora.
@@ -62,7 +74,7 @@ const ProtocolBell = () => {
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [permissionsLoaded]);
+  }, [canAccess]);
 
   const total = useMemo(
     () => Number(data.novos || 0),
@@ -71,6 +83,8 @@ const ProtocolBell = () => {
 
   const handleOpen = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
+
+  if (!canAccess) return null;
 
   return (
     <>
