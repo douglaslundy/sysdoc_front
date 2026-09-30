@@ -5,6 +5,8 @@
 export const PUBLIC_PATHS = [
     '/login',
     '/consulta-exame',
+    '/denuncia',
+    '/denuncia/consulta',
     '/esqueci-senha',
     '/redefinir-senha',
     '/attendance/panel',
