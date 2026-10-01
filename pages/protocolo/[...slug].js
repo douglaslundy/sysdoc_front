@@ -281,6 +281,16 @@ const formatDateTime = (value) => {
   return date.toLocaleString("pt-BR");
 };
 
+const renderConclusaoOuMovimentacao = (protocol) => {
+  const finalizadoEm = protocol.cancelado_em || protocol.encerrado_em;
+  if (finalizadoEm) {
+    const label = protocol.cancelado_em ? "Cancelado em" : "Concluído em";
+    return `${label} ${formatDateTime(finalizadoEm)}`;
+  }
+  const ultima = protocol.ultima_movimentacao_em || protocol.updated_at;
+  return ultima ? `Últ. mov. ${formatDateTime(ultima)}` : "—";
+};
+
 const activeProtocolViewSessions = new Map();
 
 const getProtocolViewSession = (protocolId) => {
@@ -818,6 +828,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <TableCell>Status</TableCell>
               <TableCell>Criado em</TableCell>
               <TableCell>Prazo</TableCell>
+              <TableCell>Conclusão / Últ. movimentação</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -852,6 +863,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 </TableCell>
                 <TableCell>{formatDateTime(protocol.created_at)}</TableCell>
                 <TableCell>{formatDate(protocol.prazo_atendimento)}</TableCell>
+                <TableCell data-testid="protocolo-conclusao-movimentacao">{renderConclusaoOuMovimentacao(protocol)}</TableCell>
                 <TableCell align="right">
                   <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); router.push(`/protocolo/${protocol.id}`); }}>
                     Abrir
@@ -860,7 +872,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={7} align="center">Nenhum protocolo encontrado.</TableCell>
+                <TableCell colSpan={8} align="center">Nenhum protocolo encontrado.</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -29,6 +29,8 @@ export const ChatContext = createContext({});
 const RECONCILE_MS_REALTIME = 120000;
 const RECONCILE_MS_POLLING = 20000;
 const USERS_MIN_INTERVAL_MS = 30000;
+// Se o chat ficou fechado por este tempo, uma nova mensagem recebida o reabre sozinho.
+const REOPEN_AFTER_CLOSED_MS = 5 * 60 * 1000;
 // Só marca "ausente" depois de a aba ficar oculta por um tempo, para não gerar uma
 // rajada de eventos de presença (um para cada usuário) a cada troca de aba.
 const AWAY_GRACE_MS = 20000;
@@ -108,6 +110,8 @@ export function ChatProvider({ children }) {
   const activeConversationRef = useRef(null);
   const conversationsRef = useRef([]);
   const isOpenRef = useRef(false);
+  // Último momento em que o chat abriu ou fechou na tela (base da regra de reabertura).
+  const chatToggledAtRef = useRef(Date.now());
   const soundEnabledRef = useRef(false);
   const audioContextRef = useRef(null);
   const audioUnlockedRef = useRef(false);
@@ -130,6 +134,7 @@ export function ChatProvider({ children }) {
 
   useEffect(() => {
     isOpenRef.current = isOpen;
+    chatToggledAtRef.current = Date.now();
   }, [isOpen]);
 
   useEffect(() => {
@@ -659,7 +664,15 @@ export function ChatProvider({ children }) {
       channel.listen(".message.new", (message) => {
         const isActiveConversation =
           activeConversationRef.current?.id === message.conversation_id;
-        const viewingThisConversationNow = isActiveConversation && isOpenRef.current;
+        // Reabertura automática: chat fechado há 5+ min e mensagem de outra pessoa. É só
+        // estado local (zero requisições extras); o contador do ícone já sobe pelo evento.
+        const fromOther = String(message.sender_id) !== String(user);
+        const shouldReopen =
+          fromOther &&
+          !isOpenRef.current &&
+          Date.now() - chatToggledAtRef.current >= REOPEN_AFTER_CLOSED_MS;
+        const viewingThisConversationNow =
+          isActiveConversation && (isOpenRef.current || shouldReopen);
         const shouldFocusConversation =
           chatBehaviorRef.current.autoOpenOnMessage && !isActiveConversation;
 
@@ -689,6 +702,10 @@ export function ChatProvider({ children }) {
         );
         if (!isKnownConversation) {
           refreshConversations().catch(() => {});
+        }
+
+        if (shouldReopen) {
+          setIsOpen(true);
         }
 
         playNotificationSound();
