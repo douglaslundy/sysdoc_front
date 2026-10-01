@@ -319,13 +319,22 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
                   type="file"
                   multiple
                   onChange={(e) => {
+                    // Acumula na lista (permite anexar de um em um); ignora duplicados.
                     const selected = Array.from(e.target.files || []);
-                    if (selected.length > MAX_ATTACHMENTS) {
+                    const sameFile = (x, y) =>
+                      x.name === y.name && x.size === y.size && x.lastModified === y.lastModified;
+                    const merged = [...attachmentFiles];
+                    selected.forEach((file) => {
+                      if (!merged.some((item) => sameFile(item, file))) merged.push(file);
+                    });
+                    if (merged.length > MAX_ATTACHMENTS) {
                       setError(`Selecione no máximo ${MAX_ATTACHMENTS} arquivos.`);
                     } else {
                       setError("");
                     }
-                    setAttachmentFiles(selected.slice(0, MAX_ATTACHMENTS));
+                    setAttachmentFiles(merged.slice(0, MAX_ATTACHMENTS));
+                    // Permite escolher o mesmo arquivo de novo após removê-lo.
+                    e.target.value = "";
                   }}
                 />
               </Button>
