@@ -58,7 +58,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
     }, [open, fiscalizacao?.id]);
 
     const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
-    const isDenuncia = fiscalizacao?.origem === 'denuncia';
+    const isDenuncia = fiscalizacao?.origem === 'peticao';
 
     const handleSalvar = () => {
         setLocalError('');

@@ -24,7 +24,7 @@ jest.mock("../../src/services/fiscalizacaoAttachments", () => ({
 import FiscalizacaoDialog from "../../src/components/modal/fiscalizacao";
 
 const denuncia = {
-  id: 2, origem: "denuncia", estabelecimento_id: 5, data_visita: "2026-09-06",
+  id: 2, origem: "peticao", estabelecimento_id: 5, data_visita: "2026-09-06",
   resultado: "Pendente de apuração", observacoes: "",
 };
 

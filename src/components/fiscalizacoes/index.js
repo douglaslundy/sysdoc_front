@@ -19,7 +19,7 @@ import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 const ORIGEM_OPTIONS = [
     { value: 'interna', label: 'Fiscalizações internas' },
-    { value: 'denuncia', label: 'Denúncias' },
+    { value: 'peticao', label: 'Petições' },
 ];
 const RESULTADO_COR = {
     'Pendente de apuração': 'info',
@@ -213,7 +213,7 @@ export default function ListaFiscalizacoes() {
                             <StyledTableRow key={f.id} hover>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{f.protocolo || '—'}</Typography>
-                                    {f.origem === 'denuncia' && <Chip label="Denúncia" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
+                                    {f.origem === 'peticao' && <Chip label="Petição" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>

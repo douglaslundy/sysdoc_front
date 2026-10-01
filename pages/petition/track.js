@@ -52,7 +52,7 @@ export default function PetitionTrack() {
         assunto: resultado.assunto,
         local_endereco: resultado.local_endereco,
         created_at: resultado.registrada_em,
-        origem: "denuncia",
+        origem: "peticao",
       },
       movimentacoes: resultado.movimentacoes.map((mov, index) => ({
         id: index,

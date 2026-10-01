@@ -28,7 +28,7 @@ const interna = {
   estabelecimento: { nome_estabelecimento: "Padaria Central" }, fiscal: { name: "Fiscal A" },
 };
 const denuncia = {
-  id: 2, protocolo: "FIS-2026-000002", origem: "denuncia", resultado: "Pendente de apuração", data_visita: null,
+  id: 2, protocolo: "FIS-2026-000002", origem: "peticao", resultado: "Pendente de apuração", data_visita: null,
   estabelecimento: { nome_estabelecimento: "Bar do Zé" }, fiscal: { name: null },
 };
 
@@ -61,7 +61,7 @@ test("lista mostra o protocolo e marca as denúncias", () => {
 
   expect(screen.getByText("FIS-2026-000001")).toBeInTheDocument();
   expect(screen.getByText("FIS-2026-000002")).toBeInTheDocument();
-  expect(screen.getAllByText("Denúncia")).toHaveLength(1);
+  expect(screen.getAllByText("Petição")).toHaveLength(1);
   expect(screen.getByText("Pendente de apuração")).toBeInTheDocument();
   expect(screen.getAllByText("—", { selector: "p" }).length).toBeGreaterThan(0); // denúncia sem data de visita
 });
@@ -70,9 +70,9 @@ test("filtro de origem recarrega a listagem", () => {
   renderPage();
 
   fireEvent.mouseDown(screen.getByLabelText("Origem"));
-  fireEvent.click(within(screen.getByRole("listbox")).getByText("Denúncias"));
+  fireEvent.click(within(screen.getByRole("listbox")).getByText("Petições"));
 
-  expect(mockGetAll).toHaveBeenLastCalledWith(expect.objectContaining({ origem: "denuncia", page: 1 }));
+  expect(mockGetAll).toHaveBeenLastCalledWith(expect.objectContaining({ origem: "peticao", page: 1 }));
 });
 
 test("botão Histórico abre o painel com a movimentação da fiscalização", async () => {
