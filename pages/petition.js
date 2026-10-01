@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -11,12 +11,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { registrarDenuncia } from "../src/services/denunciaPublica";
+import { listarMotivos, registrarPeticao } from "../src/services/peticaoPublica";
 
 const MAX_FILES = 5;
 const MAX_FILE_MB = 10;
 
 const EMPTY = {
+  motivo_id: "",
   assunto: "",
   descricao_denuncia: "",
   local_endereco: "",
@@ -29,10 +30,11 @@ const EMPTY = {
 const collectErrors = (error) => {
   const data = error?.response?.data;
   if (data?.errors) return Object.values(data.errors).flat();
-  return [data?.message || "Não foi possível enviar a denúncia. Tente novamente."];
+  return [data?.message || "Não foi possível enviar a petição. Tente novamente."];
 };
 
-export default function Denuncia() {
+export default function Petition() {
+  const [motivos, setMotivos] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [files, setFiles] = useState([]);
   const [errors, setErrors] = useState([]);
@@ -40,7 +42,24 @@ export default function Denuncia() {
   const [recibo, setRecibo] = useState(null);
   const [copiado, setCopiado] = useState("");
 
-  const change = ({ target }) => setForm((current) => ({ ...current, [target.name]: target.value }));
+  useEffect(() => {
+    let active = true;
+    listarMotivos()
+      .then((lista) => {
+        if (active) setMotivos(Array.isArray(lista) ? lista : []);
+      })
+      .catch(() => {
+        if (active) setMotivos([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const change = ({ target }) => {
+    const { name, value } = target;
+    setForm((current) => ({ ...current, [name]: value }));
+  };
 
   const handleFiles = ({ target }) => {
     const selected = Array.from(target.files || []);
@@ -58,19 +77,27 @@ export default function Denuncia() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (motivos.length > 0 && !form.motivo_id) {
+      setErrors(["Escolha o motivo da petição."]);
+      return;
+    }
     if (!form.assunto.trim() || !form.descricao_denuncia.trim() || !form.local_endereco.trim()) {
-      setErrors(["Preencha o assunto, a descrição e o local da denúncia."]);
+      setErrors(["Preencha o assunto, a descrição e o local da petição."]);
       return;
     }
 
     const body = new FormData();
-    Object.entries(form).forEach(([key, value]) => body.append(key, value));
+    Object.entries(form).forEach(([key, value]) => {
+      // Sem motivo escolhido (ou sem motivos cadastrados) o campo nem é enviado.
+      if (key === "motivo_id" && !value) return;
+      body.append(key, value);
+    });
     files.forEach((file) => body.append("files[]", file));
 
     setSending(true);
     setErrors([]);
     try {
-      setRecibo(await registrarDenuncia(body));
+      setRecibo(await registrarPeticao(body));
     } catch (error) {
       setErrors(collectErrors(error));
     } finally {
@@ -90,9 +117,9 @@ export default function Denuncia() {
   const shell = (children) => (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4, px: 2, display: "flex", justifyContent: "center" }}>
       <Box sx={{ width: "100%", maxWidth: 720 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Denúncia de Vigilância Sanitária</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Petição à Vigilância Sanitária</Typography>
         <Typography color="text.secondary" sx={{ mb: 3 }}>
-          Registre uma situação que possa oferecer risco à saúde. Você não precisa se identificar.
+          Registre uma denúncia, solicite uma vistoria ou outra petição. Você não precisa se identificar.
         </Typography>
         {children}
       </Box>
@@ -103,13 +130,13 @@ export default function Denuncia() {
     return shell(
       <Card>
         <CardContent>
-          <Alert severity="success" sx={{ mb: 2 }}>Denúncia registrada com sucesso.</Alert>
+          <Alert severity="success" sx={{ mb: 2 }}>Petição registrada com sucesso.</Alert>
           <Typography variant="overline">Protocolo</Typography>
           <Typography variant="h5" sx={{ fontWeight: 800 }}>{recibo.protocolo}</Typography>
           <Typography variant="overline" sx={{ mt: 2, display: "block" }}>Senha de consulta</Typography>
           <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 3 }}>{recibo.senha}</Typography>
           <Alert severity="warning" sx={{ my: 2 }}>
-            Guarde a senha agora: ela é mostrada só uma vez e não pode ser recuperada. Sem ela você não consegue acompanhar a denúncia.
+            Guarde a senha agora: ela é mostrada só uma vez e não pode ser recuperada. Sem ela você não consegue acompanhar a petição.
           </Alert>
           <Typography variant="overline">Acompanhe em</Typography>
           <Typography sx={{ wordBreak: "break-all" }}>{recibo.url_consulta}</Typography>
@@ -138,9 +165,28 @@ export default function Denuncia() {
               </Alert>
             )}
 
+            {motivos.length > 0 && (
+              <TextField
+                select
+                required
+                label="Motivo da petição"
+                name="motivo_id"
+                value={form.motivo_id}
+                onChange={change}
+                SelectProps={{ native: true }}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              >
+                <option value="">Selecione...</option>
+                {motivos.map((motivo) => (
+                  <option key={motivo.id} value={String(motivo.id)}>{motivo.nome}</option>
+                ))}
+              </TextField>
+            )}
+
             <TextField label="Assunto *" name="assunto" value={form.assunto} onChange={change} inputProps={{ maxLength: 200 }} fullWidth />
             <TextField
-              label="Descreva a denúncia *"
+              label="Descreva a petição *"
               name="descricao_denuncia"
               value={form.descricao_denuncia}
               onChange={change}
@@ -187,7 +233,7 @@ export default function Denuncia() {
             </Box>
 
             <Button type="submit" variant="contained" size="large" disabled={sending} startIcon={sending ? <CircularProgress size={18} /> : null}>
-              Enviar denúncia
+              Enviar petição
             </Button>
             <Typography variant="caption" color="text.secondary">
               Ao enviar, você receberá um protocolo e uma senha para acompanhar o andamento.

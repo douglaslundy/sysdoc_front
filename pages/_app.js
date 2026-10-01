@@ -26,7 +26,7 @@ import { ChatProvider } from "../src/contexts/ChatContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
-const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/denuncia", "/denuncia/consulta", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/painel-esus", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
+const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/petition", "/petition/track", "/denuncia", "/denuncia/consulta", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/painel-esus", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
 
 function AuditPageView() {
   const { permissionsLoaded } = useContext(AuthContext);

@@ -33,7 +33,7 @@ export function buildFiscalizacaoDocDefinition({ fiscalizacao = {}, movimentacoe
   const dados = [
     row("Protocolo", f.protocolo),
     row("Situação", f.resultado),
-    row("Origem", f.origem === "denuncia" ? "Denúncia" : f.origem ? "Fiscalização interna" : ""),
+    row("Origem", f.origem === "peticao" ? "Petição" : f.origem ? "Fiscalização interna" : ""),
     row("Assunto", f.assunto),
     row("Estabelecimento", f.estabelecimento?.nome_estabelecimento || f.estabelecimento_nome_informado),
     row("Local", f.local_endereco),

@@ -5,6 +5,7 @@ import {
     TablePagination, TextField, Typography, styled, Button,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import FeatherIcon from 'feather-icons-react';
 import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
@@ -18,7 +19,7 @@ import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 const ORIGEM_OPTIONS = [
     { value: 'interna', label: 'Fiscalizações internas' },
-    { value: 'denuncia', label: 'Denúncias' },
+    { value: 'peticao', label: 'Petições' },
 ];
 const RESULTADO_COR = {
     'Pendente de apuração': 'info',
@@ -51,6 +52,7 @@ const formatDate = (s) => {
 
 export default function ListaFiscalizacoes() {
     const dispatch = useDispatch();
+    const router = useRouter();
     const { fiscalizacoes, pagination } = useSelector(state => state.fiscalizacoes);
 
     const [busca, setBusca] = useState('');
@@ -73,9 +75,13 @@ export default function ListaFiscalizacoes() {
         ...overrides,
     });
 
+    // Vindo do kanban (?busca=PROTOCOLO) a lista já abre filtrada; espera o roteador ficar pronto.
     useEffect(() => {
-        dispatch(getAllFiscalizacoes({ page: 1, per_page: perPage }));
-    }, []);
+        if (router?.isReady === false) return;
+        const inicial = router?.query?.busca ? String(router.query.busca) : '';
+        if (inicial) setBusca(inicial);
+        dispatch(getAllFiscalizacoes({ page: 1, per_page: perPage, busca: inicial || undefined }));
+    }, [router?.isReady]);
 
     useEffect(() => {
         if (pagination?.current_page) {
@@ -207,7 +213,7 @@ export default function ListaFiscalizacoes() {
                             <StyledTableRow key={f.id} hover>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{f.protocolo || '—'}</Typography>
-                                    {f.origem === 'denuncia' && <Chip label="Denúncia" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
+                                    {f.origem === 'peticao' && <Chip label="Petição" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>

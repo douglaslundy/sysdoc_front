@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Alert, Box, Button, Card, CardContent, Chip, Divider, Stack, TextField, Typography } from "@mui/material";
 import { format, isValid, parseISO } from "date-fns";
-import { consultarDenuncia } from "../../src/services/denunciaPublica";
+import { consultarPeticao } from "../../src/services/peticaoPublica";
 import { printFiscalizacaoPdf } from "../../src/reports/fiscalizacao";
 
 const formatDateTime = (value) => {
@@ -10,7 +10,7 @@ const formatDateTime = (value) => {
   return parsed && isValid(parsed) ? format(parsed, "dd/MM/yyyy HH:mm") : "—";
 };
 
-export default function ConsultaDenuncia() {
+export default function PetitionTrack() {
   const router = useRouter();
   const [form, setForm] = useState({ protocolo: "", senha: "" });
   const [resultado, setResultado] = useState(null);
@@ -35,7 +35,7 @@ export default function ConsultaDenuncia() {
     setResultado(null);
     setLoading(true);
     try {
-      setResultado(await consultarDenuncia({ protocolo: form.protocolo.trim(), senha: form.senha.trim() }));
+      setResultado(await consultarPeticao({ protocolo: form.protocolo.trim(), senha: form.senha.trim() }));
     } catch (error) {
       setErro(error?.response?.data?.error || error?.response?.data?.message || "Protocolo ou senha inválidos.");
     } finally {
@@ -52,7 +52,7 @@ export default function ConsultaDenuncia() {
         assunto: resultado.assunto,
         local_endereco: resultado.local_endereco,
         created_at: resultado.registrada_em,
-        origem: "denuncia",
+        origem: "peticao",
       },
       movimentacoes: resultado.movimentacoes.map((mov, index) => ({
         id: index,
@@ -66,9 +66,9 @@ export default function ConsultaDenuncia() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4, px: 2, display: "flex", justifyContent: "center" }}>
       <Box sx={{ width: "100%", maxWidth: 720 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Acompanhar denúncia</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Acompanhar petição</Typography>
         <Typography color="text.secondary" sx={{ mb: 3 }}>
-          Informe o protocolo e a senha recebidos ao registrar a denúncia.
+          Informe o protocolo e a senha recebidos ao registrar a petição.
         </Typography>
 
         <Card sx={{ mb: 3 }}>
@@ -96,7 +96,8 @@ export default function ConsultaDenuncia() {
                 </Box>
                 <Chip color={resultado.situacao === "Apurada" ? "success" : "info"} label={resultado.situacao} />
               </Stack>
-              <Typography sx={{ mt: 1 }}><strong>Assunto:</strong> {resultado.assunto}</Typography>
+              {resultado.motivo ? <Typography sx={{ mt: 1 }}><strong>Motivo:</strong> {resultado.motivo}</Typography> : null}
+              <Typography sx={{ mt: resultado.motivo ? 0 : 1 }}><strong>Assunto:</strong> {resultado.assunto}</Typography>
               <Typography><strong>Local:</strong> {resultado.local_endereco}</Typography>
               <Typography><strong>Registrada em:</strong> {formatDateTime(resultado.registrada_em)}</Typography>
 

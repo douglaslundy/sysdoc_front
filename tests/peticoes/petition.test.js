@@ -1,51 +1,53 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 let mockRouter;
 jest.mock("next/router", () => ({ useRouter: () => mockRouter }));
-jest.mock("../../src/services/denunciaPublica", () => ({
-  registrarDenuncia: jest.fn(),
-  consultarDenuncia: jest.fn(),
+jest.mock("../../src/services/peticaoPublica", () => ({
+  registrarPeticao: jest.fn(),
+  consultarPeticao: jest.fn(),
+  listarMotivos: jest.fn(),
 }));
 jest.mock("../../src/reports/fiscalizacao", () => ({ printFiscalizacaoPdf: jest.fn() }));
 
-import { registrarDenuncia, consultarDenuncia } from "../../src/services/denunciaPublica";
+import { registrarPeticao, consultarPeticao, listarMotivos } from "../../src/services/peticaoPublica";
 import { printFiscalizacaoPdf } from "../../src/reports/fiscalizacao";
-import Denuncia from "../../pages/denuncia";
-import ConsultaDenuncia from "../../pages/denuncia/consulta";
+import Petition from "../../pages/petition";
+import PetitionTrack from "../../pages/petition/track";
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockRouter = { isReady: true, query: {}, push: jest.fn() };
+  listarMotivos.mockResolvedValue([]);
 });
 
 const preencherObrigatorios = () => {
   fireEvent.change(screen.getByLabelText(/Assunto/), { target: { value: "Falta de higiene" } });
-  fireEvent.change(screen.getByLabelText(/Descreva a denúncia/), { target: { value: "Alimentos expostos." } });
+  fireEvent.change(screen.getByLabelText(/Descreva a petição/), { target: { value: "Alimentos expostos." } });
   fireEvent.change(screen.getByLabelText(/Local\/endereço/), { target: { value: "Rua das Flores, 100" } });
 };
 
-describe("página pública de denúncia", () => {
+describe("página pública de petição", () => {
   test("identificação é opcional: envia só com os campos obrigatórios e mostra protocolo, senha e endereço de consulta", async () => {
-    registrarDenuncia.mockResolvedValue({
+    registrarPeticao.mockResolvedValue({
       protocolo: "FIS-2026-000042",
       senha: "K7Q29XMD",
-      url_consulta: "https://sistema.gov.br/denuncia/consulta?protocolo=FIS-2026-000042",
+      url_consulta: "https://sistema.gov.br/petition/track?protocolo=FIS-2026-000042",
     });
 
-    render(<Denuncia />);
+    render(<Petition />);
     expect(screen.getByLabelText(/Seu nome \(opcional\)/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contato \(opcional\)/)).toBeInTheDocument();
     preencherObrigatorios();
-    fireEvent.click(screen.getByRole("button", { name: "Enviar denúncia" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
 
     await screen.findByText("FIS-2026-000042");
     expect(screen.getByText("K7Q29XMD")).toBeInTheDocument();
-    expect(screen.getByText("https://sistema.gov.br/denuncia/consulta?protocolo=FIS-2026-000042")).toBeInTheDocument();
+    expect(screen.getByText("https://sistema.gov.br/petition/track?protocolo=FIS-2026-000042")).toBeInTheDocument();
     expect(screen.getByText(/guarde a senha/i)).toBeInTheDocument();
 
-    const enviado = registrarDenuncia.mock.calls[0][0];
+    const enviado = registrarPeticao.mock.calls[0][0];
     expect(enviado.get("assunto")).toBe("Falta de higiene");
     expect(enviado.get("local_endereco")).toBe("Rua das Flores, 100");
     expect(enviado.get("website")).toBe("");
@@ -53,38 +55,38 @@ describe("página pública de denúncia", () => {
   });
 
   test("não envia sem os campos obrigatórios", async () => {
-    render(<Denuncia />);
-    fireEvent.click(screen.getByRole("button", { name: "Enviar denúncia" }));
+    render(<Petition />);
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
 
     await screen.findByText(/preencha o assunto, a descrição e o local/i);
-    expect(registrarDenuncia).not.toHaveBeenCalled();
+    expect(registrarPeticao).not.toHaveBeenCalled();
   });
 
   test("mostra a mensagem do servidor quando o limite de envios é atingido", async () => {
-    registrarDenuncia.mockRejectedValue({ response: { status: 429, data: { message: "Muitas denúncias enviadas deste local." } } });
+    registrarPeticao.mockRejectedValue({ response: { status: 429, data: { message: "Muitas denúncias enviadas deste local." } } });
 
-    render(<Denuncia />);
+    render(<Petition />);
     preencherObrigatorios();
-    fireEvent.click(screen.getByRole("button", { name: "Enviar denúncia" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
 
     await screen.findByText("Muitas denúncias enviadas deste local.");
     expect(screen.queryByText("K7Q29XMD")).not.toBeInTheDocument();
   });
 
   test("mostra os erros de validação por campo", async () => {
-    registrarDenuncia.mockRejectedValue({
+    registrarPeticao.mockRejectedValue({
       response: { status: 422, data: { message: "invalid", errors: { "files.0": ["Envie apenas fotos (JPG, PNG, WEBP) ou PDF."] } } },
     });
 
-    render(<Denuncia />);
+    render(<Petition />);
     preencherObrigatorios();
-    fireEvent.click(screen.getByRole("button", { name: "Enviar denúncia" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
 
     await screen.findByText("Envie apenas fotos (JPG, PNG, WEBP) ou PDF.");
   });
 
   test("limita a 5 arquivos", async () => {
-    render(<Denuncia />);
+    render(<Petition />);
     const arquivos = Array.from({ length: 6 }, (_, i) => new File(["x"], `f${i}.jpg`, { type: "image/jpeg" }));
 
     fireEvent.change(screen.getByLabelText(/Fotos e arquivos/), { target: { files: arquivos } });
@@ -93,7 +95,7 @@ describe("página pública de denúncia", () => {
   });
 
   test("campo isca existe, é invisível para pessoas e vai vazio", () => {
-    render(<Denuncia />);
+    render(<Petition />);
     const isca = document.querySelector('input[name="website"]');
 
     expect(isca).toBeInTheDocument();
@@ -102,7 +104,58 @@ describe("página pública de denúncia", () => {
   });
 });
 
-describe("página pública de consulta", () => {
+describe("motivo da petição", () => {
+  const motivos = [
+    { id: 1, nome: "Denúncia", descricao: "Irregularidade sanitária" },
+    { id: 2, nome: "Solicitar vistoria", descricao: null },
+  ];
+
+  test("mostra os motivos ativos em um select e envia o escolhido", async () => {
+    listarMotivos.mockResolvedValue(motivos);
+    registrarPeticao.mockResolvedValue({ protocolo: "FIS-2026-000050", senha: "ABCD2345", url_consulta: "https://x/petition/track?protocolo=FIS-2026-000050" });
+
+    render(<Petition />);
+    const select = await screen.findByLabelText(/Motivo da petição/);
+    expect(screen.getByRole("option", { name: "Solicitar vistoria" })).toBeInTheDocument();
+
+    fireEvent.change(select, { target: { value: "2" } });
+    preencherObrigatorios();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
+
+    await screen.findByText("FIS-2026-000050");
+    expect(registrarPeticao.mock.calls[0][0].get("motivo_id")).toBe("2");
+  });
+
+  test("com motivos cadastrados, não envia sem escolher o motivo", async () => {
+    listarMotivos.mockResolvedValue(motivos);
+
+    render(<Petition />);
+    await screen.findByLabelText(/Motivo da petição/);
+    preencherObrigatorios();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
+
+    await screen.findByText(/escolha o motivo da petição/i);
+    expect(registrarPeticao).not.toHaveBeenCalled();
+  });
+
+  test("sem motivos cadastrados, o select não aparece e o envio segue normal", async () => {
+    listarMotivos.mockResolvedValue([]);
+    registrarPeticao.mockResolvedValue({ protocolo: "FIS-2026-000051", senha: "ABCD2345", url_consulta: "https://x" });
+
+    render(<Petition />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(listarMotivos).toHaveBeenCalled();
+    expect(screen.queryByLabelText(/Motivo da petição/)).not.toBeInTheDocument();
+
+    preencherObrigatorios();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar petição" }));
+    await screen.findByText("FIS-2026-000051");
+  });
+});
+
+describe("página pública de acompanhamento", () => {
   const resposta = {
     protocolo: "FIS-2026-000042",
     situacao: "Pendente de apuração",
@@ -117,36 +170,36 @@ describe("página pública de consulta", () => {
 
   test("pré-preenche o protocolo pela URL e mostra a situação e a movimentação", async () => {
     mockRouter = { isReady: true, query: { protocolo: "FIS-2026-000042" }, push: jest.fn() };
-    consultarDenuncia.mockResolvedValue(resposta);
+    consultarPeticao.mockResolvedValue(resposta);
 
-    render(<ConsultaDenuncia />);
+    render(<PetitionTrack />);
     expect(screen.getByLabelText("Protocolo")).toHaveValue("FIS-2026-000042");
 
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "K7Q29XMD" } });
     fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
 
     await screen.findByText("Vistoria marcada.");
-    expect(consultarDenuncia).toHaveBeenCalledWith({ protocolo: "FIS-2026-000042", senha: "K7Q29XMD" });
+    expect(consultarPeticao).toHaveBeenCalledWith({ protocolo: "FIS-2026-000042", senha: "K7Q29XMD" });
     expect(screen.getByText("Pendente de apuração")).toBeInTheDocument();
     expect(screen.getByText("Mensagem ao denunciante")).toBeInTheDocument();
   });
 
   test("protocolo ou senha inválidos mostram uma mensagem única", async () => {
-    consultarDenuncia.mockRejectedValue({ response: { status: 404, data: { error: "Protocolo ou senha inválidos." } } });
+    consultarPeticao.mockRejectedValue({ response: { status: 404, data: { error: "Protocolo ou senha inválidos." } } });
 
-    render(<ConsultaDenuncia />);
+    render(<PetitionTrack />);
     fireEvent.change(screen.getByLabelText("Protocolo"), { target: { value: "fis-2026-000001" } });
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "ERRADA" } });
     fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
 
     await screen.findByText("Protocolo ou senha inválidos.");
-    expect(consultarDenuncia).toHaveBeenCalledWith({ protocolo: "FIS-2026-000001", senha: "ERRADA" });
+    expect(consultarPeticao).toHaveBeenCalledWith({ protocolo: "FIS-2026-000001", senha: "ERRADA" });
   });
 
   test("Imprimir PDF gera a versão pública (só movimentações públicas)", async () => {
-    consultarDenuncia.mockResolvedValue(resposta);
+    consultarPeticao.mockResolvedValue(resposta);
 
-    render(<ConsultaDenuncia />);
+    render(<PetitionTrack />);
     fireEvent.change(screen.getByLabelText("Protocolo"), { target: { value: "FIS-2026-000042" } });
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "K7Q29XMD" } });
     fireEvent.click(screen.getByRole("button", { name: "Consultar" }));

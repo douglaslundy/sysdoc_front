@@ -165,3 +165,35 @@ describe("botão voltar do protocolo", () => {
     expect(mockRouter.push).toHaveBeenCalledWith("/protocolo/caixa-entrada");
   });
 });
+
+test("listagem mostra a data de criação do protocolo", async () => {
+  mockRouter = { isReady: true, query: { slug: ["caixa-entrada"] }, push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+  mockApi.get.mockImplementation((url) => {
+    if (url === "/protocolos/caixa-entrada") {
+      return Promise.resolve({
+        data: { total: 1, data: [{ id: 1, numero: "PRT-1", assunto: "Com data", status: "novo", created_at: "2026-03-05T14:30:00.000000Z" }] },
+      });
+    }
+    return Promise.resolve({ data: {} });
+  });
+
+  renderPage();
+
+  await screen.findByText("Com data");
+  expect(screen.getByRole("columnheader", { name: "Criado em" })).toBeInTheDocument();
+  expect(screen.getByText(/05\/03\/2026/)).toBeInTheDocument();
+});
+
+test("estrutura organizacional tem botão Voltar", async () => {
+  mockRouter = { isReady: true, query: { slug: ["estrutura"] }, push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+  mockApi.get.mockImplementation((url) => {
+    if (url === "/protocolos/unidades-organizacionais") return Promise.resolve({ data: units });
+    return Promise.resolve({ data: [] });
+  });
+  Object.defineProperty(window.history, "length", { value: 5, configurable: true });
+
+  renderPage();
+
+  fireEvent.click(await screen.findByRole("button", { name: /Voltar/ }));
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+});

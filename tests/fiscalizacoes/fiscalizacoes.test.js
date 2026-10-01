@@ -28,7 +28,7 @@ const interna = {
   estabelecimento: { nome_estabelecimento: "Padaria Central" }, fiscal: { name: "Fiscal A" },
 };
 const denuncia = {
-  id: 2, protocolo: "FIS-2026-000002", origem: "denuncia", resultado: "Pendente de apuração", data_visita: null,
+  id: 2, protocolo: "FIS-2026-000002", origem: "peticao", resultado: "Pendente de apuração", data_visita: null,
   estabelecimento: { nome_estabelecimento: "Bar do Zé" }, fiscal: { name: null },
 };
 
@@ -61,7 +61,7 @@ test("lista mostra o protocolo e marca as denúncias", () => {
 
   expect(screen.getByText("FIS-2026-000001")).toBeInTheDocument();
   expect(screen.getByText("FIS-2026-000002")).toBeInTheDocument();
-  expect(screen.getAllByText("Denúncia")).toHaveLength(1);
+  expect(screen.getAllByText("Petição")).toHaveLength(1);
   expect(screen.getByText("Pendente de apuração")).toBeInTheDocument();
   expect(screen.getAllByText("—", { selector: "p" }).length).toBeGreaterThan(0); // denúncia sem data de visita
 });
@@ -70,9 +70,9 @@ test("filtro de origem recarrega a listagem", () => {
   renderPage();
 
   fireEvent.mouseDown(screen.getByLabelText("Origem"));
-  fireEvent.click(within(screen.getByRole("listbox")).getByText("Denúncias"));
+  fireEvent.click(within(screen.getByRole("listbox")).getByText("Petições"));
 
-  expect(mockGetAll).toHaveBeenLastCalledWith(expect.objectContaining({ origem: "denuncia", page: 1 }));
+  expect(mockGetAll).toHaveBeenLastCalledWith(expect.objectContaining({ origem: "peticao", page: 1 }));
 });
 
 test("botão Histórico abre o painel com a movimentação da fiscalização", async () => {
@@ -86,19 +86,14 @@ test("botão Histórico abre o painel com a movimentação da fiscalização", a
   expect(screen.getAllByText("Público").length).toBeGreaterThan(0);
 });
 
-test("nova movimentação é enviada com a opção de visibilidade e recarrega o histórico", async () => {
+test("o histórico é só leitura: não há campo de nova movimentação", async () => {
   renderPage();
   fireEvent.click(screen.getAllByTitle("Histórico")[1]);
   await screen.findByText("Mensagem ao denunciante");
 
-  fireEvent.change(screen.getByLabelText("Nova movimentação"), { target: { value: "Visita agendada." } });
-  fireEvent.click(screen.getByLabelText("Visível ao denunciante"));
-  fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
-
-  await waitFor(() =>
-    expect(api.post).toHaveBeenCalledWith("/fiscalizacoes/2/movimentacoes", { descricao: "Visita agendada.", publico: true })
-  );
-  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2));
+  expect(screen.queryByLabelText("Nova movimentação")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Adicionar" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Imprimir PDF" })).toBeInTheDocument();
 });
 
 test("botão Imprimir PDF gera o documento interno com a movimentação", async () => {
