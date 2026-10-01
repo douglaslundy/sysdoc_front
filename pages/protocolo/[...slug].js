@@ -351,6 +351,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [protocols, setProtocols] = useState([]);
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
+  const [showInactiveUnits, setShowInactiveUnits] = useState(false);
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [unitForm, setUnitForm] = useState(initialUnitForm);
@@ -380,6 +381,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [deletingUnit, setDeletingUnit] = useState(null);
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
+  // Filtro só visual (sem nova requisição): por padrão a tabela oculta estruturas inativas.
+  const visibleUnits = useMemo(
+    () => (showInactiveUnits ? unitOptions : unitOptions.filter((unit) => unit.ativo)),
+    [unitOptions, showInactiveUnits]
+  );
   const unitById = useMemo(() => {
     const map = new Map();
     unitOptions.forEach((unit) => {
@@ -1383,6 +1389,17 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       </BaseCard>
 
       <BaseCard title="Estrutura cadastrada">
+        <FormControlLabel
+          sx={{ mb: 1 }}
+          control={(
+            <Checkbox
+              checked={showInactiveUnits}
+              onChange={(e) => setShowInactiveUnits(e.target.checked)}
+              inputProps={{ "data-testid": "estrutura-mostrar-inativas" }}
+            />
+          )}
+          label="Exibir todos, inclusive inativos"
+        />
         <Table sx={{ whiteSpace: "nowrap" }}>
           <TableHead>
             <TableRow>
@@ -1394,7 +1411,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {unitOptions.length > 0 ? unitOptions.map((unit) => (
+            {visibleUnits.length > 0 ? visibleUnits.map((unit) => (
               <TableRow key={unit.id} hover>
                 <TableCell><Box sx={{ pl: `${unit.level * 16}px` }}>{unit.nome}</Box></TableCell>
                 <TableCell>{unit.tipo}</TableCell>
