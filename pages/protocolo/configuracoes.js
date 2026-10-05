@@ -9,7 +9,7 @@ const initialForm = {
   allow_reopen: true,
   notify_whatsapp: false,
   default_priority: "normal",
-  default_due_days: 5,
+  default_due_days: 10,
   observacoes: "",
 };
 
@@ -35,7 +35,7 @@ export default function ProtocoloConfiguracoesPage() {
           allow_reopen: Boolean(data?.allow_reopen),
           notify_whatsapp: Boolean(data?.notify_whatsapp),
           default_priority: data?.default_priority || "normal",
-          default_due_days: data?.default_due_days ?? 5,
+          default_due_days: data?.default_due_days ?? 10,
           observacoes: data?.observacoes || "",
         });
       })
@@ -55,7 +55,7 @@ export default function ProtocoloConfiguracoesPage() {
         allow_reopen: Boolean(data?.allow_reopen),
         notify_whatsapp: Boolean(data?.notify_whatsapp),
         default_priority: data?.default_priority || "normal",
-        default_due_days: data?.default_due_days ?? 5,
+        default_due_days: data?.default_due_days ?? 10,
         observacoes: data?.observacoes || "",
       });
       setMessage("Configurações do protocolo salvas com sucesso.");

@@ -281,6 +281,17 @@ const formatDateTime = (value) => {
   return date.toLocaleString("pt-BR");
 };
 
+const MAX_CELL_CHARS = 25;
+
+const truncateText = (value, max = MAX_CELL_CHARS) => {
+  const text = String(value ?? "");
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+};
+
+// Usuário responsável (quando definido) ou, na falta dele, a unidade de destino.
+const destinoLabel = (protocol) =>
+  protocol.responsavel_atual?.name || protocol.destino_unit?.nome || "";
+
 const renderConclusaoOuMovimentacao = (protocol) => {
   const finalizadoEm = protocol.cancelado_em || protocol.encerrado_em;
   if (finalizadoEm) {
@@ -360,6 +371,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [situacao, setSituacao] = useState("abertos");
   const [detailForwardUnit, setDetailForwardUnit] = useState("");
   const [detailForwardUser, setDetailForwardUser] = useState("");
   const [forwardEligibleUsers, setForwardEligibleUsers] = useState([]);
@@ -402,6 +414,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           page: page + 1,
           per_page: rowsPerPage,
           search: search || undefined,
+          situacao,
         },
       }),
     ]);
@@ -556,7 +569,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       loadList().catch(() => setMessage("Não foi possível carregar a caixa de entrada."));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage, search, router.isReady, mode]);
+  }, [page, rowsPerPage, search, situacao, router.isReady, mode]);
 
   const currentTitle = modeLabels[mode] || "Protocolo";
 
@@ -820,6 +833,22 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             }}
             sx={{ minWidth: 280, flex: 1 }}
           />
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel>Situação</InputLabel>
+            <Select
+              label="Situação"
+              value={situacao}
+              data-testid="protocolo-filtro-situacao"
+              onChange={(e) => {
+                setSituacao(e.target.value);
+                setPage(0);
+              }}
+            >
+              <MenuItem value="abertos">Abertos</MenuItem>
+              <MenuItem value="concluidos">Concluídos</MenuItem>
+              <MenuItem value="todos">Todos</MenuItem>
+            </Select>
+          </FormControl>
           <Button variant="contained" onClick={() => setNovoModalOpen(true)}>
             + Novo Protocolo
           </Button>
@@ -828,13 +857,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         <Table sx={{ whiteSpace: "nowrap" }}>
           <TableHead>
             <TableRow>
-              <TableCell>Número</TableCell>
-              <TableCell>Assunto</TableCell>
+              <TableCell>Número / Remetente</TableCell>
+              <TableCell>Assunto / Destino</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Criado em</TableCell>
-              <TableCell>Prazo</TableCell>
-              <TableCell>Conclusão / Últ. movimentação</TableCell>
+              <TableCell>Prazo / Conclusão</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -846,9 +874,14 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                 sx={{ cursor: "pointer" }}
                 onClick={() => router.push(`/protocolo/${protocol.id}`)}
               >
-                <TableCell>{protocol.numero}</TableCell>
                 <TableCell>
-                  {protocol.assunto}
+                  <Typography variant="body2">{protocol.numero}</Typography>
+                  <Typography variant="caption" color="text.secondary" component="div" title={protocol.criado_por?.name || ""} data-testid="protocolo-remetente">
+                    {protocol.criado_por?.name ? `De: ${truncateText(protocol.criado_por.name)}` : "—"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Box component="span" title={protocol.assunto || ""}>{truncateText(protocol.assunto)}</Box>
                   {Number(protocol.attachments_count) > 0 && (
                     <Box
                       component="span"
@@ -860,6 +893,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                       <FeatherIcon icon="paperclip" size={16} />
                     </Box>
                   )}
+                  <Typography variant="caption" color="text.secondary" component="div" title={destinoLabel(protocol)} data-testid="protocolo-destino">
+                    {destinoLabel(protocol) ? `Para: ${truncateText(destinoLabel(protocol))}` : "—"}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Chip size="small" label={protocol.prioridade || "normal"} />
@@ -868,8 +904,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "—"} />
                 </TableCell>
                 <TableCell>{formatDateTime(protocol.created_at)}</TableCell>
-                <TableCell>{formatDate(protocol.prazo_atendimento)}</TableCell>
-                <TableCell data-testid="protocolo-conclusao-movimentacao">{renderConclusaoOuMovimentacao(protocol)}</TableCell>
+                <TableCell>
+                  <Typography variant="body2">{formatDate(protocol.prazo_atendimento)}</Typography>
+                  <Typography variant="caption" color="text.secondary" component="div" data-testid="protocolo-conclusao-movimentacao">
+                    {renderConclusaoOuMovimentacao(protocol)}
+                  </Typography>
+                </TableCell>
                 <TableCell align="right">
                   <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); router.push(`/protocolo/${protocol.id}`); }}>
                     Abrir
@@ -878,7 +918,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={8} align="center">Nenhum protocolo encontrado.</TableCell>
+                <TableCell colSpan={7} align="center">Nenhum protocolo encontrado.</TableCell>
               </TableRow>
             )}
           </TableBody>

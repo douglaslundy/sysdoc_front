@@ -26,7 +26,7 @@ const initialProtocolForm = {
   origem_unit_id: "",
   destino_unit_id: "",
   destino_user_id: "",
-  prazo_atendimento: "",
+  prazo_dias: 10,
 };
 
 const MAX_ATTACHMENTS = 10;
@@ -49,8 +49,12 @@ const protocolTypeFallbackOptions = [
   { codigo: "encaminhamento", nome: "Encaminhamento" },
 ];
 
+const compareByName = (a, b) =>
+  String(a ?? "").localeCompare(String(b ?? ""), "pt-BR", { sensitivity: "base" });
+
+// Ordem alfabética entre irmãos, preservando a hierarquia (recuo por nível).
 const flattenUnits = (items, level = 0) =>
-  (Array.isArray(items) ? items : []).reduce((acc, item) => {
+  [...(Array.isArray(items) ? items : [])].sort((a, b) => compareByName(a?.nome, b?.nome)).reduce((acc, item) => {
     acc.push({ ...item, level });
     if (Array.isArray(item?.children) && item.children.length > 0) {
       acc.push(...flattenUnits(item.children, level + 1));
@@ -118,7 +122,9 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     api
       .get("/protocolos/usuarios-elegiveis", { params: { unit_id: protocolForm.destino_unit_id } })
       .then(({ data }) => {
-        if (!cancelled) setDestinationUsers(Array.isArray(data) ? data : []);
+        if (!cancelled) {
+          setDestinationUsers(Array.isArray(data) ? [...data].sort((a, b) => compareByName(a?.name, b?.name)) : []);
+        }
       })
       .catch(() => {
         if (!cancelled) setDestinationUsers([]);
@@ -155,7 +161,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
         origem_unit_id: protocolForm.origem_unit_id || null,
         destino_unit_id: protocolForm.destino_unit_id || null,
         destino_user_id: protocolForm.destino_user_id || null,
-        prazo_atendimento: protocolForm.prazo_atendimento || null,
+        prazo_dias: Math.max(1, parseInt(protocolForm.prazo_dias, 10) || 10),
       });
 
       let successMessage = "Protocolo criado com sucesso.";
@@ -238,7 +244,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
               />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth type="date" label="Prazo de atendimento" InputLabelProps={{ shrink: true }} value={protocolForm.prazo_atendimento} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prazo_atendimento: e.target.value }))} />
+              <TextField fullWidth type="number" label="Prazo de atendimento (dias)" InputLabelProps={{ shrink: true }} inputProps={{ min: 1, step: 1 }} value={protocolForm.prazo_dias} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prazo_dias: e.target.value.replace(/[^0-9]/g, "") }))} onBlur={() => setProtocolForm((prev) => ({ ...prev, prazo_dias: Math.max(1, parseInt(prev.prazo_dias, 10) || 10) }))} />
             </Grid>
             <Grid item xs={12} md={4}>
               {creationContext?.origin_locked ? (
