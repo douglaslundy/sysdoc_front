@@ -117,6 +117,7 @@ const Menuitems = [
     group: true,
     children: [
       { title: "Alertas", icon: "bell", href: "/sistema/alertas" },
+      { title: "Mensagens enviadas", icon: "send", href: "/sistema/mensagens-enviadas" },
       { title: "Configurações WhatsApp", icon: "message-circle", href: "/configuracoes/whatsapp", profile: ["admin"] },
       { title: "Configurações E-mail", icon: "mail", href: "/configuracoes/email", profile: ["admin"] },
     ],

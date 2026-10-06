@@ -22,6 +22,7 @@ const TITLE_OVERRIDES = {
   "/protocolo/tipos": "Tipos de Protocolo",
   "/protocolo/alertas": "Alertas",
   "/sistema/alertas": "Alertas",
+  "/sistema/mensagens-enviadas": "Mensagens enviadas",
   "/documentos": "Documentos",
   "/documentos/tipos": "Tipos de Documentos",
   "/documentos/aprovacoes": "Aprovações de Documentos",
