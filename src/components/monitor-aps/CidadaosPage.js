@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
+import generateCidadaosAcsPDF from '../../reports/cidadaosAcs';
 import {
-    Alert, Box, Card, CardContent, Chip, CircularProgress,
+    Alert, Box, Button, Card, CardContent, Chip, CircularProgress,
     FormControl, InputLabel, MenuItem, Select, Table,
     TableBody, TableCell, TableHead, TablePagination, TableRow, Tooltip, Typography, IconButton, TextField,
 } from '@mui/material';
@@ -157,9 +158,19 @@ export default function CidadaosPage() {
     const [condicao,       setCondicao]       = useState('');
     const [busca,          setBusca]          = useState('');
     const [multiDomicilio, setMultiDomicilio] = useState(false);
+    // Campos de idade são rascunho; só valem (idadeMin/idadeMax) após clicar em Filtrar
+    const [idadeMinTxt,    setIdadeMinTxt]    = useState('');
+    const [idadeMaxTxt,    setIdadeMaxTxt]    = useState('');
     const [idadeMin,       setIdadeMin]       = useState('');
     const [idadeMax,       setIdadeMax]       = useState('');
-    const faixaInvalida = idadeMin !== '' && idadeMax !== '' && Number(idadeMin) > Number(idadeMax);
+    const [gerandoPdf,     setGerandoPdf]     = useState(false);
+    const faixaInvalida = idadeMinTxt !== '' && idadeMaxTxt !== '' && Number(idadeMinTxt) > Number(idadeMaxTxt);
+    const aplicarIdade = () => {
+        if (faixaInvalida) return;
+        setIdadeMin(idadeMinTxt);
+        setIdadeMax(idadeMaxTxt);
+        setPage(0);
+    };
     const [cidadaos,  setCidadaos]  = useState([]);
     const [sortConfig, setSortConfig] = useState({ field: null, dir: 'asc' });
     const [meta,      setMeta]      = useState({ total: 0, page: 1, per_page: 50, pages: 0 });
@@ -213,10 +224,8 @@ export default function CidadaosPage() {
         if (condicao)          params.set('condicao', condicao);
         if (busca.length >= 3) params.set('busca', busca);
         if (multiDomicilio)    params.set('multi_domicilio', '1');
-        if (!faixaInvalida) {
-            if (idadeMin !== '') params.set('idade_min', idadeMin);
-            if (idadeMax !== '') params.set('idade_max', idadeMax);
-        }
+        if (idadeMin !== '') params.set('idade_min', idadeMin);
+        if (idadeMax !== '') params.set('idade_max', idadeMax);
         if (sortConfig.field === 'idade') {
             params.set('sort', 'idade');
             params.set('dir', sortConfig.dir);
@@ -239,13 +248,13 @@ export default function CidadaosPage() {
             .finally(() => {
                 if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);
             });
-    }, [ine, agenteCns, condicao, busca, multiDomicilio, idadeMin, idadeMax, faixaInvalida, sortConfig.field, sortConfig.dir, rowsPerPage]);
+    }, [ine, agenteCns, condicao, busca, multiDomicilio, idadeMin, idadeMax, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
     // Fetch com debounce de 400ms para campos de texto (busca e faixa de idade)
     useEffect(() => {
         setPage(0);
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => fetchCidadaos(0), (busca || idadeMin || idadeMax) ? 400 : 0);
+        debounceRef.current = setTimeout(() => fetchCidadaos(0), busca ? 400 : 0);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }, [ine, agenteCns, condicao, busca, multiDomicilio, idadeMin, idadeMax, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
@@ -276,6 +285,68 @@ export default function CidadaosPage() {
                 ? { field, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
                 : { field, dir: 'asc' }
         ));
+    };
+
+    // Busca todas as páginas do resultado atual (API limita 200 por página) e gera o PDF
+    const gerarPdf = async () => {
+        setGerandoPdf(true);
+        try {
+            const base = new URLSearchParams({ per_page: 200 });
+            if (ine)               base.set('ine', ine);
+            if (agenteCns)         base.set('agente_cns', agenteCns);
+            if (condicao)          base.set('condicao', condicao);
+            if (busca.length >= 3) base.set('busca', busca);
+            if (multiDomicilio)    base.set('multi_domicilio', '1');
+            if (idadeMin !== '')   base.set('idade_min', idadeMin);
+            if (idadeMax !== '')   base.set('idade_max', idadeMax);
+            if (sortConfig.field === 'idade') { base.set('sort', 'idade'); base.set('dir', sortConfig.dir); }
+
+            let todos = [];
+            let pagina = 1;
+            let paginas = 1;
+            do {
+                base.set('page', pagina);
+                const d = await monitorApsApi.get(`/cidadaos?${base}`);
+                todos = todos.concat(d.cidadaos ?? []);
+                paginas = d.meta?.pages ?? 1;
+                pagina += 1;
+            } while (pagina <= paginas);
+
+            const linhas = todos.map(c => ({
+                nome: c.nome,
+                cpf: formatCpf(c.cpf),
+                cns: formatCns(c.cns),
+                idade: formatIdade(c.idade),
+                equipe: formatEquipe(c.no_equipe),
+                agente: multiDomicilio ? (c.domicilios ?? '--').split(' | ').join('; ') : (c.agente ?? '--'),
+                condicoes: CHIP_CONDICOES
+                    .filter(({ key }) => (key === 'st_obito' ? isObitoCondition(c) : isTruthyCondition(c[key])))
+                    .map(({ label }) => label).join(', '),
+            }));
+
+            const eq = equipes.find(e => e.nu_ine === ine);
+            const ag = agentes.find(a => (a.agente_cns ?? '') === agenteCns);
+            let faixaIdade = null;
+            if (idadeMin !== '' && idadeMax !== '') faixaIdade = `${idadeMin} a ${idadeMax} anos`;
+            else if (idadeMin !== '') faixaIdade = `a partir de ${idadeMin} anos`;
+            else if (idadeMax !== '') faixaIdade = `até ${idadeMax} anos`;
+
+            await generateCidadaosAcsPDF({
+                cidadaos: linhas,
+                filtros: {
+                    equipeNome: eq ? equipeLabel(eq.no_equipe) : null,
+                    agenteNome: ag?.nome ?? null,
+                    condicaoLabel: FILTROS_CONDICOES.find(f => f.value === condicao)?.label ?? null,
+                    faixaIdade,
+                    busca: busca.length >= 3 ? busca : null,
+                    multiDomicilio,
+                },
+            });
+        } catch (e) {
+            if (!isMonitorApsCanceled(e)) setErro(e.message || 'Erro ao gerar o PDF.');
+        } finally {
+            setGerandoPdf(false);
+        }
     };
 
     const cidadaosSorted = useMemo(() => {
@@ -372,9 +443,10 @@ export default function CidadaosPage() {
                         size="small"
                         type="number"
                         label="Idade de"
-                        value={idadeMin}
+                        value={idadeMinTxt}
                         error={faixaInvalida}
-                        onChange={e => setIdadeMin(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        onKeyDown={e => { if (e.key === 'Enter') aplicarIdade(); }}
+                        onChange={e => setIdadeMinTxt(e.target.value.replace(/\D/g, '').slice(0, 3))}
                         inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
                         sx={{ width: 110, ...controlSx }}
                     />
@@ -382,13 +454,22 @@ export default function CidadaosPage() {
                         size="small"
                         type="number"
                         label="até"
-                        value={idadeMax}
+                        value={idadeMaxTxt}
                         error={faixaInvalida}
                         helperText={faixaInvalida ? 'Inicial maior que final' : undefined}
-                        onChange={e => setIdadeMax(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        onKeyDown={e => { if (e.key === 'Enter') aplicarIdade(); }}
+                        onChange={e => setIdadeMaxTxt(e.target.value.replace(/\D/g, '').slice(0, 3))}
                         inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
                         sx={{ width: 110, ...controlSx }}
                     />
+                    <Button variant="contained" onClick={aplicarIdade} disabled={faixaInvalida}
+                        sx={{ height: controlHeight, fontWeight: 700 }}>
+                        Filtrar
+                    </Button>
+                    <Button variant="outlined" onClick={gerarPdf} disabled={gerandoPdf || loading || meta.total === 0}
+                        sx={{ height: controlHeight, fontWeight: 700 }}>
+                        {gerandoPdf ? 'Gerando PDF...' : 'Gerar PDF'}
+                    </Button>
 
                     <Tooltip title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios">
                         <Chip
