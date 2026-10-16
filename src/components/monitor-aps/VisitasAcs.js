@@ -759,11 +759,19 @@ export default function VisitasAcs() {
                     {aba === 'agentes' && (
                         <Card className="monitor-visitas-panel">
                             <CardContent>
-                                <Table size="small">
+                                {/* Tabela compacta (cabeçalho quebra linha, padding reduzido); rolagem horizontal só como último recurso */}
+                                <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                                <Table size="small" sx={{
+                                    '& th, & td': { px: 0.75, fontSize: 'clamp(11px, 0.85vw, 13px)' },
+                                    '& td .MuiTypography-root': { fontSize: 'inherit' },
+                                }}>
                                     <TableHead>
                                         <TableRow sx={{
                                             '& th': {
                                                 fontWeight: 700, fontSize: 11,
+                                                lineHeight: 1.2,
+                                                whiteSpace: 'normal',
+                                                verticalAlign: 'bottom',
                                                 color: 'var(--lg-text-muted)',
                                                 textTransform: 'uppercase',
                                                 borderBottom: '2px solid var(--lg-border)',
@@ -789,10 +797,10 @@ export default function VisitasAcs() {
                                     <TableBody>
                                         {agentes.map((a, i) => (
                                             <TableRow key={i} hover>
-                                                <TableCell sx={{ maxWidth: 240 }}>
+                                                <TableCell sx={{ maxWidth: 170 }}>
                                                     <Typography variant="body2" fontWeight={600} noWrap
                                                         title={a.agente}
-                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 240 }}>
+                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
                                                         {(a.agente ?? '').length > 30 ? (a.agente ?? '').slice(0, 30) + '…' : a.agente}
                                                     </Typography>
                                                     <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
@@ -836,7 +844,7 @@ export default function VisitasAcs() {
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     {a.domicilios_acompanhados != null ? (
-                                                        <Box display="inline-flex" alignItems="center" gap={0.5} justifyContent="flex-end">
+                                                        <Box display="inline-flex" alignItems="center" gap={0.5} justifyContent="flex-end" flexWrap="wrap">
                                                             <Typography variant="body2" fontWeight={700}>
                                                                 {a.domicilios_acompanhados.toLocaleString('pt-BR')}
                                                             </Typography>
@@ -866,6 +874,7 @@ export default function VisitasAcs() {
                                         )}
                                     </TableBody>
                                 </Table>
+                                </Box>
                             </CardContent>
                         </Card>
                     )}

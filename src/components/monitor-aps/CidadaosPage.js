@@ -157,6 +157,9 @@ export default function CidadaosPage() {
     const [condicao,       setCondicao]       = useState('');
     const [busca,          setBusca]          = useState('');
     const [multiDomicilio, setMultiDomicilio] = useState(false);
+    const [idadeMin,       setIdadeMin]       = useState('');
+    const [idadeMax,       setIdadeMax]       = useState('');
+    const faixaInvalida = idadeMin !== '' && idadeMax !== '' && Number(idadeMin) > Number(idadeMax);
     const [cidadaos,  setCidadaos]  = useState([]);
     const [sortConfig, setSortConfig] = useState({ field: null, dir: 'asc' });
     const [meta,      setMeta]      = useState({ total: 0, page: 1, per_page: 50, pages: 0 });
@@ -210,6 +213,10 @@ export default function CidadaosPage() {
         if (condicao)          params.set('condicao', condicao);
         if (busca.length >= 3) params.set('busca', busca);
         if (multiDomicilio)    params.set('multi_domicilio', '1');
+        if (!faixaInvalida) {
+            if (idadeMin !== '') params.set('idade_min', idadeMin);
+            if (idadeMax !== '') params.set('idade_max', idadeMax);
+        }
         if (sortConfig.field === 'idade') {
             params.set('sort', 'idade');
             params.set('dir', sortConfig.dir);
@@ -232,15 +239,15 @@ export default function CidadaosPage() {
             .finally(() => {
                 if (requestId === requestRef.current && !ctrl.signal.aborted) setLoading(false);
             });
-    }, [ine, agenteCns, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
+    }, [ine, agenteCns, condicao, busca, multiDomicilio, idadeMin, idadeMax, faixaInvalida, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
-    // Fetch com debounce de 400ms para campo de busca
+    // Fetch com debounce de 400ms para campos de texto (busca e faixa de idade)
     useEffect(() => {
         setPage(0);
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => fetchCidadaos(0), busca ? 400 : 0);
+        debounceRef.current = setTimeout(() => fetchCidadaos(0), (busca || idadeMin || idadeMax) ? 400 : 0);
         return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }, [ine, agenteCns, condicao, busca, multiDomicilio, sortConfig.field, sortConfig.dir, rowsPerPage]);
+    }, [ine, agenteCns, condicao, busca, multiDomicilio, idadeMin, idadeMax, sortConfig.field, sortConfig.dir, rowsPerPage]);
 
     const handlePageChange = (_, newPage) => {
         setPage(newPage);
@@ -361,6 +368,27 @@ export default function CidadaosPage() {
                             ))}
                         </Select>
                     </FormControl>
+                    <TextField
+                        size="small"
+                        type="number"
+                        label="Idade de"
+                        value={idadeMin}
+                        error={faixaInvalida}
+                        onChange={e => setIdadeMin(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
+                        sx={{ width: 110, ...controlSx }}
+                    />
+                    <TextField
+                        size="small"
+                        type="number"
+                        label="até"
+                        value={idadeMax}
+                        error={faixaInvalida}
+                        helperText={faixaInvalida ? 'Inicial maior que final' : undefined}
+                        onChange={e => setIdadeMax(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
+                        sx={{ width: 110, ...controlSx }}
+                    />
 
                     <Tooltip title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios">
                         <Chip
