@@ -292,6 +292,19 @@ const truncateText = (value, max = MAX_CELL_CHARS) => {
 const destinoLabel = (protocol) =>
   protocol.responsavel_atual?.name || protocol.destino_unit?.nome || "";
 
+// Prazo anterior a hoje e protocolo ainda em aberto (não encerrado/concluído/cancelado).
+const isOverdue = (protocol) => {
+  if (!protocol.prazo_atendimento || protocol.cancelado_em || protocol.encerrado_em) return false;
+  if (["encerrado", "concluido", "cancelado"].includes(String(protocol.status || "").toLowerCase())) return false;
+  const due = new Date(protocol.prazo_atendimento);
+  if (Number.isNaN(due.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+};
+
+const isUrgent = (protocol) => String(protocol.prioridade || "").toLowerCase() === "urgente";
+
 const renderConclusaoOuMovimentacao = (protocol) => {
   const finalizadoEm = protocol.cancelado_em || protocol.encerrado_em;
   if (finalizadoEm) {
@@ -871,7 +884,14 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               <TableRow
                 key={protocol.id}
                 hover
-                sx={{ cursor: "pointer" }}
+                sx={{
+                  cursor: "pointer",
+                  ...(isOverdue(protocol) && {
+                    backgroundColor: "rgba(211, 47, 47, 0.10)",
+                    "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.18)" },
+                  }),
+                }}
+                data-overdue={isOverdue(protocol) ? "true" : undefined}
                 onClick={() => router.push(`/protocolo/${protocol.id}`)}
               >
                 <TableCell>
@@ -898,14 +918,16 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Chip size="small" label={protocol.prioridade || "normal"} />
+                  <Chip size="small" color={isUrgent(protocol) ? "error" : "default"} label={protocol.prioridade || "normal"} />
                 </TableCell>
                 <TableCell>
                   <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "—"} />
                 </TableCell>
                 <TableCell>{formatDateTime(protocol.created_at)}</TableCell>
                 <TableCell>
-                  <Typography variant="body2">{formatDate(protocol.prazo_atendimento)}</Typography>
+                  <Typography variant="body2" color={isOverdue(protocol) ? "error" : undefined} sx={isOverdue(protocol) ? { fontWeight: 600 } : undefined}>
+                    {formatDate(protocol.prazo_atendimento)}{isOverdue(protocol) ? " (vencido)" : ""}
+                  </Typography>
                   <Typography variant="caption" color="text.secondary" component="div" data-testid="protocolo-conclusao-movimentacao">
                     {renderConclusaoOuMovimentacao(protocol)}
                   </Typography>
