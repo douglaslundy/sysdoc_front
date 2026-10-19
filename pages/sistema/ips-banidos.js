@@ -24,6 +24,8 @@ export default function IpsBanidosPage() {
   const [error, setError] = useState("");
   const [ip, setIp] = useState("");
   const [reason, setReason] = useState("");
+  const [limit, setLimit] = useState("5");
+  const [saved, setSaved] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,9 +62,36 @@ export default function IpsBanidosPage() {
 
   const unban = (item) => act(() => api.delete(`/banned-ips/${item.id}`));
 
+  useEffect(() => {
+    api.get("/banned-ips/settings")
+      .then((res) => setLimit(String(res.data.strike_limit)))
+      .catch(() => setError("Não foi possível carregar a configuração de tentativas."));
+  }, []);
+
+  const saveLimit = async () => {
+    try {
+      const res = await api.put("/banned-ips/settings", { strike_limit: Number(limit) });
+      setLimit(String(res.data.strike_limit));
+      setError("");
+      setSaved(true);
+    } catch (e) {
+      setSaved(false);
+      setError(e?.response?.data?.errors?.strike_limit?.[0] || e?.response?.data?.message || "Não foi possível salvar.");
+    }
+  };
+
   return (
     <BaseCard title="IPs banidos" subtitle="Robôs que varrem rotas inexistentes são banidos automaticamente. Desbane aqui se necessário.">
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+
+      <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={1}>
+        <TextField size="small" type="number" label="Tentativas até bloquear" value={limit}
+          inputProps={{ min: 1, max: 1000 }} sx={{ width: 220 }}
+          onChange={(e) => { setLimit(e.target.value); setSaved(false); }}
+          helperText="404 em rotas inexistentes em 10 min (padrão 5)" />
+        <Button variant="outlined" disabled={!limit || Number(limit) < 1} onClick={saveLimit}>Salvar</Button>
+        {saved ? <Typography color="success.main" variant="body2">Salvo.</Typography> : null}
+      </Box>
 
       <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={2}>
         <TextField size="small" label="IP" value={ip} onChange={(e) => setIp(e.target.value)} />
