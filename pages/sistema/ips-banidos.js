@@ -9,6 +9,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -27,18 +28,34 @@ export default function IpsBanidosPage() {
   const [limit, setLimit] = useState("5");
   const [saved, setSaved] = useState(false);
 
+  const [page, setPage] = useState(0); // base 0 (TablePagination); a API usa base 1
+  const [perPage, setPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("/banned-ips", { params: { per_page: 200 } });
+      const res = await api.get("/banned-ips", {
+        params: {
+          page: page + 1,
+          per_page: perPage,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+        },
+      });
       setItems(res.data.data || []);
+      setTotal(res.data.total || 0);
+      // Desbaniu o último item da página: volta uma página.
+      if (!res.data.data?.length && page > 0) setPage(page - 1);
       setError("");
     } catch (e) {
-      setError(e?.response?.data?.message || "Não foi possível carregar os IPs banidos.");
+      setError(e?.response?.data?.errors?.date_to?.[0] || e?.response?.data?.message || "Não foi possível carregar os IPs banidos.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage, dateFrom, dateTo]);
 
   useEffect(() => {
     load();
@@ -99,6 +116,19 @@ export default function IpsBanidosPage() {
         <Button variant="contained" disabled={!ip.trim()} onClick={ban}>Banir IP</Button>
       </Box>
 
+      <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={2}>
+        <TextField size="small" type="date" label="Banido de" InputLabelProps={{ shrink: true }} value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); setPage(0); }} />
+        <TextField size="small" type="date" label="Banido até" InputLabelProps={{ shrink: true }} value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); setPage(0); }} />
+        {dateFrom || dateTo ? (
+          <Button size="small" onClick={() => { setDateFrom(""); setDateTo(""); setPage(0); }}>Limpar período</Button>
+        ) : null}
+        <Typography variant="body2" color="text.secondary" sx={{ ml: "auto" }}>
+          Total: <strong>{total}</strong> {total === 1 ? "registro" : "registros"}
+        </Typography>
+      </Box>
+
       {loading ? (
         <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
       ) : items.length === 0 ? (
@@ -109,6 +139,7 @@ export default function IpsBanidosPage() {
             <TableHead>
               <TableRow>
                 <TableCell>IP</TableCell>
+                <TableCell>Origem do IP</TableCell>
                 <TableCell>Motivo</TableCell>
                 <TableCell>Origem</TableCell>
                 <TableCell>Banido em</TableCell>
@@ -120,6 +151,7 @@ export default function IpsBanidosPage() {
               {items.map((item) => (
                 <TableRow key={item.id} hover>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>{item.ip}</TableCell>
+                  <TableCell sx={{ maxWidth: 280 }}>{item.origin || "—"}</TableCell>
                   <TableCell sx={{ maxWidth: 360 }}>{item.reason || "—"}</TableCell>
                   <TableCell>
                     <Chip size="small" variant="outlined" color={item.source === "auto" ? "warning" : "info"}
@@ -136,6 +168,17 @@ export default function IpsBanidosPage() {
           </Table>
         </Box>
       )}
-    </BaseCard>
+
+      <TablePagination
+        component="div"
+        count={total}
+        page={page}
+        onPageChange={(_, p) => setPage(p)}
+        rowsPerPage={perPage}
+        rowsPerPageOptions={[10, 25, 50, 100]}
+        onRowsPerPageChange={(e) => { setPerPage(Number(e.target.value)); setPage(0); }}
+        labelRowsPerPage="Itens por página"
+        labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+      />    </BaseCard>
   );
 }
