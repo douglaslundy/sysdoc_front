@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Table,
   TableBody,
   TableCell,
@@ -23,6 +24,8 @@ import { api } from "../../src/services/api";
 import { deviceDetails, deviceSummary } from "../../src/utils/deviceSummary";
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
+const clip = (text, max) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
 const formatDate = (value) => (value ? new Date(value).toLocaleString("pt-BR") : "—");
 
@@ -56,6 +59,7 @@ export default function IpsBanidosPage() {
   const [total, setTotal] = useState(0);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [expanded, setExpanded] = useState({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -206,10 +210,11 @@ export default function IpsBanidosPage() {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <StyledTableRow key={item.id} hover>
-                    <TableCell><Typography variant="h6" fontWeight={600}>{item.ip}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" sx={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis" }} title={deviceDetails(item.client_info, item.origin)}>{item.origin || "—"}</Typography>{item.client_info ? <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(item.client_info)}</Typography> : null}</TableCell>
-                    <TableCell><Typography variant="body2" sx={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis" }} title={item.reason || ""}>{item.reason || "—"}</Typography></TableCell>
+                  <React.Fragment key={item.id}>
+                  <StyledTableRow hover>
+                    <TableCell><Typography variant="h6" fontWeight={600} title={item.ip}>{clip(item.ip, 15)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2" title={item.origin || ""}>{clip(item.origin, 30) || "—"}</Typography>{item.client_info ? <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(item.client_info)}</Typography> : null}</TableCell>
+                    <TableCell><Typography variant="body2" title={item.reason || ""}>{clip(item.reason, 40) || "—"}</Typography></TableCell>
                     <TableCell>
                       <Chip size="small" color={item.source === "auto" ? "warning" : "info"} label={item.source === "auto" ? "Automático" : "Manual"} />
                     </TableCell>
@@ -217,12 +222,28 @@ export default function IpsBanidosPage() {
                     <TableCell><Typography variant="body2">{item.expires_at ? formatDate(item.expires_at) : "Permanente"}</Typography></TableCell>
                     <TableCell align="center">
                       <Box className="queue-page__actions">
+                        <Button size="small" onClick={() => setExpanded((prev) => ({ ...prev, [item.id]: !prev[item.id] }))} title="Ver o log completo"
+                          endIcon={<FeatherIcon icon={expanded[item.id] ? "chevron-up" : "chevron-down"} width="14" height="14" />}>
+                          ver
+                        </Button>
                         <Button className="queue-page__action queue-page__action--danger" onClick={() => unban(item)} color="error" variant="contained" size="small" title="Desbanir">
                           <FeatherIcon icon="trash" width="18" height="18" />
                         </Button>
                       </Box>
                     </TableCell>
                   </StyledTableRow>
+                  <TableRow key={`${item.id}-log`}>
+                    <TableCell colSpan={7} sx={{ p: 0, borderBottom: 0 }}>
+                      <Collapse in={!!expanded[item.id]} timeout="auto" unmountOnExit>
+                        <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 1, m: 1, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                          <Typography variant="body2" component="pre" sx={{ m: 0, fontFamily: "monospace", fontSize: 12 }}>
+                            {[`IP: ${item.ip}`, item.reason ? `Motivo: ${item.reason}` : "", deviceDetails(item.client_info, item.origin) || (item.origin ? `Localização do IP: ${item.origin}` : "")].filter(Boolean).join("\n")}
+                          </Typography>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
