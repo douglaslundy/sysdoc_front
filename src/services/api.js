@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getClientInfoHeader } from "../utils/clientInfo";
 
 const normalize = (v) => String(v || "").trim().replace(/\/+$/, "");
 const ensureApiSuffix = (value) => {
@@ -15,6 +16,13 @@ const apiBaseCandidates = [
 
 export const api = axios.create({
   baseURL: apiBaseCandidates[0],
+});
+
+// Envia dispositivo/fuso/tela ao back-end para a auditoria de acessos.
+api.interceptors.request.use(async (config) => {
+  const info = await getClientInfoHeader();
+  if (info) config.headers["X-Client-Info"] = info;
+  return config;
 });
 
 export function setAuthToken(token) {

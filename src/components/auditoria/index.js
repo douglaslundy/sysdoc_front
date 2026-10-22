@@ -11,6 +11,7 @@ import BaseCard from '../baseCard/BaseCard';
 import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { auditoriaPDF } from '../../reports/auditoria';
 import { api } from '../../services/api';
+import { deviceDetails, deviceSummary } from '../../utils/deviceSummary';
 
 const ACTION_COLORS = {
     LOGIN: 'info', LOGOUT: 'default', CREATE: 'success',
@@ -329,8 +330,10 @@ export default function Auditoria() {
                                     <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
                                         {log.model_id ?? '—'}
                                     </TableCell>
-                                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
-                                        {log.ip_address}
+                                    <TableCell sx={{ fontSize: 12 }} title={deviceDetails(log.client_info, log.ip_origin)}>
+                                        <Box sx={{ fontFamily: 'monospace' }}>{log.ip_address}</Box>
+                                        {log.ip_origin && <Typography variant="caption" color="text.secondary" component="div">{log.ip_origin}</Typography>}
+                                        {log.client_info && <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(log.client_info)}</Typography>}
                                     </TableCell>
                                     <TableCell>
                                         <Box display="flex" alignItems="center" gap={0.5}>

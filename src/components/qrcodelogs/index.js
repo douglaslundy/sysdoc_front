@@ -20,6 +20,7 @@ import { getAllQrCodeLogs } from "../../store/fetchActions/qrcodelogs";
 import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
 import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
+import { deviceDetails, deviceSummary } from "../../utils/deviceSummary";
 
 
 const StyledTableRow = styled(TableRow)(() => ({
@@ -262,6 +263,14 @@ export default () => {
                                                         >
                                                             {log && log?.host_name?.substring(0, 40)}
                                                         </Typography>
+                                                        {log?.ip_origin && (
+                                                            <Typography color="textSecondary" sx={{ fontSize: "12px" }}>{log.ip_origin}</Typography>
+                                                        )}
+                                                        {log?.client_info && (
+                                                            <Typography color="textSecondary" sx={{ fontSize: "12px" }} title={deviceDetails(log.client_info, log.ip_origin)}>
+                                                                {deviceSummary(log.client_info)}
+                                                            </Typography>
+                                                        )}
                                                     </Box>
                                                 </Box>
                                             </TableCell>

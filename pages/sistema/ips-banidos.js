@@ -20,6 +20,7 @@ import FeatherIcon from "feather-icons-react";
 import BaseCard from "../../src/components/baseCard/BaseCard";
 import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
 import { api } from "../../src/services/api";
+import { deviceDetails, deviceSummary } from "../../src/utils/deviceSummary";
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -207,7 +208,7 @@ export default function IpsBanidosPage() {
                 {items.map((item) => (
                   <StyledTableRow key={item.id} hover>
                     <TableCell><Typography variant="h6" fontWeight={600}>{item.ip}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" sx={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis" }} title={item.origin || ""}>{item.origin || "—"}</Typography></TableCell>
+                    <TableCell><Typography variant="body2" sx={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis" }} title={deviceDetails(item.client_info, item.origin)}>{item.origin || "—"}</Typography>{item.client_info ? <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(item.client_info)}</Typography> : null}</TableCell>
                     <TableCell><Typography variant="body2" sx={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis" }} title={item.reason || ""}>{item.reason || "—"}</Typography></TableCell>
                     <TableCell>
                       <Chip size="small" color={item.source === "auto" ? "warning" : "info"} label={item.source === "auto" ? "Automático" : "Manual"} />
