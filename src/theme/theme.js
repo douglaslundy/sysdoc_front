@@ -7,10 +7,10 @@ import typography from "./Typoraphy";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#2563eb",
+      main: "#f5a623",
       // dark deve continuar igual a --lg-accent-hover do bloco [data-theme="light"] em styles/theme-liquid-glass.css
-      dark: "#1d4ed8",
-      contrastText: "#ffffff",
+      dark: "#e8902a",
+      contrastText: "#000000",
     },
     secondary: {
       main: "#7C3AED",
@@ -19,9 +19,9 @@ const theme = createTheme({
       contrastText: "#ffffff",
     },
     success: {
-      main: "#00c292",
+      main: "#43a047",
 
-      dark: "#00964b",
+      dark: "#2e7d32",
       contrastText: "#ffffff",
     },
     danger: {
@@ -29,22 +29,22 @@ const theme = createTheme({
       light: "#fdf3f5",
     },
     info: {
-      main: "#3B82F6",
+      main: "#1e88e5",
       light: "#93C5FD",
     },
     error: {
-      main: "#e46a76",
+      main: "#e53935",
 
-      dark: "#e45a68",
+      dark: "#c62828",
     },
     warning: {
-      main: "#fec90f",
-      dark: "#dcb014",
-      contrastText: "#0F172A",
+      main: "#f5a623",
+      dark: "#e8902a",
+      contrastText: "#000000",
     },
     text: {
-      primary: "#0F172A",
-      secondary: "#475569",
+      primary: "#1a1c21",
+      secondary: "#5f6673",
       danger: "#fc4b6c",
     },
     grey: {
@@ -56,10 +56,10 @@ const theme = createTheme({
     action: {
       disabledBackground: "rgba(73,82,88,0.12)",
       hoverOpacity: 0.02,
-      hover: "rgba(37, 99, 235, 0.08)",
+      hover: "rgba(245, 166, 35, 0.08)",
     },
     background: {
-      default: "#F8FAFC",
+      default: "#f4f5f7",
       paper: "#FFFFFF",
     },
   },

@@ -1,17 +1,8 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import FeatherIcon from "feather-icons-react";
-import {
-  Badge,
-  Box,
-  Divider,
-  IconButton,
-  ListItemButton,
-  ListItemText,
-  Menu,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Bell } from "lucide-react";
+import { Button } from "../ui/button";
+import { Contador } from "../ui/contador";
+import { Popover, PopoverConteudo, PopoverFechar, PopoverTrigger } from "../ui/popover";
 import { useRouter } from "next/router";
 import { api } from "../../services/api";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -41,7 +32,6 @@ const ProtocolBell = () => {
       (Array.isArray(authorizedPages) && authorizedPages.some((page) => page?.ativo && isProtocolPath(page?.path)))
     );
   }, [permissionsLoaded, profile, myPermissions, authorizedPages]);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [data, setData] = useState({ novos: 0, vence_em_breve: 0, vencidos: 0, recentes: [] });
 
   const loadCounts = async () => {
@@ -81,130 +71,58 @@ const ProtocolBell = () => {
     [data.novos]
   );
 
-  const handleOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-
   if (!canAccess) return null;
 
   return (
-    <>
-      <Tooltip title="Protocolos novos">
-        <IconButton
-          onClick={handleOpen}
-          size="small"
-          aria-label="protocolos novos"
-          sx={{
-            mr: 1,
-            color: "var(--lg-text-primary)",
-            background: "var(--lg-glass-chip)",
-            border: "0.5px solid var(--lg-border)",
-            borderRadius: "10px",
-            "&:hover": {
-              background: "var(--lg-glass-panel-hover)",
-            },
-          }}
-        >
-          <Badge badgeContent={total} color="error" max={99}>
-            <FeatherIcon icon="bell" width="18" height="18" />
-          </Badge>
-        </IconButton>
-      </Tooltip>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        PaperProps={{
-          sx: {
-            width: 420,
-            maxWidth: "calc(100vw - 32px)",
-            border: "1px solid var(--lg-border)",
-            background: "var(--lg-glass-panel)",
-            backdropFilter: "var(--lg-blur-panel)",
-            color: "var(--lg-text-primary)",
-          },
-        }}
+    <Popover>
+      <PopoverTrigger
+        aria-label="protocolos novos"
+        title="Protocolos novos"
+        render={<Button variant="ghost" size="icon" className="relative" />}
       >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "var(--lg-text-primary)" }}>
-            Protocolos novos
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
-            <Typography variant="caption" color="text.secondary">Novos: {data.novos}</Typography>
-            <Typography variant="caption" color="text.secondary">Breve: {data.vence_em_breve}</Typography>
-            <Typography variant="caption" color="text.secondary">Vencidos: {data.vencidos}</Typography>
-          </Stack>
-        </Box>
-
-        <Divider />
-
-        <Box sx={{ maxHeight: 420, overflowY: "auto" }}>
+        <Bell className="size-5" aria-hidden />
+        <Contador valor={total} />
+      </PopoverTrigger>
+      <PopoverConteudo className="w-[min(420px,calc(100vw-16px))]">
+        <div className="border-b border-border px-4 py-3">
+          <p className="font-display text-base font-extrabold">Protocolos novos</p>
+          <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+            <span>Novos: {data.novos}</span>
+            <span>Breve: {data.vence_em_breve}</span>
+            <span>Vencidos: {data.vencidos}</span>
+          </p>
+        </div>
+        <div className="max-h-[420px] overflow-y-auto">
           {data.recentes.length > 0 ? (
             data.recentes.map((protocol) => (
-              <ListItemButton
+              <PopoverFechar
                 key={protocol.id}
-                onClick={() => {
-                  handleClose();
-                  router.push(`/protocolo/${protocol.id}`);
-                }}
-              sx={{
-                alignItems: "flex-start",
-                py: 1.3,
-                borderBottom: "1px solid var(--lg-border)",
-                "&:hover": {
-                  background: "var(--lg-glass-panel-hover)",
-                },
-              }}
-            >
-                <ListItemText
-                  primary={
-                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {protocol.numero}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {protocol.assunto}
-                      </Typography>
-                    </Stack>
-                  }
-                  secondary={
-                    <Typography variant="caption" color="text.secondary">
-                      {protocol.prioridade || "normal"} • {protocol.status || "novo"} • {formatDateTime(protocol.updated_at)}
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
+                onClick={() => router.push(`/protocolo/${protocol.id}`)}
+                className="block w-full border-b border-border px-4 py-3 text-left hover:bg-hover focus-visible:bg-hover focus-visible:outline-none"
+              >
+                <span className="flex flex-wrap items-center gap-x-2 text-sm">
+                  <span className="font-semibold">{protocol.numero}</span>
+                  <span className="min-w-0 text-muted-foreground">{protocol.assunto}</span>
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  {protocol.prioridade || "normal"} • {protocol.status || "novo"} • {formatDateTime(protocol.updated_at)}
+                </span>
+              </PopoverFechar>
             ))
           ) : (
-            <Box sx={{ p: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Nenhum protocolo novo no momento.
-              </Typography>
-            </Box>
+            <p className="p-4 text-sm text-muted-foreground">Nenhum protocolo novo no momento.</p>
           )}
-        </Box>
-
-        <Divider />
-
-        <Box sx={{ p: 1.5 }}>
-          <ListItemButton
-            onClick={() => {
-              handleClose();
-              router.push("/protocolo/caixa-entrada");
-            }}
-            sx={{
-              borderRadius: 2,
-              color: "var(--lg-text-primary)",
-              "&:hover": {
-                background: "var(--lg-glass-panel-hover)",
-              },
-            }}
+        </div>
+        <div className="p-2">
+          <PopoverFechar
+            onClick={() => router.push("/protocolo/caixa-entrada")}
+            className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-hover focus-visible:bg-hover focus-visible:outline-none"
           >
-            <ListItemText primary="Ver caixa de entrada" />
-          </ListItemButton>
-        </Box>
-      </Menu>
-    </>
+            Ver caixa de entrada
+          </PopoverFechar>
+        </div>
+      </PopoverConteudo>
+    </Popover>
   );
 };
 

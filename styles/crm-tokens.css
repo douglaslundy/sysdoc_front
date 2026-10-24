@@ -1,5 +1,7 @@
 /* Layout do CRM aplicado ao SysDoc 2.0 (fonte: crm/frontend/app/globals.css, somente leitura).
    Sem preflight do Tailwind enquanto o MUI existir: só tema + utilitários. Ver docs/refatoracao-layout. */
+/* Ordem das camadas: utilitários sempre vencem a base. */
+@layer theme, base, utilities;
 @import "@fontsource/barlow/400.css";
 @import "@fontsource/barlow/500.css";
 @import "@fontsource/barlow/600.css";
@@ -167,6 +169,27 @@
 }
 
 @layer base {
+  /* Sem o preflight, botões nativos ficam cinza: zera o que o Tailwind zeraria. Camada base perde para o CSS do MUI. */
+  button {
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    border: 0 solid;
+    padding: 0;
+  }
+  /* Reset de margens só nas áreas já migradas (.ui-reset): as telas ainda em MUI mantêm o comportamento antigo. */
+  .ui-reset :is(p, h1, h2, h3, h4, h5, h6, ul, ol, figure, blockquote) {
+    margin: 0;
+  }
+  .ui-reset :is(ul, ol) {
+    padding: 0;
+    list-style: none;
+  }
+  .ui-reset a {
+    color: inherit;
+    text-decoration: none;
+  }
   .ui-raiz, .ui-raiz *, .ui-raiz *::before, .ui-raiz *::after {
     box-sizing: border-box;
     border-color: var(--border);

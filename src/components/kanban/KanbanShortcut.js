@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Badge, IconButton, Tooltip } from "@mui/material";
+import { Columns3 } from "lucide-react";
+import { Button } from "../ui/button";
+import { Contador } from "../ui/contador";
 import { useRouter } from "next/router";
 import { api } from "../../services/api";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -69,41 +71,10 @@ const KanbanShortcut = () => {
   }
 
   return (
-    <Tooltip title="Tarefas do Kanban">
-      <IconButton
-        onClick={() => router.push("/kanban")}
-        size="small"
-        aria-label="abrir kanban"
-        sx={{
-          mr: 1,
-          color: "var(--lg-text-primary)",
-          background: "var(--lg-glass-chip)",
-          border: "0.5px solid var(--lg-border)",
-          borderRadius: "10px",
-          "&:hover": {
-            background: "var(--lg-glass-panel-hover)",
-          },
-        }}
-      >
-        <Badge badgeContent={total} color="primary" max={99}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <rect x="7" y="7" width="3" height="9" />
-            <rect x="14" y="7" width="3" height="5" />
-          </svg>
-        </Badge>
-      </IconButton>
-    </Tooltip>
+    <Button variant="ghost" size="icon" className="relative" aria-label="abrir kanban" title="Tarefas do Kanban" onClick={() => router.push("/kanban")}>
+      <Columns3 className="size-5" aria-hidden />
+      <Contador valor={total} tom="primario" />
+    </Button>
   );
 };
 

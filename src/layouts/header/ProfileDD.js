@@ -1,29 +1,13 @@
-import React, { useContext } from "react";
-import FeatherIcon from "feather-icons-react";
-import {
-  Box,
-  Menu,
-  Typography,
-  Link,
-  Button,
-  Divider,
-  ListItemButton,
-  ListItemText,
-  Tooltip,
-  IconButton,
-} from "@mui/material";
-
+import React, { useContext, useEffect, useState } from "react";
+import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AuthContext } from "../../contexts/AuthContext";
 import { logoutFetch } from "../../store/fetchActions/auth";
 import UserModal from "../../components/modal/user";
 import { turnUserModal } from "../../store/ducks/Layout";
 import { getUserFetch } from "../../store/fetchActions/user";
-import { ColorModeContext } from "../../contexts/ThemeContext";
-
-function logout(dispatch) {
-  dispatch(logoutFetch());
-}
+import { Button } from "../../components/ui/button";
+import { Menu, MenuConteudo, MenuItem, MenuTrigger } from "../../components/ui/menu";
 
 const getInitials = (name) => {
   if (!name) return "US";
@@ -45,96 +29,44 @@ const formatProfileLabel = (value) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
+/** Avatar + nome (nome some no celular) e menu "Meus Dados / Sair". */
 const ProfileDD = () => {
-  const [anchorEl4, setAnchorEl4] = React.useState(null);
-  const [mounted, setMounted] = React.useState(false);
-
-  const handleClick4 = (event) => {
-    setAnchorEl4(event.currentTarget);
-  };
-
-  const handleClose4 = () => {
-    setAnchorEl4(null);
-  };
-
   const dispatch = useDispatch();
-
   const { username, user, profile } = useContext(AuthContext);
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  const handleEditUser = async (userId) => {
+  const handleEditUser = (userId) => {
     dispatch(getUserFetch(userId));
     dispatch(turnUserModal());
   };
 
-  const { toggleColorMode, mode } = useContext(ColorModeContext);
+  const identidade = mounted ? `${username || ""}${profile ? ` - ${formatProfileLabel(profile)}` : ""}` : "";
 
   return (
     <>
       <UserModal />
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Tooltip title={mode === "dark" ? "Modo claro" : "Modo escuro"}>
-          <IconButton
-            onClick={toggleColorMode}
-            aria-label="Alternar tema"
-            size="small"
-            className="theme-toggle-btn"
-          >
-            <FeatherIcon icon={mode === "dark" ? "sun" : "moon"} width="18" height="18" />
-          </IconButton>
-        </Tooltip>
-
-        <Button
-          aria-label="menu"
-          color="inherit"
-          aria-controls="profile-menu"
-          aria-haspopup="true"
-          onClick={handleClick4}
-          className="profile-dd-trigger"
+      <Menu>
+        <MenuTrigger
+          aria-label="Menu do usuário"
+          render={<Button variant="ghost" size="default" className="max-w-[260px] gap-2 px-2 sm:px-3" />}
         >
-          <Box display="flex" alignItems="center" gap={1}>
-            <Box
-              className="profile-dd-avatar"
-            >
-              {mounted ? getInitials(username) : ""}
-            </Box>
-            <Box
-              className="profile-dd-identity"
-            >
-              <Typography className="profile-dd-username">
-                {mounted ? `${username || ""}${profile ? ` - ${formatProfileLabel(profile)}` : ""}` : ""}
-              </Typography>
-              <FeatherIcon className="profile-dd-chevron" icon="chevron-down" width="14" height="14" />
-            </Box>
-          </Box>
-        </Button>
-      </Box>
-
-      <Menu
-        id="profile-menu"
-        anchorEl={anchorEl4}
-        keepMounted
-        open={Boolean(anchorEl4)}
-        onClose={handleClose4}
-        PaperProps={{
-          className: "profile-dd-menu-paper",
-        }}
-      >
-        <Box>
-          <ListItemButton>
-            <ListItemText primary="Meus Dados" onClick={() => handleEditUser(user)} />
-          </ListItemButton>
-
-          <Divider />
-          <Box p={2}>
-            <Link to="/">
-              <Button fullWidth variant="contained" color="primary" onClick={() => logout(dispatch)}>
-                Logout
-              </Button>
-            </Link>
-          </Box>
-        </Box>
+          <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-card text-xs font-semibold text-primary-text">
+            {mounted ? getInitials(username) : ""}
+          </span>
+          <span className="hidden min-w-0 truncate text-sm text-foreground sm:inline">{identidade}</span>
+          <ChevronDown aria-hidden className="hidden size-3.5 shrink-0 sm:inline" />
+        </MenuTrigger>
+        <MenuConteudo>
+          <p className="truncate px-3 py-2 text-xs text-muted-foreground sm:hidden">{identidade}</p>
+          <MenuItem onClick={() => handleEditUser(user)}>
+            <UserRound className="size-4" aria-hidden /> Meus Dados
+          </MenuItem>
+          <MenuItem onClick={() => dispatch(logoutFetch())}>
+            <LogOut className="size-4" aria-hidden /> Sair
+          </MenuItem>
+        </MenuConteudo>
       </Menu>
     </>
   );

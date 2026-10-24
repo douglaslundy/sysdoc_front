@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
-import Image from 'next/image';
+import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { parseCookies } from 'nookies';
 import { useDispatch } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
 import { loginFetch } from '../src/store/fetchActions/auth';
 import AlertModal from '../src/components/messagesModal';
-import LogoDark from '../assets/images/logos/logo.png';
-import styles from '../styles/login-split.module.css';
+import AuthCard from '../src/components/auth/AuthCard';
+import { Button } from '../src/components/ui/button';
+import { Campo, Input } from '../src/components/ui/campos';
+
+const DESTAQUE = {
+    titulo: 'Tecnologia que impulsiona o seu negócio.',
+    texto: 'Há mais de 10 anos entregando soluções inteligentes que otimizam processos, aumentam a produtividade e garantem resultados reais.',
+    beneficios: [
+        'Soluções completas: sistemas integrados para otimizar processos.',
+        'Segurança e confiabilidade: proteção de dados e infraestrutura robusta.',
+        'Suporte especializado: time dedicado para a melhor experiência.',
+    ],
+};
 
 export default function SignIn() {
     const dispatch = useDispatch();
@@ -24,147 +35,66 @@ export default function SignIn() {
     };
 
     return (
-        <main className={styles.loginPage}>
-            <div className={`${styles.orb} ${styles.orbTopLeft}`} aria-hidden="true" />
-            <div className={`${styles.orb} ${styles.orbBottomRight}`} aria-hidden="true" />
-            <div className={`${styles.ambient} ${styles.ambientLeft}`} aria-hidden="true" />
-            <div className={`${styles.ambient} ${styles.ambientRight}`} aria-hidden="true" />
+        <AuthCard titulo="Bem-vindo de volta!" descricao="Acesse sua conta para continuar." destaque={DESTAQUE}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <AlertModal />
 
-            <section className={styles.loginCopy} aria-labelledby="login-copy-title">
-                <span className={styles.eyebrow}>⚡ Tecnologia que transforma</span>
-
-                <h1 id="login-copy-title">
-                    Tecnologia que impulsiona<br />
-                    o <span>seu negócio.</span>
-                </h1>
-
-                <p className={styles.copyDescription}>
-                    Há mais de 10 anos entregando soluções inteligentes e inovadoras que
-                    otimizam processos, aumentam a produtividade e garantem resultados reais.
-                </p>
-
-                <div className={styles.benefits} aria-label="Benefícios DL Sistemas">
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">↗</div>
-                        <div>
-                            <h2>Soluções completas</h2>
-                            <p>Sistemas integrados para otimizar processos e aumentar a produtividade.</p>
-                        </div>
-                    </article>
-
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">
-                            <FeatherIcon icon="lock" width="24" height="24" />
-                        </div>
-                        <div>
-                            <h2>Segurança e confiabilidade</h2>
-                            <p>Proteção de dados e infraestrutura robusta para o seu negócio.</p>
-                        </div>
-                    </article>
-
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">☏</div>
-                        <div>
-                            <h2>Suporte especializado</h2>
-                            <p>Time dedicado para garantir a melhor experiência sempre.</p>
-                        </div>
-                    </article>
-                </div>
-            </section>
-
-            <section className={styles.loginPanel} aria-label="Acesso ao sistema">
-                <form className={styles.loginCard} onSubmit={handleSubmit}>
-                    <header className={styles.cardHeader}>
-                        <Image
-                            className={styles.brandLogo}
-                            src={LogoDark}
-                            alt="DL Sistemas Soluções em TI"
-                            width={270}
-                            height={70}
-                            style={{ display: 'block' }}
+                <Campo id="cpf" label="CPF" obrigatorio>
+                    {(a11y) => (
+                        <Input
+                            {...a11y}
+                            name="cpf"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="username"
+                            placeholder="Digite seu CPF"
+                            value={form.cpf}
+                            onChange={changeItem}
+                            autoFocus
+                            required
                         />
-                        <h2>Bem-vindo de volta!</h2>
-                        <p>Acesse sua conta para continuar.</p>
-                    </header>
+                    )}
+                </Campo>
 
-                    <AlertModal />
-
-                    <div className={styles.fieldGroup}>
-                        <label htmlFor="cpf">CPF</label>
-                        <div className={styles.inputShell}>
-                            <span aria-hidden="true">♙</span>
-                            <input
-                                id="cpf"
-                                name="cpf"
-                                type="text"
-                                inputMode="numeric"
-                                autoComplete="username"
-                                placeholder="Digite seu CPF"
-                                value={form.cpf}
-                                onChange={changeItem}
-                                autoFocus
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className={styles.fieldGroup}>
-                        <label htmlFor="password">Senha</label>
-                        <div className={styles.inputShell}>
-                            <span aria-hidden="true">
-                                <FeatherIcon icon="key" width="18" height="18" />
-                            </span>
-                            <input
-                                id="password"
+                <Campo id="password" label="Senha" obrigatorio>
+                    {(a11y) => (
+                        <div className="relative">
+                            <Input
+                                {...a11y}
                                 name="password"
                                 type={showPassword ? 'text' : 'password'}
                                 autoComplete="current-password"
                                 placeholder="Digite sua senha"
+                                className="pr-11"
                                 value={form.password}
                                 onChange={changeItem}
                                 required
                             />
-                            <button
-                                className={styles.togglePassword}
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="absolute top-1/2 right-1 -translate-y-1/2"
                                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                                onClick={() => setShowPassword(v => !v)}
+                                onClick={() => setShowPassword((v) => !v)}
                             >
-                                {showPassword ? '◎' : '◉'}
-                            </button>
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
                         </div>
-                    </div>
+                    )}
+                </Campo>
 
-                    <div className={styles.formRow}>
-                        <label className={styles.remember}>
-                            <input type="checkbox" name="remember" />
-                            <span>Lembrar-me</span>
-                        </label>
-                        <a href="/esqueci-senha" className={styles.forgotLink}>
-                            Esqueceu a senha?
-                        </a>
-                    </div>
+                <div className="text-right">
+                    <Link href="/esqueci-senha">
+                        <a className="text-sm text-primary-text underline-offset-4 hover:underline">Esqueceu a senha?</a>
+                    </Link>
+                </div>
 
-                    <button className={styles.submitButton} type="submit">
-                        Entrar →
-                    </button>
-
-                    <div className={styles.safeAccess} aria-hidden="true">
-                        <span />
-                        <p>Acesso seguro</p>
-                        <span />
-                    </div>
-
-                    <div className={styles.securityBadge} aria-label="Acesso seguro">
-                        <FeatherIcon icon="lock" width="24" height="24" />
-                    </div>
-                </form>
-
-                <footer className={styles.loginFooter}>
-                    Copyright © DL Sistemas {new Date().getFullYear()} • Todos os direitos reservados.
-                </footer>
-            </section>
-        </main>
+                <Button type="submit" size="lg" className="w-full">
+                    Entrar
+                </Button>
+            </form>
+        </AuthCard>
     );
 }
 

@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
-import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { parseCookies } from 'nookies';
-import FeatherIcon from 'feather-icons-react';
 import { api } from '../src/services/api';
-import LogoDark from '../assets/images/logos/logo.png';
-import styles from '../styles/login-split.module.css';
+import AuthCard from '../src/components/auth/AuthCard';
+import { Banner } from '../src/components/ui/banner';
+import { Button } from '../src/components/ui/button';
+import { Campo, Input } from '../src/components/ui/campos';
+
+const DESTAQUE = {
+    titulo: 'Redefina sua senha sem sair do mesmo ambiente.',
+    texto: 'Informe o e-mail cadastrado para receber o link de redefinição.',
+    beneficios: [
+        'Envio imediato: o link vai ao e-mail cadastrado assim que o formulário é validado.',
+        'Fluxo seguro: a solicitação segue o mesmo padrão de proteção do login.',
+        'Retorno rápido: após redefinir, você volta ao login com um clique.',
+    ],
+};
 
 export default function EsqueciSenha() {
     const [email, setEmail] = useState('');
@@ -37,138 +49,53 @@ export default function EsqueciSenha() {
     };
 
     return (
-        <main className={styles.loginPage}>
-            <div className={`${styles.orb} ${styles.orbTopLeft}`} aria-hidden="true" />
-            <div className={`${styles.orb} ${styles.orbBottomRight}`} aria-hidden="true" />
-            <div className={`${styles.ambient} ${styles.ambientLeft}`} aria-hidden="true" />
-            <div className={`${styles.ambient} ${styles.ambientRight}`} aria-hidden="true" />
+        <AuthCard
+            titulo="Esqueceu a senha?"
+            descricao="Digite o e-mail cadastrado para receber o link de redefinição."
+            destaque={DESTAQUE}
+            rodape={
+                <Link href="/login">
+                    <a className="inline-flex items-center gap-1.5 text-sm text-primary-text underline-offset-4 hover:underline">
+                        <ArrowLeft className="size-4" aria-hidden /> Voltar para o login
+                    </a>
+                </Link>
+            }
+        >
+            {sucesso ? (
+                <Banner tom="sucesso" rotulo="E-mail enviado">
+                    <strong>E-mail enviado.</strong> Se o endereço estiver cadastrado, você receberá as instruções em breve. Verifique também a caixa de spam.
+                </Banner>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {erro ? (
+                        <Banner tom="perigo">
+                            <strong>Não foi possível enviar.</strong> {erro}
+                        </Banner>
+                    ) : null}
 
-            <section className={styles.loginCopy} aria-labelledby="recovery-copy-title">
-                <span className={styles.eyebrow}>Recuperação de acesso</span>
+                    <Campo id="email" label="E-mail" obrigatorio>
+                        {(a11y) => (
+                            <Input
+                                {...a11y}
+                                name="email"
+                                type="email"
+                                inputMode="email"
+                                autoComplete="email"
+                                placeholder="Digite seu e-mail cadastrado"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                autoFocus
+                                required
+                            />
+                        )}
+                    </Campo>
 
-                <h1 id="recovery-copy-title">
-                    Redefina sua senha<br />
-                    sem sair do <span>mesmo ambiente.</span>
-                </h1>
-
-                <p className={styles.copyDescription}>
-                    Informe o e-mail cadastrado para receber o link de redefinição. O processo
-                    mantém o mesmo padrão visual da tela de login e preserva a experiência do sistema.
-                </p>
-
-                <div className={styles.benefits} aria-label="Como funciona a recuperação">
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">
-                            <FeatherIcon icon="mail" width="24" height="24" />
-                        </div>
-                        <div>
-                            <h2>Envio imediato</h2>
-                            <p>O link e enviado ao e-mail cadastrado assim que o formulario e validado.</p>
-                        </div>
-                    </article>
-
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">
-                            <FeatherIcon icon="shield" width="24" height="24" />
-                        </div>
-                        <div>
-                            <h2>Fluxo seguro</h2>
-                            <p>A solicitação segue o mesmo padrão visual e de proteção usado no login.</p>
-                        </div>
-                    </article>
-
-                    <article className={styles.benefit}>
-                        <div className={styles.benefitIcon} aria-hidden="true">
-                            <FeatherIcon icon="arrow-left" width="24" height="24" />
-                        </div>
-                        <div>
-                            <h2>Retorno rapido</h2>
-                            <p>Após redefinir a senha, você volta ao login com apenas um clique.</p>
-                        </div>
-                    </article>
-                </div>
-            </section>
-
-            <section className={styles.loginPanel} aria-label="Recuperação de senha">
-                <form className={styles.loginCard} onSubmit={handleSubmit}>
-                    <header className={styles.cardHeader}>
-                        <Image
-                            className={styles.brandLogo}
-                            src={LogoDark}
-                            alt="DL Sistemas Solucoes em TI"
-                            width={270}
-                            height={70}
-                            style={{ display: 'block' }}
-                        />
-                        <h2>Esqueceu a senha?</h2>
-                        <p>Digite o e-mail cadastrado para receber o link de redefinição.</p>
-                    </header>
-
-                    {sucesso ? (
-                        <div className={styles.statusMessage} role="status" aria-live="polite">
-                            <div className={styles.statusIcon} aria-hidden="true">
-                                <FeatherIcon icon="check-circle" width="20" height="20" />
-                            </div>
-                            <div>
-                                <strong>E-mail enviado</strong>
-                                <p>
-                                    Se o endereço estiver cadastrado, você receberá as instruções em
-                                    breve. Verifique também a caixa de spam.
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className={styles.recoveryFormWrap}>
-                            {erro ? (
-                                <div className={`${styles.statusMessage} ${styles.statusError}`} role="alert">
-                                    <div className={styles.statusIcon} aria-hidden="true">
-                                        <FeatherIcon icon="alert-triangle" width="20" height="20" />
-                                    </div>
-                                    <div>
-                                        <strong>Não foi possível enviar</strong>
-                                        <p>{erro}</p>
-                                    </div>
-                                </div>
-                            ) : null}
-
-                            <div className={styles.fieldGroup}>
-                                <label htmlFor="email">E-mail</label>
-                                <div className={styles.inputShell}>
-                                    <span aria-hidden="true">@</span>
-                                    <input
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        inputMode="email"
-                                        autoComplete="email"
-                                        placeholder="Digite seu e-mail cadastrado"
-                                        value={email}
-                                        onChange={event => setEmail(event.target.value)}
-                                        autoFocus
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <button className={styles.submitButton} type="submit" disabled={loading}>
-                                {loading ? 'Enviando...' : 'Enviar link de redefinição'}
-                            </button>
-                        </div>
-                    )}
-
-                    <div className={styles.recoveryFooter}>
-                        <a href="/login" className={styles.backLink}>
-                            <FeatherIcon icon="arrow-left" width="16" height="16" />
-                            Voltar para o login
-                        </a>
-                    </div>
+                    <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                        {loading ? 'Enviando...' : 'Enviar link de redefinição'}
+                    </Button>
                 </form>
-
-                <footer className={styles.loginFooter}>
-                    Copyright © DL Sistemas {new Date().getFullYear()} • Todos os direitos reservados.
-                </footer>
-            </section>
-        </main>
+            )}
+        </AuthCard>
     );
 }
 

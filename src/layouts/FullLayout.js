@@ -1,146 +1,55 @@
-import React, { useEffect, useState } from "react";
-import Router from "next/router";
-import {
-  experimentalStyled,
-  useMediaQuery,
-  Badge,
-  Container,
-  Box,
-  IconButton,
-  useTheme,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import React, { useContext } from "react";
+import { MessageCircle } from "lucide-react";
 import Header from "./header/Header";
 import Sidebar from "./sidebar/Sidebar";
 import Footer from "./footer/Footer";
+import { useMenuGroups } from "./sidebar/useMenuGroups";
 import AuthGuard from "../components/authGuard";
 import NoticeModal from "../components/systemNotices/NoticeModal";
 import ChatPanel from "../components/chat/ChatPanel";
+import { Button } from "../components/ui/button";
+import { Contador } from "../components/ui/contador";
 import { AuthContext } from "../contexts/AuthContext";
 import { ChatContext } from "../contexts/ChatContext";
-import { useContext } from "react";
 
-const SIDEBAR_WIDTH = 318;
-
-const MainWrapper = experimentalStyled("div")(() => ({
-  display: "flex",
-  minHeight: "100vh",
-  overflowX: "hidden",
-  width: "100%",
-  flexDirection: "column",
-}));
-
-const PageWrapper = experimentalStyled("div")(({ theme }) => ({
-  display: "flex",
-  flex: "1 1 auto",
-  backgroundColor: theme.palette.background.default,
-}));
-
+/**
+ * Esqueleto da área logada (layout do CRM): menu fixo a partir de 768px, gaveta no celular,
+ * barra superior de 60px e conteúdo com 16px (celular) / 24px (md+) de respiro.
+ */
 const FullLayout = ({ children }) => {
-  const theme = useTheme();
   const { canUseChat } = useContext(AuthContext);
   const { isOpen, setIsOpen, unreadTotal } = useContext(ChatContext);
-  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
-
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (isDesktop) {
-      setSidebarOpen(true);
-    }
-  }, [isDesktop]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const closeMobileSidebar = () => {
-      if (!isDesktop) {
-        setSidebarOpen(false);
-      }
-    };
-
-    Router.events.on("routeChangeStart", closeMobileSidebar);
-
-    return () => {
-      Router.events.off("routeChangeStart", closeMobileSidebar);
-    };
-  }, [isDesktop]);
+  const menu = useMenuGroups();
 
   return (
-    <>
-      <Sidebar
-        isSidebarOpen={isSidebarOpen}
-        onSidebarClose={() => setSidebarOpen(false)}
-      />
+    <div className="ui-raiz flex min-h-dvh bg-background font-sans text-foreground">
+      <Sidebar menu={menu} />
       {canUseChat && <ChatPanel />}
       {canUseChat && !isOpen && (
-        <Box
-          sx={{
-            position: "fixed",
-            right: { xs: 16, md: 24 },
-            bottom: { xs: 16, md: 24 },
-            zIndex: (currentTheme) => currentTheme.zIndex.drawer + 2,
-          }}
-        >
-          <IconButton
+        <div className="no-print fixed right-4 bottom-4 z-[90] md:right-6 md:bottom-6">
+          <Button
+            variant="outline"
+            size="icon-lg"
             aria-label="Abrir chat interno"
             onClick={() => setIsOpen(true)}
-            sx={{
-              width: 58,
-              height: 58,
-              color: "var(--lg-text-primary)",
-              background:
-                theme.palette.mode === "light"
-                  ? "rgba(203, 213, 225, 0.97)"
-                  : "var(--lg-glass-chip)",
-              border: "1px solid var(--lg-border)",
-              boxShadow: "0 18px 35px rgba(15, 23, 42, 0.18)",
-              backdropFilter: "var(--lg-blur-panel)",
-              "&:hover": {
-                background:
-                  theme.palette.mode === "light"
-                    ? "rgba(186, 198, 212, 0.99)"
-                    : "var(--lg-glass-panel-hover)",
-              },
-            }}
+            className="relative size-14 rounded-full border-border bg-card text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
           >
-            <Badge badgeContent={unreadTotal} color="error" max={99}>
-              <FeatherIcon icon="message-circle" width="22" height="22" />
-            </Badge>
-          </IconButton>
-        </Box>
+            <MessageCircle className="size-6" aria-hidden />
+            <Contador valor={unreadTotal} />
+          </Button>
+        </div>
       )}
-      <MainWrapper>
-        <Header toggleSidebar={toggleSidebar} />
-
-        <PageWrapper
-        id="page-wrapper"
-        sx={{
-          marginLeft: isDesktop && isSidebarOpen ? `${SIDEBAR_WIDTH}px` : 0,
-          paddingTop: "64px",
-        }}
-      >
-        <Container
-          maxWidth={false}
-          sx={{
-            px: 3,
-            pb: 3,
-          }}
-        >
-          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            <AuthGuard>
-              <NoticeModal />
-              {children}
-            </AuthGuard>
-          </Box>
-
-          {isSidebarOpen && <Footer />}
-        </Container>
-      </PageWrapper>
-      </MainWrapper>
-    </>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header menu={menu} />
+        <main id="page-wrapper" className="min-w-0 flex-1 p-3 sm:p-4 md:p-6">
+          <AuthGuard>
+            <NoticeModal />
+            {children}
+          </AuthGuard>
+        </main>
+        <Footer />
+      </div>
+    </div>
   );
 };
 

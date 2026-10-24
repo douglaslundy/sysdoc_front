@@ -1,62 +1,18 @@
 import React from "react";
 import NextLink from "next/link";
-import { Box, Typography } from "@mui/material";
 
-const LogoIcon = () => {
-  return (
-    <NextLink href="/dashboard" passHref legacyBehavior>
-      <Box
-        component="a"
-        sx={{
-          textDecoration: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: 1.25,
-        }}
-      >
-      <Box
-        className="lg-logo-icon"
-        sx={{
-          width: 34,
-          height: 34,
-          borderRadius: "10px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: "13px",
-          flexShrink: 0,
-        }}
-      >
+const LogoIcon = () => (
+  <NextLink href="/dashboard">
+    <a className="flex min-w-0 items-center gap-2.5 no-underline">
+      <span className="flex size-[30px] shrink-0 items-center justify-center rounded-[7px] bg-primary font-display text-[13px] font-extrabold text-primary-foreground">
         DL
-      </Box>
-      <Box>
-        <Typography
-          sx={{
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "var(--lg-text-primary)",
-            lineHeight: 1.2,
-          }}
-        >
-          DL Sistemas
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: "9.5px",
-            color: "var(--lg-text-muted)",
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            lineHeight: 1.1,
-          }}
-        >
-          Gestao Municipal
-        </Typography>
-      </Box>
-      </Box>
-    </NextLink>
-  );
-};
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate font-display text-base leading-tight font-extrabold tracking-[0.03em] text-foreground">DL Sistemas</span>
+        <span className="block truncate text-[9.5px] leading-none tracking-[0.06em] text-muted-foreground uppercase">Gestão Municipal</span>
+      </span>
+    </a>
+  </NextLink>
+);
 
 export default LogoIcon;

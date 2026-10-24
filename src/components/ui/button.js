@@ -1,5 +1,6 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva } from 'class-variance-authority';
+import { forwardRef } from 'react';
 import { cn } from '../../lib/cn';
 
 export const buttonVariants = cva(
@@ -31,6 +32,6 @@ export const buttonVariants = cva(
 );
 
 /** Botão do layout CRM. variant: default|outline|secondary|ghost|destructive|success|link. */
-export function Button({ className, variant = 'default', size = 'default', ...props }) {
-  return <ButtonPrimitive data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
-}
+export const Button = forwardRef(function Button({ className, variant = 'default', size = 'default', ...props }, ref) {
+  return <ButtonPrimitive ref={ref} data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+});

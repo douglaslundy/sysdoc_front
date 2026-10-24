@@ -1,4 +1,4 @@
-﻿import { createTheme } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 import components from "./ComponentOverRide";
 import shadows from "./Shadows";
 import typography from "./Typoraphy";
@@ -7,10 +7,10 @@ const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#4f8ef7",
+      main: "#f5a623",
       // dark deve continuar igual a --lg-accent-hover do bloco [data-theme="dark"] em styles/theme-liquid-glass.css
-      dark: "#6ba3ff",
-      contrastText: "#ffffff",
+      dark: "#e8902a",
+      contrastText: "#000000",
     },
     secondary: {
       main: "#7C3AED",
@@ -19,8 +19,8 @@ const darkTheme = createTheme({
       contrastText: "#ffffff",
     },
     success: {
-      main: "#00c292",
-      dark: "#00964b",
+      main: "#43a047",
+      dark: "#2e7d32",
       contrastText: "#ffffff",
     },
     danger: {
@@ -28,21 +28,21 @@ const darkTheme = createTheme({
       light: "#fdf3f5",
     },
     info: {
-      main: "#60A5FA",
+      main: "#1e88e5",
       light: "#93C5FD",
     },
     error: {
-      main: "#e46a76",
-      dark: "#e45a68",
+      main: "#e53935",
+      dark: "#c62828",
     },
     warning: {
-      main: "#fec90f",
-      dark: "#dcb014",
-      contrastText: "#0F172A",
+      main: "#f5a623",
+      dark: "#e8902a",
+      contrastText: "#000000",
     },
     text: {
-      primary: "#E2E8F0",
-      secondary: "#94A3B8",
+      primary: "#e8eaf0",
+      secondary: "#8a90a0",
       danger: "#fc4b6c",
     },
     grey: {
@@ -54,11 +54,11 @@ const darkTheme = createTheme({
     action: {
       disabledBackground: "rgba(255,255,255,0.08)",
       hoverOpacity: 0.05,
-      hover: "rgba(79,142,247,0.08)",
+      hover: "rgba(245, 166, 35, 0.08)",
     },
     background: {
-      default: "#030712",
-      paper: "#071122",
+      default: "#0e0f11",
+      paper: "#1c1e21",
     },
   },
   mixins: {

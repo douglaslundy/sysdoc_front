@@ -1,6 +1,9 @@
 require("dotenv").config();
 
 module.exports = {
+    // @base-ui/react é ESM e importa 'react/jsx-runtime' sem extensão: no React 17 o Node não resolve isso no SSR.
+    // esmExternals:false faz o webpack empacotar esses módulos em vez de exigi-los do node_modules.
+    experimental: { esmExternals: false },
     webpack: (config) => {
       config.resolve.fallback = {fs: false};
       return config;
