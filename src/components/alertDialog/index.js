@@ -1,85 +1,32 @@
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Typography,
-    Button
-} from '@mui/material';
-import FeatherIcon from "feather-icons-react";
-import { makeStyles } from "@material-ui/core/styles";
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 import { alterTypeOfAlert, turnAlert } from '../../store/ducks/Layout';
-import { useSelector, useDispatch } from 'react-redux';
-
-import React from 'react';
-
-const useStyles = makeStyles(
-    theme => (
-        {
-            dialog: {
-                padding: theme.spacing(5),
-                display: 'flex',
-                justifyContent: 'space-around',
-            },
-            dialogTitle: {
-                padding: theme.spacing(2),
-                display: 'flex',
-                justifyContent: 'space-around',
-            },
-            dialogContent: {
-                textAlign: 'center',
-                alignContent: 'center',
-            },
-            dialogAction: {
-                justifyContent: 'space-evenly',
-            }
-        }
-    ));
+import { Button } from '../ui/button';
+import { Dialogo, DialogoDescricao, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
 
 export default function AlertDialog() {
-    const classes = useStyles();
-
     const { isOpenAlert, titleAlert, subTitleAlert, typeAlertIsSuccess } = useSelector(state => state.layout);
     const dispatch = useDispatch();
-    
+
     const handleOk = () => {
         dispatch(turnAlert());
         dispatch(alterTypeOfAlert(true));
-    }
+    };
+
+    const Icone = typeAlertIsSuccess ? CheckCircle2 : XCircle;
 
     return (
-
-        <Dialog open={isOpenAlert}
-            onClose={() => dispatch(turnAlert())}
-            classes={{ paper: classes.dialog }}
-        >
-            <DialogTitle className={classes.dialogTitle}>
-                <FeatherIcon icon={typeAlertIsSuccess ? 'check-circle' : 'x-circle'} size="66" />
-            </DialogTitle>
-
-            <DialogContent className={classes.dialogContent}>
-
-                <Typography sx={{ fontWeight: "600", fontSize: "16px" }} variant="h6">
-                    {titleAlert}
-                </Typography>
-
-                <Typography sx={{ fontWeight: "600" }} color="textSecondary" variant='subtitle2'>
-                    {subTitleAlert}
-                </Typography>
-
-            </DialogContent>
-
-            <DialogActions className={classes.dialogAction}>
-
-                <Button
-                    onClick={handleOk}
-                    color="error" size="medium" variant="contained">
-                    <FeatherIcon icon="check-circle" size="36" width="80" height="30" />
-                </Button>
-
-            </DialogActions>
-
-        </Dialog>
-    )
+        <Dialogo aberto={Boolean(isOpenAlert)} aoFechar={() => dispatch(turnAlert())} tamanho="sm" alerta>
+            <div className="flex flex-col items-center gap-3 text-center">
+                <Icone aria-hidden className={typeAlertIsSuccess ? 'size-14 text-success' : 'size-14 text-danger'} />
+                <DialogoTitulo>{titleAlert}</DialogoTitulo>
+                {subTitleAlert ? <DialogoDescricao>{subTitleAlert}</DialogoDescricao> : null}
+            </div>
+            <DialogoRodape className="sm:justify-center">
+                <Button onClick={handleOk}>OK</Button>
+            </DialogoRodape>
+        </Dialogo>
+    );
 }

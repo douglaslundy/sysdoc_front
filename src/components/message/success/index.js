@@ -1,23 +1,21 @@
-import { React, useEffect } from 'react';
-import { Container, Alert } from "@mui/material";
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { removeMessage } from '../../../store/ducks/Layout';
+import { Banner } from '../../ui/banner';
 
-
-export default function Success( {message}) {
+export default function Success({ message }) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             dispatch(removeMessage(message));
-        }, 3000)
-    }, [dispatch, message])
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [dispatch, message]);
 
     return (
-        <Container>
-            <Alert variant="filled" severity="success">
-                {message}
-            </Alert>
-        </Container>
+        <Banner tom="sucesso" onDispensar={() => dispatch(removeMessage(message))}>
+            {message}
+        </Banner>
     );
 }

@@ -1,24 +1,21 @@
-import { React, useEffect } from 'react';
-import { Container, Alert } from "@mui/material";
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { removeAlertMessage } from '../../../store/ducks/Layout';
+import { Banner } from '../../ui/banner';
 
-
-export default function AlertModal( {message} ) {
+export default function AlertModal({ message }) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             dispatch(removeAlertMessage(message));
-        }, 12000)
-    }, [dispatch, message])
+        }, 12000);
+        return () => clearTimeout(timer);
+    }, [dispatch, message]);
 
     return (
-        <Container>
-            <Alert variant="filled" severity="error">
-                {message}
-            </Alert>
-            <br />
-        </Container>
+        <Banner tom="perigo" onDispensar={() => dispatch(removeAlertMessage(message))}>
+            {message}
+        </Banner>
     );
 }

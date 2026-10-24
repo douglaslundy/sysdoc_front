@@ -1,7 +1,6 @@
-import { Backdrop, CircularProgress, Typography } from '@mui/material';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
-
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import React from 'react';
 
@@ -18,12 +17,13 @@ export default function Loading() {
         isOpenModalGetSale,
         isOpenResultadoModal,
     } = useSelector(state => state.layout);
-    const dispatch = useDispatch();
 
     // Em /trips usamos loading local (Backdrop na página) para evitar modal grande.
     if (router.pathname === '/trips') {
         return null;
     }
+
+    if (!isOpenLoading) return null;
 
     const hasAnyModalOpen =
         isOpenModal ||
@@ -35,22 +35,9 @@ export default function Loading() {
         isOpenResultadoModal;
 
     return (
-        <Backdrop
-            open={isOpenLoading}
-            sx={{
-                zIndex: (theme) => theme.zIndex.modal + 200,
-                color: '#fff',
-                background: 'var(--lg-overlay-bg)',
-                backdropFilter: 'var(--lg-blur-overlay)',
-                WebkitBackdropFilter: 'var(--lg-blur-overlay)',
-                flexDirection: 'column',
-                gap: 1.2,
-            }}
-        >
-            <CircularProgress color="inherit" size={34} />
-            <Typography variant="body2" sx={{ color: 'var(--lg-text-primary)' }}>
-                {hasAnyModalOpen ? 'Salvando registro...' : 'Carregando...'}
-            </Typography>
-        </Backdrop>
+        <div role="status" aria-live="polite" className="ui-reset fixed inset-0 z-[1700] flex flex-col items-center justify-center gap-3 bg-black/60 text-white">
+            <Loader2 aria-hidden className="size-9 animate-spin" />
+            <p className="text-sm font-medium">{hasAnyModalOpen ? 'Salvando registro...' : 'Carregando...'}</p>
+        </div>
     );
 }

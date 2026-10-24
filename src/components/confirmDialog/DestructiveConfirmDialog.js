@@ -1,19 +1,7 @@
 import React from "react";
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
-import {
-  modalFormRootSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from "../modal/_shared/modalFormStyles";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "../ui/button";
+import { Dialogo, DialogoDescricao, DialogoRodape, DialogoTitulo } from "../ui/dialogo";
 
 export default function DestructiveConfirmDialog({
   open,
@@ -25,47 +13,21 @@ export default function DestructiveConfirmDialog({
   onConfirm,
 }) {
   return (
-    <Dialog
-      open={open}
-      onClose={() => !loading && onClose()}
-      fullWidth
-      maxWidth="xs"
-      PaperProps={{
-        sx: {
-          ...modalShellSx,
-          ...modalFormRootSx,
-          position: "relative",
-          transform: "none",
-          inset: "auto",
-        },
-      }}
-    >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <FeatherIcon icon="alert-triangle" width="22" />
-        {title}
-      </DialogTitle>
-      <DialogContent>
-        <Typography color="text.secondary">{message}</Typography>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button
-          variant="outlined"
-          onClick={onClose}
-          disabled={loading}
-          sx={modalSecondaryButtonSx}
-        >
-          Cancelar
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={onConfirm}
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
-        >
+    <Dialogo aberto={Boolean(open)} aoFechar={() => !loading && onClose()} tamanho="sm" alerta>
+      <div className="flex items-start gap-3">
+        <AlertTriangle aria-hidden className="mt-0.5 size-6 shrink-0 text-danger" />
+        <div className="min-w-0 space-y-2">
+          <DialogoTitulo>{title}</DialogoTitulo>
+          <DialogoDescricao>{message}</DialogoDescricao>
+        </div>
+      </div>
+      <DialogoRodape>
+        <Button variant="outline" onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button variant="destructive" onClick={onConfirm} disabled={loading}>
+          {loading ? <Loader2 aria-hidden className="animate-spin" /> : null}
           {loading ? "Excluindo..." : confirmLabel}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </DialogoRodape>
+    </Dialogo>
   );
 }
