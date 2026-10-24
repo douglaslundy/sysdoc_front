@@ -1,19 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import { Grid, Stack, TextField, Alert, Button, FormControl, InputLabel, Select, MenuItem, Typography, Divider, Box as MuiBox } from "@mui/material";
-import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
+import AnexosDoRegistro from '../_shared/AnexosDoRegistro';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { Carregando } from '../../ui/carregando';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
 import { closeOrdinanceModal, changeTitleAlert } from '../../../store/ducks/Layout';
-import {
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
 import {
     editOrdinanceFetch,
     addOrdinanceFetch,
@@ -24,6 +20,8 @@ import {
     downloadOrdinanceAttachment,
     getAllOrdinances
 } from '../../../store/fetchActions/ordinances';
+
+const TOM_DO_AVISO = { success: 'sucesso', warning: 'alerta', error: 'perigo', info: 'info' };
 
 const ordinanceTypes = [
     { id: 'normativa', name: 'Normativa' },
@@ -177,14 +175,6 @@ export default function OrdinanceModal(props) {
         }
     };
 
-    const formatBytes = (bytes) => {
-        if (!bytes || bytes <= 0) return '0 B';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-        const value = bytes / (1024 ** idx);
-        return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
-    };
-
     useEffect(() => {
         if (ordinance && ordinance.id) setForm({ ...ordinance, additional_instructions: ordinance.additional_instructions || "" });
     }, [ordinance]);
@@ -219,100 +209,59 @@ export default function OrdinanceModal(props) {
         if (!isOpenOrdinanceModal) setAttachments([]);
     }, [isOpenOrdinanceModal, ordinance?.id]);
 
+    const restantes = (valor, max) => (valor && valor.length > 0 ? `${max - valor.length} caracteres restantes` : undefined);
+
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenOrdinanceModal} onClose={cleanForm}>
-                <Box className="lab-ordinance-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={ordinance && ordinance.id ? "Editar Portaria" : "Cadastrar Portaria"}>
-                                {alertState.visible && (
-                                    <Alert sx={{ mb: 2 }} variant="filled" severity={alertState.type} onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}>
-                                        {alertState.message}
-                                    </Alert>
-                                )}
+            <Dialogo aberto={Boolean(isOpenOrdinanceModal)} aoFechar={cleanForm} tamanho="xl">
+                <AlertModal />
+                <DialogoCabecalho>{ordinance && ordinance.id ? "Editar Portaria" : "Cadastrar Portaria"}</DialogoCabecalho>
+                {alertState.visible && (
+                    <div className="mb-4">
+                        <Banner tom={TOM_DO_AVISO[alertState.type]} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>{alertState.message}</Banner>
+                    </div>
+                )}
+                <form onSubmit={(e) => { e.preventDefault(); handleSaveData(); }}>
+                    <div className="grid gap-4">
+                        <CampoSelecao id="ordinance-type" label="Tipo de Portaria" name="type" value={type} onChange={changeItem}>
+                            {ordinanceTypes.map((item) => (<option key={item.id} value={item.id}>{item.name}</option>))}
+                        </CampoSelecao>
+                        <p className="text-sm"><strong>Normativa:</strong> use quando a portaria estabelecer regras gerais.<br /><strong>Ordinatória:</strong> use quando tratar de organização interna.</p>
+                        <CampoTexto id="ordinance-title" label="Título" name="title" value={title || ''} onChange={changeItem} obrigatorio maxLength={255} dica={restantes(title, 255)} />
+                        <CampoTexto id="ordinance-subject" label="Assunto" name="subject" value={subject || ''} onChange={changeItem} obrigatorio maxLength={255} dica={restantes(subject, 255)} />
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <CampoTexto id="ordinance-signatory" label="Nome do Signatário" name="signatory_name" value={signatory_name || ''} onChange={changeItem} obrigatorio maxLength={150} dica={restantes(signatory_name, 150)} />
+                            <CampoTexto id="ordinance-role" label="Cargo do Signatário" name="signatory_role" value={signatory_role || ''} onChange={changeItem} maxLength={150} dica={restantes(signatory_role, 150)} />
+                        </div>
+                        <CampoTexto id="ordinance-summary" label="Resumo" multiline rows={4} name="summary" value={summary || ''} onChange={changeItem} maxLength={1000} dica={restantes(summary, 1000)} />
+                        <CampoTexto id="ordinance-legal" label="Fundamentação Legal" multiline rows={3} name="legal_basis" value={legal_basis || ''} onChange={changeItem} />
+                        <CampoTexto id="ordinance-ai" label="Instruções adicionais para IA" multiline rows={2} name="additional_instructions" value={additional_instructions || ''} onChange={changeItem} />
+                        <CampoTexto id="ordinance-content" label="Conteúdo da portaria" multiline rows={12} name="content" value={content || ''} onChange={changeItem} dica={content ? `O modelo gerado possui ${content.length} caracteres` : undefined} />
+                        <CampoTexto id="ordinance-notes" label="Observações" multiline rows={3} name="notes" value={notes || ''} onChange={changeItem} />
+                    </div>
 
-                                <Stack spacing={3}>
-                                    <FormControl className="lg-search-field" fullWidth>
-                                        <InputLabel id="type-label">Tipo de Portaria</InputLabel>
-                                        <Select labelId="type-label" name="type" value={type} label="Tipo de Portaria" onChange={changeItem}>
-                                            {ordinanceTypes.map((item) => (<MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>))}
-                                        </Select>
-                                    </FormControl>
-                                    <Typography variant="body2"><strong>Normativa:</strong> use quando a portaria estabelecer regras gerais.<br /><strong>Ordinatória:</strong> use quando tratar de organização interna.</Typography>
-                                    <TextField className="lg-search-field" label={title && title.length > 0 ? `Título: ${255 - title.length} caracteres restantes` : 'Título'} name="title" value={title || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
-                                    <TextField className="lg-search-field" label={subject && subject.length > 0 ? `Assunto: ${255 - subject.length} caracteres restantes` : 'Assunto'} name="subject" value={subject || ''} onChange={changeItem} required inputProps={{ maxLength: 255 }} />
-                                    <TextField className="lg-search-field" label={signatory_name && signatory_name.length > 0 ? `Signatário: ${150 - signatory_name.length} caracteres restantes` : 'Nome do Signatário'} name="signatory_name" value={signatory_name || ''} onChange={changeItem} required inputProps={{ maxLength: 150 }} />
-                                    <TextField className="lg-search-field" label={signatory_role && signatory_role.length > 0 ? `Cargo: ${150 - signatory_role.length} caracteres restantes` : 'Cargo do Signatário'} name="signatory_role" value={signatory_role || ''} onChange={changeItem} inputProps={{ maxLength: 150 }} />
-                                    <TextField className="lg-search-field" label={summary && summary.length > 0 ? `Resumo: ${1000 - summary.length} caracteres restantes` : 'Resumo'} multiline rows={4} value={summary || ''} name="summary" onChange={changeItem} inputProps={{ maxLength: 1000 }} />
-                                    <TextField className="lg-search-field" label="Fundamentação Legal" multiline rows={3} value={legal_basis || ''} name="legal_basis" onChange={changeItem} />
-                                    <TextField className="lg-search-field" label="Instruções adicionais para IA" multiline rows={2} value={additional_instructions || ''} name="additional_instructions" onChange={changeItem} />
-                                    <TextField className="lg-search-field" label={content ? `O modelo gerado possui ${content.length} caracteres` : 'Conteúdo da portaria'} multiline rows={12} value={content || ''} name="content" onChange={changeItem} />
-                                    <TextField className="lg-search-field" label="Observações" multiline rows={3} value={notes || ''} name="notes" onChange={changeItem} />
-                                </Stack>
+                    <AnexosDoRegistro
+                        rotulo="da Portaria"
+                        salvo={Boolean(ordinance?.id)}
+                        anexos={attachments}
+                        carregando={isAttachmentsLoading}
+                        enviando={isAttachmentUploading}
+                        pendentes={pendingFiles}
+                        aoEnviar={handleUploadAttachment}
+                        aoEscolherPendentes={handlePendingFiles}
+                        aoBaixar={handleDownloadAttachment}
+                        aoRemover={confirmDeleteAttachment}
+                    />
 
-                                <br />
-                                <Divider />
-                                <MuiBox mt={2.5} mb={1}>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Anexos da Portaria</Typography>
-                                    {ordinance?.id ? (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Este registro aceita múltiplos anexos (PDF, JPG, JPEG e PNG).</Typography>
-                                            <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading}>
-                                                {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s)'}
-                                                <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
-                                            </Button>
-                                            <MuiBox mt={1.5}>
-                                                {isAttachmentsLoading && <Typography color="text.secondary">Carregando anexos...</Typography>}
-                                                {!isAttachmentsLoading && attachments.length === 0 && <Typography color="text.secondary">Nenhum anexo enviado.</Typography>}
-                                                {!isAttachmentsLoading && attachments.map((attachment) => (
-                                                    <MuiBox key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" py={0.7}>
-                                                        <MuiBox>
-                                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{attachment.original_name}</Typography>
-                                                            <Typography variant="caption" color="text.secondary">{attachment.mime_type} | {formatBytes(attachment.size_bytes)}</Typography>
-                                                        </MuiBox>
-                                                        <MuiBox sx={{ "& button": { ml: 1 } }}>
-                                                            <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>Baixar</Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>Remover</Button>
-                                                        </MuiBox>
-                                                    </MuiBox>
-                                                ))}
-                                            </MuiBox>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary">Selecione os anexos agora e clique em Gravar. O sistema salva a portaria e envia os arquivos em seguida.</Typography>
-                                            <MuiBox mt={1}>
-                                                <Button component="label" variant="outlined" size="small">
-                                                    Selecionar Anexo(s) (PDF/JPG/PNG)
-                                                    <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handlePendingFiles} />
-                                                </Button>
-                                                {pendingFiles.length > 0 && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.8 }}>{pendingFiles.length} arquivo(s) pronto(s) para envio após salvar.</Typography>}
-                                            </MuiBox>
-                                        </>
-                                    )}
-                                </MuiBox>
-
-                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx} disabled={isSubmitting || isAttachmentUploading}>
-                                        {isSubmitting ? 'Salvando...' : 'Gravar'}
-                                    </Button>
-                                    <Button onClick={handleGetTextAI} variant="contained" color="success" sx={modalPrimaryButtonSx} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
-                                    <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx} disabled={isSubmitting}>Cancelar</Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
+                    <DialogoRodape>
+                        <Button type="button" variant="outline" onClick={cleanForm} disabled={isSubmitting}>Cancelar</Button>
+                        <Button type="button" variant="success" onClick={handleGetTextAI} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
+                        <Button type="submit" disabled={isSubmitting || isAttachmentUploading}>{isSubmitting ? 'Salvando...' : 'Gravar'}</Button>
+                    </DialogoRodape>
+                </form>
+            </Dialogo>
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }
-
-
-
-
-

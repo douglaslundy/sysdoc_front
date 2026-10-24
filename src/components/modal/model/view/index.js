@@ -1,29 +1,16 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import { modalFormRootSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
-import BaseCard from '../../../baseCard/BaseCard';
-import {
-    Grid,
-    Stack,
-    Button,
-    Typography,
-} from "@mui/material";
+import { parseISO, format } from 'date-fns';
 import { showModel } from '../../../../store/ducks/models';
+import { turnModalViewModel } from '../../../../store/ducks/Layout';
+import { Button } from '../../../ui/button';
+import { Dado } from '../../../ui/dado';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
+
+const VAZIO = { summary: '', prompt: '', model: '', subject: '', sender: '', recipient: '', created_at: '' };
 
 export default function ViewModelModal(props) {
-
-    const [mod, setMod] = useState({
-        summary: "",
-        prompt: "",
-        model: "",
-        subject: "",
-        sender: "",
-        recipient: "",
-        created_at: "",
-    });
-
+    const [mod, setMod] = useState(VAZIO);
     const { summary, prompt, model, subject, sender, recipient, created_at } = mod;
 
     const { model: md } = useSelector(state => state.models);
@@ -31,201 +18,36 @@ export default function ViewModelModal(props) {
     const dispatch = useDispatch();
 
     const cleanMod = () => {
-        setMod({
-            summary: "",
-            prompt: "",
-            model: "",
-            subject: "",
-            sender: "",
-            recipient: "",
-            created_at: "",
-        });
+        setMod(VAZIO);
         dispatch(turnModalViewModel());
         dispatch(showModel({}));
-    }
-
-    const handleClose = () => {
-        cleanMod();
     };
 
     useEffect(() => {
-        if (md && md.id)
-            setMod(md);
-
+        if (md && md.id) setMod(md);
     }, [md]);
-
 
     return (
         <div>
             {props.children}
-            <Modal
-                keepMounted
-                open={isOpenModelModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-            >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
-
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={md && md.id ? "Modelo  " + md.id : "você não selecionou um ofício válido"}>
-
-                                <Stack spacing={3}>
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Remetente
-                                        </Typography>
-                                        <Typography
-                                            // color="textSecondary"
-                                            sx={{
-                                                fontSize: "14px",
-                                            }}
-                                        >
-                                            {sender ? sender.toUpperCase() : ''}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Destinatário
-                                        </Typography>
-                                        <Typography
-                                            // color="textSecondary"
-                                            sx={{
-                                                fontSize: "14px",
-                                            }}
-                                        >
-                                            {recipient ? recipient.toUpperCase() : ''}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Assunto
-                                        </Typography>
-                                        <Typography
-                                            // color="textSecondary"
-                                            sx={{
-                                                fontSize: "14px",
-                                            }}
-                                        >
-                                            {subject ? subject.toUpperCase() : ''}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Resumo
-                                        </Typography>
-                                        <Typography
-                                            // color="textSecondary"
-                                            sx={{
-                                                fontSize: "14px",
-                                            }}
-                                        >
-                                            {summary ? summary.toUpperCase() : ''}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Prompt utilizado
-                                        </Typography>
-                                        <Typography
-                                            sx={{
-                                                fontSize: "16px",
-                                            }}
-                                        >
-                                            {prompt ? prompt : ''}
-                                            {/* <pre> {prompt ? prompt : ''}</pre> */}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            Modelo Criado com Inteligência Artificial
-                                        </Typography>
-                                        <Typography
-                                            sx={{
-                                                fontSize: "16px",
-                                            }}
-                                        >
-                                            {model ? model : ''}
-                                            {/* <pre> {model ? model : ''}</pre> */}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                fontWeight: "600",
-                                                textAlign: "right"
-                                            }}
-                                        >
-                                            {md && md.user && md.user.name}
-                                        </Typography>
-
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                textAlign: "right"
-                                            }}
-                                        >
-                                            {created_at && format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                        </Typography>
-                                    </Box>
-
-
-                                </Stack>
-                                <br />
-                                <Box sx={{ mt: 2.2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button onClick={() => { cleanMod() }} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Voltar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
-                </Box>
-            </Modal>
+            <Dialogo aberto={Boolean(isOpenModelModal)} aoFechar={cleanMod} tamanho="lg">
+                <DialogoCabecalho>{md && md.id ? `Modelo ${md.id}` : 'Você não selecionou um ofício válido'}</DialogoCabecalho>
+                <div className="grid gap-4">
+                    <Dado rotulo="Remetente"><span className="uppercase">{sender}</span></Dado>
+                    <Dado rotulo="Destinatário"><span className="uppercase">{recipient}</span></Dado>
+                    <Dado rotulo="Assunto"><span className="uppercase">{subject}</span></Dado>
+                    <Dado rotulo="Resumo"><span className="uppercase">{summary}</span></Dado>
+                    <Dado rotulo="Prompt utilizado"><span className="whitespace-pre-wrap">{prompt}</span></Dado>
+                    <Dado rotulo="Modelo Criado com Inteligência Artificial"><span className="whitespace-pre-wrap">{model}</span></Dado>
+                    <div className="text-right text-sm">
+                        <p className="font-semibold">{md && md.user && md.user.name}</p>
+                        <p>{created_at && format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}</p>
+                    </div>
+                </div>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={cleanMod}>Voltar</Button>
+                </DialogoRodape>
+            </Dialogo>
         </div>
     );
 }
-
-
-
-
-

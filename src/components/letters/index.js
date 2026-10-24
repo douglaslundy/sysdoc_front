@@ -1,66 +1,22 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-    Typography,
-    Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Button,
-    styled,
-    TableContainer,
-    TablePagination,
-    TextField
-} from "@mui/material";
-
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
+import { useSelector, useDispatch } from 'react-redux';
+import { parseISO, format } from 'date-fns';
+import { Paperclip } from "lucide-react";
 import { ActionCreateFab, ActionDeleteButton, ActionEditButton, ActionViewButton } from "../actions";
 import LetterModal from "../modal/letter";
 import ViewLetterModal from "../modal/letter/view";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { AuthContext } from "../../contexts/AuthContext";
-
-import { useSelector, useDispatch } from 'react-redux';
 import { getAllLetters, inactiveLetterFetch } from "../../store/fetchActions/letter";
 import { showLetter } from "../../store/ducks/letters";
 import { changeTitleAlert, openLetterFormModal, turnModalViewLetter } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
 import Select from '../inputs/selects';
-
-import { parseISO, format } from 'date-fns';
 import AlertModal from "../messagesModal";
+import { Button } from "../ui/button";
+import { PaginaDeLista } from "../ui/pagina-de-lista";
+import { usePaginacaoLocal } from "../../lib/usePaginacaoLocal";
 
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td + td': {
-        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
-    },
-    '& td:first-of-type': {
-        borderLeft: '0.5px solid var(--lg-border)',
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-    },
-    '& td:last-of-type': {
-        borderRight: '0.5px solid var(--lg-border)',
-        borderTopRightRadius: 14,
-        borderBottomRightRadius: 14,
-    },
-    '&:hover td': {
-        background: 'var(--queue-row-hover)',
-    },
-}));
-
-export default () => {
+export default function Letters() {
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
         title: 'Deseja realmente excluir',
@@ -69,23 +25,13 @@ export default () => {
 
     const dispatch = useDispatch();
     const { letters } = useSelector(state => state.letters);
-    const [searchValue, setSearchValue] = useState();
+    const [searchValue, setSearchValue] = useState('');
     const [allLetters, setAllLetters] = useState(letters);
     const { user, profile } = useContext(AuthContext);
-
     const [year, setYear] = useState(new Date().getFullYear());
+
     const uniqueYears = Array.from(new Set(letters.map(item => new Date(item.created_at).getFullYear())));
-
-    // Transforma a variável years em um array JSON
-    const transformedYears = Object.values({ ...uniqueYears }).map(year => ({
-        id: year,
-        name: year,
-    }));
-
-    const changeYear = ({ target }) => {
-        setYear(target.value)
-    }
-
+    const transformedYears = uniqueYears.map(y => ({ id: y, name: y }));
 
     useEffect(() => {
         dispatch(getAllLetters());
@@ -96,281 +42,113 @@ export default () => {
     }, [year]);
 
     useEffect(() => {
-        // executado apenas quando é carregado a página a primeira vez, ou quando é adicionado um registro 
+        // executado apenas quando é carregado a página a primeira vez, ou quando é adicionado um registro
         setAllLetters(searchValue ?
             [...letters.filter(lett => lett.number.toString().toLowerCase().includes(searchValue.toString().toLowerCase()))
                 .filter(lett => new Date(lett.created_at).getFullYear() == year)]
             : [...letters.filter(lett => new Date(lett.created_at).getFullYear() == year)]);
     }, [letters]);
 
-
-
-    const HandleViewLetter = async letter => {
+    const handleViewLetter = (letter) => {
         dispatch(showLetter(letter));
         dispatch(turnModalViewLetter());
-    }
+    };
 
-    const HandleEditLetter = async letter => {
+    const handleEditLetter = (letter) => {
         dispatch(showLetter(letter));
         dispatch(openLetterFormModal());
-    }
+    };
 
-    const HandleInactiveLetter = async letter => {
-        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${letter.number}`, confirm: inactiveLetterFetch(letter) })
-        dispatch(changeTitleAlert(`O lettere ${letter.number} foi excluido com sucesso!`))
-    }
-
+    const handleInactiveLetter = (letter) => {
+        setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir o Ofício ${letter.number}`, confirm: inactiveLetterFetch(letter) });
+        dispatch(changeTitleAlert(`O ofício ${letter.number} foi excluido com sucesso!`));
+    };
 
     const searchLetters = ({ target }) => {
+        const termo = target.value.toString().toLowerCase();
         setSearchValue(target.value);
-
-        setAllLetters([...letters.filter(lett => new Date(lett.created_at).getFullYear() == year)
-            .filter(
-                lett => lett.number && lett.number.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.sender && lett.sender.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.recipient && lett.recipient.toString().toLowerCase().includes(target.value.toString().toLowerCase()) ||
-                    lett.subject_matter && lett.subject_matter.toString().toLowerCase().includes(target.value.toString().toLowerCase())
-            )]);
-    }
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+        const contem = (valor) => valor && valor.toString().toLowerCase().includes(termo);
+        setAllLetters(letters
+            .filter(lett => new Date(lett.created_at).getFullYear() == year)
+            .filter(lett => contem(lett.number) || contem(lett.sender) || contem(lett.recipient) || contem(lett.subject_matter)));
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+    const { fatia, propsDaPaginacao } = usePaginacaoLocal(allLetters);
+
+    const colunas = [
+        {
+            chave: 'numero',
+            titulo: 'Número / Data',
+            render: (letter) => (
+                <>
+                    <span className="block font-display text-3xl font-bold leading-none">{letter && letter.number}</span>
+                    <span className="block text-xs text-muted-foreground">{letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'envolvidos',
+            titulo: 'Remetente / Destinatário',
+            render: (letter) => (
+                <>
+                    <span className="block font-semibold">{letter.sender.substring(0, 30).toUpperCase()}</span>
+                    <span className="block text-xs text-muted-foreground">{letter.recipient.substring(0, 30).toUpperCase()}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'usuario',
+            titulo: 'Usuário / Assunto',
+            render: (letter) => (
+                <>
+                    <span className="block font-semibold">{letter.user.name.substring(0, 30).toUpperCase()}</span>
+                    <span className="block text-xs text-muted-foreground">{letter.subject_matter.substring(0, 40).toUpperCase()}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (letter, index) => (
+                <div className="flex gap-2">
+                    <ActionViewButton title="Visualizar Ofício" onClick={() => handleViewLetter(letter)} />
+                    {Number(letter?.attachments_count || 0) > 0 && (
+                        <Button variant="secondary" size="icon-sm" disabled title={`${letter.attachments_count} anexo(s)`} aria-label={`${letter.attachments_count} anexo(s)`}>
+                            <Paperclip />
+                        </Button>
+                    )}
+                    <ActionEditButton title="Editar Ofício" onClick={() => handleEditLetter(letter)} disabled={profile != "admin" && letter.id_user != user} />
+                    <ActionDeleteButton title="Excluir Ofício" onClick={() => handleInactiveLetter(letter)} disabled={letter.id_user == user || profile == "admin" ? index !== 0 : true} />
+                </div>
+            ),
+        },
+    ];
+
+    const barra = (
+        <>
+            <Select label="Ano" name="year" value={year} store={transformedYears} changeItem={({ target }) => setYear(target.value)} wd="140px" />
+            <LetterModal>
+                <ActionCreateFab title="Novo ofício" onClick={() => dispatch(openLetterFormModal())} />
+            </LetterModal>
+        </>
+    );
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page letters-page">
-        <BaseCard title={`Você possui ${allLetters.length} ofícios Cadastrados`}>
+        <PaginaDeLista
+            titulo="Ofícios"
+            subtitulo={`Você possui ${allLetters.length} ofícios Cadastrados`}
+            busca={{ rotulo: 'Pesquisar ofício', placeholder: 'Pesquisar ofício', name: 'search', value: searchValue, onChange: searchLetters }}
+            barra={barra}
+            colunas={colunas}
+            linhas={fatia}
+            chaveDaLinha={(letter) => letter.id}
+            vazio="Nenhum registro encontrado!"
+            rotuloDaTabela="ofícios"
+            paginacao={propsDaPaginacao}
+        >
             <AlertModal />
             <ViewLetterModal />
-
-            <Box className="queue-page__toolbar" sx={{
-                '& > :not(style)': { mb: 0, mt: 2 },
-                'display': 'flex',
-                'justify-content': 'space-between',
-                gap: 1,
-                flexWrap: 'wrap',
-            }}
-            >
-
-                <TextField
-                    className="lg-search-field"
-                    sx={{ flex: 1, minWidth: 260 }}
-                    placeholder="Pesquisar ofício"
-                    name="search"
-                    value={searchValue}
-                    onChange={searchLetters}
-
-                />
-
-                <Select
-                    label="Ano"
-                    name="year"
-                    value={year}
-                    store={transformedYears}
-                    changeItem={changeYear}
-                    wd={"20%"}
-                />
-
-                <LetterModal>
-                    <ActionCreateFab onClick={() => { dispatch(openLetterFormModal()) }} />
-                </LetterModal>
-            </Box>
-
-            <TableContainer className="queue-page__table-wrap">
-
-                <Table className="queue-page__table"
-                    aria-label="simple table"
-                    sx={{
-                        mt: 3,
-                        whiteSpace: "nowrap",
-                        borderCollapse: 'separate',
-                        borderSpacing: '0 10px',
-                    }}
-                >
-                    <TableHead>
-                        <TableRow>
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Numero / Data
-                                </Typography>
-                            </TableCell>
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Remetente / Destinatário
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Usuário / Assunto
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell className="queue-page__th" align="center">
-                                <Typography color="textSecondary" variant="h6">
-                                    Ações
-                                </Typography>
-                            </TableCell>
-
-                        </TableRow>
-                    </TableHead>
-                    {allLetters.length >= 1 ?
-                        <TableBody>
-                            {allLetters
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((letter, index) => (
-                                    <StyledTableRow key={letter.id} hover>
-                                        <>
-                                            <TableCell>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <Box>
-                                                        <Typography
-                                                            variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                                fontSize: "38px",
-                                                            }}
-                                                        >
-                                                            {letter && letter.number}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: "13px",
-                                                            }}
-                                                        >
-                                                            {letter.created_at && format(parseISO(letter.created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "left"
-                                                    }}
-                                                >
-                                                    <Box>
-                                                        <Typography
-                                                            variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
-                                                        >
-                                                            {letter && letter.sender.substring(0, 30).toUpperCase()}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: "12px",
-                                                            }}
-                                                        >
-                                                            {letter && letter.recipient.substring(0, 30).toUpperCase()}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Box
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "left"
-                                                    }}
-                                                >
-                                                    <Box>
-                                                        <Typography
-                                                            variant="h6"
-                                                            sx={{
-                                                                fontWeight: "600",
-                                                            }}
-                                                        >
-                                                            {letter && letter.user.name.substring(0, 30).toUpperCase()}
-                                                        </Typography>
-                                                        <Typography
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: "12px",
-                                                            }}
-                                                        >
-                                                            {letter && letter.subject_matter.substring(0, 40).toUpperCase()}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            </TableCell>
-
-                                            <TableCell align="center">
-                                                <Box sx={{ "& button": { mx: 1 } }}>
-
-                                                    <ActionViewButton title="Visualizar Ofício" onClick={() => { HandleViewLetter(letter) }} />
-
-                                                    {Number(letter?.attachments_count || 0) > 0 && (
-                                                        <Button
-                                                            title={`${letter.attachments_count} anexo(s)`}
-                                                            color="secondary"
-                                                            size="medium"
-                                                            variant="contained"
-                                                            disabled
-                                                        >
-                                                            <FeatherIcon icon="paperclip" width="20" height="20" />
-                                                        </Button>
-                                                    )}
-
-                                                    <ActionEditButton title="Editar Ofício" onClick={() => { HandleEditLetter(letter) }}
-                                                        disabled={profile != "admin" && letter.id_user != user}>
-                                                    </ActionEditButton>
-
-                                                    <ActionDeleteButton title="Excluir Ofício" onClick={() => { HandleInactiveLetter(letter) }}
-                                                        disabled={letter.id_user == user || profile == "admin" ? allLetters.length - index !== allLetters.length : true}>
-                                                    </ActionDeleteButton>
-
-                                                </Box>
-                                            </TableCell>
-                                        </>
-
-                                    </StyledTableRow>
-                                ))}
-                        </TableBody>
-
-                        :
-
-                        <TableCell align="center">
-                            Nenhum registro encontrado!
-
-                        </TableCell>
-
-                    }
-
-                </Table>
-                <TablePagination className="queue-page__pagination"
-                    component="div"
-                    count={allLetters.length}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </TableContainer>
-            <ConfirmDialog
-                confirmDialog={confirmDialog}
-                setConfirmDialog={setConfirmDialog} />
-
-        </BaseCard >
-        </Box>
+            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+        </PaginaDeLista>
     );
-};
+}

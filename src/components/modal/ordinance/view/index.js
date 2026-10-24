@@ -1,153 +1,58 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import { modalFormRootSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
-import Modal from '@mui/material/Modal';
-import BaseCard from '../../../baseCard/BaseCard';
-import {
-    Grid,
-    Stack,
-    Button,
-    Typography,
-} from "@mui/material";
+import { parseISO, format } from 'date-fns';
 import { showOrdinance } from '../../../../store/ducks/ordinances';
 import { turnModalViewLetter } from '../../../../store/ducks/Layout';
-import { parseISO, format } from "date-fns";
-export default function ViewOrdinanceModal(props) {
-    const [item, setItem] = useState({
-        year: "",
-        type: "",
-        title: "",
-        subject: "",
-        summary: "",
-        content: "",
-        legal_basis: "",
-        department: "",
-        signatory_name: "",
-        signatory_role: "",
-        publication_date: "",
-        notes: "",
-        created_at: ""
-    });
+import { Button } from '../../../ui/button';
+import { Dado } from '../../../ui/dado';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
 
+const VAZIO = {
+    year: '', type: '', title: '', subject: '', summary: '', content: '', legal_basis: '',
+    department: '', signatory_name: '', signatory_role: '', publication_date: '', notes: '', created_at: '',
+};
+
+export default function ViewOrdinanceModal(props) {
+    const [item, setItem] = useState(VAZIO);
     const { ordinance } = useSelector(state => state.ordinances);
     const { isOpenLetterModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
     const cleanItem = () => {
-        setItem({
-            year: "",
-            type: "",
-            title: "",
-            subject: "",
-            summary: "",
-            content: "",
-            legal_basis: "",
-            department: "",
-            signatory_name: "",
-            signatory_role: "",
-            publication_date: "",
-            notes: "",
-            created_at: ""
-        });
-
+        setItem(VAZIO);
         dispatch(turnModalViewLetter());
         dispatch(showOrdinance({}));
     };
 
     useEffect(() => {
-        if (ordinance && ordinance.id) {
-            setItem(ordinance);
-        }
+        if (ordinance && ordinance.id) setItem(ordinance);
     }, [ordinance]);
 
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenLetterModal} onClose={cleanItem}>
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={ordinance && ordinance.id ? "Portaria " + ordinance.number : "você não selecionou uma portaria válida"}>
-                                <Stack spacing={3}>
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Título</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.title || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Assunto</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.subject || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Tipo / Ano</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.type || ''} / {item.year || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Setor</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.department || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Signatário</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>
-                                            {item.signatory_name || ''} {item.signatory_role ? `- ${item.signatory_role}` : ''}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Resumo</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.summary || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Fundamentação Legal</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.legal_basis || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Conteúdo da Portaria</Typography>
-                                        <Typography sx={{ fontSize: "16px" }}>{item.content || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Data de Publicação</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.publication_date || '---'}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600" }}>Observações</Typography>
-                                        <Typography sx={{ fontSize: "14px" }}>{item.notes || ''}</Typography>
-                                    </Box>
-
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: "600", textAlign: "right" }}>
-                                            {ordinance && ordinance.user && ordinance.user.name}
-                                        </Typography>
-
-                                        <Typography variant="h6" sx={{ textAlign: "right" }}>
-                                            {item.created_at && format(parseISO(item.created_at), 'dd/MM/yyyy HH:mm:ss')}
-                                        </Typography>
-                                    </Box>
-                                </Stack>
-
-                                <br />
-                                <Box sx={{ mt: 2.2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button onClick={cleanItem} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Voltar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
+            <Dialogo aberto={Boolean(isOpenLetterModal)} aoFechar={cleanItem} tamanho="lg">
+                <DialogoCabecalho>{ordinance && ordinance.id ? `Portaria ${ordinance.number}` : 'Você não selecionou uma portaria válida'}</DialogoCabecalho>
+                <div className="grid gap-4">
+                    <Dado rotulo="Título">{item.title}</Dado>
+                    <Dado rotulo="Assunto">{item.subject}</Dado>
+                    <Dado rotulo="Tipo / Ano">{item.type} / {item.year}</Dado>
+                    <Dado rotulo="Setor">{item.department}</Dado>
+                    <Dado rotulo="Signatário">{item.signatory_name} {item.signatory_role ? `- ${item.signatory_role}` : ''}</Dado>
+                    <Dado rotulo="Resumo">{item.summary}</Dado>
+                    <Dado rotulo="Fundamentação Legal">{item.legal_basis}</Dado>
+                    <Dado rotulo="Conteúdo da Portaria"><span className="whitespace-pre-wrap">{item.content}</span></Dado>
+                    <Dado rotulo="Data de Publicação">{item.publication_date || '---'}</Dado>
+                    <Dado rotulo="Observações">{item.notes}</Dado>
+                    <div className="text-right text-sm">
+                        <p className="font-semibold">{ordinance && ordinance.user && ordinance.user.name}</p>
+                        <p>{item.created_at && format(parseISO(item.created_at), 'dd/MM/yyyy HH:mm:ss')}</p>
+                    </div>
+                </div>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={cleanItem}>Voltar</Button>
+                </DialogoRodape>
+            </Dialogo>
         </div>
     );
 }
-
-
-
-

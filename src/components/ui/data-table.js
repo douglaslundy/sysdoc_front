@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn';
 const LINHAS_DE_ESQUELETO = 5;
 
 /**
- * Tabela em cartão. colunas: [{ chave, titulo, render(linha), numerica? }].
+ * Tabela em cartão. colunas: [{ chave, titulo, render(linha, indice), numerica? }].
  * Com aoAbrir a linha vira clicável (Enter/Espaço também).
  */
 export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = false, vazio = 'Nada por aqui ainda.', aoAbrir }) {
@@ -35,7 +35,7 @@ export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = 
               <td colSpan={colunas.length} className="px-4 py-10 text-center text-sm text-muted-foreground">{vazio}</td>
             </tr>
           ) : (
-            linhas.map((linha) => (
+            linhas.map((linha, indice) => (
               <tr
                 key={chaveDaLinha(linha)}
                 tabIndex={aoAbrir ? 0 : undefined}
@@ -44,7 +44,7 @@ export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = 
                 className={cn(aoAbrir && 'cursor-pointer hover:bg-hover focus-visible:bg-hover focus-visible:outline-none')}
               >
                 {colunas.map((c) => (
-                  <td key={c.chave} className={cn('border-b border-border px-4 py-3 text-sm', c.numerica && 'font-mono')}>{c.render(linha)}</td>
+                  <td key={c.chave} className={cn('border-b border-border px-4 py-3 text-sm', c.numerica && 'font-mono')}>{c.render(linha, indice)}</td>
                 ))}
               </tr>
             ))

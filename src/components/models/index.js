@@ -1,62 +1,17 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-    Typography,
-    Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Fab,
-    Button,
-    styled,
-    TableContainer,
-    TablePagination,
-    TextField
-} from "@mui/material";
-
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
-import ViewModelModal from "../modal/model/view";
-import { AuthContext } from "../../contexts/AuthContext";
-
+import Router from "next/router";
 import { useSelector, useDispatch } from 'react-redux';
+import { parseISO, format } from 'date-fns';
+import { Eye } from "lucide-react";
+import ViewModelModal from "../modal/model/view";
+import AlertModal from "../messagesModal";
+import { AuthContext } from "../../contexts/AuthContext";
 import { getAllModels } from "../../store/fetchActions/models";
 import { showModel } from "../../store/ducks/models";
 import { turnModalViewModel } from "../../store/ducks/Layout";
-import Router from "next/router";
-
-import { parseISO, format } from 'date-fns';
-import AlertModal from "../messagesModal";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
-
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td + td': {
-        borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)',
-    },
-    '& td:first-of-type': {
-        borderLeft: '0.5px solid var(--lg-border)',
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-    },
-    '& td:last-of-type': {
-        borderRight: '0.5px solid var(--lg-border)',
-        borderTopRightRadius: 14,
-        borderBottomRightRadius: 14,
-    },
-    '&:hover td': {
-        background: 'var(--queue-row-hover)',
-    },
-}));
+import { Button } from "../ui/button";
+import { PaginaDeLista } from "../ui/pagina-de-lista";
+import { usePaginacaoLocal } from "../../lib/usePaginacaoLocal";
 
 const safeText = (value, max) => String(value ?? '').substring(0, max).toUpperCase();
 
@@ -66,8 +21,7 @@ const safeDate = (value) => {
     return Number.isNaN(date.getTime()) ? '' : format(date, 'dd/MM/yyyy HH:mm:ss');
 };
 
-export default () => {
-
+export default function Models() {
     const dispatch = useDispatch();
     const { models } = useSelector(state => state.models);
     const [searchValue, setSearchValue] = useState('');
@@ -83,227 +37,85 @@ export default () => {
     }, [models]);
 
     useEffect(() => {
-
         if (profile == "user") {
             Router.push('/');
         }
     }, []);
 
-
-    const HandleViewModel = async model => {
+    const handleViewModel = (model) => {
         dispatch(showModel(model));
         dispatch(turnModalViewModel());
-    }
+    };
 
-    const HandleEditModel = async model => {
-        dispatch(showModel(model));
-        dispatch(turnModal());
-    }
-
-    const searchmodels = ({ target }) => {
+    const searchModels = ({ target }) => {
+        const valor = target.value.toString();
         setSearchValue(target.value);
-        setAllModels([...models.filter(
-            mod => mod.sender && mod.sender.toString().includes(target.value.toString()) ||
-                mod.recipient && mod.recipient.toString().includes(target.value.toString()) ||
-                mod.summary && mod.summary.toString().includes(target.value.toString()) ||
-                mod.model && mod.model.toString().includes(target.value.toString())
-        )]);
-    }
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+        setAllModels(models.filter(
+            mod => (mod.sender && mod.sender.toString().includes(valor)) ||
+                (mod.recipient && mod.recipient.toString().includes(valor)) ||
+                (mod.summary && mod.summary.toString().includes(valor)) ||
+                (mod.model && mod.model.toString().includes(valor))
+        ));
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+    const { fatia, propsDaPaginacao } = usePaginacaoLocal(allModels);
+
+    const colunas = [
+        {
+            chave: 'usuario',
+            titulo: 'Usuário / Data',
+            render: (model) => (
+                <>
+                    <span className="block font-semibold">{safeText(model?.user?.name, 30)}</span>
+                    <span className="block text-xs text-muted-foreground">{safeDate(model?.created_at)}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'envolvidos',
+            titulo: 'Remetente / Destinatário',
+            render: (model) => (
+                <>
+                    <span className="block font-semibold">{safeText(model.sender, 30)}</span>
+                    <span className="block text-xs text-muted-foreground">{safeText(model.recipient, 30)}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'resumo',
+            titulo: 'Resumo / Modelo Criado',
+            render: (model) => (
+                <>
+                    <span className="block font-semibold">{safeText(model.summary, 30)}</span>
+                    <span className="block text-xs text-muted-foreground">{safeText(model.model, 40)}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (model) => (
+                <Button variant="secondary" size="icon-sm" title="Visualizar modelo" aria-label="Visualizar modelo" onClick={() => handleViewModel(model)}>
+                    <Eye />
+                </Button>
+            ),
+        },
+    ];
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page">
-        <BaseCard title={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}>
+        <PaginaDeLista
+            titulo="Modelos"
+            subtitulo={`Foram gerados ${allModels.length} Modelos com a Inteligência Artificial`}
+            busca={{ rotulo: 'Pesquisar modelos', placeholder: 'Pesquisar um modelo criado', name: 'search', value: searchValue, onChange: searchModels }}
+            colunas={colunas}
+            linhas={fatia}
+            chaveDaLinha={(model) => model.id}
+            vazio="Nenhum modelo encontrado."
+            rotuloDaTabela="modelos"
+            paginacao={propsDaPaginacao}
+        >
+            <AlertModal />
             <ViewModelModal />
-
-            <Box className="queue-page__toolbar" sx={{
-                '& > :not(style)': { m: 1 },
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 1,
-                flexWrap: 'nowrap',
-            }}>
-
-                <TextField
-                    className="lg-search-field"
-                    sx={{ flex: 1, minWidth: 260 }}
-                    placeholder="Pesquisar um modelo criado"
-                    name="search"
-                    value={searchValue}
-                    onChange={searchmodels}
-
-                />
-
-            </Box>
-
-            <TableContainer className="queue-page__table-wrap">
-
-                <Table className="queue-page__table"
-                    aria-label="simple table"
-                    sx={{
-                        mt: 3,
-                        whiteSpace: "nowrap",
-                    }}
-                >
-                    <TableHead>
-                        <TableRow>
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Usuário / Data
-                                </Typography>
-                            </TableCell>
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Remetente / Destinatário
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell className="queue-page__th">
-                                <Typography color="textSecondary" variant="h6">
-                                    Resumo / Modelo Criado
-                                </Typography>
-                            </TableCell>
-
-                            <TableCell className="queue-page__th" align="center">
-                                <Typography color="textSecondary" variant="h6">
-                                    Ações
-                                </Typography>
-                            </TableCell>
-
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {allModels
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((model, index) => (
-                                <StyledTableRow key={model.id} hover>
-                                    <>
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                            fontSize: "16px",
-                                                        }}
-                                                    >
-                                                        {safeText(model?.user?.name, 30)}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "13px",
-                                                        }}
-                                                    >
-                                                        {safeDate(model?.created_at)}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {safeText(model.sender, 30)}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {safeText(model.recipient, 30)}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "left"
-                                                }}
-                                            >
-                                                <Box>
-                                                    <Typography
-                                                        variant="h6"
-                                                        sx={{
-                                                            fontWeight: "600",
-                                                        }}
-                                                    >
-                                                        {safeText(model.summary, 30)}
-                                                    </Typography>
-                                                    <Typography
-                                                        color="textSecondary"
-                                                        sx={{
-                                                            fontSize: "12px",
-                                                        }}
-                                                    >
-                                                        {safeText(model.model, 40)}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </TableCell>
-
-                                        <TableCell align="center">
-                                            <Box sx={{ "& button": { mx: 1 } }}>
-
-                                                <Button title="Visualizar Ofício" onClick={() => { HandleViewModel(model) }} color="info" size="medium" variant="contained">
-                                                    <FeatherIcon icon="eye" width="20" height="20" />
-                                                </Button>
-
-                                            </Box>
-                                        </TableCell>
-                                    </>
-
-                                </StyledTableRow>
-                            ))}
-                    </TableBody>
-                </Table>
-                <TablePagination className="queue-page__pagination"
-                    component="div"
-                    count={allModels.length}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </TableContainer>
-        </BaseCard >
-        </Box>
+        </PaginaDeLista>
     );
-};
-
-
-
-
+}

@@ -1,37 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    Typography,
-    Divider,
-    Box as MuiBox,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-} from "@mui/material";
-import BaseCard from "../../baseCard/BaseCard";
 import ConfirmDialog from '../../confirmDialog';
-import { getTextOpenAi, showLetter, editLetter } from '../../../store/ducks/letters';
+import AnexosDoRegistro from '../_shared/AnexosDoRegistro';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { Carregando } from '../../ui/carregando';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { getTextOpenAi, showLetter, editLetter, addLetter } from '../../../store/ducks/letters';
 import { closeLetterFormModal, changeTitleAlert } from '../../../store/ducks/Layout';
-import {
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
 import {
     editLetterFetch,
     addLetterFetch,
@@ -44,6 +22,8 @@ import {
 } from '../../../store/fetchActions/letter';
 import { api } from '../../../services/api';
 import { parseCookies } from 'nookies';
+
+const TOM_DO_AVISO = { success: 'sucesso', warning: 'alerta', error: 'perigo', info: 'info' };
 
 export default function LetterModal(props) {
     const [form, setForm] = useState({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
@@ -183,14 +163,6 @@ export default function LetterModal(props) {
         } catch (error) {
             setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Erro ao baixar anexo.' });
         }
-    };
-
-    const formatBytes = (bytes) => {
-        if (!bytes || bytes <= 0) return '0 B';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-        const value = bytes / (1024 ** idx);
-        return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
     };
 
     const isPdfAttachment = (attachment) => {
@@ -392,157 +364,89 @@ export default function LetterModal(props) {
         }
     }, [destinationUserId, destinationUsers]);
 
+    const restantes = (valor, max) => (valor && valor.length > 0 ? `${max - valor.length} caracteres restantes` : undefined);
+
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenLetterFormModal} onClose={cleanForm}>
-                <Box className="lab-letter-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={letter && letter.id ? "Editar Ofício" : "Enviar Ofício"}>
-                                {alertState.visible && (
-                                    <Alert sx={{ mb: 2 }} variant="filled" severity={alertState.type} onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}>
-                                        {alertState.message}
-                                    </Alert>
-                                )}
+            <Dialogo aberto={Boolean(isOpenLetterFormModal)} aoFechar={cleanForm} tamanho="lg">
+                <AlertModal />
+                <DialogoCabecalho>{letter && letter.id ? "Editar Ofício" : "Enviar Ofício"}</DialogoCabecalho>
+                {alertState.visible && (
+                    <div className="mb-4">
+                        <Banner tom={TOM_DO_AVISO[alertState.type]} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>{alertState.message}</Banner>
+                    </div>
+                )}
+                <form onSubmit={(e) => { e.preventDefault(); handleSaveData(); }}>
+                    <div className="grid gap-4">
+                        <CampoTexto id="sender" label="Remetente" name="sender" value={sender || ''} onChange={changeItem} obrigatorio maxLength={50} dica={restantes(sender, 50)} className="uppercase" />
+                        <CampoTexto id="recipient" label="Destinatário" name="recipient" value={recipient || ''} onChange={changeItem} obrigatorio maxLength={50} dica={restantes(recipient, 50)} className="uppercase" />
+                        <CampoTexto id="subject_matter" label="Assunto" name="subject_matter" multiline rows={2} value={subject_matter || ''} onChange={changeItem} obrigatorio maxLength={100} dica={restantes(subject_matter, 100)} className="uppercase" />
+                        <CampoTexto id="summary" label="Resumo" name="summary" multiline rows={2} value={summary || ''} onChange={changeItem} maxLength={500} dica={restantes(summary, 500)} className="uppercase" />
+                        <CampoTexto id="obs" label="Campo destinado a IA" name="obs" multiline rows={10} value={obs || ''} disabled readOnly dica={obs ? `O modelo gerado pela IA possui ${obs.length} caracteres` : undefined} />
+                    </div>
 
-                                <Stack spacing={3}>
-                                    <TextField className="lg-search-field" id="sender" label={sender && sender.length > 0 ? `Remetente: ${50 - sender.length} caracteres restantes` : 'Remetente'} variant="outlined" name="sender" value={sender || ''} onChange={changeItem} required inputProps={{ style: { textTransform: "uppercase" }, maxLength: 50 }} />
-                                    <TextField className="lg-search-field" id="recipient" label={recipient && recipient.length > 0 ? `Destinatário: ${50 - recipient.length} caracteres restantes` : 'Destinatário'} variant="outlined" name="recipient" value={recipient || ''} onChange={changeItem} required inputProps={{ style: { textTransform: "uppercase" }, maxLength: 50 }} />
-                                    <TextField className="lg-search-field" id="subject_matter" label={subject_matter && subject_matter.length > 0 ? `Assunto: ${100 - subject_matter.length} caracteres restantes` : 'Assunto'} variant="outlined" name="subject_matter" multiline value={subject_matter || ''} onChange={changeItem} required inputProps={{ style: { textTransform: "uppercase" }, maxLength: 100 }} />
-                                    <TextField className="lg-search-field" id="summary" label={summary && summary.length > 0 ? `Resumo: ${500 - summary.length} caracteres restantes` : 'Resumo'} multiline rows={2} value={summary || ''} name="summary" onChange={changeItem} inputProps={{ style: { textTransform: "uppercase" }, maxLength: 500 }} />
-                                    <TextField className="lg-search-field" id="obs" label={obs ? `O modelo gerado pela IA possui ${obs.length} caracteres` : 'Campo destinado a IA'} multiline rows={10} value={obs || ''} disabled name="obs" />
-                                </Stack>
+                    <AnexosDoRegistro
+                        rotulo="do Ofício"
+                        salvo={Boolean(letter?.id)}
+                        anexos={attachments}
+                        carregando={isAttachmentsLoading}
+                        enviando={isAttachmentUploading}
+                        pendentes={pendingFiles}
+                        aoEnviar={handleUploadAttachment}
+                        aoEscolherPendentes={handlePendingFiles}
+                        aoBaixar={handleDownloadAttachment}
+                        aoRemover={confirmDeleteAttachment}
+                    />
 
-                                <br />
-                                <Divider />
-                                <MuiBox mt={2.5} mb={1}>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Anexos do Ofício</Typography>
-                                    {letter?.id ? (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Este registro aceita múltiplos anexos (PDF, JPG, JPEG e PNG).</Typography>
-                                            <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading}>
-                                                {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s)'}
-                                                <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
-                                            </Button>
-                                            <MuiBox mt={1.5}>
-                                                {isAttachmentsLoading && <Typography color="text.secondary">Carregando anexos...</Typography>}
-                                                {!isAttachmentsLoading && attachments.length === 0 && <Typography color="text.secondary">Nenhum anexo enviado.</Typography>}
-                                                {!isAttachmentsLoading && attachments.map((attachment) => (
-                                                    <MuiBox key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" py={0.7}>
-                                                        <MuiBox>
-                                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{attachment.original_name}</Typography>
-                                                            <Typography variant="caption" color="text.secondary">{attachment.mime_type} | {formatBytes(attachment.size_bytes)}</Typography>
-                                                        </MuiBox>
-                                                        <MuiBox sx={{ "& button": { ml: 1 } }}>
-                                                            <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)}>Baixar</Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)}>Remover</Button>
-                                                        </MuiBox>
-                                                    </MuiBox>
-                                                ))}
-                                            </MuiBox>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary">Selecione os anexos agora e clique em Gravar. O sistema salva o ofício e envia os arquivos em seguida.</Typography>
-                                            <MuiBox mt={1}>
-                                                <Button component="label" variant="outlined" size="small">
-                                                    Selecionar Anexo(s) (PDF/JPG/PNG)
-                                                    <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handlePendingFiles} />
-                                                </Button>
-                                                {pendingFiles.length > 0 && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.8 }}>{pendingFiles.length} arquivo(s) pronto(s) para envio após salvar.</Typography>}
-                                            </MuiBox>
-                                        </>
-                                    )}
-                                </MuiBox>
+                    {letter?.id && protocolDisabledReason && (
+                        <div className="mt-4"><Banner tom={letter.has_open_protocol ? 'info' : 'alerta'}>{protocolDisabledReason}</Banner></div>
+                    )}
 
-                                {letter?.id && protocolDisabledReason && (
-                                    <Alert severity={letter.has_open_protocol ? 'info' : 'warning'} sx={{ mt: 2 }}>
-                                        {protocolDisabledReason}
-                                    </Alert>
-                                )}
+                    <DialogoRodape>
+                        <Button type="button" variant="outline" onClick={cleanForm} disabled={isSubmitting}>Cancelar</Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={openProtocolDialog}
+                            disabled={Boolean(protocolDisabledReason) || isSubmitting || isAttachmentUploading || creatingProtocol}
+                            title={protocolDisabledReason || 'Criar protocolo usando o PDF anexado ao ofício'}
+                        >
+                            {letter?.has_open_protocol ? 'Protocolo já criado' : 'Criar protocolo'}
+                        </Button>
+                        <Button type="button" variant="success" onClick={handleGetTextAI} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
+                        <Button type="submit" disabled={isSubmitting || isAttachmentUploading}>{isSubmitting ? 'Salvando...' : 'Gravar'}</Button>
+                    </DialogoRodape>
+                </form>
+            </Dialogo>
 
-                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx} disabled={isSubmitting || isAttachmentUploading}>
-                                        {isSubmitting ? 'Salvando...' : 'Gravar'}
-                                    </Button>
-                                    <Button onClick={handleGetTextAI} variant="contained" color="success" sx={modalPrimaryButtonSx} disabled={isSubmitting}>Gerar um Modelo com IA</Button>
-                                    <Button
-                                        onClick={openProtocolDialog}
-                                        variant="contained"
-                                        disabled={Boolean(protocolDisabledReason) || isSubmitting || isAttachmentUploading || creatingProtocol}
-                                        title={protocolDisabledReason || 'Criar protocolo usando o PDF anexado ao ofício'}
-                                    >
-                                        {letter?.has_open_protocol ? 'Protocolo já criado' : 'Criar protocolo'}
-                                    </Button>
-                                    <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx} disabled={isSubmitting}>Cancelar</Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
-            <Dialog
-                open={protocolDialogOpen}
-                onClose={() => !creatingProtocol && setProtocolDialogOpen(false)}
-                fullWidth
-                maxWidth="sm"
-            >
-                <DialogTitle>Criar protocolo pelo Ofício {letter?.number}</DialogTitle>
-                <DialogContent>
-                    <Stack spacing={2} sx={{ pt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            O mesmo PDF anexado ao ofício será vinculado ao protocolo. Primeiro escolha a secretaria de destino e, se quiser, selecione um usuário dessa secretaria.
-                        </Typography>
-                        <FormControl fullWidth disabled={loadingUsers || creatingProtocol}>
-                            <InputLabel id="letter-protocol-unit-label">Secretaria de destino</InputLabel>
-                            <Select
-                                labelId="letter-protocol-unit-label"
-                                label="Secretaria de destino"
-                                value={destinationUnitId}
-                                onChange={(event) => setDestinationUnitId(event.target.value)}
-                            >
-                                {secretariatOptions.map((item) => (
-                                    <MenuItem key={item.id} value={item.id}>{item.nome}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth disabled={loadingUsers || creatingProtocol}>
-                            <InputLabel id="letter-protocol-destination-label">Usuário de destino</InputLabel>
-                            <Select
-                                labelId="letter-protocol-destination-label"
-                                label="Usuário de destino"
-                                value={destinationUserId}
-                                onChange={(event) => setDestinationUserId(event.target.value)}
-                            >
-                                <MenuItem value="">Todos da secretaria</MenuItem>
-                                {destinationUsers.map((item) => (
-                                    <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        {loadingUsers && <CircularProgress size={24} />}
-                    </Stack>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        variant="outlined"
-                        onClick={() => setProtocolDialogOpen(false)}
-                        disabled={creatingProtocol}
-                        sx={modalSecondaryButtonSx}
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={createProtocol}
-                        disabled={creatingProtocol || loadingUsers || !destinationUnitId}
-                    >
+            <Dialogo aberto={protocolDialogOpen} aoFechar={() => !creatingProtocol && setProtocolDialogOpen(false)} tamanho="md" elevado>
+                <DialogoCabecalho>{`Criar protocolo pelo Ofício ${letter?.number ?? ''}`}</DialogoCabecalho>
+                <div className="grid gap-4">
+                    <p className="text-sm text-muted-foreground">
+                        O mesmo PDF anexado ao ofício será vinculado ao protocolo. Primeiro escolha a secretaria de destino e, se quiser, selecione um usuário dessa secretaria.
+                    </p>
+                    <CampoSelecao id="letter-protocol-unit" label="Secretaria de destino" disabled={loadingUsers || creatingProtocol} value={destinationUnitId} onChange={(event) => setDestinationUnitId(event.target.value)}>
+                        <option value="">Selecione</option>
+                        {secretariatOptions.map((item) => (
+                            <option key={item.id} value={item.id}>{item.nome}</option>
+                        ))}
+                    </CampoSelecao>
+                    <CampoSelecao id="letter-protocol-user" label="Usuário de destino" disabled={loadingUsers || creatingProtocol} value={destinationUserId} onChange={(event) => setDestinationUserId(event.target.value)}>
+                        <option value="">Todos da secretaria</option>
+                        {destinationUsers.map((item) => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                    </CampoSelecao>
+                    {loadingUsers && <Carregando />}
+                </div>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={() => setProtocolDialogOpen(false)} disabled={creatingProtocol}>Cancelar</Button>
+                    <Button type="button" onClick={createProtocol} disabled={creatingProtocol || loadingUsers || !destinationUnitId}>
                         {creatingProtocol ? 'Criando...' : 'Criar protocolo'}
                     </Button>
-                </DialogActions>
-            </Dialog>
+                </DialogoRodape>
+            </Dialogo>
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
