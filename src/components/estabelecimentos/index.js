@@ -1,34 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    Box, Button, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    TablePagination, TextField, Typography, styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
 import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
-import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
 import EstabelecimentoDialog from '../modal/estabelecimento';
 import { getAllEstabelecimentos, removeEstabelecimentoFetch } from '../../store/fetchActions/estabelecimentos';
 import { changeTitleAlert } from '../../store/ducks/Layout';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
 
 const formatDate = (s) => {
     if (!s) return '-';
@@ -72,6 +52,7 @@ export default function ListaEstabelecimentos() {
 
     useEffect(() => {
         carregar({ page: 1 });
+        return () => clearTimeout(buscaRef.current);
     }, []);
 
     useEffect(() => {
@@ -90,14 +71,13 @@ export default function ListaEstabelecimentos() {
         }, 400);
     };
 
-    const handlePerPage = (event) => {
-        const valor = Number(event.target.value);
+    const handlePerPage = (valor) => {
         setPerPage(valor);
         setPage(0);
         dispatch(getAllEstabelecimentos(buildParams({ per_page: valor, page: 1 })));
     };
 
-    const handlePage = (_, newPage) => {
+    const handlePage = (newPage) => {
         setPage(newPage);
         dispatch(getAllEstabelecimentos(buildParams({ page: newPage + 1 })));
     };
@@ -127,123 +107,39 @@ export default function ListaEstabelecimentos() {
         carregar({ page: page + 1 });
     };
 
+    const colunas = [
+        { chave: 'nome', titulo: 'Estabelecimento', render: (e) => <span className="font-semibold uppercase">{trunc(e.nome_estabelecimento, 30)}</span> },
+        { chave: 'responsavel', titulo: 'Responsável', render: (e) => <span className="uppercase">{trunc(e.nome_responsavel, 30)}</span> },
+        { chave: 'endereco', titulo: 'Endereço', render: (e) => <span className="uppercase">{trunc(e.endereco, 30)}</span> },
+        { chave: 'cnae', titulo: 'CNAE', render: (e) => trunc(renderCnaes(e), 30) },
+        { chave: 'cadastro', titulo: 'Cadastro', render: (e) => formatDate(e.created_at) },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (e) => (
+                <div className="flex gap-2">
+                    <ActionEditButton onClick={() => handleEditar(e)} title="Editar" />
+                    <ActionDeleteButton onClick={() => handleExcluir(e)} title="Excluir" />
+                </div>
+            ),
+        },
+    ];
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page estabelecimentos-page">
-            <BaseCard title={`Estabelecimentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
-                <AlertModal />
-                <Box className="queue-page__toolbar"
-                    sx={{
-                        '& > :not(style)': { m: 2 },
-                        display: 'flex',
-                        justifyContent: 'stretch',
-                    }}
-                >
-                    <TextField
-                        className="lg-search-field"
-                        sx={{ width: '100%' }}
-                        placeholder="Pesquisar por nome, responsavel ou CNAE"
-                        value={busca}
-                        onChange={handleBusca}
-                        inputProps={{ autoComplete: 'off' }}
-                    />
-                    <ActionCreateFab className="queue-page__fab queue-page__fab--add" onClick={handleNovo} title="Novo estabelecimento" />
-                </Box>
-
-                <TableContainer className="queue-page__table-wrap">
-                    <Table className="queue-page__table" sx={{ mt: 3, borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Responsavel</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Endereco</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">CNAE</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Cadastro</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {estabelecimentos.map((est) => (
-                                <StyledTableRow key={est.id} hover>
-                                    <TableCell>
-                                        <Typography variant="h6" fontWeight={600} sx={{ textTransform: 'uppercase' }}>
-                                            {trunc(est.nome_estabelecimento, 30)}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                textTransform: 'uppercase',
-                                                maxWidth: 240,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                display: 'block',
-                                            }}
-                                        >
-                                            {trunc(est.nome_responsavel, 30)}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                textTransform: 'uppercase',
-                                                maxWidth: 240,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                display: 'block',
-                                            }}
-                                        >
-                                            {trunc(est.endereco, 30)}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="body2">{trunc(renderCnaes(est), 30)}</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="body2">{formatDate(est.created_at)}</Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Box className="queue-page__actions"
-                                            sx={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                flexWrap: 'nowrap',
-                                                whiteSpace: 'nowrap',
-                                                '& button': { mx: 0.5, minWidth: 40 },
-                                            }}
-                                        >
-                                            <ActionEditButton className="queue-page__action queue-page__action--success" onClick={() => handleEditar(est)} title="Editar" />
-                                            <ActionDeleteButton className="queue-page__action queue-page__action--danger" onClick={() => handleExcluir(est)} title="Excluir" />
-                                        </Box>
-                                    </TableCell>
-                                </StyledTableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <TablePagination
-                        className="queue-page__pagination"
-                        component="div"
-                        count={pagination?.total || 0}
-                        page={page}
-                        onPageChange={handlePage}
-                        rowsPerPage={perPage}
-                        onRowsPerPageChange={handlePerPage}
-                        rowsPerPageOptions={PER_PAGE_OPTIONS}
-                    />
-                </TableContainer>
-
-                <EstabelecimentoDialog
-                    open={dialogOpen}
-                    onClose={() => setDialogOpen(false)}
-                    estabelecimento={editando}
-                    onSuccess={handleSuccess}
-                />
-
-                <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-            </BaseCard>
-        </Box>
+        <PaginaDeLista
+            titulo="Estabelecimentos"
+            subtitulo={pagination ? `${pagination.total} registros` : undefined}
+            busca={{ rotulo: 'Pesquisar estabelecimentos', placeholder: 'Pesquisar por nome, responsável ou CNAE', value: busca, onChange: handleBusca }}
+            barra={<ActionCreateFab onClick={handleNovo} title="Novo estabelecimento" />}
+            colunas={colunas}
+            linhas={estabelecimentos}
+            chaveDaLinha={(e) => e.id}
+            vazio="Nenhum estabelecimento encontrado."
+            paginacao={{ total: pagination?.total || 0, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+        >
+            <AlertModal />
+            <EstabelecimentoDialog open={dialogOpen} onClose={() => setDialogOpen(false)} estabelecimento={editando} onSuccess={handleSuccess} />
+            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+        </PaginaDeLista>
     );
 }

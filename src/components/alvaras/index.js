@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    Box, Button, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    TablePagination, TextField, Typography, styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { Download } from 'lucide-react';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
 import AlvaraDialog from '../modal/alvara';
 import { getAllAlvaras, removeAlvaraFetch, downloadAlvaraPdf } from '../../store/fetchActions/alvaras';
 import { changeTitleAlert } from '../../store/ducks/Layout';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
+import { Button } from '../ui/button';
+import { SelectNativo } from '../ui/campos';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula, tomDaCor } from '../ui/pilula';
 
 const NIVEIS_COR = { '1': 'success', '2': 'warning', '3': 'error', 'N/A': 'default' };
 
@@ -23,20 +21,6 @@ const STATUS_OPTIONS = [
 ];
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
 
 const formatDate = (s) => {
     if (!s) return '—';
@@ -74,6 +58,7 @@ export default function ListaAlvaras() {
 
     useEffect(() => {
         dispatch(getAllAlvaras({ page: 1, per_page: perPage }));
+        return () => clearTimeout(buscaRef.current);
     }, []);
 
     useEffect(() => {
@@ -106,14 +91,13 @@ export default function ListaAlvaras() {
         dispatch(getAllAlvaras(buildParams({ status: valor || undefined, page: 1 })));
     };
 
-    const handlePerPage = (event) => {
-        const valor = Number(event.target.value);
+    const handlePerPage = (valor) => {
         setPerPage(valor);
         setPage(0);
         dispatch(getAllAlvaras(buildParams({ per_page: valor, page: 1 })));
     };
 
-    const handlePage = (_, newPage) => {
+    const handlePage = (newPage) => {
         setPage(newPage);
         dispatch(getAllAlvaras(buildParams({ page: newPage + 1 })));
     };
@@ -143,147 +127,67 @@ export default function ListaAlvaras() {
         dispatch(getAllAlvaras(buildParams()));
     };
 
+    const colunas = [
+        { chave: 'numero', titulo: 'Número', render: (a) => <span className="font-semibold uppercase">{a.numero_alvara}</span> },
+        { chave: 'estabelecimento', titulo: 'Estabelecimento', render: (a) => <span className="uppercase">{trunc(a.estabelecimento?.nome_estabelecimento)}</span> },
+        { chave: 'risco', titulo: 'Risco', render: (a) => <Pilula tom={tomDaCor(NIVEIS_COR[a.nivel_risco])}>{`Risco ${a.nivel_risco}`}</Pilula> },
+        { chave: 'status', titulo: 'Status', render: (a) => a.status || '—' },
+        { chave: 'emissao', titulo: 'Emissão', render: (a) => formatDate(a.data_alvara) },
+        { chave: 'vencimento', titulo: 'Vencimento', render: (a) => formatDate(a.vencimento_alvara) },
+        { chave: 'contato', titulo: 'Contato', render: (a) => <span className="block max-w-[150px] truncate">{a.contato || '—'}</span> },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (a) => (
+                <div className="flex gap-2">
+                    <ActionEditButton onClick={() => handleEditar(a)} title="Editar" />
+                    {a.status === 'Vigente' && (
+                        <Button variant="secondary" size="icon-sm" title="Baixar PDF" aria-label="Baixar PDF" onClick={() => dispatch(downloadAlvaraPdf(a.id, a.numero_alvara))}>
+                            <Download />
+                        </Button>
+                    )}
+                    <ActionDeleteButton onClick={() => handleExcluir(a)} title="Excluir" />
+                </div>
+            ),
+        },
+    ];
+
+    const barra = (
+        <>
+            <div className="w-full sm:w-48">
+                <SelectNativo aria-label="Nível de Risco" value={nivelRisco} onChange={handleNivelRisco}>
+                    <option value="">Risco: todos</option>
+                    <option value="1">1 — Baixo</option>
+                    <option value="2">2 — Médio</option>
+                    <option value="3">3 — Alto</option>
+                    <option value="N/A">N/A</option>
+                </SelectNativo>
+            </div>
+            <div className="w-full sm:w-48">
+                <SelectNativo aria-label="Status" value={statusFiltro} onChange={handleStatusFiltro}>
+                    <option value="">Status: todos</option>
+                    {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </SelectNativo>
+            </div>
+            <ActionCreateFab onClick={handleNovo} title="Novo alvará" />
+        </>
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page alvaras-page">
-        <BaseCard title={`Alvarás${pagination ? ` — ${pagination.total} registros` : ''}`}>
+        <PaginaDeLista
+            titulo="Alvarás"
+            subtitulo={pagination ? `${pagination.total} registros` : undefined}
+            busca={{ rotulo: 'Pesquisar alvarás', placeholder: 'Pesquisar por número ou estabelecimento', value: busca, onChange: handleBusca }}
+            barra={barra}
+            colunas={colunas}
+            linhas={alvaras}
+            chaveDaLinha={(a) => a.id}
+            vazio="Nenhum alvará encontrado."
+            paginacao={{ total: pagination?.total || 0, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+        >
             <AlertModal />
-            <Box className="queue-page__toolbar"
-                sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    mb: 2,
-                    mt: 1,
-                }}
-            >
-                <TextField
-                    className="lg-search-field"
-                    sx={{ flex: '1 1 320px', minWidth: 260 }}
-                    placeholder="Pesquisar por número ou estabelecimento"
-                    value={busca}
-                    onChange={handleBusca}
-                    inputProps={{ autoComplete: 'off' }}
-                />
-                <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
-                    <InputLabel>Nível de Risco</InputLabel>
-                    <Select value={nivelRisco} label="Nível de Risco" onChange={handleNivelRisco}>
-                        <MenuItem value="">Todos</MenuItem>
-                        <MenuItem value="1">1 — Baixo</MenuItem>
-                        <MenuItem value="2">2 — Médio</MenuItem>
-                        <MenuItem value="3">3 — Alto</MenuItem>
-                        <MenuItem value="N/A">N/A</MenuItem>
-                    </Select>
-                </FormControl>
-                <FormControl className="lg-search-field" sx={{ flex: '0 1 180px', minWidth: 180 }}>
-                    <InputLabel>Status</InputLabel>
-                    <Select value={statusFiltro} label="Status" onChange={handleStatusFiltro}>
-                        <MenuItem value="">Todos</MenuItem>
-                        {STATUS_OPTIONS.map(s => (
-                            <MenuItem key={s} value={s}>{s}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <Fab className="queue-page__fab queue-page__fab--add" color="primary" onClick={handleNovo} size="medium" title="Novo alvará" sx={{ flex: '0 0 48px', ml: { xs: 0, md: 'auto' } }}>
-                    <FeatherIcon icon="plus" />
-                </Fab>
-            </Box>
-
-            <TableContainer className="queue-page__table-wrap">
-                <Table className="queue-page__table" sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Número</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Risco</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Status</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Emissão</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Vencimento</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Contato</Typography></TableCell>
-                            <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {alvaras.map((alv) => (
-                            <StyledTableRow key={alv.id} hover>
-                                <TableCell>
-                                    <Typography variant="h6" fontWeight={600} sx={{ textTransform: 'uppercase' }}>{alv.numero_alvara}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
-                                        {trunc(alv.estabelecimento?.nome_estabelecimento)}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={`Risco ${alv.nivel_risco}`}
-                                        color={NIVEIS_COR[alv.nivel_risco] || 'default'}
-                                        size="small"
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{alv.status || '—'}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{formatDate(alv.data_alvara)}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{formatDate(alv.vencimento_alvara)}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {alv.contato || '—'}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
-                                        <Button className="queue-page__action queue-page__action--success" onClick={() => handleEditar(alv)} color="success" variant="contained" size="small" title="Editar">
-                                            <FeatherIcon icon="edit" width="18" height="18" />
-                                        </Button>
-                                        {alv.status === 'Vigente' && (
-                                            <Button className="queue-page__action queue-page__action--info"
-                                                onClick={() => dispatch(downloadAlvaraPdf(alv.id, alv.numero_alvara))}
-                                                color="success"
-                                                variant="contained"
-                                                size="small"
-                                                title="Baixar PDF"
-                                            >
-                                                <FeatherIcon icon="download" width="18" height="18" />
-                                            </Button>
-                                        )}
-                                        <Button className="queue-page__action queue-page__action--danger" onClick={() => handleExcluir(alv)} color="error" variant="contained" size="small" title="Excluir">
-                                            <FeatherIcon icon="trash" width="18" height="18" />
-                                        </Button>
-                                    </Box>
-                                </TableCell>
-                            </StyledTableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                <TablePagination
-                    className="queue-page__pagination"
-                    component="div"
-                    count={pagination?.total || 0}
-                    page={page}
-                    onPageChange={handlePage}
-                    rowsPerPage={perPage}
-                    onRowsPerPageChange={handlePerPage}
-                    rowsPerPageOptions={PER_PAGE_OPTIONS}
-                />
-            </TableContainer>
-
-            <AlvaraDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                alvara={editando}
-                onSuccess={handleSuccess}
-            />
-
+            <AlvaraDialog open={dialogOpen} onClose={() => setDialogOpen(false)} alvara={editando} onSuccess={handleSuccess} />
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-        </BaseCard>
-        </Box>
+        </PaginaDeLista>
     );
 }
-
-
-

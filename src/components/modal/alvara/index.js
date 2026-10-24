@@ -1,13 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Dialog from '@mui/material/Dialog';
-import {
-    Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography,
-} from '@mui/material';
-import { modalBackdropSx, modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
 import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alvaras';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
-import BaseCard from '../../baseCard/BaseCard';
+import { Banner } from '../../ui/banner';
+import { FormularioModal } from '../../ui/formulario-modal';
 
 const STATUS_OPTIONS = [
     'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
@@ -48,7 +44,7 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
         }
     }, [open, alvara?.id]);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
 
     const handleSalvar = () => {
         setLocalError('');
@@ -64,122 +60,32 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
         }
     };
 
+    const editando = Boolean(alvara?.id);
+    const campos = useMemo(() => [
+        { name: 'estabelecimento_id', label: 'Estabelecimento', required: true, disabled: editando, options: selectList.map(est => ({ value: est.id, label: est.nome_estabelecimento })) },
+        { name: 'nivel_risco', label: 'Nível de Risco', required: true, span: 6, options: [{ value: '1', label: '1 — Baixo' }, { value: '2', label: '2 — Médio' }, { value: '3', label: '3 — Alto' }, { value: 'N/A', label: 'N/A' }] },
+        { name: 'status', label: 'Status', span: 6, options: STATUS_OPTIONS.map(s => ({ value: s, label: s })) },
+        { name: 'data_alvara', label: 'Data do Alvará', type: 'date', required: true, span: 6, disabled: editando, dica: !editando ? 'O número será gerado automaticamente com base na data' : undefined },
+        { name: 'vencimento_alvara', label: 'Vencimento (opcional)', type: 'date', span: 6, dica: 'Se não preenchido, é calculado automaticamente para 365 dias após a data do alvará' },
+        { name: 'contato', label: 'Contato (opcional)', max: 1000 },
+    ], [editando, selectList]);
+
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            scroll="paper"
-            slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            PaperProps={{
-                className: 'lab-alvara-dialog-shell',
-                sx: {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    maxHeight: '92vh',
-                    width: 'min(1100px, 96vw)',
-                },
-            }}
-        >
-            <Box sx={{ ...modalFormRootSx, overflowY: 'auto', p: 3.2 }}>
-                <BaseCard title={alvara?.id ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}>
-                    <Stack spacing={2}>
-                    {localError && (
-                        <Alert severity="error" variant="filled">
-                            {localError}
-                        </Alert>
-                    )}
-                    {alvara?.id && (
-                        <Typography variant="body2" color="textSecondary">
-                            Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)
-                        </Typography>
-                    )}
-
-                    <FormControl fullWidth required>
-                        <InputLabel>Estabelecimento</InputLabel>
-                        <Select
-                            name="estabelecimento_id"
-                            value={form.estabelecimento_id}
-                            label="Estabelecimento"
-                            onChange={change}
-                            disabled={!!alvara?.id}
-                        >
-                            {selectList.map(est => (
-                                <MenuItem key={est.id} value={est.id}>
-                                    {est.nome_estabelecimento}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControl fullWidth required>
-                        <InputLabel>Nível de Risco</InputLabel>
-                        <Select
-                            name="nivel_risco"
-                            value={form.nivel_risco}
-                            label="Nível de Risco"
-                            onChange={change}
-                        >
-                            <MenuItem value="1">1 — Baixo</MenuItem>
-                            <MenuItem value="2">2 — Médio</MenuItem>
-                            <MenuItem value="3">3 — Alto</MenuItem>
-                            <MenuItem value="N/A">N/A</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                    <FormControl fullWidth>
-                        <InputLabel>Status</InputLabel>
-                        <Select
-                            name="status"
-                            value={form.status}
-                            label="Status"
-                            onChange={change}
-                        >
-                            {STATUS_OPTIONS.map(s => (
-                                <MenuItem key={s} value={s}>{s}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <TextField
-                        label="Data do Alvará"
-                        name="data_alvara"
-                        type="date"
-                        value={form.data_alvara}
-                        onChange={change}
-                        required
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                        disabled={!!alvara?.id}
-                        helperText={!alvara?.id ? 'O número será gerado automaticamente com base na data' : ''}
-                    />
-
-                    <TextField
-                        label="Vencimento (opcional)"
-                        name="vencimento_alvara"
-                        type="date"
-                        value={form.vencimento_alvara}
-                        onChange={change}
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                        helperText="Se não preenchido, é calculado automaticamente para 365 dias após a data do alvará"
-                    />
-
-                    <TextField
-                        label="Contato (opcional)"
-                        name="contato"
-                        value={form.contato}
-                        onChange={change}
-                        fullWidth
-                        inputProps={{ autoComplete: 'off', maxLength: 1000 }}
-                    />
-                    </Stack>
-                    <Box sx={{ display: 'flex', gap: 1, mt: 2.2, justifyContent: 'flex-end' }}>
-                        <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-                        <Button onClick={handleSalvar} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: '0 0 auto', width: 'auto', px: 2.2 }}>Gravar</Button>
-                    </Box>
-                </BaseCard>
-            </Box>
-        </Dialog>
+        <FormularioModal
+            aberto={open}
+            titulo={editando ? `Editar Alvará — ${alvara.numero_alvara}` : 'Cadastrar Alvará'}
+            aoFechar={onClose}
+            aoGravar={handleSalvar}
+            campos={campos}
+            valores={form}
+            aoMudar={change}
+            tamanho="md"
+            antes={(
+                <div className="mb-4 space-y-3">
+                    {localError && <Banner tom="perigo">{localError}</Banner>}
+                    {editando && <p className="text-sm text-muted-foreground">Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)</p>}
+                </div>
+            )}
+        />
     );
 }

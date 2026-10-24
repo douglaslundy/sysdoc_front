@@ -1,20 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    Box, Chip, Fab, FormControl, InputLabel, MenuItem, Select,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    TablePagination, TextField, Typography, styled, Button,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { Clock } from 'lucide-react';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
 import FiscalizacaoDialog from '../modal/fiscalizacao';
 import FiscalizacaoHistorico from './FiscalizacaoHistorico';
 import { getAllFiscalizacoes, removeFiscalizacaoFetch } from '../../store/fetchActions/fiscalizacoes';
 import { changeTitleAlert } from '../../store/ducks/Layout';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
+import { Button } from '../ui/button';
+import { SelectNativo } from '../ui/campos';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula, tomDaCor } from '../ui/pilula';
 
 const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 const ORIGEM_OPTIONS = [
@@ -29,20 +27,6 @@ const RESULTADO_COR = {
     'Auto de infração': 'error',
 };
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
 
 const formatDate = (s) => {
     if (!s) return '—';
@@ -89,6 +73,8 @@ export default function ListaFiscalizacoes() {
         }
     }, [pagination?.current_page]);
 
+    useEffect(() => () => clearTimeout(buscaRef.current), []);
+
     const handleBusca = ({ target }) => {
         const valor = target.value;
         setBusca(valor);
@@ -113,14 +99,13 @@ export default function ListaFiscalizacoes() {
         dispatch(getAllFiscalizacoes(buildParams({ origem: valor || undefined, page: 1 })));
     };
 
-    const handlePerPage = (event) => {
-        const valor = Number(event.target.value);
+    const handlePerPage = (valor) => {
         setPerPage(valor);
         setPage(0);
         dispatch(getAllFiscalizacoes(buildParams({ per_page: valor, page: 1 })));
     };
 
-    const handlePage = (_, newPage) => {
+    const handlePage = (newPage) => {
         setPage(newPage);
         dispatch(getAllFiscalizacoes(buildParams({ page: newPage + 1 })));
     };
@@ -158,106 +143,65 @@ export default function ListaFiscalizacoes() {
         dispatch(getAllFiscalizacoes(buildParams()));
     };
 
+    const colunas = [
+        {
+            chave: 'protocolo',
+            titulo: 'Protocolo',
+            render: (f) => (
+                <>
+                    <span className="font-bold">{f.protocolo || '—'}</span>
+                    {f.origem === 'peticao' && <span className="mt-1 block"><Pilula tom="alerta" contorno>Petição</Pilula></span>}
+                </>
+            ),
+        },
+        { chave: 'estabelecimento', titulo: 'Estabelecimento', render: (f) => <span className="uppercase">{f.estabelecimento?.nome_estabelecimento || '—'}</span> },
+        { chave: 'data', titulo: 'Data', render: (f) => formatDate(f.data_visita) },
+        { chave: 'resultado', titulo: 'Resultado', render: (f) => <Pilula tom={tomDaCor(RESULTADO_COR[f.resultado])}>{f.resultado}</Pilula> },
+        { chave: 'fiscal', titulo: 'Fiscal', render: (f) => f.fiscal?.name || '—' },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (f) => (
+                <div className="flex gap-2">
+                    <Button variant="outline" size="icon-sm" title="Histórico" aria-label="Histórico" onClick={() => setHistoricoDe(f)}><Clock /></Button>
+                    <ActionEditButton onClick={() => handleEditar(f)} title="Editar" />
+                    <ActionDeleteButton onClick={() => handleExcluir(f)} title="Excluir" />
+                </div>
+            ),
+        },
+    ];
+
+    const barra = (
+        <>
+            <div className="w-full sm:w-52">
+                <SelectNativo aria-label="Origem" value={origemFiltro} onChange={handleOrigemFiltro}>
+                    <option value="">Origem: todas</option>
+                    {ORIGEM_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </SelectNativo>
+            </div>
+            <div className="w-full sm:w-52">
+                <SelectNativo aria-label="Resultado" value={resultadoFiltro} onChange={handleResultadoFiltro}>
+                    <option value="">Resultado: todos</option>
+                    {RESULTADO_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </SelectNativo>
+            </div>
+            <ActionCreateFab onClick={handleNovo} title="Nova fiscalização" />
+        </>
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page fiscalizacoes-page">
-        <BaseCard title={`Fiscalizações${pagination ? ` — ${pagination.total} registros` : ''}`}>
+        <PaginaDeLista
+            titulo="Fiscalizações"
+            subtitulo={pagination ? `${pagination.total} registros` : undefined}
+            busca={{ rotulo: 'Pesquisar fiscalizações', placeholder: 'Pesquisar por protocolo ou estabelecimento', value: busca, onChange: handleBusca }}
+            barra={barra}
+            colunas={colunas}
+            linhas={fiscalizacoes}
+            chaveDaLinha={(f) => f.id}
+            vazio="Nenhuma fiscalização encontrada."
+            paginacao={{ total: pagination?.total || 0, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+        >
             <AlertModal />
-            <Box className="queue-page__toolbar"
-                sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2, mt: 1 }}
-            >
-                <TextField
-                    className="lg-search-field"
-                    sx={{ flex: '1 1 320px', minWidth: 260 }}
-                    placeholder="Pesquisar por protocolo ou estabelecimento"
-                    value={busca}
-                    onChange={handleBusca}
-                    inputProps={{ autoComplete: 'off' }}
-                />
-                <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
-                    <InputLabel id="fiscalizacao-origem-label">Origem</InputLabel>
-                    <Select labelId="fiscalizacao-origem-label" value={origemFiltro} label="Origem" onChange={handleOrigemFiltro}>
-                        <MenuItem value="">Todas</MenuItem>
-                        {ORIGEM_OPTIONS.map(o => (
-                            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <FormControl className="lg-search-field" sx={{ flex: '0 1 220px', minWidth: 180 }}>
-                    <InputLabel>Resultado</InputLabel>
-                    <Select value={resultadoFiltro} label="Resultado" onChange={handleResultadoFiltro}>
-                        <MenuItem value="">Todos</MenuItem>
-                        {RESULTADO_OPTIONS.map(r => (
-                            <MenuItem key={r} value={r}>{r}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <Fab className="queue-page__fab queue-page__fab--add" color="primary" onClick={handleNovo} size="medium" title="Nova fiscalização" sx={{ flex: '0 0 48px', ml: { xs: 0, md: 'auto' } }}>
-                    <FeatherIcon icon="plus" />
-                </Fab>
-            </Box>
-
-            <TableContainer className="queue-page__table-wrap">
-                <Table className="queue-page__table" sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Protocolo</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Estabelecimento</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Data</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Resultado</Typography></TableCell>
-                            <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Fiscal</Typography></TableCell>
-                            <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {fiscalizacoes.map((f) => (
-                            <StyledTableRow key={f.id} hover>
-                                <TableCell>
-                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{f.protocolo || '—'}</Typography>
-                                    {f.origem === 'peticao' && <Chip label="Petição" color="warning" size="small" variant="outlined" sx={{ mt: 0.5 }} />}
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
-                                        {f.estabelecimento?.nome_estabelecimento || '—'}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{formatDate(f.data_visita)}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Chip label={f.resultado} color={RESULTADO_COR[f.resultado] || 'default'} size="small" />
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{f.fiscal?.name || '—'}</Typography>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
-                                        <Button className="queue-page__action queue-page__action--history" onClick={() => setHistoricoDe(f)} color="info" variant="contained" size="small" title="Histórico">
-                                            <FeatherIcon icon="clock" width="18" height="18" />
-                                        </Button>
-                                        <Button className="queue-page__action queue-page__action--success" onClick={() => handleEditar(f)} color="success" variant="contained" size="small" title="Editar">
-                                            <FeatherIcon icon="edit" width="18" height="18" />
-                                        </Button>
-                                        <Button className="queue-page__action queue-page__action--danger" onClick={() => handleExcluir(f)} color="error" variant="contained" size="small" title="Excluir">
-                                            <FeatherIcon icon="trash" width="18" height="18" />
-                                        </Button>
-                                    </Box>
-                                </TableCell>
-                            </StyledTableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                <TablePagination
-                    className="queue-page__pagination"
-                    component="div"
-                    count={pagination?.total || 0}
-                    page={page}
-                    onPageChange={handlePage}
-                    rowsPerPage={perPage}
-                    onRowsPerPageChange={handlePerPage}
-                    rowsPerPageOptions={PER_PAGE_OPTIONS}
-                />
-            </TableContainer>
-
             <FiscalizacaoDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
@@ -265,11 +209,8 @@ export default function ListaFiscalizacoes() {
                 onSuccess={handleSuccess}
                 onCreateSuccess={handleCreateSuccess}
             />
-
             <FiscalizacaoHistorico open={Boolean(historicoDe)} fiscalizacao={historicoDe} onClose={() => setHistoricoDe(null)} />
-
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-        </BaseCard>
-        </Box>
+        </PaginaDeLista>
     );
 }

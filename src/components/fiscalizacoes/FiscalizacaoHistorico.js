@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Stack } from "@mui/material";
 import HistoryDrawer from "../history/HistoryDrawer";
 import { api } from "../../services/api";
 import { printFiscalizacaoPdf } from "../../reports/fiscalizacao";
+import { Button } from "../ui/button";
 
 /** Histórico da fiscalização (painel lateral, somente leitura) + PDF. O histórico é gerado pelas edições da própria fiscalização. */
 export default function FiscalizacaoHistorico({ open, onClose, fiscalizacao }) {
@@ -44,19 +44,11 @@ export default function FiscalizacaoHistorico({ open, onClose, fiscalizacao }) {
       items={items}
       loading={loading}
       error={error}
-      extra={
-        <Stack spacing={1.5}>
-          <Box>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => printFiscalizacaoPdf({ fiscalizacao, movimentacoes, modo: "interno" })}
-            >
-              Imprimir PDF
-            </Button>
-          </Box>
-        </Stack>
-      }
+      extra={(
+        <Button variant="outline" size="sm" onClick={() => printFiscalizacaoPdf({ fiscalizacao, movimentacoes, modo: "interno" })}>
+          Imprimir PDF
+        </Button>
+      )}
     />
   );
 }

@@ -1,12 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Dialog from '@mui/material/Dialog';
-import {
-    Alert, Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField,
-    Typography, List, ListItem, ListItemText, IconButton,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import { modalBackdropSx, modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { Camera, Download, Paperclip, Trash2 } from 'lucide-react';
 import { addFiscalizacaoFetch, editFiscalizacaoFetch } from '../../../store/fetchActions/fiscalizacoes';
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 import {
@@ -15,7 +9,10 @@ import {
     deleteFiscalizacaoAttachment,
     downloadFiscalizacaoAttachment,
 } from '../../../services/fiscalizacaoAttachments';
-import BaseCard from '../../baseCard/BaseCard';
+import { Banner } from '../../ui/banner';
+import { Button, buttonVariants } from '../../ui/button';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
+import { FormularioModal } from '../../ui/formulario-modal';
 
 const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 
@@ -26,6 +23,16 @@ const EMPTY = {
     observacoes: '',
     visivel_ao_denunciante: false,
 };
+
+// Botão que abre o seletor de arquivos (rótulo + <input type="file"> escondido, acessível por teclado).
+function BotaoDeArquivo({ icone: Icone, rotulo, disabled, ...props }) {
+    return (
+        <label className={`${buttonVariants({ variant: 'outline' })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
+            <Icone /> {rotulo}
+            <input type="file" className="sr-only" disabled={disabled} {...props} />
+        </label>
+    );
+}
 
 export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSuccess, onCreateSuccess }) {
     const dispatch = useDispatch();
@@ -57,7 +64,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         }
     }, [open, fiscalizacao?.id]);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
     const isDenuncia = fiscalizacao?.origem === 'peticao';
 
     const handleSalvar = () => {
@@ -78,7 +85,8 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
     };
 
     const handleUpload = async (event) => {
-        const files = event.target.files;
+        const input = event.target;
+        const files = input.files;
         if (!files || files.length === 0 || !fiscalizacao?.id) return;
         setUploading(true);
         try {
@@ -88,7 +96,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
             setLocalError(err?.response?.data?.message || 'Erro ao enviar anexo.');
         } finally {
             setUploading(false);
-            event.target.value = '';
+            input.value = '';
         }
     };
 
@@ -111,182 +119,71 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         }
     };
 
+    const campos = useMemo(() => [
+        { name: 'estabelecimento_id', label: 'Estabelecimento', required: !isDenuncia, options: selectList.map(est => ({ value: est.id, label: est.nome_estabelecimento })) },
+        { name: 'data_visita', label: 'Data da Visita', type: 'date', required: !isDenuncia, span: 6 },
+        { name: 'resultado', label: 'Resultado', required: true, span: 6, vazio: 'Selecione', options: RESULTADO_OPTIONS.map(r => ({ value: r, label: r })) },
+        { name: 'observacoes', label: 'Observações (opcional)', rows: 3, max: 2000 },
+    ], [isDenuncia, selectList]);
+
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            scroll="paper"
-            slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            PaperProps={{
-                className: 'fiscalizacao-dialog-shell',
-                sx: {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    maxHeight: '92vh',
-                    width: 'min(700px, 96vw)',
-                },
-            }}
-        >
-            <Box sx={{ ...modalFormRootSx, overflowY: 'auto', p: 3.2 }}>
-                <BaseCard title={fiscalizacao?.id ? 'Editar Fiscalização' : 'Nova Fiscalização'}>
-                    <Stack spacing={2}>
-                        {localError && (
-                            <Alert severity="error" variant="filled">{localError}</Alert>
-                        )}
+        <FormularioModal
+            aberto={open}
+            titulo={fiscalizacao?.id ? 'Editar Fiscalização' : 'Nova Fiscalização'}
+            aoFechar={onClose}
+            aoGravar={handleSalvar}
+            campos={campos}
+            valores={form}
+            aoMudar={change}
+            tamanho="md"
+            antes={(
+                <div className="mb-4 space-y-3">
+                    {localError && <Banner tom="perigo">{localError}</Banner>}
+                    {fiscalizacao?.protocolo && <p className="text-sm font-bold">Protocolo: {fiscalizacao.protocolo}</p>}
+                    {isDenuncia && (
+                        <Banner tom="info">
+                            <strong>Denúncia:</strong> {fiscalizacao.assunto || '—'}
+                            {fiscalizacao.descricao_denuncia ? ` — ${fiscalizacao.descricao_denuncia}` : ''}
+                            <br />
+                            Local: {fiscalizacao.local_endereco || '—'}
+                            {fiscalizacao.estabelecimento_nome_informado ? ` • Estabelecimento informado: ${fiscalizacao.estabelecimento_nome_informado}` : ''}
+                            {fiscalizacao.denunciante_nome ? ` • Denunciante: ${fiscalizacao.denunciante_nome}` : ''}
+                            {fiscalizacao.denunciante_contato ? ` (${fiscalizacao.denunciante_contato})` : ''}
+                        </Banner>
+                    )}
+                </div>
+            )}
+            depois={(
+                <div className="mt-4 space-y-4">
+                    {isDenuncia && (
+                        <CaixaDeMarcacao id="fis-visivel" marcado={form.visivel_ao_denunciante} aoMudar={(v) => setForm(f => ({ ...f, visivel_ao_denunciante: v }))}>
+                            Visível ao denunciante
+                        </CaixaDeMarcacao>
+                    )}
 
-                        {fiscalizacao?.protocolo && (
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                                Protocolo: {fiscalizacao.protocolo}
-                            </Typography>
-                        )}
-
-                        {isDenuncia && (
-                            <Alert severity="info">
-                                <strong>Denúncia:</strong> {fiscalizacao.assunto || '—'}
-                                {fiscalizacao.descricao_denuncia ? ` — ${fiscalizacao.descricao_denuncia}` : ''}
-                                <br />
-                                Local: {fiscalizacao.local_endereco || '—'}
-                                {fiscalizacao.estabelecimento_nome_informado ? ` • Estabelecimento informado: ${fiscalizacao.estabelecimento_nome_informado}` : ''}
-                                {fiscalizacao.denunciante_nome ? ` • Denunciante: ${fiscalizacao.denunciante_nome}` : ''}
-                                {fiscalizacao.denunciante_contato ? ` (${fiscalizacao.denunciante_contato})` : ''}
-                            </Alert>
-                        )}
-
-                        <FormControl fullWidth required={!isDenuncia}>
-                            <InputLabel>Estabelecimento</InputLabel>
-                            <Select
-                                name="estabelecimento_id"
-                                value={form.estabelecimento_id}
-                                label="Estabelecimento"
-                                onChange={change}
-                            >
-                                {selectList.map(est => (
-                                    <MenuItem key={est.id} value={est.id}>
-                                        {est.nome_estabelecimento}
-                                    </MenuItem>
+                    {fiscalizacao?.id && (
+                        <div>
+                            <h3 className="mb-2 font-display text-base font-bold">Fotos e documentos</h3>
+                            <div className="flex flex-wrap gap-2">
+                                <BotaoDeArquivo icone={Camera} rotulo={uploading ? 'Enviando...' : 'Tirar foto'} disabled={uploading} accept="image/*" capture="environment" onChange={handleUpload} />
+                                <BotaoDeArquivo icone={Paperclip} rotulo={uploading ? 'Enviando...' : 'Escolher arquivo'} disabled={uploading} multiple accept="image/*,application/pdf" onChange={handleUpload} />
+                            </div>
+                            <ul className="mt-3 divide-y divide-border">
+                                {attachments.map((a) => (
+                                    <li key={a.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                                        <span className="min-w-0 truncate">{a.original_name}</span>
+                                        <span className="flex shrink-0 gap-1">
+                                            <Button type="button" variant="ghost" size="icon-sm" title="Baixar" aria-label="Baixar" onClick={() => handleDownloadAttachment(a)}><Download /></Button>
+                                            <Button type="button" variant="ghost" size="icon-sm" title="Remover" aria-label="Remover" onClick={() => handleRemoveAttachment(a.id)}><Trash2 /></Button>
+                                        </span>
+                                    </li>
                                 ))}
-                            </Select>
-                        </FormControl>
-
-                        <TextField
-                            label="Data da Visita"
-                            name="data_visita"
-                            type="date"
-                            value={form.data_visita}
-                            onChange={change}
-                            required={!isDenuncia}
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                        />
-
-                        <FormControl fullWidth required>
-                            <InputLabel>Resultado</InputLabel>
-                            <Select
-                                name="resultado"
-                                value={form.resultado}
-                                label="Resultado"
-                                onChange={change}
-                            >
-                                {RESULTADO_OPTIONS.map(r => (
-                                    <MenuItem key={r} value={r}>{r}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <TextField
-                            label="Observações (opcional)"
-                            name="observacoes"
-                            value={form.observacoes}
-                            onChange={change}
-                            fullWidth
-                            multiline
-                            minRows={3}
-                            inputProps={{ maxLength: 2000 }}
-                        />
-
-                        {isDenuncia && (
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={form.visivel_ao_denunciante}
-                                        onChange={(event) => setForm(f => ({ ...f, visivel_ao_denunciante: event.target.checked }))}
-                                    />
-                                }
-                                label="Visível ao denunciante"
-                            />
-                        )}
-
-                        {fiscalizacao?.id && (
-                            <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                                    Fotos e documentos
-                                </Typography>
-                                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-                                    <Button
-                                        component="label"
-                                        variant="outlined"
-                                        disabled={uploading}
-                                        startIcon={<FeatherIcon icon="camera" width="18" height="18" />}
-                                    >
-                                        {uploading ? 'Enviando...' : 'Tirar foto'}
-                                        <input
-                                            type="file"
-                                            hidden
-                                            accept="image/*"
-                                            capture="environment"
-                                            onChange={handleUpload}
-                                        />
-                                    </Button>
-                                    <Button
-                                        component="label"
-                                        variant="outlined"
-                                        disabled={uploading}
-                                        startIcon={<FeatherIcon icon="paperclip" width="18" height="18" />}
-                                    >
-                                        {uploading ? 'Enviando...' : 'Escolher arquivo'}
-                                        <input
-                                            type="file"
-                                            hidden
-                                            multiple
-                                            accept="image/*,application/pdf"
-                                            onChange={handleUpload}
-                                        />
-                                    </Button>
-                                </Stack>
-                                <List dense>
-                                    {attachments.map((a) => (
-                                        <ListItem
-                                            key={a.id}
-                                            secondaryAction={
-                                                <>
-                                                    <IconButton edge="end" onClick={() => handleDownloadAttachment(a)} title="Baixar" sx={{ mr: 0.5 }}>
-                                                        <FeatherIcon icon="download" width="16" height="16" />
-                                                    </IconButton>
-                                                    <IconButton edge="end" onClick={() => handleRemoveAttachment(a.id)} title="Remover">
-                                                        <FeatherIcon icon="trash" width="16" height="16" />
-                                                    </IconButton>
-                                                </>
-                                            }
-                                        >
-                                            <ListItemText primary={a.original_name} />
-                                        </ListItem>
-                                    ))}
-                                    {attachments.length === 0 && (
-                                        <ListItem>
-                                            <ListItemText primary="Nenhum anexo ainda." primaryTypographyProps={{ color: 'textSecondary' }} />
-                                        </ListItem>
-                                    )}
-                                </List>
-                            </Box>
-                        )}
-                    </Stack>
-                    <Box sx={{ display: 'flex', gap: 1, mt: 2.2, justifyContent: 'flex-end' }}>
-                        <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-                        <Button onClick={handleSalvar} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: '0 0 auto', width: 'auto', px: 2.2 }}>Gravar</Button>
-                    </Box>
-                </BaseCard>
-            </Box>
-        </Dialog>
+                                {attachments.length === 0 && <li className="py-2 text-sm text-muted-foreground">Nenhum anexo ainda.</li>}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
+        />
     );
 }

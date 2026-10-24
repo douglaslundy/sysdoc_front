@@ -1,37 +1,27 @@
 import React from "react";
-import { Button, Fab } from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Button } from "../ui/button";
 
-const iconSize = 20;
+// Botões de ação de linha de tabela e de criação, no padrão do layout CRM.
+// `icon` (nome Feather) e `className` existiam na versão antiga e são ignorados.
+const botaoDeIcone = (variant, Icone, tituloPadrao) =>
+  function BotaoDeAcao({ title = tituloPadrao, icon, className, ...props }) {
+    return (
+      <Button variant={variant} size="icon-sm" title={title} aria-label={title} {...props}>
+        <Icone />
+      </Button>
+    );
+  };
 
-export function ActionViewButton({ title = "Visualizar", icon = "eye", ...props }) {
+export const ActionViewButton = botaoDeIcone("secondary", Eye, "Visualizar");
+export const ActionEditButton = botaoDeIcone("success", Pencil, "Editar");
+export const ActionDeleteButton = botaoDeIcone("destructive", Trash2, "Excluir");
+
+/** Botão de criar com rótulo (o antigo era um Fab só com ícone). */
+export function ActionCreateFab({ title = "Novo", icon, className, ...props }) {
   return (
-    <Button title={title} color="info" size="medium" variant="contained" {...props}>
-      <FeatherIcon icon={icon} width={iconSize} height={iconSize} />
+    <Button title={title} {...props}>
+      <Plus /> {title}
     </Button>
-  );
-}
-
-export function ActionEditButton({ title = "Editar", icon = "edit", ...props }) {
-  return (
-    <Button title={title} color="success" size="medium" variant="contained" {...props}>
-      <FeatherIcon icon={icon} width={iconSize} height={iconSize} />
-    </Button>
-  );
-}
-
-export function ActionDeleteButton({ title = "Excluir", icon = "trash", ...props }) {
-  return (
-    <Button title={title} color="error" size="medium" variant="contained" {...props}>
-      <FeatherIcon icon={icon} width={iconSize} height={iconSize} />
-    </Button>
-  );
-}
-
-export function ActionCreateFab({ icon = "plus", ...props }) {
-  return (
-    <Fab color="primary" aria-label="add" {...props}>
-      <FeatherIcon icon={icon} />
-    </Fab>
   );
 }
