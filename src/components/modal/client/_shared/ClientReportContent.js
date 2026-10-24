@@ -1,56 +1,17 @@
 import React from "react";
-import {
-  Typography,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  styled,
-  TableContainer,
-  Grid,
-  Divider,
-  Chip,
-} from "@mui/material";
 import { parseISO, format } from "date-fns";
+import { DataTable } from "../../../ui/data-table";
+import { Pilula, tomDaCor } from "../../../ui/pilula";
 
 export const STATUS_COR = {
   solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
 };
 
-export const StyledTableRow = styled(TableRow)(() => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: 'var(--lg-glass-row-hover)',
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
-
 export const InfoItem = ({ label, value }) => (
-  <Box
-    sx={{
-      border: "1px solid var(--lg-border)",
-      borderRadius: 2,
-      p: 2,
-      height: "100%",
-      bgcolor: "var(--lg-glass-panel)",
-    }}
-  >
-    <Typography
-      color="textSecondary"
-      sx={{
-        fontSize: "12px",
-        fontWeight: 600,
-        mb: 0.5,
-        textTransform: "uppercase",
-      }}
-    >
-      {label}
-    </Typography>
-    <Typography variant="h6">{value || "Não informado"}</Typography>
-  </Box>
+  <div className="h-full rounded-lg border border-border bg-surface p-3">
+    <p className="mb-1 text-xs font-semibold text-muted-foreground uppercase">{label}</p>
+    <p className="text-sm font-semibold break-words">{value || "Não informado"}</p>
+  </div>
 );
 
 export const formatDate = (value) => {
@@ -100,362 +61,144 @@ export const hasClientData = (reportData) =>
     (reportData.id || reportData.name || reportData.cpf || reportData.cns)
   );
 
+const Secao = ({ titulo, children }) => (
+  <section className="space-y-3">
+    <h3 className="font-display text-xl font-extrabold">{titulo}</h3>
+    {children}
+  </section>
+);
+
+const Sub = ({ children }) => <span className="block text-xs text-muted-foreground">{children}</span>;
+
+const colunasViagens = [
+  {
+    chave: "data",
+    titulo: "Data / Hora",
+    render: (trip) => (
+      <>
+        <span className="font-semibold">{formatDate(trip?.departure_date)}</span>
+        <Sub>{trip?.departure_time?.slice(0, 5) || "Não informado"}</Sub>
+        <Sub>ID viagem: {trip?.id}</Sub>
+      </>
+    ),
+  },
+  {
+    chave: "rota",
+    titulo: "Rota",
+    render: (trip) => (
+      <>
+        <span className="font-semibold">{(trip?.route?.origin?.toUpperCase() || "Origem não informada").toUpperCase()}</span>
+        <Sub>{(trip?.route?.destination?.toUpperCase() || "Destino não informado").toUpperCase()}</Sub>
+      </>
+    ),
+  },
+  {
+    chave: "motorista",
+    titulo: "Motorista",
+    render: (trip) => (
+      <>
+        {trip?.driver?.name?.toUpperCase() || "Não informado"}
+        <Sub>CPF: {trip?.driver?.cpf || "Não informado"}</Sub>
+      </>
+    ),
+  },
+  {
+    chave: "veiculo",
+    titulo: "Veículo",
+    render: (trip) => (
+      <>
+        {trip?.vehicle?.brand?.toUpperCase() || ""} {trip?.vehicle?.model?.toUpperCase() || "Não informado"}
+        <Sub>Placa: {trip?.vehicle?.license_plate?.toUpperCase() || "Não informado"}</Sub>
+        <Sub>Ano: {trip?.vehicle?.year || "Não informado"}</Sub>
+      </>
+    ),
+  },
+  { chave: "obs", titulo: "Observação", render: (trip) => trip?.obs?.toUpperCase() || "Sem observação" },
+];
+
+const colunasFilas = [
+  { chave: "especialidade", titulo: "Especialidade", render: (item) => item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "Não informado" },
+  { chave: "criado", titulo: "Cadastrado em", render: (item) => item?.created_at && format(parseISO(item?.created_at), 'dd/MM/yyyy') },
+  { chave: "status", titulo: "Status", render: (item) => (item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO') },
+  { chave: "realizado", titulo: "Realizado em", render: (item) => item?.date_of_realized && format(parseISO(item?.date_of_realized), 'dd/MM/yyyy') },
+  { chave: "obs", titulo: "Observações", render: (item) => item?.obs?.toUpperCase() || "Sem observações" },
+];
+
+const colunasExames = [
+  {
+    chave: "data",
+    titulo: "Data",
+    render: (pedido) => (
+      <>
+        <span className="font-semibold">{formatDate(pedido.data_pedido)}</span>
+        {pedido.data_coleta && <Sub>Coleta: {formatDate(pedido.data_coleta)}</Sub>}
+      </>
+    ),
+  },
+  {
+    chave: "exames",
+    titulo: "Exames",
+    render: (pedido) =>
+      pedido.exames?.length ? (
+        <div className="flex flex-wrap gap-1">
+          {pedido.exames.map((e) => (
+            <Pilula key={e.id} tom="neutro" contorno>{e.nome || e.codigo}</Pilula>
+          ))}
+        </div>
+      ) : "—",
+  },
+  { chave: "medico", titulo: "Médico Solicitante", render: (pedido) => pedido.medico_solicitante?.nome?.toUpperCase() || '—' },
+  {
+    chave: "status",
+    titulo: "Status",
+    render: (pedido) => <Pilula tom={tomDaCor(STATUS_COR[pedido.status])}>{pedido.status?.replace(/_/g, ' ').toUpperCase()}</Pilula>,
+  },
+  { chave: "criado", titulo: "Cadastrado por", render: (pedido) => pedido.criado_por?.name?.toUpperCase() || '—' },
+  { chave: "liberado", titulo: "Liberado por", render: (pedido) => pedido.resultado?.liberado_por?.name?.toUpperCase() || '—' },
+];
+
 // Bloco de renderização do relatório detalhado do cliente (grid de dados
 // pessoais + tabelas de viagens/fila/exames). Extraído de
 // components/client_report para ser reutilizado tanto pela página standalone
 // (/client_report) quanto pelo ClientReportModal.
 export default function ClientReportContent({ reportData }) {
+  const viagens = reportData?.trips?.length ? [...reportData.trips].sort((a, b) => new Date(b.departure_date) - new Date(a.departure_date)) : [];
+  const filas = reportData?.queue?.length ? [...reportData.queue].sort((a, b) => b.id - a.id) : [];
+  const exames = reportData?.pedidos_exame?.length ? [...reportData.pedidos_exame].sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido)) : [];
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4, px: 2, pb: 2 }}>
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Cliente
-        </Typography>
+    <div className="ui-reset flex flex-col gap-8">
+      <Secao titulo="Cliente">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <InfoItem label="Nome" value={reportData?.name?.toUpperCase()} />
+          <InfoItem label="Data de nascimento" value={formatDate(reportData?.born_date)} />
+          <InfoItem label="Sexo" value={formatSex(reportData?.sexo?.toUpperCase())} />
+          <InfoItem label="CPF" value={reportData?.cpf} />
+          <InfoItem label="CNS" value={reportData?.cns} />
+          <InfoItem label="Telefone" value={reportData?.phone} />
+          <InfoItem label="E-mail" value={reportData?.email} />
+          <InfoItem label="Mãe" value={reportData?.mother?.toUpperCase()} />
+          <InfoItem label="Pai" value={reportData?.father?.toUpperCase()} />
+          <div className="h-full rounded-lg border border-border bg-surface p-3">
+            <p className="mb-1 text-xs font-semibold text-muted-foreground uppercase">Status</p>
+            <Pilula tom={reportData?.active ? "sucesso" : "neutro"}>{reportData?.active ? "ATIVO" : "INATIVO"}</Pilula>
+          </div>
+          <InfoItem label="Atualizado em" value={formatDateTime(reportData?.updated_at)} />
+          <InfoItem label="Observações" value={reportData?.obs?.toUpperCase() || "Nenhuma observação cadastrada"} />
+        </div>
+      </Secao>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Nome" value={reportData?.name?.toUpperCase()} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Data de nascimento" value={formatDate(reportData?.born_date)} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Sexo" value={formatSex(reportData?.sexo?.toUpperCase())} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="CPF" value={reportData?.cpf} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="CNS" value={reportData?.cns} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Telefone" value={reportData?.phone} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="E-mail" value={reportData?.email} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Mãe" value={reportData?.mother?.toUpperCase()} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Pai" value={reportData?.father?.toUpperCase()} />
-          </Grid>
+      <Secao titulo={`Viagens (${reportData?.trips?.length ?? 0})`}>
+        <DataTable rotulo="Tabela de viagens" colunas={colunasViagens} linhas={viagens} chaveDaLinha={(t) => t.id} vazio="Nenhuma viagem encontrada." />
+      </Secao>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <Box
-              sx={{
-                border: "1px solid var(--lg-border)",
-                borderRadius: 2,
-                p: 2,
-                height: "100%",
-                bgcolor: "var(--lg-glass-panel)",
-              }}
-            >
-              <Typography
-                color="textSecondary"
-                sx={{
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  mb: 1,
-                  textTransform: "uppercase",
-                }}
-              >
-                Status
-              </Typography>
-              <Chip
-                label={reportData?.active ? "ATIVO" : "INATIVO"}
-                color={reportData?.active ? "success" : "default"}
-                size="small"
-              />
-            </Box>
-          </Grid>
+      <Secao titulo={`Filas (${reportData?.queue?.length ?? 0})`}>
+        <DataTable rotulo="Tabela de filas" colunas={colunasFilas} linhas={filas} chaveDaLinha={(item) => item.id} vazio="Nenhuma fila ou especialidade vinculada a este cliente." />
+      </Secao>
 
-          <Grid item xs={12} md={6} lg={4}>
-            <InfoItem label="Atualizado em" value={formatDateTime(reportData?.updated_at)} />
-          </Grid>
-
-          <Grid item xs={12} md={12} lg={4}>
-            <InfoItem
-              label="Observações"
-              value={reportData?.obs?.toUpperCase() || "Nenhuma observação cadastrada"}
-            />
-          </Grid>
-        </Grid>
-      </Box>
-
-      <Divider />
-
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Viagens ({reportData?.trips?.length ?? 0})
-        </Typography>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" aria-label="tabela de viagens" sx={{ whiteSpace: "nowrap" }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Data / Hora
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Rota
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Motorista
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Veículo
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Observação
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {reportData?.trips?.length ? (
-                [...reportData.trips]
-                  .sort((a, b) => new Date(b.departure_date) - new Date(a.departure_date))
-                  .map((trip) => (
-                    <StyledTableRow key={trip.id} hover>
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {formatDate(trip?.departure_date)}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          {trip?.departure_time?.slice(0, 5) || "Não informado"}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          ID viagem: {trip?.id}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {(trip?.route?.origin?.toUpperCase() || "Origem não informada").toUpperCase()}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          {(trip?.route?.destination?.toUpperCase() || "Destino não informado").toUpperCase()}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography variant="h6">
-                          {trip?.driver?.name?.toUpperCase() || "Não informado"}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          CPF: {trip?.driver?.cpf || "Não informado"}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography variant="h6">
-                          {trip?.vehicle?.brand?.toUpperCase() || ""} {trip?.vehicle?.model?.toUpperCase() || "Não informado"}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          Placa: {trip?.vehicle?.license_plate?.toUpperCase() || "Não informado"}
-                        </Typography>
-                        <Typography color="textSecondary" sx={{ fontSize: "12px" }}>
-                          Ano: {trip?.vehicle?.year || "Não informado"}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography variant="h6">
-                          {trip?.obs?.toUpperCase() || "Sem observação"}
-                        </Typography>
-                      </TableCell>
-                    </StyledTableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5}>
-                    <Typography variant="h6">
-                      Nenhuma viagem encontrada.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-
-      <Divider />
-
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Filas ({reportData?.queue?.length ?? 0})
-        </Typography>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" aria-label="tabela de filas">
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Especialidade
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Cadastrado em
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Status
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Realizado em
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6">
-                    Observações
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {reportData?.queue?.length ? (
-                [...reportData.queue]
-                  .sort((a, b) => b.id - a.id)
-                  .map((item, index) => (
-                    <StyledTableRow key={item?.id || index} hover>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "Não informado"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {item?.created_at && format(parseISO(item?.created_at), 'dd/MM/yyyy')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {item?.date_of_realized && format(parseISO(item?.date_of_realized), 'dd/MM/yyyy')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {item?.obs?.toUpperCase() || "Sem observações"}
-                        </Typography>
-                      </TableCell>
-                    </StyledTableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Typography variant="h6">
-                      Nenhuma fila ou especialidade vinculada a este cliente.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-
-      <Divider />
-
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Exames ({reportData?.pedidos_exame?.length ?? 0})
-        </Typography>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" aria-label="tabela de exames" sx={{ whiteSpace: 'nowrap' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Exames</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Médico Solicitante</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Cadastrado por</Typography></TableCell>
-                <TableCell><Typography color="textSecondary" variant="h6">Liberado por</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reportData?.pedidos_exame?.length ? (
-                [...reportData.pedidos_exame]
-                  .sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido))
-                  .map((pedido) => (
-                    <StyledTableRow key={pedido.id} hover>
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {formatDate(pedido.data_pedido)}
-                        </Typography>
-                        {pedido.data_coleta && (
-                          <Typography color="textSecondary" sx={{ fontSize: '12px' }}>
-                            Coleta: {formatDate(pedido.data_coleta)}
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {pedido.exames?.length ? (
-                          pedido.exames.map((e) => (
-                            <Chip key={e.id} label={e.nome || e.codigo} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
-                          ))
-                        ) : (
-                          <Typography color="textSecondary" variant="h6">—</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {pedido.medico_solicitante?.nome?.toUpperCase() || '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={pedido.status?.replace(/_/g, ' ').toUpperCase()}
-                          color={STATUS_COR[pedido.status] || 'default'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {pedido.criado_por?.name?.toUpperCase() || '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6">
-                          {pedido.resultado?.liberado_por?.name?.toUpperCase() || '—'}
-                        </Typography>
-                      </TableCell>
-                    </StyledTableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6}>
-                    <Typography variant="h6">Nenhum exame encontrado.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    </Box>
+      <Secao titulo={`Exames (${reportData?.pedidos_exame?.length ?? 0})`}>
+        <DataTable rotulo="Tabela de exames" colunas={colunasExames} linhas={exames} chaveDaLinha={(p) => p.id} vazio="Nenhum exame encontrado." />
+      </Secao>
+    </div>
   );
 }

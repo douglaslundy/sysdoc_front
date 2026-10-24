@@ -9,6 +9,7 @@ import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
 import { CampoDeBusca } from '../ui/campo-de-busca';
 import { CampoSelecao, CampoTexto } from '../ui/campos';
 import { DataTable } from '../ui/data-table';
+import { Dado } from '../ui/dado';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
 import { Paginacao } from '../ui/paginacao';
 import { Pilula } from '../ui/pilula';
@@ -31,15 +32,6 @@ const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR');
 };
-
-function Dado({ rotulo, children }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground">{rotulo}</p>
-      <p className="text-sm">{children}</p>
-    </div>
-  );
-}
 
 export default function RequisicoesPage() {
   const { user: currentUserId, username, capabilities } = useContext(AuthContext);

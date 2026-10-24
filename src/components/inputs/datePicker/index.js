@@ -1,57 +1,49 @@
 import * as React from 'react';
-import TextField from '@mui/material/TextField';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import ptBrLocale from 'date-fns/locale/pt-BR';
+import { Campo, Input } from '../../ui/campos';
+import { useUid } from '../../../lib/useUid';
 
-const parsePickerValue = (value) => {
-  if (!value) return null;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+// Aceita Date, "AAAA-MM-DD", "AAAA-MM-DDTHH:mm..." e datas com barras; devolve "AAAA-MM-DD" para o <input type="date">.
+const toInputValue = (value) => {
+  if (!value) return '';
+  let date;
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    const valueString = String(value).trim();
+    if (!valueString) return '';
+    const datePart = valueString.includes('T') ? valueString.split('T')[0] : valueString.split(' ')[0];
+    date = new Date(`${datePart.replace(/\//g, '-')}T12:00:00`);
+  }
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
 
-  const valueString = String(value).trim();
-  if (!valueString) return null;
-
-  const datePart = valueString.includes('T')
-    ? valueString.split('T')[0]
-    : valueString.split(' ')[0];
-  const normalizedDate = datePart.replace(/\//g, '-');
-  const parsed = new Date(`${normalizedDate}T12:00:00`);
-
+// Mesmo contrato do seletor anterior: devolve um Date ao meio-dia (evita virar o dia pelo fuso) ou null.
+const toDate = (text) => {
+  if (!text) return null;
+  const parsed = new Date(`${text}T12:00:00`);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 export default function BasicDatePicker(props) {
-  const { label, name, value, setValue, disabled = false, sx, className = "lg-search-field" } = props;
-
-  const parsedValue = parsePickerValue(value);
+  const { label, name, value, setValue, disabled = false, required = false, className } = props;
+  const id = useUid('data');
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBrLocale}>
-      <DatePicker
-        label={label}
-        name={name}
-        disabled={disabled}
-        views={['year', 'month', 'day']}
-        value={parsedValue}
-        onChange={(newValue) => setValue(newValue)}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            className={className}
-            size="medium"
-            sx={{
-              minWidth: 180,
-              "& .MuiInputBase-input": {
-                paddingLeft: "12px",
-                paddingTop: "11px",
-                paddingBottom: "11px",
-              },
-              ...sx,
-            }}
-          />
-        )}
-      />
-    </LocalizationProvider>
+    <Campo id={id} label={label} obrigatorio={required}>
+      {(p) => (
+        <Input
+          {...p}
+          type="date"
+          name={name}
+          disabled={disabled}
+          required={required}
+          className={className}
+          value={toInputValue(value)}
+          onChange={(e) => setValue(toDate(e.target.value))}
+        />
+      )}
+    </Campo>
   );
 }

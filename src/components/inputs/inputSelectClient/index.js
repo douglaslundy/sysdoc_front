@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
 import { api } from "../../../services/api";
+import { Combobox } from "../../ui/combobox";
+import { Label } from "../../ui/campos";
+import { useUid } from "../../../lib/useUid";
 
-export default function index(props) {
-  const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+export default function InputSelectClient(props) {
   const [remoteClients, setRemoteClients] = useState([]);
+  const [carregando, setCarregando] = useState(false);
   const searchRef = useRef(null);
-  const { label, name, setClient, clients, wd, value } = props;
+  const { label, setClient, clients, wd, value } = props;
+  const id = useUid("cliente");
   const safeClients = Array.isArray(clients) ? clients : [];
   const options = remoteClients.length > 0 ? remoteClients : safeClients;
 
@@ -21,76 +22,34 @@ export default function index(props) {
     setRemoteClients(safeClients);
   }, [safeClients]);
 
-  useEffect(() => {
-    if (!open) return undefined;
+  useEffect(() => () => clearTimeout(searchRef.current), []);
 
+  // Busca no servidor enquanto o usuário digita (com espera de 350ms).
+  const buscar = (texto) => {
     clearTimeout(searchRef.current);
     searchRef.current = setTimeout(() => {
-      api.get("/clients/select", {
-        params: {
-          search: inputValue || undefined,
-          limit: 50,
-        },
-      })
+      setCarregando(true);
+      api.get("/clients/select", { params: { search: texto || undefined, limit: 50 } })
         .then((res) => setRemoteClients(res.data || []))
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setCarregando(false));
     }, 350);
-
-    return () => clearTimeout(searchRef.current);
-  }, [inputValue, open]);
+  };
 
   return (
-    <Autocomplete
-      id="client"
-      sx={{
-        width: wd || "100%",
-        "& .MuiInputBase-root": {
-          width: "100%",
-          minHeight: "48px !important",
-          height: "48px !important",
-          maxHeight: "48px !important",
-        },
-        "& .MuiAutocomplete-inputRoot": {
-          background: "transparent !important",
-          boxShadow: "none !important",
-          minHeight: "48px !important",
-          height: "48px !important",
-        },
-        "& .MuiInputBase-input": {
-          background: "transparent !important",
-          border: "none",
-          boxShadow: "none",
-          paddingTop: "12px !important",
-          paddingBottom: "12px !important",
-          height: "48px !important",
-          boxSizing: "border-box",
-        },
-        "& .MuiAutocomplete-endAdornment": {
-          background: "transparent",
-        },
-      }}
-      open={open}
-      onOpen={() => setOpen(true)}
-      onClose={() => setOpen(false)}
-      isOptionEqualToValue={(option, selected) => Number(option.id) === Number(selected.id)}
-      getOptionLabel={(option) => `${(option.name || "").toUpperCase()} ${option.cns || ''} ${option.cpf || ''} ${option.phone || ''}`}
-      noOptionsText={"Cliente inexistente!!!"}
-      options={options}
-      name={name}
-      value={selectedClient}
-      inputValue={inputValue}
-      onInputChange={(_, newInputValue) => setInputValue(newInputValue)}
-      onChange={(_, newValue) => {
-        setClient(newValue || {});
-        setOpen(false);
-      }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={label}
-          InputProps={{ ...params.InputProps }}
-        />
-      )}
-    />
+    <div className="space-y-1" style={wd ? { width: wd } : undefined}>
+      <Label htmlFor={id}>{label}</Label>
+      <Combobox
+        id={id}
+        rotulo={label}
+        opcoes={options}
+        selecionado={selectedClient}
+        aoDigitar={buscar}
+        aoSelecionar={(c) => setClient(c || {})}
+        carregando={carregando}
+        vazio="Cliente inexistente!!!"
+        rotuloDaOpcao={(option) => `${(option.name || "").toUpperCase()} ${option.cns || ''} ${option.cpf || ''} ${option.phone || ''}`}
+      />
+    </div>
   );
 }

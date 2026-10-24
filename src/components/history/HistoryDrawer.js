@@ -1,16 +1,10 @@
 import React from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Divider,
-  Drawer,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Loader2 } from "lucide-react";
 import { format, isValid, parseISO } from "date-fns";
+import { Banner } from "../ui/banner";
+import { Button } from "../ui/button";
+import { Gaveta } from "../ui/gaveta";
+import { Pilula } from "../ui/pilula";
 
 const formatDateTime = (value) => {
   if (!value) return "—";
@@ -36,79 +30,39 @@ export default function HistoryDrawer({
   extra = null,
 }) {
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 480 },
-          maxWidth: "100vw",
-          bgcolor: "var(--lg-glass-panel)",
-          color: "var(--lg-text-primary)",
-          borderLeft: "1px solid var(--lg-border)",
-          backdropFilter: "var(--lg-blur-panel)",
-        },
-      }}
-    >
-      <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", minHeight: "100%" }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>{title}</Typography>
-            {subtitle ? (
-              <Typography variant="caption" color="text.secondary">{subtitle}</Typography>
-            ) : null}
-          </Box>
-          <Button size="small" variant="outlined" onClick={onClose}>Fechar</Button>
-        </Stack>
+    <Gaveta aberto={Boolean(open)} aoFechar={onClose} titulo={title} subtitulo={subtitle}>
+      {extra ? <div className="mb-4">{extra}</div> : null}
 
-        <Divider sx={{ my: 2 }} />
+      {error ? <div className="mb-4"><Banner tom="perigo">{error}</Banner></div> : null}
 
-        {extra ? <Box sx={{ mb: 2 }}>{extra}</Box> : null}
+      <ul className="divide-y divide-border">
+        {items.map((item) => (
+          <li key={item.id} className="py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                <Pilula tom="neutro" contorno>{item.usuario || "Sistema"}</Pilula>
+                {item.badge ? <Pilula tom="info">{item.badge}</Pilula> : null}
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground">{formatDateTime(item.data)}</span>
+            </div>
+            <p data-testid="history-item-title" className="mt-2 text-sm font-bold">{item.titulo}</p>
+            {item.detalhe ? <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">{item.detalhe}</p> : null}
+          </li>
+        ))}
+      </ul>
 
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+      {loading ? (
+        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+          <Loader2 aria-hidden className="size-5 animate-spin" />
+          Carregando histórico...
+        </div>
+      ) : null}
 
-        <Stack spacing={0} divider={<Divider flexItem />}>
-          {items.map((item) => (
-            <Box key={item.id} sx={{ py: 1.5 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                <Stack direction="row" spacing={0.75}>
-                  <Chip size="small" variant="outlined" label={item.usuario || "Sistema"} />
-                  {item.badge ? <Chip size="small" color="info" label={item.badge} /> : null}
-                </Stack>
-                <Typography variant="caption" color="text.secondary">
-                  {formatDateTime(item.data)}
-                </Typography>
-              </Stack>
-              <Typography data-testid="history-item-title" variant="body2" sx={{ fontWeight: 700, mt: 0.75 }}>
-                {item.titulo}
-              </Typography>
-              {item.detalhe ? (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, whiteSpace: "pre-wrap" }}>
-                  {item.detalhe}
-                </Typography>
-              ) : null}
-            </Box>
-          ))}
-        </Stack>
+      {!loading && !error && items.length === 0 ? <p className="py-4 text-sm text-muted-foreground">Nenhum registro.</p> : null}
 
-        {loading ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3 }}>
-            <CircularProgress size={22} />
-            <Typography variant="body2">Carregando histórico...</Typography>
-          </Box>
-        ) : null}
-
-        {!loading && !error && items.length === 0 ? (
-          <Typography color="text.secondary" sx={{ py: 2 }}>Nenhum registro.</Typography>
-        ) : null}
-
-        {hasMore && !loading ? (
-          <Button variant="outlined" onClick={onLoadMore} sx={{ mt: 2, alignSelf: "center" }}>
-            Carregar mais
-          </Button>
-        ) : null}
-      </Box>
-    </Drawer>
+      {hasMore && !loading ? (
+        <Button variant="outline" onClick={onLoadMore} className="mt-4 self-center">Carregar mais</Button>
+      ) : null}
+    </Gaveta>
   );
 }

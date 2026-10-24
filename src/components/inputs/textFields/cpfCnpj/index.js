@@ -1,44 +1,23 @@
 import React from "react";
 import InputMask from "react-input-mask";
-import { TextField } from "@mui/material";
+import { Campo, Input } from "../../../ui/campos";
+import { useUid } from "../../../../lib/useUid";
 
 const resolveMask = (value) => {
     const digits = String(value || "").replace(/\D/g, "");
     return digits.length > 11 ? "99.999.999/9999-99" : "999.999.999-99";
 };
 
-const CpfCnpjInput = React.forwardRef((props, ref) => {
-    const { inputRef, value, ...styles } = props;
-
+export default function CpfCnpj(props) {
+    const { label, name, value, changeItem, disabled = false, required, className } = props;
+    const id = useUid("cpf");
     return (
-        <InputMask
-            {...styles}
-            value={value || ""}
-            ref={inputRef || ref}
-            mask={resolveMask(value)}
-            maskChar={null}
-        />
+        <Campo id={id} label={label} obrigatorio={Boolean(required)}>
+            {(p) => (
+                <InputMask mask={resolveMask(value)} maskChar={null} value={value ? value : ""} onChange={changeItem} disabled={disabled}>
+                    {(maskProps) => <Input {...p} {...maskProps} name={name} inputMode="numeric" className={className} />}
+                </InputMask>
+            )}
+        </Campo>
     );
-});
-
-export default function index(props) {
-
-    const { label, name, value, changeItem, disabled = false, sx, fullWidth = false } = props;
-    return (
-        <TextField
-            id="cpfCnpj"
-            label={label}
-            variant="outlined"
-            name={name}
-            sx={sx}
-            fullWidth={fullWidth}
-            value={value ? value : ''}
-            onChange={changeItem}            
-            disabled={disabled}
-            InputProps={{
-                inputComponent: CpfCnpjInput,
-            }}
-
-        />
-    )
 }

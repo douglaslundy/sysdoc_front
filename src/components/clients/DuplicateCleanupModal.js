@@ -1,28 +1,14 @@
-import React, { useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Modal,
-  Select,
-  Stack,
-  Typography,
-} from "@mui/material";
-import BaseCard from "../baseCard/BaseCard";
+import React, { useEffect, useState } from "react";
 import ConfirmDialog from "../confirmDialog";
 import { api } from "../../services/api";
-import {
-  modalBackdropSx,
-  modalFormRootSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from "../modal/_shared/modalFormStyles";
+import { Banner } from "../ui/banner";
+import { Button } from "../ui/button";
+import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
+import { CampoSelecao } from "../ui/campos";
+import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
+import { Pilula } from "../ui/pilula";
+
+const TOM_DO_AVISO = { info: "info", warning: "alerta", error: "perigo", success: "sucesso" };
 
 export default function DuplicateCleanupModal({ open, onClose, onReload }) {
   const [loading, setLoading] = useState(false);
@@ -72,10 +58,13 @@ export default function DuplicateCleanupModal({ open, onClose, onReload }) {
     }
   };
 
-  const handleOpen = async () => {
+  // Carrega os candidatos sempre que o painel abre.
+  useEffect(() => {
+    if (!open) return;
     resetState();
-    await loadCandidates(duplicateType);
-  };
+    loadCandidates(duplicateType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleClose = () => {
     resetState();
@@ -138,168 +127,87 @@ export default function DuplicateCleanupModal({ open, onClose, onReload }) {
 
   return (
     <>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        onTransitionEnter={handleOpen}
-        slotProps={{ backdrop: { sx: modalBackdropSx } }}
-      >
-        <Box sx={{ ...modalShellSx, ...modalFormRootSx, width: "1200px", maxWidth: "96vw" }}>
-          <BaseCard title="Limpeza de Clients Duplicados">
-            <Stack spacing={2.2}>
-              {alertState.visible && (
-                <Alert
-                  severity={alertState.type}
-                  onClose={() => setAlertState({ visible: false, type: "info", message: "" })}
-                >
-                  {alertState.message}
-                </Alert>
-              )}
+      <Dialogo aberto={Boolean(open)} aoFechar={handleClose} tamanho="xl">
+        <DialogoCabecalho>Limpeza de Clients Duplicados</DialogoCabecalho>
+        <div className="space-y-4">
+          {alertState.visible && (
+            <Banner tom={TOM_DO_AVISO[alertState.type]} onDispensar={() => setAlertState({ visible: false, type: "info", message: "" })}>
+              {alertState.message}
+            </Banner>
+          )}
 
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-                <FormControl sx={{ minWidth: 220 }}>
-                  <InputLabel id="duplicate-type-label">Filtro</InputLabel>
-                  <Select
-                    labelId="duplicate-type-label"
-                    value={duplicateType}
-                    label="Filtro"
-                    onChange={handleTypeChange}
-                  >
-                    <MenuItem value="all">CPF e CNS</MenuItem>
-                    <MenuItem value="cpf">Somente CPF</MenuItem>
-                    <MenuItem value="cns">Somente CNS valido</MenuItem>
-                  </Select>
-                </FormControl>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-full sm:w-56">
+              <CampoSelecao id="duplicados-filtro" label="Filtro" value={duplicateType} onChange={handleTypeChange}>
+                <option value="all">CPF e CNS</option>
+                <option value="cpf">Somente CPF</option>
+                <option value="cns">Somente CNS valido</option>
+              </CampoSelecao>
+            </div>
+            <Pilula tom="info" contorno>{`${summary.groups || 0} grupos`}</Pilula>
+            <Pilula tom="alerta" contorno>{`${summary.deletable_candidates || 0} candidatos seguros`}</Pilula>
+            <Pilula tom="sucesso" contorno>{`${selectedIds.length} selecionados`}</Pilula>
+          </div>
 
-                <Chip label={`${summary.groups || 0} grupos`} color="info" variant="outlined" />
-                <Chip label={`${summary.deletable_candidates || 0} candidatos seguros`} color="warning" variant="outlined" />
-                <Chip label={`${selectedIds.length} selecionados`} color="success" variant="outlined" />
-              </Box>
+          <div className="max-h-[55dvh] space-y-3 overflow-y-auto pr-1">
+            {groups.length ? groups.map((group) => (
+              <div key={`${group.identifier_type}-${group.identifier_value}`} className="rounded-lg border border-border bg-surface p-3">
+                <p className="font-display text-base font-bold">
+                  {group.identifier_type.toUpperCase()}: {group.identifier_value}
+                </p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Registro principal: #{group.keeper?.id} - {group.keeper?.name}
+                </p>
 
-              <Box sx={{ maxHeight: "58vh", overflow: "auto", pr: 0.5 }}>
-                <Stack spacing={1.6}>
-                  {groups.length ? groups.map((group) => (
-                    <Box
-                      key={`${group.identifier_type}-${group.identifier_value}`}
-                      sx={{
-                        border: "0.5px solid var(--lg-border)",
-                        borderRadius: "14px",
-                        background: "var(--queue-row-bg)",
-                        p: 2,
-                      }}
-                    >
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        {group.identifier_type.toUpperCase()}: {group.identifier_value}
-                      </Typography>
-                      <Typography color="textSecondary" sx={{ fontSize: "13px", mb: 1.2 }}>
-                        Registro principal: #{group.keeper?.id} - {group.keeper?.name}
-                      </Typography>
+                <div className="space-y-2">
+                  {group.deletable_candidates.map((candidate) => (
+                    <div key={candidate.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+                      <CaixaDeMarcacao id={`dup-${candidate.id}`} marcado={selectedIds.includes(candidate.id)} aoMudar={() => toggleSelectedId(candidate.id)}>
+                        <span>
+                          <span className="block font-semibold">#{candidate.id} - {candidate.name}</span>
+                          <span className="block text-xs text-muted-foreground">CPF: {candidate.cpf || "-"} | CNS: {candidate.cns || "-"}</span>
+                        </span>
+                      </CaixaDeMarcacao>
+                      <Pilula tom={candidate.active ? "sucesso" : "neutro"}>{candidate.active ? "Ativo" : "Inativo"}</Pilula>
+                    </div>
+                  ))}
+                </div>
 
-                      <Stack spacing={1}>
-                        {group.deletable_candidates.map((candidate) => (
-                          <Box
-                            key={candidate.id}
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.4,
-                              justifyContent: "space-between",
-                              border: "0.5px solid var(--lg-border)",
-                              borderRadius: "12px",
-                              p: 1.2,
-                              background: "var(--queue-row-hover)",
-                            }}
-                          >
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-                              <Checkbox
-                                checked={selectedIds.includes(candidate.id)}
-                                onChange={() => toggleSelectedId(candidate.id)}
-                              />
-                              <Box>
-                                <Typography sx={{ fontWeight: 700 }}>
-                                  #{candidate.id} - {candidate.name}
-                                </Typography>
-                                <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
-                                  CPF: {candidate.cpf || "-"} | CNS: {candidate.cns || "-"}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            <Chip
-                              label={candidate.active ? "Ativo" : "Inativo"}
-                              color={candidate.active ? "success" : "default"}
-                              size="small"
-                            />
-                          </Box>
-                        ))}
-                      </Stack>
+                {!!group.blocked_records?.length && (
+                  <div className="mt-4">
+                    <p className="mb-2 text-xs text-muted-foreground">Registros preservados por vinculo operacional</p>
+                    <div className="space-y-2">
+                      {group.blocked_records.map((record) => {
+                        const reasons = Object.entries(record.references || {})
+                          .filter(([, count]) => Number(count) > 0)
+                          .map(([key, count]) => `${key}: ${count}`)
+                          .join(" | ");
 
-                      {!!group.blocked_records?.length && (
-                        <Box sx={{ mt: 1.6 }}>
-                          <Typography color="textSecondary" sx={{ fontSize: "13px", mb: 0.8 }}>
-                            Registros preservados por vinculo operacional
-                          </Typography>
-                          <Stack spacing={1}>
-                            {group.blocked_records.map((record) => {
-                              const reasons = Object.entries(record.references || {})
-                                .filter(([, count]) => Number(count) > 0)
-                                .map(([key, count]) => `${key}: ${count}`)
-                                .join(" | ");
+                        return (
+                          <div key={record.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+                            <div>
+                              <p className="font-semibold">#{record.id} - {record.name}</p>
+                              <p className="text-xs text-muted-foreground">{reasons || "Possui vinculos operacionais"}</p>
+                            </div>
+                            <Pilula tom="info">Preservado</Pilula>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )) : (
+              <p className="text-sm text-muted-foreground">Nenhum grupo duplicado seguro para tratamento automatico foi encontrado.</p>
+            )}
+          </div>
 
-                              return (
-                                <Box
-                                  key={record.id}
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    gap: 1.2,
-                                    border: "0.5px solid var(--lg-border)",
-                                    borderRadius: "12px",
-                                    p: 1.2,
-                                    background: "var(--queue-row-bg)",
-                                  }}
-                                >
-                                  <Box>
-                                    <Typography sx={{ fontWeight: 700 }}>
-                                      #{record.id} - {record.name}
-                                    </Typography>
-                                    <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
-                                      {reasons || "Possui vinculos operacionais"}
-                                    </Typography>
-                                  </Box>
-                                  <Chip label="Preservado" color="info" size="small" />
-                                </Box>
-                              );
-                            })}
-                          </Stack>
-                        </Box>
-                      )}
-                    </Box>
-                  )) : (
-                    <Typography color="textSecondary">
-                      Nenhum grupo duplicado seguro para tratamento automatico foi encontrado.
-                    </Typography>
-                  )}
-                </Stack>
-              </Box>
-
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>
-                <Button onClick={handleClose} variant="outlined" sx={modalSecondaryButtonSx}>
-                  Fechar
-                </Button>
-                <Button
-                  onClick={handleDelete}
-                  variant="contained"
-                  sx={modalPrimaryButtonSx}
-                  disabled={!selectedIds.length || loading}
-                >
-                  Excluir selecionados
-                </Button>
-              </Box>
-            </Stack>
-          </BaseCard>
-        </Box>
-      </Modal>
+          <DialogoRodape>
+            <Button variant="outline" onClick={handleClose}>Fechar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={!selectedIds.length || loading}>Excluir selecionados</Button>
+          </DialogoRodape>
+        </div>
+      </Dialogo>
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
     </>

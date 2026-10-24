@@ -1,49 +1,15 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-  styled,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { Copy, Printer } from "lucide-react";
 import { parseISO, format } from "date-fns";
 
 import { api } from "../../../../services/api";
 import tripPDF from "../../../../reports/trip";
 import ReplicateTripModal from "../../trips/replicate";
 import { getRouteDisplayText, getRouteTitleText } from "../../../trips";
-
-const StyledTableRow = styled(TableRow)(() => ({
-  "& td": {
-    background: "var(--queue-row-bg)",
-    borderTop: "0.5px solid var(--lg-border)",
-    borderBottom: "0.5px solid var(--lg-border)",
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: "var(--queue-text-primary)",
-  },
-  "& td:first-of-type": {
-    borderLeft: "0.5px solid var(--lg-border)",
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
-  },
-  "& td:last-of-type": {
-    borderRight: "0.5px solid var(--lg-border)",
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
-  },
-}));
+import { Button } from "../../../ui/button";
+import { Carregando } from "../../../ui/carregando";
+import { DataTable } from "../../../ui/data-table";
+import { Dialogo, DialogoCabecalho } from "../../../ui/dialogo";
 
 const getDriverVehicleText = (trip) => ({
   driver: trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO",
@@ -94,125 +60,66 @@ export default function ClientTripsModal({ client, onClose }) {
     };
   }, [client?.id]);
 
+  const colunas = [
+    { chave: "id", titulo: "ID", numerica: true, render: (trip) => <span className="font-semibold">{trip.id}</span> },
+    {
+      chave: "motorista",
+      titulo: "Motorista / Veículo",
+      render: (trip) => {
+        const { driver, vehicle } = getDriverVehicleText(trip);
+        return (
+          <>
+            <span className="font-semibold">{driver}</span>
+            <span className="block text-xs text-muted-foreground">{vehicle}</span>
+          </>
+        );
+      },
+    },
+    {
+      chave: "rota",
+      titulo: "Rota / Horário",
+      render: (trip) => (
+        <>
+          <span className="font-semibold" title={getRouteTitleText(trip?.route)}>{getRouteDisplayText(trip?.route)}</span>
+          <span className="block text-xs text-muted-foreground">
+            {trip?.departure_date && format(parseISO(trip.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (trip) => (
+        <div className="flex gap-2">
+          <Button variant="success" size="icon-sm" title="Imprimir viagem" aria-label="Imprimir viagem" onClick={() => tripPDF(trip)}>
+            <Printer />
+          </Button>
+          <Button variant="secondary" size="icon-sm" title="Replicar viagem" aria-label="Replicar viagem" onClick={() => setReplicateTrip(trip)}>
+            <Copy />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <Dialog open onClose={onClose} maxWidth="md" fullWidth className="client-trips-modal">
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Viagens de {client?.name || `Cliente #${client?.id ?? ""}`}
-        </Typography>
-        <IconButton onClick={onClose} aria-label="Fechar">
-          <FeatherIcon icon="x" width={20} height={20} />
-        </IconButton>
-      </DialogTitle>
+    <Dialogo aberto aoFechar={onClose} tamanho="lg">
+      <DialogoCabecalho>Viagens de {client?.name || `Cliente #${client?.id ?? ""}`}</DialogoCabecalho>
 
-      <DialogContent>
-        {loading ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
-            <CircularProgress size={24} />
-            <Typography variant="body2" color="textSecondary">
-              Carregando viagens...
-            </Typography>
-          </Box>
-        ) : error ? (
-          <Typography sx={{ py: 2, color: "error.main" }}>{error}</Typography>
-        ) : trips.length === 0 ? (
-          <Typography sx={{ py: 2 }} color="textSecondary">
-            Nenhuma viagem encontrada para este cliente.
-          </Typography>
-        ) : (
-          <TableContainer>
-            <Table
-              aria-label="viagens do cliente"
-              sx={{ mt: 1, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography color="textSecondary" variant="h6">ID</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography color="textSecondary" variant="h6">MOTORISTA / VEÍCULO</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography color="textSecondary" variant="h6">ROTA / HORÁRIO</Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography color="textSecondary" variant="h6">Ações</Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {trips.map((trip) => {
-                  const { driver, vehicle } = getDriverVehicleText(trip);
-                  return (
-                    <StyledTableRow key={trip.id} hover>
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "17px" }}>
-                          {trip.id}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "15px" }}>
-                          {driver}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontSize: "11px" }}>
-                          {vehicle}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: 600, fontSize: "15px" }}
-                          title={getRouteTitleText(trip?.route)}
-                        >
-                          {getRouteDisplayText(trip?.route)}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontSize: "11px" }}>
-                          {trip?.departure_date && format(parseISO(trip.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <Box sx={{ display: "inline-flex", flexWrap: "nowrap", "& button": { mx: 0.5 } }}>
-                          <Button
-                            title="Imprimir viagem"
-                            onClick={() => tripPDF(trip)}
-                            color="success"
-                            size="medium"
-                            variant="contained"
-                          >
-                            <FeatherIcon icon="printer" width="18" height="18" />
-                          </Button>
-
-                          <Button
-                            title="Replicar viagem"
-                            onClick={() => setReplicateTrip(trip)}
-                            color="info"
-                            size="medium"
-                            variant="contained"
-                          >
-                            <FeatherIcon icon="copy" width="18" height="18" />
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    </StyledTableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </DialogContent>
+      {loading ? (
+        <Carregando>Carregando viagens...</Carregando>
+      ) : error ? (
+        <p role="alert" className="py-2 text-sm text-danger">{error}</p>
+      ) : trips.length === 0 ? (
+        <p className="py-2 text-sm text-muted-foreground">Nenhuma viagem encontrada para este cliente.</p>
+      ) : (
+        <DataTable rotulo="Viagens do cliente" colunas={colunas} linhas={trips} chaveDaLinha={(trip) => trip.id} />
+      )}
 
       {replicateTrip && (
-        <ReplicateTripModal
-          open={!!replicateTrip}
-          trip={replicateTrip}
-          onClose={() => setReplicateTrip(null)}
-        />
+        <ReplicateTripModal open={!!replicateTrip} trip={replicateTrip} onClose={() => setReplicateTrip(null)} />
       )}
-    </Dialog>
+    </Dialogo>
   );
 }

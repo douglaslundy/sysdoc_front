@@ -1,10 +1,7 @@
 import React, { useEffect } from "react";
-import Box from '@mui/material/Box';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import { useDispatch } from 'react-redux';
+import { CampoSelecao } from "../../ui/campos";
+import { useUid } from "../../../lib/useUid";
 
 export default function BasicSelect(props) {
   const {
@@ -17,12 +14,10 @@ export default function BasicSelect(props) {
     valueDefault,
     wd,
     disabled = false,
-    size = "medium",
-    labelSx = {},
-    selectSx = {},
-    menuItemSx = {},
   } = props;
   const dispatch = useDispatch();
+  const uid = useUid('select');
+  const id = name || uid;
 
   useEffect(() => {
     getAllSelects ? dispatch(getAllSelects()) : '';
@@ -30,30 +25,24 @@ export default function BasicSelect(props) {
 
   // Ordenando o array store em ordem crescente pelo nome
   const sortedStore = [...store].sort((a, b) => a.name?.toString().localeCompare(b.name?.toString()));
+  // O <select> nativo devolve texto; o MUI devolvia o id original (número). Quem usa espera o id original.
+  const aoMudar = (e) => {
+    const texto = e.target.value;
+    const achado = sortedStore.find((d) => String(d.id) === texto);
+    const original = achado ? achado.id : texto === '0' && valueDefault ? 0 : texto;
+    changeItem({ ...e, target: { name: e.target.name, value: original } });
+  };
+  const semValor = value === '' || value === undefined || value === null;
 
   return (
-    <Box sx={{ minWidth: 120, width: wd }}>
-      <FormControl fullWidth required>
-        <InputLabel sx={labelSx}>
-          {label}
-        </InputLabel>
-        <Select
-          id={name}
-          value={value}
-          disabled={disabled}
-          name={name}
-          label={label}
-          onChange={changeItem}
-          size={size}
-          sx={selectSx}
-        >
-          {valueDefault && <MenuItem key={0} value={0} sx={menuItemSx}>{valueDefault}</MenuItem>}
-
-          {sortedStore.map((d) => (
-            <MenuItem key={d.id} value={d.id} sx={menuItemSx}>{d.name?.toString().toUpperCase()}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Box>
+    <div className="min-w-[120px]" style={wd ? { width: wd } : undefined}>
+      <CampoSelecao id={id} label={label} obrigatorio name={name} value={semValor ? '' : value} disabled={disabled} onChange={aoMudar}>
+        {semValor ? <option value="" disabled hidden /> : null}
+        {valueDefault && <option key={0} value={0}>{valueDefault}</option>}
+        {sortedStore.map((d) => (
+          <option key={d.id} value={d.id}>{d.name?.toString().toUpperCase()}</option>
+        ))}
+      </CampoSelecao>
+    </div>
   );
 }

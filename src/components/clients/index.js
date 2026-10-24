@@ -1,31 +1,12 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {
-  Typography,
-  Box,
-  Fab,
-  Button,
-  Badge,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  styled,
-  InputAdornment,
-} from "@mui/material";
+import { BarChart3, Clock, Copy, Eye, Pencil, Plus, Trash2, Truck } from "lucide-react";
 
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
 import ClientModal from "../modal/client";
 import ClientViewModal from "../modal/client/view";
 import ClientTripsModal from "../modal/client/trips";
 import ClientReportModal from "../modal/client/report";
 import ClientHistoryDrawer from "./ClientHistoryDrawer";
 import DuplicateCleanupModal from "./DuplicateCleanupModal";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import { useSelector, useDispatch } from "react-redux";
 import { api } from "../../services/api";
 import {
@@ -38,6 +19,11 @@ import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
 import { parseISO, format } from "date-fns";
 import { AuthContext } from "../../contexts/AuthContext";
+import { Button } from "../ui/button";
+import { CabecalhoDePagina } from "../ui/cabecalho-de-pagina";
+import { CampoDeBusca } from "../ui/campo-de-busca";
+import { DataTable } from "../ui/data-table";
+import { Paginacao } from "../ui/paginacao";
 
 const safeText = (value, max = 30) => {
   if (!value) return "-";
@@ -57,29 +43,21 @@ const maskDigits = (value) => {
   return `${digits.slice(0, 2)}${'*'.repeat(digits.length - 4)}${digits.slice(-2)}`;
 };
 
-const StyledTableRow = styled(TableRow)(() => ({
-  "& td": {
-    background: "var(--queue-row-bg)",
-    borderTop: "0.5px solid var(--lg-border)",
-    borderBottom: "0.5px solid var(--lg-border)",
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: "var(--queue-text-primary)",
-  },
-  "& td:first-of-type": {
-    borderLeft: "0.5px solid var(--lg-border)",
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
-  },
-  "& td:last-of-type": {
-    borderRight: "0.5px solid var(--lg-border)",
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
-  },
-  "&:hover td": {
-    background: "var(--queue-row-hover)",
-  },
-}));
+// Botão de ação com contador no canto (viagens, relatório).
+function BotaoComContagem({ total, children, ...props }) {
+  return (
+    <Button size="icon-sm" {...props}>
+      <span className="relative inline-flex">
+        {children}
+        {total ? (
+          <span aria-label={`${total} registros`} className="absolute -top-2.5 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-info-strong px-1 text-[10px] leading-none font-bold text-white">
+            {total}
+          </span>
+        ) : null}
+      </span>
+    </Button>
+  );
+}
 
 export default function Clients() {
   const { profile, canViewClientTrips, canViewClientReport, canViewClientHistory } = useContext(AuthContext);
@@ -220,280 +198,136 @@ export default function Clients() {
     }
   }, [pagination?.current_page]);
 
-  return (
-    <Box sx={modalFormRootSx} className="queue-page clients-page">
-      <BaseCard title={`Você possui ${pagination?.total || clients.length} Cidadãos Cadastrados`}>
-        <AlertModal />
-        <Box className="queue-page__toolbar" sx={{ display: "flex", alignItems: "center", gap: 2.2, mb: 2.1 }}>
-          <TextField
-            className="lg-search-field"
-            sx={{ width: "100%" }}
-            placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
-            name="search"
-            autoComplete="off"
-            value={searchValue}
-            onChange={searchClients}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FeatherIcon icon="search" width="22" height="22" />
-                </InputAdornment>
-              ),
-            }}
-          />
+  const totalRelatorio = (client) => (client?.trips_count || 0) + (client?.queue_count || 0) + (client?.pedidos_exame_count || 0);
 
-          <ClientModal>
-            <Fab
-              onClick={() => {
-                dispatch(openClientModal());
-              }}
-              color="primary"
-              aria-label="add"
-              className="queue-page__fab queue-page__fab--add"
-              sx={{ width: 62, height: 62, borderRadius: "14px" }}
-            >
-              <FeatherIcon icon="user-plus" />
-            </Fab>
-          </ClientModal>
-
-          {isAdmin && (
-            <Button
-              className="queue-page__action queue-page__action--warning"
-              onClick={() => setDuplicatesOpen(true)}
-              color="warning"
-              size="medium"
-              variant="contained"
-              sx={{ minWidth: 180, height: 48, borderRadius: "14px" }}
-            >
-              <FeatherIcon icon="copy" width="18" height="18" />
-              <Box sx={{ ml: 1 }}>Duplicados</Box>
+  const colunas = [
+    {
+      chave: "nome",
+      titulo: "Nome / DN",
+      render: (client) => (
+        <>
+          <span className="font-bold">{safeText(client?.name, 35)}</span>
+          <span className="block text-xs text-muted-foreground">
+            {client?.born_date ? maskMiddle(format(parseISO(client.born_date), "dd/MM/yyyy")) : "-"}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "mae",
+      titulo: "Mãe / CPF / CNS",
+      render: (client) => (
+        <>
+          <span className="font-bold">{safeText(client?.mother, 30)}</span>
+          <span className="block text-xs text-muted-foreground">{maskDigits(client?.cpf)}</span>
+          <span className="block text-xs text-muted-foreground">{maskDigits(client?.cns)}</span>
+        </>
+      ),
+    },
+    {
+      chave: "contato",
+      titulo: "Telefone / Endereço",
+      render: (client) => (
+        <>
+          <span className="block">{maskDigits(client?.phone)}</span>
+          <span className="block">
+            {maskMiddle(
+              [client?.addresses?.street, client?.addresses?.number, client?.addresses?.district]
+                .filter(Boolean)
+                .join(', '),
+            )}
+          </span>
+          <span className="block">{maskMiddle(client?.addresses?.city || '-')}</span>
+        </>
+      ),
+    },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (client) => (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="icon-sm" title="Visualizar cliente" aria-label="Visualizar cliente" onClick={() => handleViewClient(client)}>
+            <Eye />
+          </Button>
+          <Button variant="success" size="icon-sm" title="Editar cliente" aria-label="Editar cliente" onClick={() => handleEditClient(client)}>
+            <Pencil />
+          </Button>
+          <Button variant="destructive" size="icon-sm" title="Excluir cliente" aria-label="Excluir cliente" onClick={() => handleInactiveClient(client)}>
+            <Trash2 />
+          </Button>
+          {canViewClientTrips && (
+            <BotaoComContagem variant="outline" total={client?.trips_count || 0} title="Ver viagens do cliente" aria-label="Ver viagens do cliente" onClick={() => handleOpenTrips(client)}>
+              <Truck className="size-4" />
+            </BotaoComContagem>
+          )}
+          {canViewClientHistory && (
+            <Button variant="outline" size="icon-sm" title="Histórico do cidadão" aria-label="Histórico do cidadão" onClick={() => setHistoryClient(client)}>
+              <Clock />
             </Button>
           )}
-        </Box>
+          {canViewClientReport && (
+            <BotaoComContagem variant="outline" total={totalRelatorio(client)} title="Relatório detalhado do cliente" aria-label="Relatório detalhado do cliente" onClick={() => handleOpenReport(client)}>
+              <BarChart3 className="size-4" />
+            </BotaoComContagem>
+          )}
+        </div>
+      ),
+    },
+  ];
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table
-            aria-label="clientes"
-            className="queue-page__table"
-            sx={{ mt: 2, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Nome / DN</Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Mae / CPF / CNS</Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Telefone / Endereco</Typography>
-                </TableCell>
-                <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Ações</Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
+  return (
+    <div className="ui-reset">
+      <CabecalhoDePagina titulo="Cidadãos" subtitulo={`Você possui ${pagination?.total || clients.length} cidadãos cadastrados`} />
+      <AlertModal />
 
-            {clients.length >= 1 ? (
-              <TableBody>
-                {clients.map((client) => (
-                  <StyledTableRow key={client.id} hover>
-                    <TableCell>
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        {safeText(client?.name, 35)}
-                      </Typography>
-                      <Typography color="textSecondary" sx={{ fontSize: "13px" }}>
-                        {client?.born_date ? maskMiddle(format(parseISO(client.born_date), "dd/MM/yyyy")) : "-"}
-                      </Typography>
-                    </TableCell>
-
-                    <TableCell>
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        {safeText(client?.mother, 30)}
-                      </Typography>
-                      <Typography color="textSecondary" sx={{ fontSize: "13px" }}>{maskDigits(client?.cpf)}</Typography>
-                      <Typography color="textSecondary" sx={{ fontSize: "13px" }}>{maskDigits(client?.cns)}</Typography>
-                    </TableCell>
-
-                    <TableCell>
-                      <Typography variant="h6">{maskDigits(client?.phone)}</Typography>
-                      <Typography variant="h6">
-                        {maskMiddle(
-                          [client?.addresses?.street, client?.addresses?.number, client?.addresses?.district]
-                            .filter(Boolean)
-                            .join(', '),
-                        )}
-                      </Typography>
-                      <Typography variant="h6">
-                        {maskMiddle(client?.addresses?.city || '-')}
-                      </Typography>
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Box className="queue-page__actions" sx={{ "& button": { mx: 1 } }}>
-                        <Button
-                          className="queue-page__action queue-page__action--info"
-                          title="Visualizar cliente"
-                          onClick={() => handleViewClient(client)}
-                          color="info"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <FeatherIcon icon="eye" width="20" height="20" />
-                        </Button>
-                        <Button
-                          className="queue-page__action queue-page__action--success"
-                          title="Editar cliente"
-                          onClick={() => handleEditClient(client)}
-                          color="success"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <FeatherIcon icon="edit" width="20" height="20" />
-                        </Button>
-                        <Button
-                          className="queue-page__action queue-page__action--danger"
-                          title="Excluir cliente"
-                          onClick={() => handleInactiveClient(client)}
-                          color="error"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <FeatherIcon icon="trash" width="20" height="20" />
-                        </Button>
-                        {canViewClientTrips && (
-                        <Button
-                          className="queue-page__action queue-page__action--trips"
-                          title="Ver viagens do cliente"
-                          onClick={() => handleOpenTrips(client)}
-                          color="primary"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <Badge
-                            badgeContent={client?.trips_count || 0}
-                            color="info"
-                            invisible={!client?.trips_count}
-                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                            sx={{ "& .MuiBadge-badge": { fontSize: 10, height: 16, minWidth: 16 } }}
-                          >
-                            <FeatherIcon icon="truck" width="20" height="20" />
-                          </Badge>
-                        </Button>
-                        )}
-                        {canViewClientHistory && (
-                        <Button
-                          className="queue-page__action queue-page__action--history"
-                          title="Histórico do cidadão"
-                          onClick={() => setHistoryClient(client)}
-                          color="info"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <FeatherIcon icon="clock" width="20" height="20" />
-                        </Button>
-                        )}
-                        {canViewClientReport && (
-                        <Button
-                          className="queue-page__action queue-page__action--report"
-                          title="Relatório detalhado do cliente"
-                          onClick={() => handleOpenReport(client)}
-                          color="secondary"
-                          size="medium"
-                          variant="contained"
-                          sx={{ minWidth: 62, height: 40 }}
-                        >
-                          <Badge
-                            badgeContent={
-                              (client?.trips_count || 0) +
-                              (client?.queue_count || 0) +
-                              (client?.pedidos_exame_count || 0)
-                            }
-                            color="info"
-                            invisible={
-                              !(
-                                (client?.trips_count || 0) +
-                                (client?.queue_count || 0) +
-                                (client?.pedidos_exame_count || 0)
-                              )
-                            }
-                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                            sx={{ "& .MuiBadge-badge": { fontSize: 10, height: 16, minWidth: 16 } }}
-                          >
-                            <FeatherIcon icon="bar-chart-2" width="20" height="20" />
-                          </Badge>
-                        </Button>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </StyledTableRow>
-                ))}
-              </TableBody>
-            ) : (
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    Nenhum registro encontrado!
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            )}
-          </Table>
-
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={pagination?.total ?? clients.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-
-        <ConfirmDialog
-          confirmDialog={confirmDialog}
-          setConfirmDialog={setConfirmDialog}
-          isAuthenticated
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <CampoDeBusca
+          rotulo="Pesquisar cliente"
+          placeholder="Pesquisar cliente: Nome / Telefone / CPF ou CNS"
+          name="search"
+          value={searchValue}
+          onChange={searchClients}
         />
-
-        <ClientViewModal
-          open={viewOpen}
-          client={viewClient}
-          loading={viewLoading}
-          error={viewError}
-          onClose={handleCloseViewClient}
-        />
-
-        {tripsOpen && (
-          <ClientTripsModal client={tripsClient} onClose={handleCloseTrips} />
-        )}
-
-        {reportOpen && (
-          <ClientReportModal client={reportClient} onClose={handleCloseReport} />
-        )}
-
-        {canViewClientHistory && (
-          <ClientHistoryDrawer
-            open={Boolean(historyClient)}
-            client={historyClient}
-            onClose={() => setHistoryClient(null)}
-          />
-        )}
-
+        <ClientModal>
+          <Button onClick={() => dispatch(openClientModal())}>
+            <Plus /> Novo cidadão
+          </Button>
+        </ClientModal>
         {isAdmin && (
-          <DuplicateCleanupModal
-            open={duplicatesOpen}
-            onClose={() => setDuplicatesOpen(false)}
-            onReload={() => dispatch(getAllClients(buildParams({ page: page + 1 })))}
-          />
+          <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}>
+            <Copy /> Duplicados
+          </Button>
         )}
-      </BaseCard>
-    </Box>
+      </div>
+
+      <DataTable rotulo="Clientes" colunas={colunas} linhas={clients} chaveDaLinha={(client) => client.id} vazio="Nenhum registro encontrado!" />
+      <Paginacao
+        total={pagination?.total ?? clients.length}
+        pagina={page}
+        porPagina={rowsPerPage}
+        aoMudarPagina={(n) => handleChangePage(null, n)}
+        aoMudarPorPagina={(n) => handleChangeRowsPerPage({ target: { value: String(n) } })}
+      />
+
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} isAuthenticated />
+
+      <ClientViewModal open={viewOpen} client={viewClient} loading={viewLoading} error={viewError} onClose={handleCloseViewClient} />
+
+      {tripsOpen && <ClientTripsModal client={tripsClient} onClose={handleCloseTrips} />}
+
+      {reportOpen && <ClientReportModal client={reportClient} onClose={handleCloseReport} />}
+
+      {canViewClientHistory && (
+        <ClientHistoryDrawer open={Boolean(historyClient)} client={historyClient} onClose={() => setHistoryClient(null)} />
+      )}
+
+      {isAdmin && (
+        <DuplicateCleanupModal
+          open={duplicatesOpen}
+          onClose={() => setDuplicatesOpen(false)}
+          onReload={() => dispatch(getAllClients(buildParams({ page: page + 1 })))}
+        />
+      )}
+    </div>
   );
 }

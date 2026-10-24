@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import {
-    Typography,
-    Box,
-    Fab,
-    TextField,
-    CircularProgress
-} from "@mui/material";
-
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
-import ClientModal from "../modal/client";
+import { Search } from "lucide-react";
 
 import { useSelector, useDispatch } from "react-redux";
 import { detailed_client_report } from "../../store/fetchActions/clients";
 import { clearClientReport } from "../../store/ducks/clients";
 import AlertModal from "../messagesModal";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import ClientReportContent, { deriveReportData, hasClientData } from "../modal/client/_shared/ClientReportContent";
+import { Button } from "../ui/button";
+import { CabecalhoDePagina } from "../ui/cabecalho-de-pagina";
+import { CampoDeBusca } from "../ui/campo-de-busca";
+import { Carregando } from "../ui/carregando";
 
 export default () => {
     const dispatch = useDispatch();
@@ -96,32 +89,17 @@ export default () => {
     }, [router.isReady, router.query.value]);
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page">
-        <BaseCard
-            title={
-                hasData && reportData?.name
-                    ? `Relatório do Cliente ${reportData.name}`
-                    : "Relatório detalhado do cliente"
-            }
-        >
+        <div className="ui-reset">
+            <CabecalhoDePagina
+                titulo={hasData && reportData?.name ? `Relatório do Cliente ${reportData.name}` : "Relatório detalhado do cliente"}
+            />
             <AlertModal />
 
-            <Box className="queue-page__toolbar"
-                sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr auto", md: "minmax(280px, 1fr) auto" },
-                    alignItems: "center",
-                    gap: 1.5,
-                    mb: 2,
-                    mt: 1,
-                }}
-            >
-                <TextField
-                    className="lg-search-field"
-                    sx={{ minWidth: 0, width: "100%" }}
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+                <CampoDeBusca
+                    rotulo="Pesquisar cliente"
                     placeholder="Pesquisar cliente: Informe o CPF ou CNS"
                     name="search"
-                    autoComplete="off"
                     value={searchValue}
                     onChange={setSearchClient}
                     onKeyDown={(e) => {
@@ -130,52 +108,20 @@ export default () => {
                         }
                     }}
                 />
+                <Button aria-label="Buscar" onClick={() => HandleSearchClient(searchValue)}>
+                    <Search /> Buscar
+                </Button>
+            </div>
 
-                <ClientModal>
-                    <Fab
-                        onClick={() => HandleSearchClient(searchValue)}
-                        color="primary"
-                        aria-label="search"
-                        sx={{ justifySelf: { xs: "flex-end", sm: "center" } }}
-                    >
-                        <FeatherIcon icon="search" />
-                    </Fab>
-                </ClientModal>
-            </Box>
-
-            {loadingReport && (
-                <Box
-                    sx={{
-                        px: 2,
-                        pb: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                    }}
-                >
-                    <CircularProgress size={22} />
-                    <Typography variant="h6">
-                        Carregando relatório do cliente...
-                    </Typography>
-                </Box>
-            )}
+            {loadingReport && <Carregando>Carregando relatório do cliente...</Carregando>}
 
             {!loadingReport && hasData ? (
                 <ClientReportContent reportData={reportData} />
             ) : !loadingReport && notFound ? (
-                <Box sx={{ px: 2, pb: 2 }}>
-                    <Typography color="textSecondary" variant="h6">
-                        Nenhum cliente encontrado para o CPF ou CNS informado.
-                    </Typography>
-                </Box>
+                <p className="text-sm text-muted-foreground">Nenhum cliente encontrado para o CPF ou CNS informado.</p>
             ) : !loadingReport && !searched ? (
-                <Box sx={{ px: 2, pb: 2 }}>
-                    <Typography color="textSecondary" variant="h6">
-                        Pesquise por um CPF ou CNS para exibir o relatório detalhado do cliente.
-                    </Typography>
-                </Box>
+                <p className="text-sm text-muted-foreground">Pesquise por um CPF ou CNS para exibir o relatório detalhado do cliente.</p>
             ) : null}
-        </BaseCard>
-        </Box>
+        </div>
     );
 };

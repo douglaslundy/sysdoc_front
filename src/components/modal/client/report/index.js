@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { detailed_client_report } from "../../../../store/fetchActions/clients";
 import { clearClientReport } from "../../../../store/ducks/clients";
+import { Carregando } from "../../../ui/carregando";
+import { Dialogo, DialogoCabecalho } from "../../../ui/dialogo";
 import ClientReportContent, { deriveReportData, hasClientData } from "../_shared/ClientReportContent";
 
 // detailed_client_report (store/fetchActions/clients) agora devolve a
@@ -50,32 +42,16 @@ export default function ClientReportModal({ client, onClose }) {
   const hasData = hasClientData(reportData);
 
   return (
-    <Dialog open onClose={onClose} maxWidth="lg" fullWidth className="client-report-modal">
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Relatório de {client?.name || `Cliente #${client?.id ?? ""}`}
-        </Typography>
-        <IconButton onClick={onClose} aria-label="Fechar">
-          <FeatherIcon icon="x" width={20} height={20} />
-        </IconButton>
-      </DialogTitle>
+    <Dialogo aberto aoFechar={onClose} tamanho="xl">
+      <DialogoCabecalho>Relatório de {client?.name || `Cliente #${client?.id ?? ""}`}</DialogoCabecalho>
 
-      <DialogContent>
-        {loading ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
-            <CircularProgress size={24} />
-            <Typography variant="body2" color="textSecondary">
-              Carregando relatório do cliente...
-            </Typography>
-          </Box>
-        ) : hasData ? (
-          <ClientReportContent reportData={reportData} />
-        ) : (
-          <Typography sx={{ py: 2 }} color="textSecondary">
-            Nenhum cliente encontrado para este registro.
-          </Typography>
-        )}
-      </DialogContent>
-    </Dialog>
+      {loading ? (
+        <Carregando>Carregando relatório do cliente...</Carregando>
+      ) : hasData ? (
+        <ClientReportContent reportData={reportData} />
+      ) : (
+        <p className="py-2 text-sm text-muted-foreground">Nenhum cliente encontrado para este registro.</p>
+      )}
+    </Dialogo>
   );
 }

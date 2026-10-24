@@ -1,108 +1,58 @@
 ﻿import React, { useState, useEffect } from 'react';
-import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
+import AlertModal from '../../messagesModal';
 import Phone from '../../inputs/textFields/phone';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import BasicDatePicker from '../../inputs/datePicker';
-import {
-  modalFormRootSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from '../_shared/modalFormStyles';
-import BaseCard from '../../baseCard/BaseCard';
-import {
-  Grid,
-  Stack,
-  TextField,
-  Alert,
-  Button,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape, DialogoTitulo } from '../../ui/dialogo';
 import { showClient } from '../../../store/ducks/clients';
 import { editClientFetch, addClientFetch } from '../../../store/fetchActions/clients';
 import { closeClientModal, changeTitleAlert } from '../../../store/ducks/Layout';
+
+const FORM_VAZIO = {
+  name: '',
+  mother: '',
+  cpf: '',
+  cns: '',
+  phone: '',
+  email: '',
+  obs: '',
+  born_date: '',
+  sexo: '',
+  raca_cor: '',
+  data_obito: '',
+  zip_code: '',
+  city: '',
+  street: '',
+  number: '',
+  district: '',
+  complement: '',
+};
+
+const restantes = (valor, max) => (valor?.length > 0 ? `${max - valor.length} caracteres restantes` : undefined);
+
 export default function ClientModal(props) {
-  const [form, setForm] = useState({
-    name: '',
-    mother: '',
-    cpf: '',
-    cns: '',
-    phone: '',
-    email: '',
-    obs: '',
-    born_date: '',
-    sexo: '',
-    raca_cor: '',
-    data_obito: '',
-    zip_code: '',
-    city: '',
-    street: '',
-    number: '',
-    district: '',
-    complement: '',
-  });
+  const [form, setForm] = useState(FORM_VAZIO);
 
   const { client } = useSelector((state) => state.clients);
   const { isOpenClientModal } = useSelector((state) => state.layout);
   const dispatch = useDispatch();
 
   const {
-    name,
-    mother,
-    cpf,
-    cns,
-    phone,
-    email,
-    obs,
-    born_date,
-    sexo,
-    zip_code,
-    city,
-    street,
-    number,
-    district,
-    complement,
-    raca_cor,
-    data_obito,
+    name, mother, cpf, cns, phone, email, obs, born_date, sexo, zip_code, city, street, number, district, complement, raca_cor, data_obito,
   } = form;
   const [texto, setTexto] = useState();
   const [confirmObito, setConfirmObito] = useState(false);
 
-  const changeItem = ({ target }) => {
-    setForm({ ...form, [target.name]: target.value });
+  const changeItem = ({ target: { name, value } }) => {
+    setForm((atual) => ({ ...atual, [name]: value }));
   };
 
   const cleanForm = () => {
-    setForm({
-      name: '',
-      mother: '',
-      cpf: '',
-      cns: '',
-      phone: '',
-      email: '',
-      obs: '',
-      born_date: '',
-      sexo: '',
-      raca_cor: '',
-      data_obito: '',
-      zip_code: '',
-      city: '',
-      street: '',
-      number: '',
-      district: '',
-      complement: '',
-    });
+    setForm(FORM_VAZIO);
     setTexto('');
     dispatch(closeClientModal());
     dispatch(showClient({}));
@@ -111,8 +61,8 @@ export default function ClientModal(props) {
   const handleSaveData = () => {
     const clienteAtivo = !(client?.id) || client?.active;
     if (form.data_obito && clienteAtivo) {
-        setConfirmObito(true);
-        return;
+      setConfirmObito(true);
+      return;
     }
     client && client.id ? handlePutData() : handlePostData();
   };
@@ -132,18 +82,6 @@ export default function ClientModal(props) {
     dispatch(editClientFetch(form, cleanForm));
   };
 
-  const handleClose = () => {
-    cleanForm();
-  };
-
-  const handleSetDn = (value) => {
-    setForm({ ...form, born_date: value });
-  };
-
-  const handleSetDataObito = (value) => {
-    setForm({ ...form, data_obito: value });
-  };
-
   useEffect(() => {
     if (client && client.id) {
       setForm({ ...client, ...client?.addresses });
@@ -152,318 +90,119 @@ export default function ClientModal(props) {
 
   const obitoReadOnly = !!(client?.id && !client?.active && client?.data_obito);
 
+  const texto_ = (id, label, campo, max, extra = {}) => (
+    <CampoTexto
+      id={id}
+      label={label}
+      name={campo}
+      value={form[campo] || ''}
+      onChange={changeItem}
+      maxLength={max}
+      dica={restantes(form[campo], max)}
+      className="uppercase"
+      {...extra}
+    />
+  );
+
   return (
     <div>
       {props.children}
-      <Modal
-        keepMounted
-        open={isOpenClientModal}
-        onClose={handleClose}
-        aria-labelledby="keep-mounted-modal-title"
-        aria-describedby="keep-mounted-modal-description"
-        slotProps={{
-          backdrop: {
-            sx: {
-              background: 'var(--lg-overlay-bg)',
-              backdropFilter: 'var(--lg-blur-overlay)',
-              WebkitBackdropFilter: 'var(--lg-blur-overlay)',
-            },
-          },
-        }}
-      >
-        <Box
-          className="clients-modal-shell"
-          sx={{ ...modalShellSx, ...modalFormRootSx }}
+      <Dialogo aberto={Boolean(isOpenClientModal)} aoFechar={cleanForm} tamanho="xl">
+        <AlertModal />
+        <DialogoCabecalho>{client && client.id ? 'Editar Cliente' : 'Cadastrar Cliente'}</DialogoCabecalho>
+        {texto ? <div className="mb-4"><Banner tom="alerta">{texto}</Banner></div> : null}
+
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSaveData();
+          }}
         >
-          <AlertModal />
+          <p className="text-xs font-semibold tracking-[0.07em] text-muted-foreground uppercase">Dados do cliente</p>
 
-          <Grid container spacing={0}>
-            <Grid item xs={12}>
-              <BaseCard title={client && client.id ? 'Editar Cliente' : 'Cadastrar Cliente'}>
-                {texto && <Alert variant="filled" severity="warning">{texto}</Alert>}
+          {texto_('cliente-nome', 'Nome Completo', 'name', 100, { required: true })}
+          {texto_('cliente-mae', 'Nome da Mãe', 'mother', 50)}
 
-                <Typography
-                  sx={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--lg-text-muted)',
-                    letterSpacing: '0.07em',
-                    textTransform: 'uppercase',
-                    mb: 2,
-                  }}
-                >
-                  Dados do cliente
-                </Typography>
+          <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
+            {texto_('cliente-email', 'E-mail', 'email', 100, { type: 'email', required: true })}
+            <BasicDatePicker label="Data de Nascimento" name="born_date" value={born_date} setValue={(v) => setForm((atual) => ({ ...atual, born_date: v }))} required />
+            <CampoSelecao id="cliente-sexo" label="Sexo" value={sexo || ''} onChange={(e) => setForm((atual) => ({ ...atual, sexo: e.target.value }))}>
+              <option value="" disabled hidden />
+              <option value="MASCULINE">Masculino</option>
+              <option value="FEMININE">Feminino</option>
+            </CampoSelecao>
+          </div>
 
-                <Stack spacing={2}>
-                  <TextField
-                    id="name"
-                    label={name?.length > 0 ? `Nome Completo: ${100 - name.length} caracteres restantes` : 'Nome Completo'}
-                    variant="outlined"
-                    name="name"
-                    value={name || ''}
-                    onChange={changeItem}
-                    required
-                    inputProps={{
-                      style: { textTransform: 'uppercase' },
-                      maxLength: 100,
-                    }}
-                  />
+          <div className="grid gap-4 md:grid-cols-2">
+            <CampoSelecao id="cliente-raca" label="Raça/Cor" value={raca_cor || ''} onChange={(e) => setForm((atual) => ({ ...atual, raca_cor: e.target.value }))}>
+              <option value="">— Não selecionado —</option>
+              <option value="Branca">Branca</option>
+              <option value="Preta">Preta</option>
+              <option value="Amarela">Amarela</option>
+              <option value="Parda">Parda</option>
+              <option value="Indígena">Indígena</option>
+              <option value="Não informado">Não informado</option>
+            </CampoSelecao>
+            {client?.id && (
+              <BasicDatePicker
+                label={obitoReadOnly ? 'Data do Óbito (registrada pelo e-SUS)' : 'Data do Óbito'}
+                name="data_obito"
+                value={data_obito}
+                setValue={(v) => setForm((atual) => ({ ...atual, data_obito: v }))}
+                disabled={obitoReadOnly}
+              />
+            )}
+          </div>
 
-                  <TextField
-                    id="mother"
-                    label={mother?.length > 0 ? `Nome da Mae: ${50 - mother.length} caracteres restantes` : 'Nome da Mae'}
-                    variant="outlined"
-                    name="mother"
-                    value={mother || ''}
-                    onChange={changeItem}
-                    inputProps={{
-                      style: { textTransform: 'uppercase' },
-                      maxLength: 50,
-                    }}
-                  />
+          <div className="grid gap-4 md:grid-cols-3">
+            <CpfCnpj value={cpf} label="CPF" name="cpf" required changeItem={changeItem} />
+            {texto_('cliente-cns', 'Cartão do SUS', 'cns', 15)}
+            <Phone value={phone} label="Telefone" name="phone" changeItem={changeItem} />
+          </div>
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr' }, gap: 2 }}>
-                    <TextField
-                      label={email?.length > 0 ? `@Email: ${100 - email.length} caracteres restantes` : '@Email'}
-                      variant="outlined"
-                      type="email"
-                      name="email"
-                      value={email || ''}
-                      onChange={changeItem}
-                      required
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 100,
-                      }}
-                    />
+          <div className="grid gap-4 md:grid-cols-[1fr_3fr_1fr]">
+            {texto_('cliente-cep', 'CEP', 'zip_code', 10)}
+            {texto_('cliente-rua', 'Rua', 'street', 100)}
+            {texto_('cliente-numero', 'Nº', 'number', 6)}
+          </div>
 
-                    <BasicDatePicker
-                      label="Data de Nascimento"
-                      name="born_date"
-                      value={born_date}
-                      setValue={handleSetDn}
-                      required
-                    />
+          <div className="grid gap-4 md:grid-cols-3">
+            {texto_('cliente-complemento', 'Complemento', 'complement', 50)}
+            {texto_('cliente-bairro', 'Bairro', 'district', 100)}
+            {texto_('cliente-cidade', 'Cidade', 'city', 30)}
+          </div>
 
-                    <FormControl>
-                      <InputLabel id="sexo">Sexo</InputLabel>
-                      <Select
-                        labelId="sexo"
-                        id="sexo"
-                        value={sexo}
-                        label="Sexo"
-                        onChange={(event) => setForm({ ...form, sexo: event.target.value })}
-                      >
-                        <MenuItem value="MASCULINE">Masculino</MenuItem>
-                        <MenuItem value="FEMININE">Feminino</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
+          <CampoTexto
+            id="cliente-obs"
+            label="Observações"
+            name="obs"
+            multiline
+            rows={2}
+            maxLength={500}
+            dica={restantes(obs, 500)}
+            className="uppercase"
+            value={obs || ''}
+            onChange={changeItem}
+          />
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-                    <FormControl>
-                      <InputLabel id="raca_cor">Raça/Cor</InputLabel>
-                      <Select
-                        labelId="raca_cor"
-                        value={raca_cor || ''}
-                        label="Raça/Cor"
-                        onChange={(e) => setForm({ ...form, raca_cor: e.target.value })}
-                      >
-                        <MenuItem value="">— Não selecionado —</MenuItem>
-                        <MenuItem value="Branca">Branca</MenuItem>
-                        <MenuItem value="Preta">Preta</MenuItem>
-                        <MenuItem value="Amarela">Amarela</MenuItem>
-                        <MenuItem value="Parda">Parda</MenuItem>
-                        <MenuItem value="Indígena">Indígena</MenuItem>
-                        <MenuItem value="Não informado">Não informado</MenuItem>
-                      </Select>
-                    </FormControl>
+          <DialogoRodape>
+            <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+            <Button type="submit">Gravar</Button>
+          </DialogoRodape>
+        </form>
+      </Dialogo>
 
-                    {client?.id && (
-                      <BasicDatePicker
-                        label={obitoReadOnly ? 'Data do Óbito (registrada pelo e-SUS)' : 'Data do Óbito'}
-                        name="data_obito"
-                        value={data_obito}
-                        setValue={handleSetDataObito}
-                        disabled={obitoReadOnly}
-                      />
-                    )}
-                  </Box>
-
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
-                    <CpfCnpj value={cpf} label={'CPF'} name={'cpf'} required={'required'} changeItem={changeItem} />
-
-                    <TextField
-                      id="cns"
-                      label={cns?.length > 0 ? `CARTAO DO SUS: ${15 - cns.length} caracteres restantes` : 'CARTAO DO SUS'}
-                      variant="outlined"
-                      name="cns"
-                      value={cns || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 15,
-                      }}
-                    />
-
-                    <Phone value={phone} label={'Telefone'} name={'phone'} changeItem={changeItem} />
-                  </Box>
-
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 3fr 1fr' }, gap: 2 }}>
-                    <TextField
-                      id="zip_code"
-                      label={zip_code?.length > 0 ? `CEP: ${10 - zip_code.length} caracteres restantes` : 'CEP'}
-                      variant="outlined"
-                      name="zip_code"
-                      value={zip_code || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 10,
-                      }}
-                    />
-
-                    <TextField
-                      id="street"
-                      label={street?.length > 0 ? `Rua: ${100 - street.length} caracteres restantes` : 'Rua'}
-                      variant="outlined"
-                      name="street"
-                      value={street || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 100,
-                      }}
-                    />
-
-                    <TextField
-                      id="number"
-                      label={number?.length > 0 ? `N: ${6 - number.length} caracteres restantes` : 'N'}
-                      variant="outlined"
-                      name="number"
-                      value={number || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 6,
-                      }}
-                    />
-                  </Box>
-
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
-                    <TextField
-                      id="complement"
-                      label={complement?.length > 0 ? `Complemento: ${50 - complement.length} caracteres restantes` : 'Complemento'}
-                      variant="outlined"
-                      name="complement"
-                      value={complement || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 50,
-                      }}
-                    />
-
-                    <TextField
-                      id="district"
-                      label={district?.length > 0 ? `Bairro: ${100 - district.length} caracteres restantes` : 'Bairro'}
-                      variant="outlined"
-                      name="district"
-                      value={district || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 100,
-                      }}
-                    />
-
-                    <TextField
-                      id="city"
-                      label={city?.length > 0 ? `Cidade: ${30 - city.length} caracteres restantes` : 'Cidade'}
-                      variant="outlined"
-                      name="city"
-                      value={city || ''}
-                      onChange={changeItem}
-                      inputProps={{
-                        style: { textTransform: 'uppercase' },
-                        maxLength: 30,
-                      }}
-                    />
-                  </Box>
-
-                  <TextField
-                    className="client-obs-field"
-                    id="obs"
-                    label={obs?.length > 0 ? `OBS: ${500 - obs.length} caracteres restantes` : 'OBS'}
-                    multiline
-                    rows={1}
-                    sx={{
-                      '& .MuiInputBase-root.MuiOutlinedInput-root': {
-                        minHeight: '66px !important',
-                        height: '66px',
-                        alignItems: 'flex-start',
-                        padding: '8px 12px !important',
-                      },
-                      '& textarea.MuiInputBase-input': {
-                        height: '42px !important',
-                        minHeight: '42px !important',
-                        paddingTop: '0 !important',
-                        paddingBottom: '0 !important',
-                        lineHeight: '14px !important',
-                        overflow: 'auto',
-                      },
-                    }}
-                    value={obs || ''}
-                    name="obs"
-                    onChange={changeItem}
-                    inputProps={{
-                      style: { textTransform: 'uppercase' },
-                      maxLength: 500,
-                    }}
-                  />
-                </Stack>
-
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                  <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
-                    Gravar
-                  </Button>
-
-                  <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx}>
-                    Cancelar
-                  </Button>
-                </Box>
-              </BaseCard>
-            </Grid>
-          </Grid>
-        </Box>
-      </Modal>
-
-        <Dialog open={confirmObito} onClose={() => setConfirmObito(false)}>
-            <DialogTitle>Confirmar registro de óbito</DialogTitle>
-            <DialogContent>
-                <Typography>
-                    Informar a data do óbito irá <strong>inativar o cadastro e todas as filas abertas</strong> deste cliente. Deseja continuar?
-                </Typography>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.5, gap: 1.2 }}>
-                <Button onClick={() => setConfirmObito(false)} variant="outlined" sx={modalSecondaryButtonSx}>
-                    Cancelar
-                </Button>
-                <Button
-                  onClick={handleConfirmarObito}
-                  variant="contained"
-                  sx={{ ...modalPrimaryButtonSx, background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
-                >
-                    Confirmar
-                </Button>
-            </DialogActions>
-        </Dialog>
+      <Dialogo aberto={confirmObito} aoFechar={() => setConfirmObito(false)} tamanho="sm" alerta elevado>
+        <DialogoTitulo>Confirmar registro de óbito</DialogoTitulo>
+        <DialogoDescricao className="mt-3">
+          Informar a data do óbito irá <strong>inativar o cadastro e todas as filas abertas</strong> deste cliente. Deseja continuar?
+        </DialogoDescricao>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setConfirmObito(false)}>Cancelar</Button>
+          <Button variant="destructive" onClick={handleConfirmarObito}>Confirmar</Button>
+        </DialogoRodape>
+      </Dialogo>
     </div>
   );
 }
-
-
-
-
-

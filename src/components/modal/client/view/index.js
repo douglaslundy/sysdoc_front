@@ -1,8 +1,10 @@
 import React from 'react';
-import { Box, Button, Chip, Divider, Grid, Modal, Stack, Typography } from '@mui/material';
 import { format, parseISO } from 'date-fns';
-import BaseCard from '../../../baseCard/BaseCard';
-import { modalFormRootSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
+import { Button } from '../../../ui/button';
+import { Carregando } from '../../../ui/carregando';
+import { Dado } from '../../../ui/dado';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
+import { Pilula } from '../../../ui/pilula';
 
 const fieldLabel = {
   id: 'ID',
@@ -61,98 +63,49 @@ export default function ClientViewModal({ open, client, loading, error, onClose 
   const address = client?.addresses || {};
   const fields = getFieldEntries(client);
   const showDeathInfo = client?.st_falecido === true && !!client?.data_obito;
+  const naoInformado = (valor) => valor || 'Não informado';
 
   return (
-    <Modal
-      keepMounted
-      open={open}
-      onClose={onClose}
-      aria-labelledby="client-view-title"
-      aria-describedby="client-view-description"
-    >
-      <Box className="clients-modal-shell clients-view-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-        <BaseCard title={client?.id ? `Visualizar Cliente ${client.name || `#${client.id}`}` : 'Visualizar Cliente'}>
-          {loading ? (
-            <Typography sx={{ py: 2 }}>Carregando dados do cliente...</Typography>
-          ) : error ? (
-            <Typography sx={{ py: 2, color: 'error.main' }}>{error}</Typography>
-          ) : client?.id ? (
-            <Stack spacing={2.2}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {client.name || 'Cliente sem nome'}
-                </Typography>
-                <Chip
-                  label={client.active ? 'Ativo' : 'Inativo'}
-                  color={client.active ? 'success' : 'default'}
-                  variant="outlined"
-                />
-              </Box>
+    <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="xl">
+      <DialogoCabecalho>{client?.id ? `Visualizar Cliente ${client.name || `#${client.id}`}` : 'Visualizar Cliente'}</DialogoCabecalho>
+      {loading ? (
+        <Carregando>Carregando dados do cliente...</Carregando>
+      ) : error ? (
+        <p role="alert" className="py-4 text-sm text-danger">{error}</p>
+      ) : client?.id ? (
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="font-display text-lg font-bold">{client.name || 'Cliente sem nome'}</p>
+            <Pilula tom={client.active ? 'sucesso' : 'neutro'} contorno>{client.active ? 'Ativo' : 'Inativo'}</Pilula>
+          </div>
 
-              <Divider />
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-3">
+            {fields
+              .filter(([key]) => showDeathInfo || (key !== 'st_falecido' && key !== 'data_obito'))
+              .map(([key, value]) => (
+                <Dado key={key} rotulo={fieldLabel[key] || key}>{formatValue(key, value)}</Dado>
+              ))}
+          </div>
 
-              <Grid container spacing={2}>
-                {fields
-                  .filter(([key]) => showDeathInfo || (key !== 'st_falecido' && key !== 'data_obito'))
-                  .map(([key, value]) => (
-                  <Grid item xs={12} sm={6} md={4} key={key}>
-                    <Box sx={{ height: '100%' }}>
-                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>
-                        {fieldLabel[key] || key}
-                      </Typography>
-                      <Typography sx={{ fontSize: 14, wordBreak: 'break-word' }}>
-                        {formatValue(key, value)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+          <div className="border-t border-border pt-4">
+            <h3 className="mb-3 font-display text-base font-bold">Endereço</h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Dado rotulo="CEP">{naoInformado(address.zip_code)}</Dado>
+              <Dado rotulo="Rua">{naoInformado(address.street)}</Dado>
+              <Dado rotulo="Número">{naoInformado(address.number)}</Dado>
+              <Dado rotulo="Bairro">{naoInformado(address.district)}</Dado>
+              <Dado rotulo="Cidade">{naoInformado(address.city)}</Dado>
+              <Dado rotulo="Complemento">{naoInformado(address.complement)}</Dado>
+            </div>
+          </div>
 
-              <Divider />
-
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                  Endereço
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>CEP</Typography>
-                    <Typography sx={{ fontSize: 14 }}>{address.zip_code || 'Não informado'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={5}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>Rua</Typography>
-                    <Typography sx={{ fontSize: 14, wordBreak: 'break-word' }}>{address.street || 'Não informado'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={2}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>Número</Typography>
-                    <Typography sx={{ fontSize: 14 }}>{address.number || 'Não informado'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>Bairro</Typography>
-                    <Typography sx={{ fontSize: 14, wordBreak: 'break-word' }}>{address.district || 'Não informado'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>Cidade</Typography>
-                    <Typography sx={{ fontSize: 14, wordBreak: 'break-word' }}>{address.city || 'Não informado'}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: 'var(--lg-text-muted)' }}>Complemento</Typography>
-                    <Typography sx={{ fontSize: 14, wordBreak: 'break-word' }}>{address.complement || 'Não informado'}</Typography>
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>
-                  Voltar
-                </Button>
-              </Box>
-            </Stack>
-          ) : (
-            <Typography sx={{ py: 2 }}>Nenhum cliente selecionado.</Typography>
-          )}
-        </BaseCard>
-      </Box>
-    </Modal>
+          <DialogoRodape>
+            <Button variant="outline" onClick={onClose}>Voltar</Button>
+          </DialogoRodape>
+        </div>
+      ) : (
+        <p className="py-4 text-sm text-muted-foreground">Nenhum cliente selecionado.</p>
+      )}
+    </Dialogo>
   );
 }

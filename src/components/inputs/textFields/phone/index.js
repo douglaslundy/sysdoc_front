@@ -1,35 +1,18 @@
 import React from 'react';
-import { TextField } from "@mui/material";
 import InputMask from 'react-input-mask';
+import { Campo, Input } from '../../../ui/campos';
+import { useUid } from '../../../../lib/useUid';
 
-const PhoneMask = React.forwardRef((props, ref) => {
-    const { inputRef, ...styles } = props;
+export default function Phone(props) {
+    const { label, name, value, changeItem, className, ...rest } = props;
+    const id = useUid('telefone');
     return (
-        <InputMask
-        {...styles}
-        ref={inputRef || ref}
-        mask="(99) 99999-9999" maskChar={null} />
+        <Campo id={id} label={label}>
+            {(p) => (
+                <InputMask mask="(99) 99999-9999" maskChar={null} value={value ? value : ''} onChange={changeItem} {...rest}>
+                    {(maskProps) => <Input {...p} {...maskProps} name={name} inputMode="tel" className={className} />}
+                </InputMask>
+            )}
+        </Campo>
     );
-});
-
-export default function index(props) {
-
-    const { label,  name, value, changeItem, sx, ...rest } = props;
-    return (
-        <TextField
-            id={name}
-            label={label}
-            variant="outlined"
-            name={name}
-            sx={sx}
-            value={value ? value : ''}
-            onChange={changeItem}
-            {...rest}
-
-            InputProps={{
-                inputComponent: PhoneMask,
-            }}
-
-        />
-    )
 }
