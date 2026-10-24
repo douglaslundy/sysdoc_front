@@ -1,60 +1,39 @@
-﻿import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx
-} from '../_shared/modalFormStyles';
-import Modal from '@mui/material/Modal';
-import BaseCard from '../../baseCard/BaseCard';
-import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    FormControlLabel,
-    Switch,
-} from "@mui/material";
 import { showSpeciality } from '../../../store/ducks/specialities';
 import { closeSpecialitiesModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { editSpecialityFetch, addSpecialityFetch } from '../../../store/fetchActions/specialities';
 import AlertModal from '../../messagesModal';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { Campo, Input } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
+
+const FORM_VAZIO = { name: "", allows_session_scheduling: false };
+
 export default function SpecialityModal(props) {
-
-
-    const [form, setForm] = useState({
-        name: "",
-        allows_session_scheduling: false,
-    });
-
+    const [form, setForm] = useState(FORM_VAZIO);
     const { name, allows_session_scheduling } = form;
     const { speciality } = useSelector(state => state.specialities);
     const { isOpenSpecialitiesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
     const [texto, setTexto] = useState();
 
-    const changeItem = ({ target }) => {
-        setForm({ ...form, [target.name]: target.value });
+    const changeItem = ({ target: { name, value } }) => {
+        setForm(atual => ({ ...atual, [name]: value }));
     };
 
     const cleanForm = () => {
-        setForm({
-            name: "",
-            allows_session_scheduling: false,
-        });
+        setForm(FORM_VAZIO);
         setTexto('');
         dispatch(closeSpecialitiesModal());
         dispatch(showSpeciality({}));
-    }
-
+    };
 
     const handleSaveData = async () => {
-        speciality && speciality.id ? handlePutData() : handlePostData()
-    }
+        speciality && speciality.id ? handlePutData() : handlePostData();
+    };
 
     const handlePostData = async () => {
         dispatch(changeTitleAlert(`A especialidade ${form.name} foi Cadastrado com sucesso!`));
@@ -66,94 +45,44 @@ export default function SpecialityModal(props) {
         dispatch(editSpecialityFetch(form, cleanForm));
     };
 
-    const handleClose = () => {
-        cleanForm();
-    };
-
     useEffect(() => {
         if (speciality && speciality.id)
             setForm(speciality);
-
     }, [speciality]);
 
+    const editando = Boolean(speciality && speciality.id);
 
     return (
         <div>
             {props.children}
-            <Modal
-                keepMounted
-                open={isOpenSpecialitiesModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-                slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            >
-                <Box className="specialities-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-
-                    <AlertModal />
-
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={speciality && speciality.id ? "Editar Especialidade" : "Cadastrar Especialidade"}>
-                                {texto &&
-                                    <Alert variant="filled" severity="warning">
-                                        {texto}
-                                    </Alert>
-                                }
-
-                                <br />
-
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
-
-                                    <TextField
-                                        label={name && name.length > 0 ? `Remetente: ${50 - name.length} caracteres restantes` : 'Nome da Especialidade'}
-                                        variant="outlined"
-                                        name="name"
-                                        value={name ? name : ''}
-                                        onChange={changeItem}
-                                        required
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase",
-                                            },
-                                            maxLength: 50,
-                                            autoComplete: "off", // Desativa o preenchimento automático
-                                        }}
-                                    />
-
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={Boolean(allows_session_scheduling)}
-                                                onChange={(e) => setForm({ ...form, allows_session_scheduling: e.target.checked })}
-                                            />
-                                        }
-                                        label="Permite agendamento por sessões (ex: Fisioterapia)"
-                                    />
-
-                                </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
-                                        Gravar
-                                    </Button>
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
-                </Box>
-            </Modal>
+            <Dialogo aberto={Boolean(isOpenSpecialitiesModal)} aoFechar={cleanForm} tamanho="md">
+                <AlertModal />
+                <DialogoCabecalho>{editando ? "Editar Especialidade" : "Cadastrar Especialidade"}</DialogoCabecalho>
+                {texto ? <div className="mb-4"><Banner tom="alerta">{texto}</Banner></div> : null}
+                <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSaveData();
+                    }}
+                >
+                    <Campo
+                        id="especialidade-nome"
+                        label="Nome da especialidade"
+                        obrigatorio
+                        dica={name && name.length > 0 ? `${50 - name.length} caracteres restantes` : undefined}
+                    >
+                        {(p) => <Input {...p} name="name" value={name || ''} onChange={changeItem} required maxLength={50} autoComplete="off" className="uppercase" />}
+                    </Campo>
+                    <Interruptor id="especialidade-sessoes" marcado={allows_session_scheduling} aoMudar={(v) => setForm(atual => ({ ...atual, allows_session_scheduling: v }))}>
+                        Permite agendamento por sessões (ex: Fisioterapia)
+                    </Interruptor>
+                    <DialogoRodape>
+                        <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+                        <Button type="submit">Gravar</Button>
+                    </DialogoRodape>
+                </form>
+            </Dialogo>
         </div>
     );
 }
-
-
-
-

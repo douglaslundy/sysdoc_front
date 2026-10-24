@@ -1,5 +1,6 @@
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { X } from 'lucide-react';
+import { useRef } from 'react';
 import { cn } from '../../lib/cn';
 
 /**
@@ -9,6 +10,7 @@ import { cn } from '../../lib/cn';
  * Largura: nunca passa da tela (celular); altura rola dentro da caixa.
  */
 export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', alerta = false, elevado = false, className, children, ...props }) {
+  const popup = useRef(null);
   const largura = { sm: 'max-w-sm', md: 'max-w-[560px]', lg: 'max-w-[760px]', xl: 'max-w-[1100px]' }[tamanho] || 'max-w-[560px]';
   return (
     <DialogPrimitive.Root
@@ -22,6 +24,9 @@ export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', 
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop className={cn('ui-reset fixed inset-0 bg-black/60', elevado ? 'z-[1600]' : 'z-[1400]')} />
         <DialogPrimitive.Popup
+          ref={popup}
+          // Foco inicial no primeiro campo (não no X); sem campo, o padrão do base-ui.
+          initialFocus={() => popup.current?.querySelector('input:not([type=hidden]), select, textarea') || true}
           role={alerta ? 'alertdialog' : 'dialog'}
           // O Esc não pode vazar pela árvore React para um Modal do MUI que contenha este diálogo (fecharia os dois).
           onKeyDown={(e) => {
@@ -53,7 +58,7 @@ export function DialogoCabecalho({ children, comFechar = true, className }) {
     <div className={cn('mb-4 flex items-start justify-between gap-3', className)}>
       <DialogoTitulo>{children}</DialogoTitulo>
       {comFechar ? (
-        <DialogPrimitive.Close aria-label="Fechar" className="-mr-1 -mt-1 rounded-md p-1.5 text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50">
+        <DialogPrimitive.Close aria-label="Fechar" className="-mr-1 -mt-1 rounded-md p-1.5 text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-primary/25">
           <X className="size-5" />
         </DialogPrimitive.Close>
       ) : null}

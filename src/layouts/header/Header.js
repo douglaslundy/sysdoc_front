@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Moon, Sun } from "lucide-react";
 import { useRouter } from "next/router";
@@ -15,6 +15,9 @@ const Header = ({ menu }) => {
   const { pathname } = useRouter();
   const pageTitle = getPageTitle(pathname);
   const { toggleColorMode, mode } = useContext(ColorModeContext);
+  // O tema vem do navegador (localStorage); só desenha o ícone depois de montar para não divergir do HTML do servidor (React 17 não corrige o SVG na hidratação).
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
   const rotuloTema = mode === "dark" ? "Ativar tema claro" : "Ativar tema escuro";
 
   return (
@@ -27,7 +30,7 @@ const Header = ({ menu }) => {
         <KanbanShortcut />
         <ProtocolBell />
         <Button variant="ghost" size="icon" aria-label={rotuloTema} title={rotuloTema} onClick={toggleColorMode}>
-          {mode === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
+          {montado ? mode === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" /> : <span className="size-5" />}
         </Button>
         <ProfileDD />
       </div>

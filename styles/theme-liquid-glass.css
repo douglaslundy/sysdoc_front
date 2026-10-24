@@ -228,15 +228,15 @@ body,
   color: var(--lg-badge-visa-color);
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="tel"],
-input[type="date"],
-input[type="search"],
-.form-input,
-[class*="input-field"] {
+input[type="text"]:where(:not(.ui-reset *)),
+input[type="email"]:where(:not(.ui-reset *)),
+input[type="password"]:where(:not(.ui-reset *)),
+input[type="number"]:where(:not(.ui-reset *)),
+input[type="tel"]:where(:not(.ui-reset *)),
+input[type="date"]:where(:not(.ui-reset *)),
+input[type="search"]:where(:not(.ui-reset *)),
+.form-input:where(:not(.ui-reset *)),
+[class*="input-field"]:where(:not(.ui-reset *)) {
   background: var(--lg-glass-input);
   border: 0.5px solid var(--lg-border-input);
   border-radius: 10px;
@@ -251,27 +251,27 @@ input[type="search"],
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
 
-input::placeholder,
-.form-input::placeholder {
+input:where(:not(.ui-reset *))::placeholder,
+.form-input:where(:not(.ui-reset *))::placeholder {
   color: var(--lg-text-muted);
 }
 
-input:focus,
-.form-input:focus {
+input:focus:where(:not(.ui-reset *)),
+.form-input:focus:where(:not(.ui-reset *)) {
   border-color: var(--lg-border-input-focus);
   background: var(--lg-glass-input-focus);
   box-shadow: var(--lg-focus-ring);
 }
 
-input:disabled,
-.form-input:disabled {
+input:disabled:where(:not(.ui-reset *)),
+.form-input:disabled:where(:not(.ui-reset *)) {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-select,
-.form-select,
-[class*="select-field"] {
+select:where(:not(.ui-reset *)),
+.form-select:where(:not(.ui-reset *)),
+[class*="select-field"]:where(:not(.ui-reset *)) {
   background: var(--lg-glass-input);
   border: 0.5px solid var(--lg-border-input);
   border-radius: 10px;
@@ -285,13 +285,13 @@ select,
   transition: all 0.15s ease;
 }
 
-select:focus {
+select:focus:where(:not(.ui-reset *)) {
   border-color: var(--lg-border-input-focus);
   background: var(--lg-glass-input-focus);
   box-shadow: var(--lg-focus-ring);
 }
 
-select option {
+select option:where(:not(.ui-reset *)) {
   background: #1a2a50;
   color: #ffffff;
 }
@@ -301,8 +301,8 @@ select option {
   color: #0f172a;
 }
 
-textarea,
-.form-textarea {
+textarea:where(:not(.ui-reset *)),
+.form-textarea:where(:not(.ui-reset *)) {
   background: var(--lg-glass-input);
   border: 0.5px solid var(--lg-border-input);
   border-radius: 10px;
@@ -317,18 +317,18 @@ textarea,
   font-family: inherit;
 }
 
-textarea:focus {
+textarea:focus:where(:not(.ui-reset *)) {
   border-color: var(--lg-border-input-focus);
   background: var(--lg-glass-input-focus);
   box-shadow: var(--lg-focus-ring);
 }
 
-textarea::placeholder {
+textarea:where(:not(.ui-reset *))::placeholder {
   color: var(--lg-text-muted);
 }
 
-input[type="checkbox"],
-.form-checkbox {
+input[type="checkbox"]:where(:not(.ui-reset *)),
+.form-checkbox:where(:not(.ui-reset *)) {
   width: 16px;
   height: 16px;
   border-radius: 4px;
@@ -339,8 +339,8 @@ input[type="checkbox"],
   flex-shrink: 0;
 }
 
-.form-label,
-[class*="field-label"] {
+.form-label:where(:not(.ui-reset *)),
+[class*="field-label"]:where(:not(.ui-reset *)) {
   font-size: 11px;
   font-weight: 600;
   color: var(--lg-text-muted);
