@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Chip, Typography } from '@mui/material';
+import { Pilula } from '../ui/pilula';
 import { api } from '../../services/api';
 import CrudPage from './CrudPage';
 
@@ -92,19 +92,15 @@ export default function ProdutosPage() {
   ]), [options]);
 
   const columns = useMemo(() => ([
-    { key: 'nome', label: 'Produto', render: (row) => <Typography variant="h6" sx={{ fontWeight: 600 }}>{truncate(row.nome, 30)}</Typography> },
+    { key: 'nome', label: 'Produto', render: (row) => <span className="font-semibold">{truncate(row.nome, 30)}</span> },
     { key: 'codigo_interno', label: 'Código interno' },
     { key: 'estoque', label: 'Estoque', render: (row) => (
-      <Typography>
-        {Number(row.quantidade_disponivel_total || 0).toFixed(3)}
-      </Typography>
+      <span className="font-mono">{Number(row.quantidade_disponivel_total || 0).toFixed(3)}</span>
     ) },
     { key: 'disponibilidade', label: 'Disponível', render: (row) => (
-      <Chip
-        size="small"
-        color={Number(row.quantidade_disponivel_total || 0) > 0 ? 'success' : 'error'}
-        label={Number(row.quantidade_disponivel_total || 0) > 0 ? 'Disponível' : 'Indisponível'}
-      />
+      <Pilula tom={Number(row.quantidade_disponivel_total || 0) > 0 ? 'sucesso' : 'perigo'}>
+        {Number(row.quantidade_disponivel_total || 0) > 0 ? 'Disponível' : 'Indisponível'}
+      </Pilula>
     ) },
     { key: 'categoria', label: 'Categoria', render: (row) => row.categoria?.nome || '-' },
     { key: 'unidade', label: 'Unidade', render: (row) => row.unidade ? `${row.unidade.nome}${row.unidade.sigla ? ` (${row.unidade.sigla})` : ''}` : '-' },

@@ -1,36 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, Box, Button, Chip, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
-import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
-import TableLoadingRows from '../tableLoadingRows';
-import { modalBackdropSx, modalFormRootSx, modalShellSx } from '../modal/_shared/modalFormStyles';
 import { AuthContext } from '../../contexts/AuthContext';
-
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-  '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
+import { Paginacao } from '../ui/paginacao';
+import { Pilula } from '../ui/pilula';
 
 const STATUS_META = {
-  recebida: { color: 'default', label: 'Recebida' },
-  em_analise: { color: 'info', label: 'Em análise' },
-  aprovada: { color: 'success', label: 'Aprovada' },
-  recusada: { color: 'error', label: 'Recusada' },
-  em_separacao: { color: 'warning', label: 'Em separação' },
-  em_processo_de_entrega: { color: 'secondary', label: 'Em entrega' },
-  entregue: { color: 'success', label: 'Entregue' },
-  cancelada: { color: 'error', label: 'Cancelada' },
+  recebida: { tom: 'neutro', label: 'Recebida' },
+  em_analise: { tom: 'info', label: 'Em análise' },
+  aprovada: { tom: 'sucesso', label: 'Aprovada' },
+  recusada: { tom: 'perigo', label: 'Recusada' },
+  em_separacao: { tom: 'alerta', label: 'Em separação' },
+  em_processo_de_entrega: { tom: 'info', label: 'Em entrega' },
+  entregue: { tom: 'sucesso', label: 'Entregue' },
+  cancelada: { tom: 'perigo', label: 'Cancelada' },
 };
 
 const EMPTY_ITEM = { almoxarifado_produto_id: '', quantidade_solicitada: '', observacao: '' };
@@ -40,6 +31,15 @@ const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR');
 };
+
+function Dado({ rotulo, children }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{rotulo}</p>
+      <p className="text-sm">{children}</p>
+    </div>
+  );
+}
 
 export default function RequisicoesPage() {
   const { user: currentUserId, username, capabilities } = useContext(AuthContext);
@@ -146,171 +146,168 @@ export default function RequisicoesPage() {
     }
   };
 
-  return (
-    <Box sx={modalFormRootSx} className="queue-page almoxarifado-requisicoes-page">
-      <BaseCard title="Requisições">
-        <AlertModal />
-        {feedback && (
-          <Alert severity={feedback.type} onClose={() => setFeedback(null)} sx={{ mb: 2 }}>
-            {feedback.message}
-          </Alert>
-        )}
-        <Box className="queue-page__toolbar" sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <TextField className="lg-search-field" placeholder="Pesquisar requisição..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} sx={{ flex: '1 1 280px', minWidth: 220 }} />
-          {capabilities?.almoxarifado_create && (
-            <Button variant="contained" sx={{ ml: 'auto' }} onClick={() => setOpen(true)}>Nova Requisição</Button>
-          )}
-        </Box>
+  const botaoStatus = (row, status, rotulo) => (
+    <Button size="sm" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, status)}>
+      {updatingId === row.id ? <Loader2 aria-label="Atualizando" className="animate-spin" /> : rotulo}
+    </Button>
+  );
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Número</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Secretaria</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Solicitante</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Status</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Itens</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6" color="text.secondary">Ações</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            {loading ? (
-              <TableLoadingRows columns={6} rows={5} />
-            ) : (
-              <TableBody>
-                {rows.map((row) => {
-                  const meta = STATUS_META[row.status] || { color: 'default', label: row.status };
-                  return (
-                    <StyledTableRow key={row.id} hover>
-                      <TableCell><Typography variant="h6" sx={{ fontWeight: 600 }}>{row.numero}</Typography></TableCell>
-                      <TableCell>{row.secretaria?.nome || '-'}</TableCell>
-                      <TableCell>{row.solicitante}</TableCell>
-                      <TableCell><Chip size="small" color={meta.color} label={meta.label} /></TableCell>
-                      <TableCell>{row.itens?.length || 0}</TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>Detalhes</Button>
-                          {(Number(row.requisitante_user_id) === Number(currentUserId) || capabilities?.almoxarifado_approve || capabilities?.almoxarifado_deliver) && (
-                            <Button size="small" variant="outlined" onClick={() => printRequest(row)}>Imprimir</Button>
-                          )}
-                          {row.status === 'recebida' && capabilities?.almoxarifado_approve && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'aprovada')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Aprovar'}</Button>}
-                          {row.status === 'aprovada' && capabilities?.almoxarifado_deliver && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'em_separacao')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Separar'}</Button>}
-                          {row.status === 'em_separacao' && capabilities?.almoxarifado_deliver && <Button size="small" variant="contained" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'entregue')}>{updatingId === row.id ? <CircularProgress size={16} /> : 'Entregar'}</Button>}
-                          {row.status !== 'entregue' && row.status !== 'cancelada' && (Number(row.requisitante_user_id) === Number(currentUserId) || capabilities?.almoxarifado_approve || capabilities?.almoxarifado_deliver) && <Button size="small" color="error" variant="outlined" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>}
-                        </Stack>
-                      </TableCell>
-                    </StyledTableRow>
-                  );
-                })}
-                {!rows.length && (
-                  <TableRow><TableCell colSpan={6} align="center">Nenhuma requisição encontrada.</TableCell></TableRow>
-                )}
-              </TableBody>
+  const colunas = [
+    { chave: 'numero', titulo: 'Número', render: (row) => <span className="font-semibold">{row.numero}</span> },
+    { chave: 'secretaria', titulo: 'Secretaria', render: (row) => row.secretaria?.nome || '-' },
+    { chave: 'solicitante', titulo: 'Solicitante', render: (row) => row.solicitante },
+    {
+      chave: 'status',
+      titulo: 'Status',
+      render: (row) => {
+        const meta = STATUS_META[row.status] || { tom: 'neutro', label: row.status };
+        return <Pilula tom={meta.tom}>{meta.label}</Pilula>;
+      },
+    },
+    { chave: 'itens', titulo: 'Itens', numerica: true, render: (row) => row.itens?.length || 0 },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (row) => {
+        const podeGerir = Number(row.requisitante_user_id) === Number(currentUserId) || capabilities?.almoxarifado_approve || capabilities?.almoxarifado_deliver;
+        return (
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => openDetail(row.id)}>Detalhes</Button>
+            {podeGerir && <Button size="sm" variant="outline" onClick={() => printRequest(row)}>Imprimir</Button>}
+            {row.status === 'recebida' && capabilities?.almoxarifado_approve && botaoStatus(row, 'aprovada', 'Aprovar')}
+            {row.status === 'aprovada' && capabilities?.almoxarifado_deliver && botaoStatus(row, 'em_separacao', 'Separar')}
+            {row.status === 'em_separacao' && capabilities?.almoxarifado_deliver && botaoStatus(row, 'entregue', 'Entregar')}
+            {row.status !== 'entregue' && row.status !== 'cancelada' && podeGerir && (
+              <Button size="sm" variant="destructive" disabled={updatingId === row.id} onClick={() => updateStatus(row.id, 'cancelada')}>Cancelar</Button>
             )}
-          </Table>
-          <TablePagination className="queue-page__pagination" component="div" count={total} page={page} onPageChange={(_, next) => setPage(next)} rowsPerPage={perPage} onRowsPerPageChange={(e) => { setPerPage(parseInt(e.target.value, 10)); setPage(0); }} />
-        </TableContainer>
-      </BaseCard>
+          </div>
+        );
+      },
+    },
+  ];
 
-      <Modal keepMounted open={open} onClose={() => setOpen(false)} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-        <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
-          <BaseCard title="Nova Requisição">
-            <Stack spacing={2.2}>
-              <FormControl fullWidth>
-                <InputLabel>Secretaria</InputLabel>
-                <Select value={form.almoxarifado_secretaria_id} label="Secretaria" onChange={(e) => setForm((prev) => ({ ...prev, almoxarifado_secretaria_id: e.target.value }))}>
-                  <MenuItem value=""><em>Selecione</em></MenuItem>
-                  {secretarias.map((item) => <MenuItem key={item.id} value={item.id}>{item.nome}</MenuItem>)}
-                </Select>
-              </FormControl>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Requisitante</Typography>
-                <Typography>{username || 'Usuário logado'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Data da solicitação</Typography>
-                <Typography>{new Date().toLocaleDateString('pt-BR')}</Typography>
-              </Box>
-              <TextField label="Justificativa" value={form.justificativa} onChange={(e) => setForm((prev) => ({ ...prev, justificativa: e.target.value }))} multiline rows={2} />
-              <TextField label="Observações" value={form.observacoes} onChange={(e) => setForm((prev) => ({ ...prev, observacoes: e.target.value }))} multiline rows={2} />
+  return (
+    <div className="ui-reset">
+      <CabecalhoDePagina titulo="Requisições" subtitulo="Solicitações, aprovações e entrega." />
+      <AlertModal />
+      {feedback && (
+        <div className="mb-4">
+          <Banner tom={feedback.type === 'success' ? 'sucesso' : 'perigo'} onDispensar={() => setFeedback(null)}>{feedback.message}</Banner>
+        </div>
+      )}
 
-              <Box>
-                <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                  <Typography variant="h6">Itens</Typography>
-                  <Button size="small" onClick={addItem}>Adicionar item</Button>
-                </Box>
-                <Stack spacing={1.5}>
-                  {form.itens.map((item, index) => (
-                    <Box key={`${index}-${item.almoxarifado_produto_id || 'novo'}`} display="grid" gap={1.2} gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr 1fr auto' }}>
-                      <FormControl fullWidth>
-                        <InputLabel>Produto</InputLabel>
-                        <Select value={item.almoxarifado_produto_id} label="Produto" onChange={(e) => setItem(index, { almoxarifado_produto_id: e.target.value })}>
-                          <MenuItem value=""><em>Selecione</em></MenuItem>
-                          {produtos.map((p) => <MenuItem key={p.id} value={p.id}>{p.nome}</MenuItem>)}
-                        </Select>
-                      </FormControl>
-                      <TextField label="Quantidade" type="number" value={item.quantidade_solicitada} onChange={(e) => setItem(index, { quantidade_solicitada: e.target.value })} inputProps={{ min: 0, step: '0.001' }} />
-                      <TextField label="Observação" value={item.observacao} onChange={(e) => setItem(index, { observacao: e.target.value })} />
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        <IconButton onClick={() => removeItem(index)} disabled={form.itens.length === 1}>
-                          <FeatherIcon icon="trash" width="18" height="18" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            </Stack>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <CampoDeBusca
+          rotulo="Pesquisar requisição"
+          placeholder="Pesquisar requisição..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') load(); }}
+        />
+        {capabilities?.almoxarifado_create && (
+          <Button onClick={() => setOpen(true)}><Plus /> Nova requisição</Button>
+        )}
+      </div>
 
-            <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-              <Button variant="contained" onClick={submit}>Gravar</Button>
-              <Button variant="outlined" onClick={() => setOpen(false)}>Cancelar</Button>
-            </Box>
-          </BaseCard>
-        </Box>
-      </Modal>
+      <DataTable rotulo="Requisições" colunas={colunas} linhas={rows} chaveDaLinha={(row) => row.id} carregando={loading} vazio="Nenhuma requisição encontrada." />
+      <Paginacao
+        total={total}
+        pagina={page}
+        porPagina={perPage}
+        aoMudarPagina={setPage}
+        aoMudarPorPagina={(n) => {
+          setPerPage(n);
+          setPage(0);
+        }}
+      />
 
-      <Modal open={Boolean(detail) || detailLoading} onClose={() => setDetail(null)} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-        <Box sx={{ ...modalShellSx, ...modalFormRootSx, maxWidth: 900 }}>
-          <BaseCard title={detail ? `Requisição ${detail.numero}` : 'Carregando requisição'}>
-            {detailLoading ? (
-              <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
-            ) : detail ? (
-              <Stack spacing={2}>
-                <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: 'repeat(3, 1fr)' }} gap={2}>
-                  <Box><Typography variant="caption">Requisitante</Typography><Typography>{detail.requisitante?.name || detail.solicitante}</Typography></Box>
-                  <Box><Typography variant="caption">Data</Typography><Typography>{formatDate(detail.data_solicitacao)}</Typography></Box>
-                  <Box><Typography variant="caption">Status</Typography><Typography>{STATUS_META[detail.status]?.label || detail.status}</Typography></Box>
-                </Box>
+      <Dialogo aberto={open} aoFechar={() => setOpen(false)} tamanho="lg">
+        <DialogoCabecalho>Nova Requisição</DialogoCabecalho>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <CampoSelecao id="req-secretaria" label="Secretaria" value={form.almoxarifado_secretaria_id} onChange={(e) => setForm((prev) => ({ ...prev, almoxarifado_secretaria_id: e.target.value }))}>
+            <option value="">Selecione</option>
+            {secretarias.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}
+          </CampoSelecao>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Dado rotulo="Requisitante">{username || 'Usuário logado'}</Dado>
+            <Dado rotulo="Data da solicitação">{new Date().toLocaleDateString('pt-BR')}</Dado>
+          </div>
+          <CampoTexto id="req-justificativa" label="Justificativa" multiline rows={2} value={form.justificativa} onChange={(e) => setForm((prev) => ({ ...prev, justificativa: e.target.value }))} />
+          <CampoTexto id="req-observacoes" label="Observações" multiline rows={2} value={form.observacoes} onChange={(e) => setForm((prev) => ({ ...prev, observacoes: e.target.value }))} />
 
-                <Typography variant="h6">Itens</Typography>
-                {(detail.itens || []).map((item) => (
-                  <Box key={item.id} sx={{ p: 1.5, border: '1px solid var(--lg-border)', borderRadius: 2 }}>
-                    <Typography fontWeight={700}>{item.produto?.nome || '-'}</Typography>
-                    <Typography variant="body2">Quantidade solicitada: {item.quantidade_solicitada}</Typography>
-                  </Box>
-                ))}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="font-display text-base font-bold">Itens</h3>
+              <Button type="button" variant="ghost" size="sm" onClick={addItem}><Plus /> Adicionar item</Button>
+            </div>
+            <div className="space-y-3">
+              {form.itens.map((item, index) => (
+                <div key={`${index}-${item.almoxarifado_produto_id || 'novo'}`} className="grid items-end gap-3 rounded-lg border border-border p-3 md:grid-cols-[2fr_1fr_1fr_auto]">
+                  <CampoSelecao id={`req-item-${index}-produto`} label="Produto" value={item.almoxarifado_produto_id} onChange={(e) => setItem(index, { almoxarifado_produto_id: e.target.value })}>
+                    <option value="">Selecione</option>
+                    {produtos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                  </CampoSelecao>
+                  <CampoTexto id={`req-item-${index}-qtd`} label="Quantidade" type="number" min={0} step="0.001" value={item.quantidade_solicitada} onChange={(e) => setItem(index, { quantidade_solicitada: e.target.value })} />
+                  <CampoTexto id={`req-item-${index}-obs`} label="Observação" value={item.observacao} onChange={(e) => setItem(index, { observacao: e.target.value })} />
+                  <Button type="button" variant="ghost" size="icon" aria-label="Remover item" onClick={() => removeItem(index)} disabled={form.itens.length === 1}>
+                    <Trash2 />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
 
-                <Typography variant="h6">Histórico</Typography>
-                <Stack divider={<Box sx={{ borderBottom: '1px solid var(--lg-border)' }} />}>
-                  {[...(detail.historicos || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((entry) => (
-                    <Box key={entry.id} py={1.25}>
-                      <Typography fontWeight={700}>{STATUS_META[entry.novo_status]?.label || entry.novo_status}</Typography>
-                      <Typography variant="body2">{entry.user?.name || 'Sistema'} · {new Date(entry.created_at).toLocaleString('pt-BR')}</Typography>
-                      {entry.observacao && <Typography variant="body2" color="text.secondary">{entry.observacao}</Typography>}
-                    </Box>
-                  ))}
-                </Stack>
+          <DialogoRodape>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit">Gravar</Button>
+          </DialogoRodape>
+        </form>
+      </Dialogo>
 
-                <Box display="flex" justifyContent="flex-end" gap={1}>
-                  <Button variant="outlined" onClick={() => printRequest(detail)}>Imprimir</Button>
-                  <Button variant="contained" onClick={() => setDetail(null)}>Fechar</Button>
-                </Box>
-              </Stack>
-            ) : null}
-          </BaseCard>
-        </Box>
-      </Modal>
-    </Box>
+      <Dialogo aberto={Boolean(detail) || detailLoading} aoFechar={() => setDetail(null)} tamanho="lg">
+        <DialogoCabecalho>{detail ? `Requisição ${detail.numero}` : 'Carregando requisição'}</DialogoCabecalho>
+        {detailLoading ? (
+          <div className="flex justify-center py-8"><Loader2 aria-label="Carregando" className="size-8 animate-spin text-muted-foreground" /></div>
+        ) : detail ? (
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Dado rotulo="Requisitante">{detail.requisitante?.name || detail.solicitante}</Dado>
+              <Dado rotulo="Data">{formatDate(detail.data_solicitacao)}</Dado>
+              <Dado rotulo="Status">{STATUS_META[detail.status]?.label || detail.status}</Dado>
+            </div>
+
+            <h3 className="font-display text-base font-bold">Itens</h3>
+            {(detail.itens || []).map((item) => (
+              <div key={item.id} className="rounded-lg border border-border p-3">
+                <p className="font-semibold">{item.produto?.nome || '-'}</p>
+                <p className="text-sm text-muted-foreground">Quantidade solicitada: {item.quantidade_solicitada}</p>
+              </div>
+            ))}
+
+            <h3 className="font-display text-base font-bold">Histórico</h3>
+            <ul className="divide-y divide-border">
+              {[...(detail.historicos || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((entry) => (
+                <li key={entry.id} className="py-3">
+                  <p className="font-semibold">{STATUS_META[entry.novo_status]?.label || entry.novo_status}</p>
+                  <p className="text-sm text-muted-foreground">{entry.user?.name || 'Sistema'} · {new Date(entry.created_at).toLocaleString('pt-BR')}</p>
+                  {entry.observacao && <p className="text-sm text-muted-foreground">{entry.observacao}</p>}
+                </li>
+              ))}
+            </ul>
+
+            <DialogoRodape>
+              <Button variant="outline" onClick={() => printRequest(detail)}>Imprimir</Button>
+              <Button onClick={() => setDetail(null)}>Fechar</Button>
+            </DialogoRodape>
+          </div>
+        ) : null}
+      </Dialogo>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Chip, Typography } from '@mui/material';
+import { Pilula } from '../ui/pilula';
 import CrudPage from './CrudPage';
 
 export default function FornecedoresPage() {
@@ -15,10 +15,10 @@ export default function FornecedoresPage() {
   ]), []);
 
   const columns = useMemo(() => ([
-    { key: 'nome', label: 'Fornecedor', render: (row) => <Typography variant="h6" sx={{ fontWeight: 600 }}>{row.nome}</Typography> },
+    { key: 'nome', label: 'Fornecedor', render: (row) => <span className="font-semibold">{row.nome}</span> },
     { key: 'documento', label: 'Documento' },
     { key: 'contato', label: 'Contato' },
-    { key: 'status', label: 'Status', render: (row) => <Chip size="small" color={row.ativo ? 'success' : 'error'} label={row.ativo ? 'Ativo' : 'Inativo'} /> },
+    { key: 'status', label: 'Status', render: (row) => <Pilula tom={row.ativo ? 'sucesso' : 'perigo'}>{row.ativo ? 'Ativo' : 'Inativo'}</Pilula> },
   ]), []);
 
   return (

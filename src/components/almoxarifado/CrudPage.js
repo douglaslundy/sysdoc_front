@@ -1,26 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Modal, Select, Stack, Switch, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
-import BaseCard from '../baseCard/BaseCard';
 import AlertModal from '../messagesModal';
 import ConfirmDialog from '../confirmDialog';
-import TableLoadingRows from '../tableLoadingRows';
-import { modalBackdropSx, modalFormRootSx, modalShellSx } from '../modal/_shared/modalFormStyles';
-
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-  '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { Campo, Input, SelectNativo, TextareaNativo } from '../ui/campos';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
+import { Interruptor } from '../ui/interruptor';
+import { Paginacao } from '../ui/paginacao';
 
 const initialValue = (field) => {
   if (field.type === 'switch') return field.defaultValue ?? true;
@@ -137,181 +127,106 @@ export default function CrudPage({
     searchTimer.current = setTimeout(() => load({ search: target.value || undefined, page: 1 }), 350);
   };
 
+  const setField = (name, value) => setForm((prev) => ({ ...prev, [name]: value }));
+
+  const colunas = [
+    ...columns.map((column) => ({
+      chave: column.key,
+      titulo: column.label,
+      render: (row) => (column.render ? column.render(row) : row[column.key] ?? '-'),
+    })),
+    ...(tableActions
+      ? [{
+        chave: '__acoes',
+        titulo: 'Ações',
+        render: (row) => (
+          <div className="flex gap-2">
+            <Button variant="success" size="icon-sm" title="Editar" aria-label="Editar" onClick={() => openEdit(row)}>
+              <Pencil />
+            </Button>
+            <Button variant="destructive" size="icon-sm" title="Inativar" aria-label="Inativar" onClick={() => handleDelete(row)}>
+              <Trash2 />
+            </Button>
+          </div>
+        ),
+      }]
+      : []),
+  ];
+
+  const renderField = (field) => {
+    const id = `crud-${field.name}`;
+    if (field.type === 'switch') {
+      return (
+        <Interruptor key={field.name} id={id} marcado={!!form[field.name]} aoMudar={(v) => setField(field.name, v)}>
+          {field.label}
+        </Interruptor>
+      );
+    }
+    return (
+      <Campo key={field.name} id={id} label={field.label} dica={field.helperText}>
+        {(p) => {
+          if (field.type === 'select') {
+            return (
+              <SelectNativo {...p} value={form[field.name] ?? ''} onChange={(e) => setField(field.name, e.target.value)}>
+                <option value="">Selecione</option>
+                {(field.options || []).map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </SelectNativo>
+            );
+          }
+          if (field.multiline) {
+            return <TextareaNativo {...p} rows={field.rows} value={form[field.name] ?? ''} onChange={(e) => setField(field.name, e.target.value)} {...field.inputProps} />;
+          }
+          return <Input {...p} type={field.type || 'text'} value={form[field.name] ?? ''} onChange={(e) => setField(field.name, e.target.value)} {...field.inputProps} />;
+        }}
+      </Campo>
+    );
+  };
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page almoxarifado-crud-page">
-      <BaseCard title={title}>
-        <AlertModal />
-        {subtitle ? (
-          <Typography color="text.secondary" sx={{ mt: -1, mb: 2 }}>
-            {subtitle}
-          </Typography>
-        ) : null}
+    <div className="ui-reset">
+      <CabecalhoDePagina titulo={title} subtitulo={subtitle} />
+      <AlertModal />
 
-        <Box className="queue-page__toolbar" sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <TextField
-            className="lg-search-field"
-            placeholder="Pesquisar..."
-            value={search}
-            onChange={onSearch}
-            sx={{ flex: '1 1 280px', minWidth: 220 }}
-          />
-          <Fab
-            className="queue-page__fab queue-page__fab--add"
-            color="primary"
-            size="medium"
-            onClick={openCreate}
-            sx={{ ml: 'auto', flexShrink: 0 }}
-          >
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <CampoDeBusca rotulo="Pesquisar" placeholder="Pesquisar..." value={search} onChange={onSearch} />
+        <Button onClick={openCreate}>
+          <Plus /> Novo
+        </Button>
+      </div>
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell key={column.key} className="queue-page__th">
-                    <Typography variant="h6" color="text.secondary">{column.label}</Typography>
-                  </TableCell>
-                ))}
-                {tableActions && (
-                  <TableCell align="center" className="queue-page__th">
-                    <Typography variant="h6" color="text.secondary">Ações</Typography>
-                  </TableCell>
-                )}
-              </TableRow>
-            </TableHead>
-            {loading ? (
-              <TableLoadingRows columns={columns.length + (tableActions ? 1 : 0)} rows={5} />
-            ) : (
-              <TableBody>
-                {items.map((row) => (
-                  <StyledTableRow key={row.id} hover>
-                    {columns.map((column) => (
-                      <TableCell key={column.key}>
-                        {column.render ? column.render(row) : row[column.key] ?? '-'}
-                      </TableCell>
-                    ))}
-                    {tableActions && (
-                      <TableCell align="center">
-                        <Box sx={{ '& button': { mx: 0.75 } }}>
-                          <Button
-                            title="Editar"
-                            onClick={() => openEdit(row)}
-                            color="success"
-                            size="medium"
-                            variant="contained"
-                            className="queue-page__action queue-page__action--success"
-                          >
-                            <FeatherIcon icon="edit" width="20" height="20" />
-                          </Button>
-                          <Button
-                            title="Inativar"
-                            onClick={() => handleDelete(row)}
-                            color="error"
-                            size="medium"
-                            variant="contained"
-                            className="queue-page__action queue-page__action--danger"
-                          >
-                            <FeatherIcon icon="trash" width="20" height="20" />
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    )}
-                  </StyledTableRow>
-                ))}
-                {items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + (tableActions ? 1 : 0)} align="center">
-                      Nenhum registro encontrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={total}
-            page={page}
-            onPageChange={(_, nextPage) => setPage(nextPage)}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={(e) => {
-              setPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-            rowsPerPageOptions={perPageOptions}
-            labelRowsPerPage="Por página:"
-          />
-        </TableContainer>
-      </BaseCard>
+      <DataTable rotulo={title} colunas={colunas} linhas={items} chaveDaLinha={(row) => row.id} carregando={loading} vazio="Nenhum registro encontrado." />
+      <Paginacao
+        total={total}
+        pagina={page}
+        porPagina={perPage}
+        opcoes={perPageOptions}
+        aoMudarPagina={setPage}
+        aoMudarPorPagina={(n) => {
+          setPerPage(n);
+          setPage(0);
+        }}
+      />
 
-      <Modal keepMounted open={open} onClose={() => setOpen(false)} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-        <Box sx={{ ...modalShellSx, ...modalFormRootSx }}>
-          <BaseCard title={editing ? `Editar ${title}` : `Novo ${title}`}>
-            <Stack spacing={2.2}>
-              {fields.map((field) => {
-                if (field.type === 'switch') {
-                  return (
-                    <Box key={field.name} display="flex" alignItems="center" justifyContent="space-between">
-                      <Typography>{field.label}</Typography>
-                      <Switch
-                        checked={!!form[field.name]}
-                        onChange={(e) => setForm((prev) => ({ ...prev, [field.name]: e.target.checked }))}
-                      />
-                    </Box>
-                  );
-                }
-
-                if (field.type === 'select') {
-                  return (
-                    <FormControl fullWidth key={field.name}>
-                      <InputLabel>{field.label}</InputLabel>
-                      <Select
-                        value={form[field.name] ?? ''}
-                        label={field.label}
-                        onChange={(e) => setForm((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                      >
-                        <MenuItem value=""><em>Selecione</em></MenuItem>
-                        {(field.options || []).map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  );
-                }
-
-                return (
-                  <TextField
-                    key={field.name}
-                    fullWidth
-                    label={field.label}
-                    type={field.type || 'text'}
-                    value={form[field.name] ?? ''}
-                    onChange={(e) => setForm((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                    multiline={field.multiline}
-                    rows={field.rows}
-                    InputLabelProps={field.type === 'date' ? { shrink: true } : undefined}
-                    helperText={field.helperText}
-                    inputProps={field.inputProps}
-                  />
-                );
-              })}
-            </Stack>
-
-            <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-              <Button onClick={handleSave} variant="contained">Gravar</Button>
-              <Button onClick={() => setOpen(false)} variant="outlined">Cancelar</Button>
-            </Box>
-          </BaseCard>
-        </Box>
-      </Modal>
+      <Dialogo aberto={open} aoFechar={() => setOpen(false)}>
+        <DialogoCabecalho>{editing ? `Editar ${title}` : `Novo ${title}`}</DialogoCabecalho>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+        >
+          {fields.map(renderField)}
+          <DialogoRodape>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit">Gravar</Button>
+          </DialogoRodape>
+        </form>
+      </Dialogo>
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-    </Box>
+    </div>
   );
 }

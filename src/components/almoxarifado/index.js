@@ -1,9 +1,8 @@
 import React from 'react';
-import NextLink from 'next/link';
-import { Box, Button, Card, CardContent, Grid, Typography } from '@mui/material';
 import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { BotaoLink } from '../ui/botao-link';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 const AREAS = [
   { title: 'Produtos', href: '/almoxarifado/produtos', icon: 'archive', text: 'Cadastro e consulta de materiais.' },
@@ -22,39 +21,27 @@ const AREAS = [
 
 export default function AlmoxarifadoHome() {
   return (
-    <Box sx={modalFormRootSx} className="queue-page almoxarifado-page">
-      <BaseCard title="Almoxarifado">
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
-          Estrutura inicial do módulo de almoxarifado. As próximas etapas vão liberar os cadastros e fluxos operacionais.
-        </Typography>
-
-        <Grid container spacing={2}>
-          {AREAS.map((area) => (
-            <Grid item xs={12} sm={6} md={4} key={area.href}>
-              <Card className="queue-page__module-card">
-                <CardContent>
-                  <Box display="flex" alignItems="center" gap={1.25} mb={1}>
-                    <FeatherIcon icon={area.icon} width="18" height="18" />
-                    <Typography variant="h6">{area.title}</Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ minHeight: 48 }}>
-                    {area.text}
-                  </Typography>
-                  <NextLink href={area.href} passHref legacyBehavior>
-                    <Button
-                      component="a"
-                      variant="contained"
-                      sx={{ mt: 2 }}
-                    >
-                      Abrir
-                    </Button>
-                  </NextLink>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </BaseCard>
-    </Box>
+    <div className="ui-reset">
+      <CabecalhoDePagina
+        titulo="Almoxarifado"
+        subtitulo="Estrutura inicial do módulo de almoxarifado. As próximas etapas vão liberar os cadastros e fluxos operacionais."
+      />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {AREAS.map((area) => (
+          <Card key={area.href} size="sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FeatherIcon icon={area.icon} width="18" height="18" />
+                {area.title}
+              </CardTitle>
+              <CardDescription>{area.text}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BotaoLink href={area.href}>Abrir</BotaoLink>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }

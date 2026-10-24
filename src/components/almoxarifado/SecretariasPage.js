@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Chip, Typography } from '@mui/material';
+import { Pilula } from '../ui/pilula';
 import CrudPage from './CrudPage';
 
 export default function SecretariasPage() {
@@ -13,11 +13,11 @@ export default function SecretariasPage() {
   ]), []);
 
   const columns = useMemo(() => ([
-    { key: 'nome', label: 'Secretaria', render: (row) => <Typography variant="h6" sx={{ fontWeight: 600 }}>{row.nome}</Typography> },
+    { key: 'nome', label: 'Secretaria', render: (row) => <span className="font-semibold">{row.nome}</span> },
     { key: 'sigla', label: 'Sigla' },
     { key: 'responsavel', label: 'Responsável' },
     { key: 'contato', label: 'Contato' },
-    { key: 'status', label: 'Status', render: (row) => <Chip size="small" color={row.ativo ? 'success' : 'error'} label={row.ativo ? 'Ativa' : 'Inativa'} /> },
+    { key: 'status', label: 'Status', render: (row) => <Pilula tom={row.ativo ? 'sucesso' : 'perigo'}>{row.ativo ? 'Ativa' : 'Inativa'}</Pilula> },
   ]), []);
 
   return (

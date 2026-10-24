@@ -52,3 +52,25 @@ export function Campo({ id, label, erro, dica, obrigatorio, children }) {
     </div>
   );
 }
+
+/** Atalho: Campo + Input (ou TextareaNativo com `multiline`). Repassa o resto ao controle. */
+export function CampoTexto({ id, label, erro, dica, obrigatorio, multiline = false, rows, className, ...props }) {
+  return (
+    <Campo id={id} label={label} erro={erro} dica={dica} obrigatorio={obrigatorio}>
+      {(p) => (multiline ? <TextareaNativo {...p} rows={rows} className={className} {...props} /> : <Input {...p} className={className} {...props} />)}
+    </Campo>
+  );
+}
+
+/** Atalho: Campo + SelectNativo; as <option> vão em `children`. */
+export function CampoSelecao({ id, label, erro, dica, obrigatorio, className, children, ...props }) {
+  return (
+    <Campo id={id} label={label} erro={erro} dica={dica} obrigatorio={obrigatorio}>
+      {(p) => (
+        <SelectNativo {...p} className={className} {...props}>
+          {children}
+        </SelectNativo>
+      )}
+    </Campo>
+  );
+}

@@ -1,10 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import NextLink from 'next/link';
-import { Box, Button, Chip, Divider, FormControlLabel, Grid, Stack, Switch, TextField, Typography } from '@mui/material';
-import BaseCard from '../baseCard/BaseCard';
-import AlertModal from '../messagesModal';
+import { ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import AlertModal from '../messagesModal';
+import { BotaoLink } from '../ui/botao-link';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoTexto } from '../ui/campos';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Interruptor } from '../ui/interruptor';
+import { Pilula } from '../ui/pilula';
 
 const EMPTY = {
   permitir_saida_sem_saldo: false,
@@ -25,6 +29,15 @@ const QUICK_LINKS = [
   { href: '/almoxarifado/fornecedores', label: 'Fornecedores' },
   { href: '/almoxarifado/localizacoes', label: 'Localizações' },
   { href: '/almoxarifado/secretarias', label: 'Secretarias' },
+];
+
+const REGRAS = [
+  ['permitir_saida_sem_saldo', 'Permitir saída sem saldo'],
+  ['permitir_transferencia_entre_secretarias', 'Permitir transferência entre secretarias'],
+  ['exigir_justificativa_saida', 'Exigir justificativa na saída'],
+  ['exigir_localizacao_produto', 'Exigir localização no cadastro do produto'],
+  ['notificar_estoque_minimo', 'Notificar estoque mínimo'],
+  ['permite_produto_sem_validade', 'Permitir produto sem validade'],
 ];
 
 export default function ConfiguracoesPage() {
@@ -49,17 +62,11 @@ export default function ConfiguracoesPage() {
     };
   }, []);
 
-  const handleSwitch = (name) => (event) => {
-    const { checked } = event.target;
-    setForm((prev) => ({ ...prev, [name]: checked }));
-  };
+  const handleSwitch = (name) => (checked) => setForm((prev) => ({ ...prev, [name]: checked }));
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === 'estoque_minimo_alerta_percentual' ? value : value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -77,97 +84,65 @@ export default function ConfiguracoesPage() {
   };
 
   const summary = useMemo(() => ([
-    { label: 'Saída sem saldo', value: form.permitir_saida_sem_saldo ? 'Liberada' : 'Bloqueada', color: form.permitir_saida_sem_saldo ? 'warning' : 'success' },
-    { label: 'Transferência', value: form.permitir_transferencia_entre_secretarias ? 'Ativa' : 'Desativada', color: form.permitir_transferencia_entre_secretarias ? 'success' : 'error' },
-    { label: 'Justificativa', value: form.exigir_justificativa_saida ? 'Obrigatória' : 'Opcional', color: form.exigir_justificativa_saida ? 'warning' : 'default' },
-    { label: 'Alerta estoque', value: `${form.estoque_minimo_alerta_percentual || 0}%`, color: 'info' },
+    { label: 'Saída sem saldo', value: form.permitir_saida_sem_saldo ? 'Liberada' : 'Bloqueada', tom: form.permitir_saida_sem_saldo ? 'alerta' : 'sucesso' },
+    { label: 'Transferência', value: form.permitir_transferencia_entre_secretarias ? 'Ativa' : 'Desativada', tom: form.permitir_transferencia_entre_secretarias ? 'sucesso' : 'perigo' },
+    { label: 'Justificativa', value: form.exigir_justificativa_saida ? 'Obrigatória' : 'Opcional', tom: form.exigir_justificativa_saida ? 'alerta' : 'neutro' },
+    { label: 'Alerta estoque', value: `${form.estoque_minimo_alerta_percentual || 0}%`, tom: 'info' },
   ]), [form]);
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page almoxarifado-configuracoes-page">
-      <BaseCard title="Configurações do Almoxarifado">
-        <AlertModal />
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-          Aqui ficam as regras operacionais do almoxarifado e os atalhos para manter os cadastros-base organizados.
-        </Typography>
+    <div className="ui-reset">
+      <CabecalhoDePagina titulo="Configurações do Almoxarifado" subtitulo="Regras operacionais e atalhos para os cadastros-base." />
+      <AlertModal />
 
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-          {summary.map((item) => (
-            <Chip key={item.label} color={item.color} variant="outlined" label={`${item.label}: ${item.value}`} />
-          ))}
-        </Stack>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {summary.map((item) => (
+          <Pilula key={item.label} tom={item.tom} contorno>{`${item.label}: ${item.value}`}</Pilula>
+        ))}
+      </div>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={7}>
-            <BaseCard title="Regras operacionais">
-              <Stack spacing={1.25}>
-                <FormControlLabel control={<Switch checked={!!form.permitir_saida_sem_saldo} onChange={handleSwitch('permitir_saida_sem_saldo')} />} label="Permitir saída sem saldo" />
-                <FormControlLabel control={<Switch checked={!!form.permitir_transferencia_entre_secretarias} onChange={handleSwitch('permitir_transferencia_entre_secretarias')} />} label="Permitir transferência entre secretarias" />
-                <FormControlLabel control={<Switch checked={!!form.exigir_justificativa_saida} onChange={handleSwitch('exigir_justificativa_saida')} />} label="Exigir justificativa na saída" />
-                <FormControlLabel control={<Switch checked={!!form.exigir_localizacao_produto} onChange={handleSwitch('exigir_localizacao_produto')} />} label="Exigir localização no cadastro do produto" />
-                <FormControlLabel control={<Switch checked={!!form.notificar_estoque_minimo} onChange={handleSwitch('notificar_estoque_minimo')} />} label="Notificar estoque mínimo" />
-                <FormControlLabel control={<Switch checked={!!form.permite_produto_sem_validade} onChange={handleSwitch('permite_produto_sem_validade')} />} label="Permitir produto sem validade" />
+      <div className="grid gap-4 lg:grid-cols-[7fr_5fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Regras operacionais</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {REGRAS.map(([name, label]) => (
+              <Interruptor key={name} id={`cfg-${name}`} marcado={!!form[name]} aoMudar={handleSwitch(name)}>{label}</Interruptor>
+            ))}
+            <CampoTexto
+              id="cfg-percentual"
+              label="Percentual de alerta de estoque mínimo"
+              type="number"
+              name="estoque_minimo_alerta_percentual"
+              min={1}
+              max={100}
+              value={form.estoque_minimo_alerta_percentual}
+              onChange={handleChange}
+            />
+            <CampoTexto id="cfg-observacoes" label="Observações" name="observacoes" multiline rows={4} value={form.observacoes} onChange={handleChange} />
+            <div className="flex flex-wrap justify-end gap-2 pt-2">
+              <BotaoLink href="/almoxarifado" variant="outline">Voltar</BotaoLink>
+              <Button onClick={handleSave} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+            </div>
+          </CardContent>
+        </Card>
 
-                <TextField
-                  fullWidth
-                  label="Percentual de alerta de estoque mínimo"
-                  type="number"
-                  name="estoque_minimo_alerta_percentual"
-                  value={form.estoque_minimo_alerta_percentual}
-                  onChange={handleChange}
-                  inputProps={{ min: 1, max: 100 }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Observações"
-                  name="observacoes"
-                  value={form.observacoes}
-                  onChange={handleChange}
-                  multiline
-                  minRows={4}
-                />
-              </Stack>
-
-              <Box sx={{ display: 'flex', gap: 1, mt: 2.5, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                <NextLink href="/almoxarifado" passHref>
-                  <Button variant="outlined" component="a">
-                    Voltar
-                  </Button>
-                </NextLink>
-                <Button variant="contained" onClick={handleSave} disabled={saving || loading}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </Box>
-            </BaseCard>
-          </Grid>
-
-          <Grid item xs={12} md={5}>
-            <BaseCard title="Cadastros-base">
-              <Typography color="text.secondary" sx={{ mb: 2 }}>
-                Os cadastros abaixo alimentam produtos, estoque e requisições. Use-os para manter o módulo padronizado.
-              </Typography>
-              <Stack spacing={1}>
-                {QUICK_LINKS.map((item) => (
-                  <NextLink key={item.href} href={item.href} passHref>
-                    <Button
-                      component="a"
-                      variant="outlined"
-                      sx={{ justifyContent: 'space-between' }}
-                    >
-                      {item.label}
-                    </Button>
-                  </NextLink>
-                ))}
-              </Stack>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="body2" color="text.secondary">
-                Quando o módulo crescer, esta tela pode concentrar alertas, padrões de validação, regras de movimentação e parâmetros por secretaria.
-              </Typography>
-            </BaseCard>
-          </Grid>
-        </Grid>
-      </BaseCard>
-    </Box>
+        <Card>
+          <CardHeader>
+            <CardTitle>Cadastros-base</CardTitle>
+            <CardDescription>Alimentam produtos, estoque e requisições. Use-os para manter o módulo padronizado.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {QUICK_LINKS.map((item) => (
+              <BotaoLink key={item.href} href={item.href} variant="outline" className="w-full justify-between">
+                {item.label}
+                <ChevronRight />
+              </BotaoLink>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

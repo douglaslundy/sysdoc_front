@@ -31,3 +31,8 @@ export function Pilula({ tom, contorno = false, children }) {
     </span>
   );
 }
+
+const TOM_DA_COR = { success: 'sucesso', error: 'perigo', warning: 'alerta', info: 'info', primary: 'alerta', secondary: 'neutro', default: 'neutro' };
+
+/** Traduz a `color` do Chip do MUI para o `tom` da Pilula (telas migradas). */
+export const tomDaCor = (cor) => TOM_DA_COR[cor] || 'neutro';
