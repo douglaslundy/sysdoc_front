@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Box, Button, Chip, Collapse, FormControl, InputLabel, MenuItem,
-    Select, Table, TableBody, TableCell, TableContainer, TableHead,
-    TablePagination, TableRow, TextField, Typography, Grid,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
+import { ChevronDown, Download, Search, X } from 'lucide-react';
 import { getAuditLogs } from '../../store/fetchActions/auditLogs';
-import BaseCard from '../baseCard/BaseCard';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { auditoriaPDF } from '../../reports/auditoria';
 import { api } from '../../services/api';
 import { deviceDetails, deviceSummary } from '../../utils/deviceSummary';
+import { Button } from '../ui/button';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula, tomDaCor } from '../ui/pilula';
 
+// cor do Chip antigo; tomDaCor converte para o tom da Pilula
 const ACTION_COLORS = {
     LOGIN: 'info', LOGOUT: 'default', CREATE: 'success',
     UPDATE: 'warning', DELETE: 'error',
@@ -123,7 +122,7 @@ export default function Auditoria() {
     const [filters, setFilters]       = useState(FORM_INICIAL);
     const [page, setPage]             = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(50);
-    const [expanded, setExpanded]     = useState({});
+    const [detalhe, setDetalhe]       = useState(null);
     const [usuarios, setUsuarios]     = useState([]);
 
     const loadUsers = (activeFilters) => {
@@ -146,244 +145,170 @@ export default function Auditoria() {
 
     const handleFilter = () => { setPage(0); load(0); loadUsers(filters); };
     const handleReset  = () => { setFilters(FORM_INICIAL); setPage(0); load(0, FORM_INICIAL, rowsPerPage); loadUsers(FORM_INICIAL); };
-    const handlePage   = (_, p) => { setPage(p); load(p); };
-    const handleChangeRowsPerPage = (event) => {
-        const value = parseInt(event.target.value, 10);
+    const handlePage   = (p) => { setPage(p); load(p); };
+    const handleChangeRowsPerPage = (value) => {
         setRowsPerPage(value);
         setPage(0);
         load(0, filters, value);
     };
-    const toggle       = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
     const renderDiff = (log) => {
         const { oldValues, newValues } = auditDetails(log);
 
         if (log.action === 'UPDATE' && oldValues && newValues) {
-            const keys = Object.keys(newValues);
             return (
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell><b>Campo</b></TableCell>
-                            <TableCell><b>Antes</b></TableCell>
-                            <TableCell><b>Depois</b></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {keys.map(k => (
-                            <TableRow key={k}>
-                                <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{k}</TableCell>
-                                <TableCell sx={{ color: 'error.main', fontSize: 12 }}>{String(oldValues[k] ?? '—')}</TableCell>
-                                <TableCell sx={{ color: 'success.main', fontSize: 12 }}>{String(newValues[k] ?? '—')}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                        <thead>
+                            <tr className="text-muted-foreground">
+                                <th scope="col" className="py-1 pr-3 font-bold">Campo</th>
+                                <th scope="col" className="py-1 pr-3 font-bold">Antes</th>
+                                <th scope="col" className="py-1 font-bold">Depois</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.keys(newValues).map(k => (
+                                <tr key={k} className="border-t border-border align-top">
+                                    <td className="py-1 pr-3 font-mono">{k}</td>
+                                    <td className="break-words py-1 pr-3 text-danger">{String(oldValues[k] ?? '—')}</td>
+                                    <td className="break-words py-1 text-success">{String(newValues[k] ?? '—')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             );
         }
 
         const data = newValues || oldValues;
-        if (!data) return <Typography variant="body2" color="text.secondary">Sem dados registrados.</Typography>;
+        if (!data) return <p className="text-sm text-muted-foreground">Sem dados registrados.</p>;
 
-        return (
-            <Box component="pre" sx={{ fontSize: 12, m: 0, overflow: 'auto', maxHeight: 200 }}>
-                {JSON.stringify(data, null, 2)}
-            </Box>
-        );
+        return <pre className="m-0 max-h-[320px] overflow-auto text-xs">{JSON.stringify(data, null, 2)}</pre>;
     };
 
+    const colunas = [
+        {
+            chave: 'data',
+            titulo: 'Data/Hora',
+            render: (log) => <span className="text-xs">{new Date(log.created_at).toLocaleString('pt-BR')}</span>,
+        },
+        {
+            chave: 'usuario',
+            titulo: 'Usuário',
+            render: (log) => <span className="font-semibold">{log.user_name?.toUpperCase()}</span>,
+        },
+        {
+            chave: 'acao',
+            titulo: 'Ação',
+            render: (log) => (
+                <div className="flex flex-wrap items-center gap-1">
+                    <Pilula tom={tomDaCor(ACTION_COLORS[log.action])}>{log.action}</Pilula>
+                    {['VIEW', 'VIEW_REPORT', 'READ'].includes(log.action) && (
+                        <span className="font-mono text-[11px] text-muted-foreground">{pageViewFriendlyLabel(log) ?? endpointLabel(log.endpoint) ?? ''}</span>
+                    )}
+                    {citizenActionTarget(log) && (
+                        <span className="text-xs font-bold text-success">{citizenActionTarget(log).toUpperCase()}</span>
+                    )}
+                    {log.action === 'READ' && log.new_values?.filtros && (
+                        <span className="max-w-[320px] truncate rounded-full border border-border px-2 text-[10px]">
+                            {Object.entries(log.new_values.filtros)
+                                .filter(([, v]) => v !== '' && v != null)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(' · ')}
+                        </span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            chave: 'recurso',
+            titulo: 'Recurso',
+            render: (log) => log.model_type
+                ? <Pilula tom="neutro" contorno>{log.model_type.replace(/([A-Z])/g, ' $1').trim()}</Pilula>
+                : <span className="text-xs text-muted-foreground">—</span>,
+        },
+        {
+            chave: 'id',
+            titulo: 'ID',
+            render: (log) => <span className="font-mono text-xs">{log.model_id ?? '—'}</span>,
+        },
+        {
+            chave: 'ip',
+            titulo: 'IP',
+            render: (log) => (
+                <span title={deviceDetails(log.client_info, log.ip_origin)}>
+                    <span className="block font-mono text-xs">{log.ip_address}</span>
+                    {log.ip_origin && <span className="block text-xs text-muted-foreground">{log.ip_origin}</span>}
+                    {log.client_info && <span className="block text-xs text-muted-foreground">{deviceSummary(log.client_info)}</span>}
+                </span>
+            ),
+        },
+        {
+            chave: 'detalhes',
+            titulo: 'Detalhes',
+            render: (log) => (
+                <div className="flex items-center gap-1">
+                    {(log.old_values || log.new_values) && (
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setDetalhe(log)}>
+                            ver <ChevronDown aria-hidden />
+                        </Button>
+                    )}
+                    {log.action === 'UPDATE' && log.old_values && log.new_values && (
+                        <Button type="button" variant="ghost" size="icon-sm" onClick={() => auditoriaPDF(log)} title="Baixar PDF desta alteração" aria-label="Baixar PDF desta alteração">
+                            <Download />
+                        </Button>
+                    )}
+                </div>
+            ),
+        },
+    ];
+
+    const barra = (
+        <div className="flex w-full flex-wrap items-end gap-3">
+            <CampoSelecao id="aud-acao" label="Ação" value={filters.action} onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
+                <option value="">Todas</option>
+                {ACOES.map(a => <option key={a} value={a}>{a}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="aud-recurso" label="Recurso" value={filters.model_type} onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
+                <option value="">Todos</option>
+                {RECURSOS.map(m => <option key={m} value={m}>{m.replace(/([A-Z])/g, ' $1').trim().toUpperCase()}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="aud-usuario" label="Usuário" value={filters.user_name} onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
+                <option value="">Todos</option>
+                {usuarios.map(u => <option key={u.user_id} value={u.user_name}>{u.user_name.toUpperCase()}</option>)}
+            </CampoSelecao>
+            <CampoTexto id="aud-de" label="De" type="date" value={filters.date_from} onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))} />
+            <CampoTexto id="aud-ate" label="Até" type="date" value={filters.date_to} onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))} />
+            <Button type="button" onClick={handleFilter} aria-label="Filtrar"><Search aria-hidden /> Filtrar</Button>
+            <Button type="button" variant="outline" onClick={handleReset} aria-label="Limpar filtros"><X aria-hidden /> Limpar</Button>
+        </div>
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page auditoria-page">
-        <BaseCard title={`Auditoria — ${total} registros`}>
-            <Grid className="queue-page__toolbar" container spacing={2} mb={2} alignItems="stretch">
-                <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                    <InputLabel>Ação</InputLabel>
-                    <Select value={filters.action} label="Ação" onChange={e => setFilters(f => ({ ...f, action: e.target.value }))}>
-                        <MenuItem value=""><em>Todas</em></MenuItem>
-                        {ACOES.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
-                    </Select>
-                </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                    <InputLabel>Recurso</InputLabel>
-                    <Select value={filters.model_type} label="Recurso" onChange={e => setFilters(f => ({ ...f, model_type: e.target.value }))}>
-                        <MenuItem value=""><em>Todos</em></MenuItem>
-                        {RECURSOS.map(m => (
-                            <MenuItem key={m} value={m}>{m.replace(/([A-Z])/g, ' $1').trim().toUpperCase()}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                    <InputLabel>Usuário</InputLabel>
-                    <Select value={filters.user_name} label="Usuário" onChange={e => setFilters(f => ({ ...f, user_name: e.target.value }))}>
-                        <MenuItem value=""><em>Todos</em></MenuItem>
-                        {usuarios.map(u => (
-                            <MenuItem key={u.user_id} value={u.user_name}>{u.user_name.toUpperCase()}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                    fullWidth
-                    size="small"
-                    type="date"
-                    value={filters.date_from}
-                    onChange={e => setFilters(f => ({ ...f, date_from: e.target.value }))}
-                    title="De"
-                    InputLabelProps={{ shrink: true }}
-                />
-                </Grid>
-                <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                    fullWidth
-                    size="small"
-                    type="date"
-                    value={filters.date_to}
-                    onChange={e => setFilters(f => ({ ...f, date_to: e.target.value }))}
-                    title="Até"
-                    InputLabelProps={{ shrink: true }}
-                />
-                </Grid>
-
-                <Grid item xs={6} sm={3} md={1}>
-                <Button
-                    variant="contained"
-                    onClick={handleFilter}
-                    fullWidth
-                >
-                    <FeatherIcon icon="search" width="20" height="20" />
-                </Button>
-                </Grid>
-                <Grid item xs={6} sm={3} md={1}>
-                <Button
-                    variant="outlined"
-                    onClick={handleReset}
-                    fullWidth
-                >
-                    <FeatherIcon icon="x" width="20" height="20" />
-                </Button>
-                </Grid>
-            </Grid>
-
-            <TableContainer className="queue-page__table-wrap">
-                <Table className="queue-page__table" size="small" sx={{ whiteSpace: 'nowrap' }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell><Typography variant="h6" color="textSecondary">Data/Hora</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Usuário</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Ação</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Recurso</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">ID</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">IP</Typography></TableCell>
-                            <TableCell><Typography variant="h6" color="textSecondary">Detalhes</Typography></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {logs.map(log => (
-                            <React.Fragment key={log.id}>
-                                <TableRow hover sx={{ "& td": { background: "var(--queue-row-bg)", borderTop: "0.5px solid var(--lg-border)", borderBottom: "0.5px solid var(--lg-border)" }, "& td + td": { borderLeft: "0.5px solid rgba(114, 147, 222, 0.24)" }, "& td:first-of-type": { borderLeft: "0.5px solid var(--lg-border)", borderTopLeftRadius: 14, borderBottomLeftRadius: 14 }, "& td:last-of-type": { borderRight: "0.5px solid var(--lg-border)", borderTopRightRadius: 14, borderBottomRightRadius: 14 }, "&:hover td": { background: "var(--queue-row-hover)" } }}>
-                                    <TableCell sx={{ fontSize: 12 }}>
-                                        {new Date(log.created_at).toLocaleString('pt-BR')}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="body2" fontWeight={600}>{log.user_name?.toUpperCase()}</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
-                                            <Chip label={log.action} color={ACTION_COLORS[log.action] || 'default'} size="small" />
-                                            {['VIEW', 'VIEW_REPORT', 'READ'].includes(log.action) && (
-                                                <Typography sx={{ fontSize: 11, color: 'text.secondary', fontFamily: 'monospace' }}>
-                                                    {pageViewFriendlyLabel(log) ?? endpointLabel(log.endpoint) ?? ''}
-                                                </Typography>
-                                            )}
-                                            {citizenActionTarget(log) && (
-                                                <Typography sx={{ fontSize: 12, color: 'success.main', fontWeight: 700 }}>
-                                                    {citizenActionTarget(log).toUpperCase()}
-                                                </Typography>
-                                            )}
-                                            {log.action === 'READ' && log.new_values?.filtros && (
-                                                <Chip
-                                                    label={Object.entries(log.new_values.filtros)
-                                                        .filter(([, v]) => v !== '' && v != null)
-                                                        .map(([k, v]) => `${k}: ${v}`)
-                                                        .join(' · ')}
-                                                    size="small"
-                                                    variant="outlined"
-                                                    sx={{ fontSize: 10, maxWidth: 320 }}
-                                                />
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>
-                                        {log.model_type
-                                            ? <Chip label={log.model_type.replace(/([A-Z])/g, ' $1').trim().toUpperCase()} size="small" variant="outlined" />
-                                            : <Typography color="textSecondary" sx={{ fontSize: 12 }}>—</Typography>}
-                                    </TableCell>
-                                    <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
-                                        {log.model_id ?? '—'}
-                                    </TableCell>
-                                    <TableCell sx={{ fontSize: 12 }} title={deviceDetails(log.client_info, log.ip_origin)}>
-                                        <Box sx={{ fontFamily: 'monospace' }}>{log.ip_address}</Box>
-                                        {log.ip_origin && <Typography variant="caption" color="text.secondary" component="div">{log.ip_origin}</Typography>}
-                                        {log.client_info && <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(log.client_info)}</Typography>}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box display="flex" alignItems="center" gap={0.5}>
-                                            {(log.old_values || log.new_values) && (
-                                                <Button size="small" onClick={() => toggle(log.id)}
-                                                    endIcon={<FeatherIcon icon={expanded[log.id] ? 'chevron-up' : 'chevron-down'} width="14" height="14" />}>
-                                                    ver
-                                                </Button>
-                                            )}
-                                            {log.action === 'UPDATE' && log.old_values && log.new_values && (
-                                                <Button size="small" onClick={() => auditoriaPDF(log)} title="Baixar PDF desta alteração">
-                                                    <FeatherIcon icon="download" width="14" height="14" />
-                                                </Button>
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                                {(log.old_values || log.new_values) && (
-                                    <TableRow>
-                                        <TableCell colSpan={7} sx={{ p: 0, borderBottom: 0 }}>
-                                            <Collapse in={!!expanded[log.id]} timeout="auto" unmountOnExit>
-                                                <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1, m: 1 }}>
-                                                    {renderDiff(log)}
-                                                </Box>
-                                            </Collapse>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </React.Fragment>
-                        ))}
-                        {logs.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={7} align="center">
-                                    <Typography color="text.secondary">Nenhum registro encontrado</Typography>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-                <TablePagination
-                    className="queue-page__pagination"
-                    component="div"
-                    count={total}
-                    page={page}
-                    onPageChange={handlePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </TableContainer>
-        </BaseCard>
-        </Box>
+        <PaginaDeLista
+            titulo={`Auditoria — ${total} registros`}
+            barra={barra}
+            colunas={colunas}
+            linhas={logs}
+            chaveDaLinha={(log) => log.id}
+            vazio="Nenhum registro encontrado"
+            rotuloDaTabela="registros de auditoria"
+            paginacao={{
+                total,
+                pagina: page,
+                porPagina: rowsPerPage,
+                opcoes: [10, 25, 50, 100],
+                aoMudarPagina: handlePage,
+                aoMudarPorPagina: handleChangeRowsPerPage,
+            }}
+        >
+            <Dialogo aberto={Boolean(detalhe)} aoFechar={() => setDetalhe(null)} tamanho="lg">
+                <DialogoCabecalho>Detalhes do registro {detalhe?.id}</DialogoCabecalho>
+                {detalhe && renderDiff(detalhe)}
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={() => setDetalhe(null)}>Fechar</Button>
+                </DialogoRodape>
+            </Dialogo>
+        </PaginaDeLista>
     );
 }

@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
-import {
-    Box,
-    Typography,
-    Button,
-    Alert,
-    CircularProgress,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { Database, Download, Loader2 } from 'lucide-react';
 import { downloadBackup } from '../../store/fetchActions/backup';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
 
 export default function Backup() {
     const [loading, setLoading] = useState(false);
@@ -44,58 +38,36 @@ export default function Backup() {
     };
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page backup-page">
-        <BaseCard title="Backup do Banco de Dados">
-            <Box display="flex" flexDirection="column" gap={3} maxWidth={560}>
-                <Box display="flex" alignItems="flex-start" gap={2}>
-                    <FeatherIcon icon="database" width="32" height="32" color="#1976d2" />
-                    <Box>
-                        <Typography variant="subtitle1" fontWeight={600}>
-                            Exportar dump SQL completo
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary" mt={0.5}>
+        <div className="ui-reset">
+            <CabecalhoDePagina titulo="Backup do Banco de Dados" />
+            <div className="flex max-w-[560px] flex-col gap-6">
+                <div className="flex items-start gap-4">
+                    <Database className="size-8 shrink-0 text-primary" aria-hidden />
+                    <div>
+                        <h2 className="font-display text-base font-bold">Exportar dump SQL completo</h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Gera um arquivo <strong>.sql</strong> com a estrutura e os dados de todas as
                             tabelas do banco Sysdoc (MySQL, charset utf8mb4). O arquivo pode ser
                             importado diretamente em qualquer servidor MySQL compatível.
-                        </Typography>
-                    </Box>
-                </Box>
+                        </p>
+                    </div>
+                </div>
 
-                <Alert severity="warning" icon={<FeatherIcon icon="alert-triangle" width="18" height="18" />}>
+                <Banner tom="alerta">
                     Recomendado realizar o backup antes de atualizações ou manutenções.
                     O download pode levar alguns instantes dependendo do tamanho do banco.
-                </Alert>
+                </Banner>
 
-                {error && (
-                    <Alert severity="error" onClose={() => setError(null)}>
-                        {error}
-                    </Alert>
-                )}
+                {error && <Banner tom="perigo" onDispensar={() => setError(null)}>{error}</Banner>}
+                {success && <Banner tom="sucesso" onDispensar={() => setSuccess(false)}>Backup gerado com sucesso. Verifique sua pasta de downloads.</Banner>}
 
-                {success && (
-                    <Alert severity="success" onClose={() => setSuccess(false)}>
-                        Backup gerado com sucesso. Verifique sua pasta de downloads.
-                    </Alert>
-                )}
-
-                <Box>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        disabled={loading}
-                        onClick={handleDownload}
-                        startIcon={
-                            loading
-                                ? <CircularProgress size={18} color="inherit" />
-                                : <FeatherIcon icon="download" width="18" height="18" />
-                        }
-                    >
+                <div>
+                    <Button type="button" disabled={loading} onClick={handleDownload}>
+                        {loading ? <Loader2 className="animate-spin" aria-hidden /> : <Download aria-hidden />}
                         {loading ? 'Gerando backup...' : 'Fazer Backup'}
                     </Button>
-                </Box>
-            </Box>
-        </BaseCard>
-        </Box>
+                </div>
+            </div>
+        </div>
     );
 }
