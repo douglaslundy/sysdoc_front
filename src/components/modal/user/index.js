@@ -1,40 +1,15 @@
 ﻿import React, { useState, useEffect, useContext } from 'react';
 import AlertModal from '../../messagesModal';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import Phone from '../../inputs/textFields/phone';
-import {
-  modalFormRootSx,
-  modalBackdropSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from '../_shared/modalFormStyles';
-import BaseCard from '../../baseCard/BaseCard';
-import {
-  Grid,
-  Stack,
-  TextField,
-  Alert,
-  Button,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControl,
-  FormControlLabel,
-  Switch,
-  Typography,
-  Autocomplete,
-  Checkbox,
-  Chip,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@mui/material';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
+import { ComboboxMultiplo } from '../../ui/combobox-multiplo';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
 import { showUser } from '../../../store/ducks/users';
 import { editUserFetch, addUserFetch } from '../../../store/fetchActions/user';
 import { turnUserModal, changeTitleAlert, addAlertMessage } from '../../../store/ducks/Layout';
@@ -80,6 +55,8 @@ export default function UserModal(props) {
 
   const { profile, name, preferred_name, phone, email, cpf, is_driver, password, password2 } = form;
   const [texto, setTexto] = useState();
+  const [filtroUnidade, setFiltroUnidade] = useState('');
+  const [filtroEquipe, setFiltroEquipe] = useState('');
 
   const changeItem = ({ target }) => {
     setForm({
@@ -286,354 +263,195 @@ export default function UserModal(props) {
       .catch(() => {});
   }, [isOpenUserModal, userProfile, protocolUnits.length]);
 
+  const minusculas = (valor) => String(valor || '').toLowerCase();
+  const unidadesFiltradas = protocolUnits.filter((unit) => minusculas(unit.nome).includes(minusculas(filtroUnidade)));
+  const equipesFiltradas = equipesOpcoes.filter((equipe) => minusculas(equipe.no_equipe).includes(minusculas(filtroEquipe)));
+
+  const colunasDePermissao = [
+    ['can_view', 'Ver'],
+    ['can_edit', 'Editar'],
+    ['can_insert', 'Inserir paciente'],
+  ];
+
   return (
     <div>
       {props.children}
-      <Modal
-        keepMounted
-        open={isOpenUserModal}
-        onClose={handleClose}
-        aria-labelledby="keep-mounted-modal-title"
-        aria-describedby="keep-mounted-modal-description"
-        slotProps={{ backdrop: { sx: modalBackdropSx } }}
-      >
-        <Box
-          className="monitor-users-modal-shell"
-          sx={{ ...modalShellSx, ...modalFormRootSx }}
+      <Dialogo aberto={Boolean(isOpenUserModal)} aoFechar={handleClose} tamanho="lg">
+        <AlertModal />
+        <DialogoCabecalho>{user && user.id ? 'Editar Usuário' : 'Cadastrar Usuário'}</DialogoCabecalho>
+        {texto && <div className="mb-4"><Banner tom="alerta">{texto}</Banner></div>}
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleSaveData();
+          }}
         >
-          <AlertModal />
+          <p className="mb-4 font-display text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground">Dados do usuário</p>
 
-          <Grid container spacing={0}>
-            <Grid item xs={12} lg={12}>
-              <BaseCard title={user && user.id ? 'Editar Usuário' : 'Cadastrar Usuário'}>
-                {texto && <Alert variant="filled" severity="warning">{texto}</Alert>}
+          <div className="grid gap-4">
+            {userProfile === 'admin' && (
+              <CampoSelecao
+                id="profile"
+                label="Perfil do Usuário"
+                obrigatorio
+                name="profile"
+                value={profile}
+                onChange={changeItem}
+                disabled={Boolean(user && user.id === userId)}
+              >
+                <option value="">Selecione</option>
+                {dbProfiles
+                  .filter((p) => p.ativo && p.slug !== 'admin')
+                  .map((p) => (
+                    <option key={p.id} value={p.slug}>{p.nome}</option>
+                  ))}
+              </CampoSelecao>
+            )}
 
-                <Typography
-                  sx={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--lg-text-muted)',
-                    letterSpacing: '0.07em',
-                    textTransform: 'uppercase',
-                    mb: 2,
-                  }}
+            <CampoTexto id="name" label="Nome" name="name" value={name || ''} onChange={changeItem} obrigatorio className="uppercase" />
+
+            <CampoTexto
+              id="preferred_name"
+              label="Como gostaria de ser chamado"
+              name="preferred_name"
+              value={preferred_name || ''}
+              onChange={changeItem}
+              dica="Se não preencher, o chat exibirá o nome do usuário."
+              className="uppercase"
+            />
+
+            <CampoTexto id="email" label="@Email" type="email" name="email" value={email || ''} onChange={changeItem} obrigatorio />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Phone value={phone || ''} label="Telefone" name="phone" changeItem={changeItem} />
+              <CpfCnpj value={cpf || ''} label="CPF" name="cpf" changeItem={changeItem} disabled={Boolean(user && user.id)} />
+            </div>
+
+            <Interruptor id="is_driver" marcado={is_driver} aoMudar={handleIsDriver}>
+              {is_driver ? 'DIRIGE VEÍCULO OFICIAL' : 'NÃO DIRIGE VEÍCULO OFICIAL'}
+            </Interruptor>
+
+            {userProfile === 'admin' && (
+              <>
+                <CampoSelecao
+                  id="chat_access_override"
+                  label="Acesso individual ao chat"
+                  value={String(form.chat_access_override)}
+                  onChange={({ target }) => setForm((current) => ({
+                    ...current,
+                    chat_access_override: target.value === '' ? '' : target.value === 'true',
+                  }))}
                 >
-                  Dados do usuário
-                </Typography>
+                  <option value="">Herdar configuração do perfil</option>
+                  <option value="true">Permitir</option>
+                  <option value="false">Bloquear</option>
+                </CampoSelecao>
 
-                <Stack spacing={2}>
-                  {userProfile === 'admin' && (
-                  <FormControl fullWidth required>
-                    <InputLabel>Perfil do Usuário</InputLabel>
-                    <Select
-                        id="profile"
-                        value={profile}
-                        name="profile"
-                        label="Perfil do Usuário"
-                        onChange={changeItem}
-                        variant="outlined"
-                        disabled={Boolean(user && user.id === userId)}
-                      >
-                        {dbProfiles
-                          .filter((p) => p.ativo && p.slug !== 'admin')
-                          .map((p) => (
-                            <MenuItem key={p.id} value={p.slug}>
-                              {p.nome}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </FormControl>
-                  )}
-
-                  <TextField
-                    id="name"
-                    label="Nome"
-                    variant="outlined"
-                    name="name"
-                    value={name || ''}
-                    onChange={changeItem}
-                    required
-                    fullWidth
-                    inputProps={{
-                      style: {
-                        textTransform: 'uppercase',
-                      },
-                    }}
+                <div className="grid gap-1.5">
+                  <label htmlFor="protocol_units" className="text-sm font-medium">Secretaria / unidade organizacional</label>
+                  <ComboboxMultiplo
+                    id="protocol_units"
+                    rotulo="Secretaria / unidade organizacional"
+                    opcoes={unidadesFiltradas}
+                    selecionadas={protocolUnits.filter((unit) => form.protocol_unit_ids.includes(unit.id))}
+                    aoMudar={(selected) => setForm((current) => ({ ...current, protocol_unit_ids: selected.map((unit) => unit.id) }))}
+                    aoDigitar={setFiltroUnidade}
+                    rotuloDaOpcao={(option) => `${'— '.repeat(option.level || 0)}${option.nome}`}
+                    chaveDaOpcao={(option) => option.id}
                   />
+                </div>
 
-                  <TextField
-                    id="preferred_name"
-                    label="Como gostaria de ser chamado"
-                    variant="outlined"
-                    name="preferred_name"
-                    value={preferred_name || ''}
-                    onChange={changeItem}
-                    fullWidth
-                    helperText="Se não preencher, o chat exibirá o nome do usuário."
-                    inputProps={{
-                      style: {
-                        textTransform: 'uppercase',
-                      },
-                    }}
-                  />
+                <Interruptor
+                  id="is_rt_psf"
+                  marcado={form.is_rt_psf}
+                  aoMudar={(marcado) => setForm((f) => ({ ...f, is_rt_psf: marcado, rt_all_teams: false }))}
+                >
+                  É Responsável Técnico de Equipe PSF
+                </Interruptor>
 
-                  <TextField
-                    id="email"
-                    label="@Email"
-                    variant="outlined"
-                    type="email"
-                    name="email"
-                    value={email || ''}
-                    onChange={changeItem}
-                    required
-                    fullWidth
-                  />
+                {form.is_rt_psf && (
+                  <CaixaDeMarcacao id="rt_all_teams" marcado={form.rt_all_teams} aoMudar={(marcado) => setForm((f) => ({ ...f, rt_all_teams: marcado }))}>
+                    Acesso a todas as equipes
+                  </CaixaDeMarcacao>
+                )}
 
-                  <Phone
-                    value={phone || ''}
-                    label="Telefone"
-                    name="phone"
-                    changeItem={changeItem}
-                    fullWidth
-                  />
+                {form.is_rt_psf && !form.rt_all_teams && (
+                  <div className="grid gap-1.5">
+                    <label htmlFor="equipes_rt" className="text-sm font-medium">Equipes autorizadas</label>
+                    <ComboboxMultiplo
+                      id="equipes_rt"
+                      rotulo="Equipes autorizadas"
+                      opcoes={equipesFiltradas}
+                      selecionadas={equipesRt}
+                      aoMudar={setEquipesRt}
+                      aoDigitar={setFiltroEquipe}
+                      rotuloDaOpcao={(opt) => opt.no_equipe ?? ''}
+                      chaveDaOpcao={(opt) => opt.nu_ine}
+                      vazio={loadingEquipes ? 'Carregando...' : 'Nenhum resultado.'}
+                    />
+                  </div>
+                )}
 
-                  <CpfCnpj
-                    value={cpf || ''}
-                    label={'CPF'}
-                    name={'cpf'}
-                    changeItem={changeItem}
-                    disabled={Boolean(user && user.id)}
-                    fullWidth
-                  />
-
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={Boolean(is_driver)}
-                        onChange={(event) => handleIsDriver(event.target.checked)}
-                      />
-                    }
-                    label={is_driver ? 'DIRIGE VEÍCULO OFICIAL' : 'NÃO DIRIGE VEÍCULO OFICIAL'}
-                  />
-
-                  {userProfile === 'admin' && (
-                    <>
-                      <FormControl fullWidth>
-                        <InputLabel>Acesso individual ao chat</InputLabel>
-                        <Select
-                          value={form.chat_access_override}
-                          label="Acesso individual ao chat"
-                          onChange={(event) => setForm((current) => ({
-                            ...current,
-                            chat_access_override: event.target.value,
-                          }))}
-                        >
-                          <MenuItem value="">Herdar configuração do perfil</MenuItem>
-                          <MenuItem value={true}>Permitir</MenuItem>
-                          <MenuItem value={false}>Bloquear</MenuItem>
-                        </Select>
-                      </FormControl>
-
-                      <Autocomplete
-                        multiple
-                        fullWidth
-                        options={protocolUnits}
-                        getOptionLabel={(option) => `${'— '.repeat(option.level || 0)}${option.nome}`}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        value={protocolUnits.filter((unit) => form.protocol_unit_ids.includes(unit.id))}
-                        onChange={(_, selected) => setForm((current) => ({
-                          ...current,
-                          protocol_unit_ids: selected.map((unit) => unit.id),
-                        }))}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Secretaria / unidade organizacional"
-                            placeholder="Selecione a lotação do usuário"
-                          />
-                        )}
-                      />
-
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={Boolean(form.is_rt_psf)}
-                            onChange={e => setForm(f => ({
-                              ...f,
-                              is_rt_psf: e.target.checked,
-                              rt_all_teams: false,
-                            }))}
-                          />
-                        }
-                        label="É Responsável Técnico de Equipe PSF"
-                      />
-
-                      {form.is_rt_psf && (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={Boolean(form.rt_all_teams)}
-                              onChange={e => setForm(f => ({ ...f, rt_all_teams: e.target.checked }))}
-                            />
-                          }
-                          label="Acesso a todas as equipes"
-                        />
-                      )}
-
-                      {form.is_rt_psf && !form.rt_all_teams && (
-                        <Autocomplete
-                          multiple
-                          fullWidth
-                          options={equipesOpcoes}
-                          loading={loadingEquipes}
-                          getOptionLabel={opt => opt.no_equipe ?? ''}
-                          isOptionEqualToValue={(opt, val) => opt.nu_ine === val.nu_ine}
-                          value={equipesRt}
-                          onChange={(_, newValue) => setEquipesRt(newValue)}
-                          renderTags={(value, getTagProps) =>
-                            value.map((option, index) => (
-                              <Chip
-                                key={option.nu_ine}
-                                label={option.no_equipe}
-                                size="small"
-                                {...getTagProps({ index })}
-                              />
-                            ))
-                          }
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label="Equipes autorizadas"
-                              placeholder={equipesRt.length === 0 ? 'Selecione as equipes' : ''}
-                              variant="outlined"
-                              fullWidth
-                            />
-                          )}
-                        />
-                      )}
-
-                      {Boolean(user && user.id) && specialityPermissionsLoaded && specialityPermissions.length > 0 && perfilTemAcessoAFila && (
-                        <>
-                          <Typography
-                            sx={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              color: 'var(--lg-text-muted)',
-                              letterSpacing: '0.07em',
-                              textTransform: 'uppercase',
-                              mt: 1,
-                            }}
-                          >
-                            Permissões por especialidade da Fila
-                          </Typography>
-                          <Table size="small">
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>Especialidade</TableCell>
-                                <TableCell align="center">
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    Ver
-                                    <Switch
-                                      size="small"
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_view))}
-                                      onChange={() => toggleAllSpecialityPermissions('can_view')}
+                {Boolean(user && user.id) && specialityPermissionsLoaded && specialityPermissions.length > 0 && perfilTemAcessoAFila && (
+                  <div>
+                    <p className="mb-2 font-display text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground">Permissões por especialidade da Fila</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse text-left text-sm">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="py-2 pr-3 font-semibold">Especialidade</th>
+                            {colunasDePermissao.map(([campo, rotulo]) => (
+                              <th key={campo} className="px-2 py-2 text-center font-semibold">
+                                <div className="flex flex-col items-center gap-1">
+                                  {rotulo}
+                                  <CaixaDeMarcacao
+                                    aria-label={`${rotulo}: todas`}
+                                    marcado={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item[campo]))}
+                                    aoMudar={() => toggleAllSpecialityPermissions(campo)}
+                                  />
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {specialityPermissions.map((item) => (
+                            <tr key={item.speciality_id} className="border-b border-border last:border-0">
+                              <td className="py-2 pr-3">{item.speciality_name}</td>
+                              {colunasDePermissao.map(([campo, rotulo]) => (
+                                <td key={campo} className="px-2 py-2">
+                                  <div className="flex justify-center">
+                                    <CaixaDeMarcacao
+                                      aria-label={`${rotulo}: ${item.speciality_name}`}
+                                      marcado={Boolean(item[campo])}
+                                      aoMudar={() => toggleSpecialityPermission(item.speciality_id, campo)}
                                     />
-                                  </Box>
-                                </TableCell>
-                                <TableCell align="center">
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    Editar
-                                    <Switch
-                                      size="small"
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_edit))}
-                                      onChange={() => toggleAllSpecialityPermissions('can_edit')}
-                                    />
-                                  </Box>
-                                </TableCell>
-                                <TableCell align="center">
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    Inserir paciente
-                                    <Switch
-                                      size="small"
-                                      checked={specialityPermissions.length > 0 && specialityPermissions.every((item) => Boolean(item.can_insert))}
-                                      onChange={() => toggleAllSpecialityPermissions('can_insert')}
-                                    />
-                                  </Box>
-                                </TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {specialityPermissions.map((item) => (
-                                <TableRow key={item.speciality_id}>
-                                  <TableCell>{item.speciality_name}</TableCell>
-                                  <TableCell align="center">
-                                    <Switch
-                                      size="small"
-                                      checked={Boolean(item.can_view)}
-                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_view')}
-                                    />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <Switch
-                                      size="small"
-                                      checked={Boolean(item.can_edit)}
-                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_edit')}
-                                    />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <Switch
-                                      size="small"
-                                      checked={Boolean(item.can_insert)}
-                                      onChange={() => toggleSpecialityPermission(item.speciality_id, 'can_insert')}
-                                    />
-                                  </TableCell>
-                                </TableRow>
+                                  </div>
+                                </td>
                               ))}
-                            </TableBody>
-                          </Table>
-                        </>
-                      )}
-                    </>
-                  )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
-                  <TextField
-                    required
-                    fullWidth
-                    name="password"
-                    label="Senha"
-                    type="password"
-                    value={password || ''}
-                    onChange={changeItem}
-                    id="password"
-                  />
+            <div className="grid gap-4 md:grid-cols-2">
+              <CampoTexto id="password" label="Senha" type="password" name="password" value={password || ''} onChange={changeItem} obrigatorio autoComplete="new-password" />
+              <CampoTexto id="password2" label="Repita a Senha" type="password" name="password2" value={password2 || ''} onChange={changeItem} obrigatorio autoComplete="new-password" />
+            </div>
+          </div>
 
-                  <TextField
-                    required
-                    fullWidth
-                    name="password2"
-                    label="Repita a Senha"
-                    type="password"
-                    value={password2 || ''}
-                    onChange={changeItem}
-                    id="password2"
-                  />
-                </Stack>
-
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                  <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
-                    Gravar
-                  </Button>
-
-                  <Button onClick={cleanForm} variant="outlined" sx={modalSecondaryButtonSx}>
-                    Cancelar
-                  </Button>
-                </Box>
-              </BaseCard>
-            </Grid>
-          </Grid>
-        </Box>
-      </Modal>
+          <DialogoRodape>
+            <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+            <Button type="submit">Gravar</Button>
+          </DialogoRodape>
+        </form>
+      </Dialogo>
     </div>
   );
 }
-

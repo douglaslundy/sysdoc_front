@@ -1,29 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Box, Button, Chip, Fab, Table, TableBody, TableCell, TableContainer,
-    TableHead, TablePagination, TableRow, Typography, Modal, Stack,
-    TextField, FormControlLabel, Switch, Checkbox, FormGroup, FormLabel,
-    FormControl, Grid,
-    styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
 import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from '../actions';
 import { getAllProfiles, getAllPages, getAllPageCategories, addProfileFetch, editProfileFetch, removeProfileFetch } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
-import BaseCard from '../baseCard/BaseCard';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
-
-const modalStyle = {
-    position: 'absolute', top: '50%', left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%', height: '98%',
-    bgcolor: 'var(--lg-glass-modal)',
-    backdropFilter: 'var(--lg-blur-modal)',
-    WebkitBackdropFilter: 'var(--lg-blur-modal)',
-    border: '0.5px solid var(--lg-border)',
-    boxShadow: 24, p: 4, overflow: 'scroll',
-};
+import { Button } from '../ui/button';
+import { CampoTexto } from '../ui/campos';
+import { CaixaDeMarcacao } from '../ui/caixa-de-marcacao';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
+import { Interruptor } from '../ui/interruptor';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula } from '../ui/pilula';
+import { usePaginacaoLocal } from '../../lib/usePaginacaoLocal';
 
 const FORM_INICIAL = {
     nome: '',
@@ -39,29 +26,16 @@ const FORM_INICIAL = {
     client_history_view_enabled: false,
     page_ids: [],
 };
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': {
-        borderLeft: '0.5px solid var(--lg-border)',
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-    },
-    '& td:last-of-type': {
-        borderRight: '0.5px solid var(--lg-border)',
-        borderTopRightRadius: 14,
-        borderBottomRightRadius: 14,
-    },
-    '&:hover td': {
-        background: 'var(--queue-row-hover)',
-    },
-}));
+
+const PERMISSOES_OPERACIONAIS = [
+    ['chat_enabled', 'Permitir acesso ao chat'],
+    ['almoxarifado_create_enabled', 'Criar requisições do almoxarifado'],
+    ['almoxarifado_approve_enabled', 'Aprovar requisições do almoxarifado'],
+    ['almoxarifado_deliver_enabled', 'Separar e entregar requisições'],
+    ['client_trips_view_enabled', 'Ver viagens do cliente (Cidadãos)'],
+    ['client_report_view_enabled', 'Ver relatório detalhado do cliente'],
+    ['client_history_view_enabled', 'Ver histórico do cidadão (auditoria)'],
+];
 
 function agruparPorCategoria(pages, pageCategoryById) {
     return pages.reduce((acc, page) => {
@@ -80,8 +54,6 @@ export default function Perfis() {
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
         dispatch(getAllProfiles());
@@ -92,6 +64,8 @@ export default function Perfis() {
     const pageCategoryById = useMemo(() => {
         return new Map((Array.isArray(pageCategories) ? pageCategories : []).map((category) => [String(category.id), category]));
     }, [pageCategories]);
+
+    const campo = (name, value) => setForm((f) => ({ ...f, [name]: value }));
 
     const handleNovo = () => {
         setEditId(null);
@@ -128,230 +102,115 @@ export default function Perfis() {
     };
 
     const handleSave = () => {
+        const aoConcluir = () => { setOpenModal(false); dispatch(getAllProfiles()); };
         if (editId) {
-            dispatch(editProfileFetch(editId, form, () => { setOpenModal(false); dispatch(getAllProfiles()); }));
+            dispatch(editProfileFetch(editId, form, aoConcluir));
         } else {
-            dispatch(addProfileFetch(form, () => { setOpenModal(false); dispatch(getAllProfiles()); }));
+            dispatch(addProfileFetch(form, aoConcluir));
         }
     };
 
     const categorias = agruparPorCategoria(pages, pageCategoryById);
+    const termo = busca.toLowerCase();
     const perfisFiltrados = profiles.filter((profile) =>
-        profile.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-        profile.slug?.toLowerCase().includes(busca.toLowerCase()) ||
-        profile.descricao?.toLowerCase().includes(busca.toLowerCase())
+        profile.nome?.toLowerCase().includes(termo) ||
+        profile.slug?.toLowerCase().includes(termo) ||
+        profile.descricao?.toLowerCase().includes(termo)
     );
+    const { fatia, propsDaPaginacao } = usePaginacaoLocal(perfisFiltrados);
+
+    const colunas = [
+        {
+            chave: 'nome',
+            titulo: 'Nome / Slug',
+            render: (profile) => (
+                <>
+                    <span className="block font-semibold">{profile.nome}</span>
+                    <span className="block text-xs text-muted-foreground">{profile.slug}</span>
+                </>
+            ),
+        },
+        { chave: 'descricao', titulo: 'Descrição', render: (profile) => profile.descricao || '-' },
+        { chave: 'paginas', titulo: 'Páginas', render: (profile) => <Pilula tom="info">{`${profile.pages?.length || 0} páginas`}</Pilula> },
+        { chave: 'status', titulo: 'Status', render: (profile) => <Pilula tom={profile.ativo ? 'sucesso' : 'perigo'}>{profile.ativo ? 'Ativo' : 'Inativo'}</Pilula> },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (profile) => (
+                <div className="flex gap-2">
+                    <ActionEditButton title="Editar perfil" onClick={() => handleEditar(profile)} />
+                    <ActionDeleteButton title="Remover perfil" onClick={() => dispatch(removeProfileFetch(profile.id))} />
+                </div>
+            ),
+        },
+    ];
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page perfis-page">
-            <BaseCard title={`Voce possui ${profiles.length} Perfis de Acesso Cadastrados`}>
+        <PaginaDeLista
+            titulo="Perfis de Acesso"
+            subtitulo={`Você possui ${profiles.length} Perfis de Acesso Cadastrados`}
+            busca={{ rotulo: 'Buscar perfis', placeholder: 'Buscar por nome, slug ou descrição...', maxLength: 80, value: busca, onChange: (e) => setBusca(e.target.value) }}
+            barra={<ActionCreateFab title="Novo Perfil" onClick={handleNovo} />}
+            colunas={colunas}
+            linhas={fatia}
+            chaveDaLinha={(profile) => profile.id}
+            vazio="Nenhum perfil encontrado"
+            rotuloDaTabela="perfis"
+            paginacao={{ ...propsDaPaginacao, opcoes: [10, 25] }}
+        >
+            <AlertModal />
+            <Dialogo aberto={openModal} aoFechar={() => setOpenModal(false)} tamanho="xl">
                 <AlertModal />
-                <Box className="queue-page__toolbar" display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="nowrap" mb={2} sx={{ overflowX: 'auto' }}>
-                    <TextField
-                        className="lg-search-field"
-                        size="small"
-                        placeholder="Buscar por nome, slug ou descricao..."
-                        value={busca}
-                        onChange={(e) => { setBusca(e.target.value); setPage(0); }}
-                        inputProps={{ maxLength: 80 }}
-                        sx={{ minWidth: 260, flex: 1 }}
-                    />
-                    <ActionCreateFab className="queue-page__fab queue-page__fab--add" title="Novo Perfil" onClick={handleNovo} />
-                </Box>
-                <TableContainer className="queue-page__table-wrap">
-                    <Table aria-label="perfis" className="queue-page__table" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Nome / Slug</Typography></TableCell>
-                                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Descrição</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Paginas</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {perfisFiltrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((profile) => (
-                                <StyledTableRow key={profile.id} hover>
-                                    <TableCell>
-                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>{profile.nome}</Typography>
-                                        <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{profile.slug}</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="h6">{profile.descricao || '-'}</Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Chip label={`${profile.pages?.length || 0} paginas`} size="small" color="info" />
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Chip label={profile.ativo ? 'Ativo' : 'Inativo'} color={profile.ativo ? 'success' : 'error'} size="small" />
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
-                                            <ActionEditButton
-                                                className="queue-page__action queue-page__action--success"
-                                                title="Editar perfil"
-                                                onClick={() => handleEditar(profile)}
-                                            />
-                                            <ActionDeleteButton
-                                                className="queue-page__action queue-page__action--danger"
-                                                title="Remover perfil"
-                                                onClick={() => dispatch(removeProfileFetch(profile.id))}
-                                            />
-                                        </Box>
-                                    </TableCell>
-                                </StyledTableRow>
-                            ))}
-                            {perfisFiltrados.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} align="center">
-                                        <Typography color="text.secondary">Nenhum perfil encontrado</Typography>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    <TablePagination
-                        className="queue-page__pagination"
-                        component="div"
-                        count={perfisFiltrados.length}
-                        page={page}
-                        onPageChange={(_, p) => setPage(p)}
-                        rowsPerPage={rowsPerPage}
-                        onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-                        rowsPerPageOptions={[10, 25]}
-                        labelRowsPerPage="Por pagina:"
-                    />
-                </TableContainer>
-            </BaseCard>
+                <DialogoCabecalho>{editId ? 'Editar Perfil de Acesso' : 'Novo Perfil de Acesso'}</DialogoCabecalho>
+                <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <CampoTexto id="perfil-nome" label="Nome do Perfil" obrigatorio maxLength={60} value={form.nome} onChange={(e) => campo('nome', e.target.value)} />
+                        <CampoTexto
+                            id="perfil-slug"
+                            label="Slug (identificador)"
+                            obrigatorio
+                            maxLength={60}
+                            dica="Apenas letras minúsculas, números e hífens"
+                            value={form.slug}
+                            onChange={(e) => campo('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
+                        />
+                        <div className="md:col-span-2">
+                            <CampoTexto id="perfil-descricao" label="Descrição" maxLength={200} value={form.descricao} onChange={(e) => campo('descricao', e.target.value)} />
+                        </div>
+                        <div className="md:col-span-2">
+                            <Interruptor id="perfil-ativo" marcado={form.ativo} aoMudar={(v) => campo('ativo', v)}>Perfil ativo</Interruptor>
+                        </div>
+                    </div>
 
-            <Modal keepMounted open={openModal} onClose={() => setOpenModal(false)}>
-                <Box sx={modalStyle} className="perfis-modal-shell">
-                    <AlertModal />
-                    <BaseCard title={editId ? 'Editar Perfil de Acesso' : 'Novo Perfil de Acesso'}>
-                        <Stack spacing={3}>
-                            <Grid container spacing={2} className="perfis-form-grid">
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        className="lg-search-field"
-                                        fullWidth
-                                        label="Nome do Perfil"
-                                        value={form.nome}
-                                        onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-                                        required
-                                        inputProps={{ maxLength: 60 }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        className="lg-search-field"
-                                        fullWidth
-                                        label="Slug (identificador)"
-                                        value={form.slug}
-                                        onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '') }))}
-                                        required
-                                        inputProps={{ maxLength: 60 }}
-                                        helperText="Apenas letras minusculas, numeros e hifens"
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        className="lg-search-field"
-                                        fullWidth
-                                        label="Descrição"
-                                        value={form.descricao}
-                                        onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))}
-                                        inputProps={{ maxLength: 200 }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.ativo} onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))} />}
-                                        label="Perfil ativo"
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Typography variant="h6" fontWeight="bold">Permissões operacionais</Typography>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.chat_enabled} onChange={(e) => setForm((f) => ({ ...f, chat_enabled: e.target.checked }))} />}
-                                        label="Permitir acesso ao chat"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.almoxarifado_create_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_create_enabled: e.target.checked }))} />}
-                                        label="Criar requisições do almoxarifado"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.almoxarifado_approve_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_approve_enabled: e.target.checked }))} />}
-                                        label="Aprovar requisições do almoxarifado"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.almoxarifado_deliver_enabled} onChange={(e) => setForm((f) => ({ ...f, almoxarifado_deliver_enabled: e.target.checked }))} />}
-                                        label="Separar e entregar requisições"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.client_trips_view_enabled} onChange={(e) => setForm((f) => ({ ...f, client_trips_view_enabled: e.target.checked }))} />}
-                                        label="Ver viagens do cliente (Cidadãos)"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.client_report_view_enabled} onChange={(e) => setForm((f) => ({ ...f, client_report_view_enabled: e.target.checked }))} />}
-                                        label="Ver relatório detalhado do cliente"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <FormControlLabel
-                                        control={<Switch checked={form.client_history_view_enabled} onChange={(e) => setForm((f) => ({ ...f, client_history_view_enabled: e.target.checked }))} />}
-                                        label="Ver histórico do cidadão (auditoria)"
-                                    />
-                                </Grid>
-                            </Grid>
+                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Permissões operacionais</h3>
+                    <div className="grid gap-3 md:grid-cols-2">
+                        {PERMISSOES_OPERACIONAIS.map(([nome, rotulo]) => (
+                            <Interruptor key={nome} id={`perfil-${nome}`} marcado={form[nome]} aoMudar={(v) => campo(nome, v)}>{rotulo}</Interruptor>
+                        ))}
+                    </div>
 
-                            <Typography variant="h5" fontWeight="bold">Paginas com Acesso</Typography>
+                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Páginas com Acesso</h3>
+                    <div className="grid gap-4">
+                        {Object.entries(categorias).map(([categoria, catPages]) => (
+                            <fieldset key={categoria} className="min-w-0 border-0 p-0">
+                                <legend className="mb-2 text-sm font-semibold text-primary-text">{categoria}</legend>
+                                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                    {catPages.map((pg) => (
+                                        <CaixaDeMarcacao key={pg.id} id={`perfil-pagina-${pg.id}`} marcado={form.page_ids.includes(pg.id)} aoMudar={() => handleTogglePage(pg.id)}>
+                                            {pg.titulo}
+                                        </CaixaDeMarcacao>
+                                    ))}
+                                </div>
+                            </fieldset>
+                        ))}
+                    </div>
 
-                            {Object.entries(categorias).map(([categoria, catPages]) => (
-                                <Box key={categoria} className="perfis-page-group">
-                                    <FormControl component="fieldset" fullWidth>
-                                        <FormLabel component="legend" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                                            {categoria}
-                                        </FormLabel>
-                                        <FormGroup row className="perfis-page-group__items">
-                                            {catPages.map((pg) => (
-                                                <FormControlLabel
-                                                    key={pg.id}
-                                                    control={
-                                                        <Checkbox
-                                                            checked={form.page_ids.includes(pg.id)}
-                                                            onChange={() => handleTogglePage(pg.id)}
-                                                            size="small"
-                                                        />
-                                                    }
-                                                    label={pg.titulo}
-                                                    sx={{ minWidth: 200 }}
-                                                />
-                                            ))}
-                                        </FormGroup>
-                                    </FormControl>
-                                </Box>
-                            ))}
-                        </Stack>
-                        <br />
-                        <Box sx={{ '& button': { mx: 1 } }}>
-                            <Button variant="contained" onClick={handleSave}>Gravar</Button>
-                            <Button variant="outlined" onClick={() => setOpenModal(false)}>Cancelar</Button>
-                        </Box>
-                    </BaseCard>
-                </Box>
-            </Modal>
-        </Box>
+                    <DialogoRodape>
+                        <Button type="button" variant="outline" onClick={() => setOpenModal(false)}>Cancelar</Button>
+                        <Button type="submit">Gravar</Button>
+                    </DialogoRodape>
+                </form>
+            </Dialogo>
+        </PaginaDeLista>
     );
 }

@@ -1,53 +1,17 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
-import {
-  Typography,
-  Box,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  styled,
-  TableContainer,
-  TablePagination,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
-
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
-import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from "../actions";
-
 import { useSelector, useDispatch } from "react-redux";
+import Router from "next/router";
 import { getAllUsers, inactiveUserFetch } from "../../store/fetchActions/user";
 import { showUser } from "../../store/ducks/users";
 import { changeTitleAlert, turnUserModal } from "../../store/ducks/Layout";
+import { AuthContext } from "../../contexts/AuthContext";
 import ConfirmDialog from "../confirmDialog";
 import AlertModal from "../messagesModal";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
-import { AuthContext } from "../../contexts/AuthContext";
-import Router from "next/router";
-import TableLoadingRows from "../tableLoadingRows";
-
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderRadius: '14px 0 0 14px' },
-  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderRadius: '0 14px 14px 0' },
-  '&:hover td': {
-    background: 'var(--queue-row-hover)',
-  },
-}));
+import { ActionCreateFab, ActionDeleteButton, ActionEditButton } from "../actions";
+import { SelectNativo } from "../ui/campos";
+import { PaginaDeLista } from "../ui/pagina-de-lista";
+import { Pilula } from "../ui/pilula";
+import { usePaginacaoLocal } from "../../lib/usePaginacaoLocal";
 
 const formatRelativeDays = (value) => {
   if (!value) return 'Sem registro';
@@ -74,13 +38,17 @@ export default function Users() {
   const [searchValue, setSearchValue] = useState("");
   const [presenceFilter, setPresenceFilter] = useState("all");
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
   useEffect(() => {
     if (!permissionsLoaded) return;
     dispatch(getAllUsers());
   }, [dispatch, permissionsLoaded]);
+
+  useEffect(() => {
+    if (!permissionsLoaded) return;
+    if (profile !== "admin" && profile !== "user") {
+      Router.push("/");
+    }
+  }, [profile, permissionsLoaded]);
 
   const filteredUsers = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
@@ -95,12 +63,14 @@ export default function Users() {
     });
   }, [users, searchValue, presenceFilter]);
 
-  const handleEditUser = async (user) => {
+  const { fatia, propsDaPaginacao } = usePaginacaoLocal(filteredUsers);
+
+  const handleEditUser = (user) => {
     dispatch(showUser(user));
     dispatch(turnUserModal());
   };
 
-  const handleInactiveUser = async (user) => {
+  const handleInactiveUser = (user) => {
     setConfirmDialog({
       ...confirmDialog,
       isOpen: true,
@@ -110,210 +80,80 @@ export default function Users() {
     dispatch(changeTitleAlert(`O usuário ${user.name} foi inativado com sucesso!`));
   };
 
-  const handleSearchUsers = ({ target }) => {
-    setSearchValue(target.value || "");
-    setPage(0);
-  };
+  const colunas = [
+    {
+      chave: "nome",
+      titulo: "Nome / Perfil",
+      render: (user) => (
+        <>
+          <span className="block font-semibold uppercase">{user?.name || ""}</span>
+          <span className="block text-xs uppercase text-muted-foreground">{user?.profile || "user"}</span>
+        </>
+      ),
+    },
+    {
+      chave: "contato",
+      titulo: "CPF / E-mail",
+      render: (user) => (
+        <>
+          <span className="block text-xs text-muted-foreground">{user?.cpf || "-"}</span>
+          <span className="block break-all text-xs">{user?.email || "-"}</span>
+        </>
+      ),
+    },
+    {
+      chave: "presenca",
+      titulo: "Presença",
+      render: (user) => (
+        <div className="flex flex-col items-start gap-1">
+          <Pilula tom={user?.is_online ? "sucesso" : "perigo"}>{user?.is_online ? "Online" : "Offline"}</Pilula>
+          <span className="text-xs text-muted-foreground">
+            {user?.is_online ? "Online agora" : `Última vez online ${formatRelativeDays(user?.last_seen_at)}`}
+          </span>
+        </div>
+      ),
+    },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (user) => (
+        <div className="flex gap-2">
+          <ActionEditButton title="Editar usuário" onClick={() => handleEditUser(user)} />
+          <ActionDeleteButton title="Inativar usuário" onClick={() => handleInactiveUser(user)} />
+        </div>
+      ),
+    },
+  ];
 
-  const handlePresenceFilter = ({ target }) => {
-    setPresenceFilter(target.value || "all");
-    setPage(0);
-  };
-
-  const handleChangePage = (_, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  useEffect(() => {
-    if (!permissionsLoaded) return;
-    if (profile !== "admin" && profile !== "user") {
-      Router.push("/");
-    }
-  }, [profile, permissionsLoaded]);
+  const barra = (
+    <>
+      <div className="w-full sm:w-40">
+        <SelectNativo aria-label="Status" value={presenceFilter} onChange={({ target }) => setPresenceFilter(target.value || "all")}>
+          <option value="all">Status: todos</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </SelectNativo>
+      </div>
+      <ActionCreateFab title="Novo usuário" onClick={() => dispatch(turnUserModal())} />
+    </>
+  );
 
   return (
-    <Box className="queue-page users-page" sx={modalFormRootSx}>
-      <Box>
-      <BaseCard title={`Você possui ${filteredUsers.length} Usuários Cadastrados`}>
-        <AlertModal />
-
-        <Box className="queue-page__toolbar" sx={{ display: "flex", alignItems: "center", gap: 1.4, mb: 1.2 }}>
-          <TextField
-            className="lg-search-field users-page__search"
-            sx={{ width: "100%" }}
-            placeholder="Pesquisar usuário: Nome / E-mail / CPF"
-            name="search"
-            autoComplete="off"
-            value={searchValue}
-            onChange={handleSearchUsers}
-          />
-
-          <FormControl className="lg-search-field" size="small" sx={{ minWidth: 54, width: 54, flex: "0 0 54px" }}>
-            <InputLabel>Status</InputLabel>
-            <Select value={presenceFilter} label="Status" onChange={handlePresenceFilter}>
-              <MenuItem value="all">Todos</MenuItem>
-              <MenuItem value="online">Online</MenuItem>
-              <MenuItem value="offline">Offline</MenuItem>
-            </Select>
-          </FormControl>
-
-          <ActionCreateFab
-            icon="user-plus"
-            onClick={() => {
-              dispatch(turnUserModal());
-            }}
-            sx={{ width: 56, height: 56, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
-            className="queue-page__fab queue-page__fab--add"
-          />
-        </Box>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table
-            aria-label="tabela de usuários"
-            className="queue-page__table"
-            sx={{ mt: 2, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">
-                    Nome / Perfil
-                  </Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">
-                    CPF / E-mail
-                  </Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">
-                    Presença
-                  </Typography>
-                </TableCell>
-                <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">
-                    Ações
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-
-            {isOpenLoading ? (
-              <TableLoadingRows columns={4} rows={5} />
-            ) : (
-              <TableBody>
-                {filteredUsers.length >= 1 ? (
-                  filteredUsers
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((user) => (
-                      <StyledTableRow key={user?.id} hover>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Box>
-                              <Typography
-                                variant="h6"
-                                sx={{
-                                  fontWeight: "600",
-                                }}
-                              >
-                                {user?.name ? user.name.toUpperCase() : ""}
-                              </Typography>
-                              <Typography
-                                color="textSecondary"
-                                sx={{
-                                  fontSize: "12px",
-                                }}
-                              >
-                                {(user?.profile || "user").toUpperCase()}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </TableCell>
-
-                      <TableCell>
-                        <Typography
-                          color="textSecondary"
-                          sx={{
-                            fontSize: "12px",
-                            }}
-                          >
-                            {user?.cpf || "-"}
-                          </Typography>
-                        <Typography variant="h6" sx={{ fontSize: "12px" }}>
-                          {user?.email || "-"}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                          <Chip
-                            size="small"
-                            color={user?.is_online ? 'success' : 'error'}
-                            label={user?.is_online ? 'Online' : 'Offline'}
-                            sx={{ width: 'fit-content' }}
-                          />
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                            {user?.is_online ? 'Online agora' : `Última vez online ${formatRelativeDays(user?.last_seen_at)}`}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <Box sx={{ "& button": { mx: 1 } }} className="queue-page__actions">
-                            <ActionEditButton
-                              className="queue-page__action queue-page__action--success"
-                              title="Editar usuário"
-                              onClick={() => {
-                                handleEditUser(user);
-                              }}
-                            />
-
-                            <ActionDeleteButton
-                              className="queue-page__action queue-page__action--danger"
-                              title="Inativar usuário"
-                              onClick={() => {
-                                handleInactiveUser(user);
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                      </StyledTableRow>
-                    ))
-                ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    Nenhum registro encontrado!
-                  </TableCell>
-                </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={filteredUsers.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-
-        <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-      </BaseCard>
-      </Box>
-    </Box>
+    <PaginaDeLista
+      titulo="Usuários"
+      subtitulo={`Você possui ${filteredUsers.length} Usuários Cadastrados`}
+      busca={{ rotulo: "Pesquisar usuário", placeholder: "Pesquisar usuário: Nome / E-mail / CPF", name: "search", autoComplete: "off", value: searchValue, onChange: ({ target }) => setSearchValue(target.value || "") }}
+      barra={barra}
+      colunas={colunas}
+      linhas={fatia}
+      chaveDaLinha={(u) => u?.id}
+      carregando={isOpenLoading}
+      vazio="Nenhum registro encontrado!"
+      rotuloDaTabela="tabela de usuários"
+      paginacao={propsDaPaginacao}
+    >
+      <AlertModal />
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+    </PaginaDeLista>
   );
 }
