@@ -5,6 +5,7 @@ import { CacheProvider } from "@emotion/react";
 import CssBaseline from "@mui/material/CssBaseline";
 import createEmotionCache from "../src/createEmotionCache";
 import FullLayout from "../src/layouts/FullLayout";
+import "../styles/crm-tokens.css";
 import "../styles/style.css";
 import "../styles/theme-liquid-glass.css";
 import "../styles/dashboard-neon.css";
