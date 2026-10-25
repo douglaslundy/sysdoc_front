@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Alert, Box, Button, Card, Chip, CircularProgress, Stack, Typography } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../../baseCard/BaseCard';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AlertModal from '../../messagesModal';
 import BasicDatePicker from '../../inputs/datePicker';
 import PedidoModal from '../../modal/pedido';
 import { api } from '../../../services/api';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 import { openPedidoModal } from '../../../store/ducks/Layout';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Carregando } from '../../ui/carregando';
+import { Pilula } from '../../ui/pilula';
+import { cn } from '../../../lib/cn';
 
 const addDays = (date, days) => {
     const value = new Date(date);
@@ -154,233 +157,131 @@ export default function AgendaColeta() {
         const { empty = false, clickToOpen = false, monthCell = false } = options;
 
         if (empty) {
-            return (
-                <Box
-                    key={day?.key}
-                    sx={{
-                        minHeight: 156,
-                        borderRadius: 3,
-                        border: '1px dashed',
-                        borderColor: 'divider',
-                        background: 'transparent',
-                        opacity: 0.35,
-                    }}
-                />
-            );
+            return <div key={day?.key} className="min-h-[156px] rounded-xl border border-dashed border-border opacity-35" />;
         }
 
         const dayKey = toIsoDate(day);
         const dayPedidos = pedidosPorDia.get(dayKey) || [];
-        const buttonLabel = 'Agendar';
 
         return (
-            <Card
+            <div
                 key={dayKey}
-                className="card info-card"
                 onClick={clickToOpen ? () => openPedidoForDate(day) : undefined}
-                sx={{
-                    m: 0,
-                    p: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: monthCell ? 170 : 190,
-                    height: '100%',
-                    cursor: clickToOpen ? 'pointer' : 'default',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
-                    '&:hover': clickToOpen
-                        ? {
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 18px 30px rgba(2, 8, 27, 0.18)',
-                              borderColor: 'rgba(var(--lg-accent-rgb), 0.42)',
-                          }
-                        : undefined,
-                }}
+                className={cn(
+                    'flex h-full flex-col gap-1 rounded-xl border border-border bg-card p-2 transition-colors',
+                    monthCell ? 'min-h-[170px]' : 'min-h-[190px]',
+                    clickToOpen && 'cursor-pointer hover:border-primary/60 hover:bg-hover',
+                )}
             >
-                <Box
-                    p={0.2}
-                    display="flex"
-                    flexDirection="column"
-                    gap="3px"
-                    sx={{
-                        flex: 1,
-                        '& .agenda-day__title': { fontSize: '0.75rem', fontWeight: 700, lineHeight: 1.1 },
-                        '& .agenda-day__meta': { fontSize: '0.56rem', lineHeight: 1.2 },
-                        '& .agenda-day__body': { fontSize: '0.62rem', lineHeight: 1.25 },
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold capitalize">
+                        {monthCell ? day.toLocaleDateString('pt-BR', { day: '2-digit' }) : formatDayLabel(day)}
+                    </span>
+                    <Pilula tom={dayPedidos.length > 0 ? 'alerta' : 'neutro'}>{dayPedidos.length}</Pilula>
+                </div>
+
+                <Button
+                    variant="outline"
+                    size="xs"
+                    className="self-start"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        openPedidoForDate(day);
                     }}
                 >
-                    <Box display="flex" justifyContent="space-between" alignItems="center" gap={1}>
-                        <Typography className="agenda-day__title" sx={{ textTransform: 'capitalize' }}>
-                            {monthCell ? day.toLocaleDateString('pt-BR', { day: '2-digit' }) : formatDayLabel(day)}
-                        </Typography>
-                        <Chip
-                            label={dayPedidos.length}
-                            size="small"
-                            color={dayPedidos.length > 0 ? 'primary' : 'default'}
-                        />
-                    </Box>
+                    <Plus /> Agendar
+                </Button>
 
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<FeatherIcon icon="plus" size={14} />}
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            openPedidoForDate(day);
-                        }}
-                        sx={{
-                            alignSelf: 'flex-start',
-                            py: 0.1,
-                            px: 0.25,
-                            fontSize: '0.58rem',
-                            minWidth: 82,
-                            mb: '3px',
-                        }}
-                    >
-                        {buttonLabel}
-                    </Button>
+                <div className="grid flex-1 content-start gap-1">
+                    {dayPedidos.map((pedido, index) => (
+                        <p
+                            key={pedido.id}
+                            className={cn('truncate text-[11px] font-bold', index < dayPedidos.length - 1 && 'border-b border-border pb-1')}
+                        >
+                            {pedido.paciente?.nome || 'Paciente não informado'}
+                        </p>
+                    ))}
 
-                    <Stack spacing="3px" sx={{ flex: 1, minHeight: 0 }}>
-                        {dayPedidos.map((pedido, index) => (
-                            <Typography
-                                key={pedido.id}
-                                className="agenda-day__body"
-                                sx={{
-                                    fontWeight: 700,
-                                    pb: index < dayPedidos.length - 1 ? '3px' : 0,
-                                    borderBottom: index < dayPedidos.length - 1 ? '1px solid' : 'none',
-                                    borderColor: 'divider',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                }}
-                            >
-                                {pedido.paciente?.nome || 'Paciente não informado'}
-                            </Typography>
-                        ))}
-
-                        {dayPedidos.length === 0 && (
-                            <Typography className="agenda-day__meta" color="text.secondary">
-                                Sem pedidos.
-                            </Typography>
-                        )}
-                    </Stack>
-                </Box>
-            </Card>
+                    {dayPedidos.length === 0 && <p className="text-[10px] text-muted-foreground">Sem pedidos.</p>}
+                </div>
+            </div>
         );
     };
 
     return (
-        <Box sx={modalFormRootSx} className="queue-page lab-agenda-page">
+        <div className="ui-reset lab-agenda-page">
             <PedidoModal defaultDataColeta={defaultDataColeta} onSaved={buscarAgenda} />
             <AlertModal />
-            <BaseCard
-                title="Agenda de Coleta"
-                action={
-                    <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
-                        <Chip label={periodLabel} color="primary" size="small" />
-                        <Chip label={`${total} pedido(s)`} color={total > 0 ? 'success' : 'default'} size="small" />
-                    </Box>
-                }
-            >
-                <Stack spacing={2}>
-                    <Box
-                        className="queue-page__toolbar"
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', md: 'minmax(200px, 1fr) auto auto auto auto auto' },
-                            gap: 1,
-                            alignItems: 'center',
-                        }}
-                    >
-                        <BasicDatePicker
-                            label="Data base"
-                            value={baseDate}
-                            setValue={(value) => setBaseDate(value || new Date())}
-                            sx={{ width: '100%' }}
-                        />
-                        <Button
-                            variant={viewMode === 'week' ? 'contained' : 'outlined'}
-                            onClick={() => setViewMode('week')}
-                        >
+            <Card>
+                <CardHeader>
+                    <CardTitle>Agenda de Coleta</CardTitle>
+                    <CardAction className="flex flex-wrap items-center gap-2">
+                        <Pilula tom="alerta">{periodLabel}</Pilula>
+                        <Pilula tom={total > 0 ? 'sucesso' : 'neutro'}>{`${total} pedido(s)`}</Pilula>
+                    </CardAction>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                    <div className="flex flex-wrap items-end gap-2">
+                        <div className="min-w-[200px] flex-1">
+                            <BasicDatePicker
+                                label="Data base"
+                                value={baseDate}
+                                setValue={(value) => setBaseDate(value || new Date())}
+                            />
+                        </div>
+                        <Button variant={viewMode === 'week' ? 'default' : 'outline'} onClick={() => setViewMode('week')}>
                             Semana
                         </Button>
-                        <Button
-                            variant={viewMode === 'month' ? 'contained' : 'outlined'}
-                            onClick={() => setViewMode('month')}
-                        >
+                        <Button variant={viewMode === 'month' ? 'default' : 'outline'} onClick={() => setViewMode('month')}>
                             Mês
                         </Button>
                         <Button
-                            variant="outlined"
+                            variant="outline"
                             onClick={() => setBaseDate((current) => (viewMode === 'month' ? addMonths(current, -1) : addDays(current, -7)))}
-                            startIcon={<FeatherIcon icon="chevron-left" size={16} />}
                         >
-                            {viewMode === 'month' ? 'Mês anterior' : 'Semana anterior'}
+                            <ChevronLeft /> {viewMode === 'month' ? 'Mês anterior' : 'Semana anterior'}
                         </Button>
-                        <Button
-                            variant="outlined"
-                            onClick={() => setBaseDate(new Date())}
-                        >
+                        <Button variant="outline" onClick={() => setBaseDate(new Date())}>
                             Hoje
                         </Button>
                         <Button
-                            variant="outlined"
+                            variant="outline"
                             onClick={() => setBaseDate((current) => (viewMode === 'month' ? addMonths(current, 1) : addDays(current, 7)))}
-                            endIcon={<FeatherIcon icon="chevron-right" size={16} />}
                         >
-                            {viewMode === 'month' ? 'Próximo mês' : 'Próxima semana'}
+                            {viewMode === 'month' ? 'Próximo mês' : 'Próxima semana'} <ChevronRight />
                         </Button>
-                    </Box>
+                    </div>
 
-                    {erro && <Alert severity="error">{erro}</Alert>}
+                    {erro && <Banner tom="perigo">{erro}</Banner>}
 
-                    {carregando && (
-                        <Box py={6} display="flex" justifyContent="center">
-                            <CircularProgress />
-                        </Box>
-                    )}
+                    {carregando && <Carregando>Carregando agenda...</Carregando>}
 
                     {!carregando && agenda && (
-                        <Stack spacing={1.5}>
+                        <div className="grid gap-3">
                             {viewMode === 'month' && (
-                                <Box
-                                    sx={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
-                                        gap: '3px',
-                                    }}
-                                >
+                                <div className="grid grid-cols-7 gap-[3px]">
                                     {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((label) => (
-                                        <Typography
-                                            key={label}
-                                            variant="caption"
-                                            color="text.secondary"
-                                            sx={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}
-                                        >
+                                        <span key={label} className="text-center text-xs font-bold tracking-[0.06em] text-muted-foreground uppercase">
                                             {label}
-                                        </Typography>
+                                        </span>
                                     ))}
-                                </Box>
+                                </div>
                             )}
 
-                        <Box
-                            sx={{
-                                display: 'grid',
-                                gridTemplateColumns: viewMode === 'month'
-                                    ? 'repeat(7, minmax(0, 1fr))'
-                                    : { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))', xl: 'repeat(7, minmax(0, 1fr))' },
-                                gap: '3px',
-                                alignItems: 'stretch',
-                            }}
-                        >
-                            {viewMode === 'month'
-                                ? monthCells.map((cell) => renderDayCard(cell.date, { empty: cell.empty, clickToOpen: !cell.empty, monthCell: true }))
-                                : weekDays.map((day) => renderDayCard(day, { clickToOpen: false, monthCell: false }))}
-                        </Box>
-                        </Stack>
+                            <div
+                                className={cn(
+                                    'grid items-stretch gap-[3px]',
+                                    viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-7',
+                                )}
+                            >
+                                {viewMode === 'month'
+                                    ? monthCells.map((cell) => renderDayCard(cell.date, { empty: cell.empty, clickToOpen: !cell.empty, monthCell: true }))
+                                    : weekDays.map((day) => renderDayCard(day, { clickToOpen: false, monthCell: false }))}
+                            </div>
+                        </div>
                     )}
-                </Stack>
-            </BaseCard>
-        </Box>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

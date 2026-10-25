@@ -1,11 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    Box, Button, Chip, Fab, MenuItem, Select, Table, TableBody, TableCell,
-    TableContainer, TableHead, TablePagination, TableRow, Typography,
-    FormControl, InputLabel, TextField, Tooltip, styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
+import { Download, FileText, Pencil } from 'lucide-react';
 import { api } from '../../../services/api';
 import { getAllPedidos, removePedidoFetch, viewPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import { iniciarResultado, getResultado } from '../../../store/fetchActions/resultadoExames';
@@ -13,24 +8,14 @@ import { openPedidoModal, turnResultadoModal, changeTitleAlert } from '../../../
 import PedidoModal from '../../modal/pedido';
 import ResultadoModal from '../../modal/resultado';
 import AlertModal from '../../messagesModal';
-import BaseCard from '../../baseCard/BaseCard';
 import EditarPedidoDialog from '../../modal/editarPedido';
 import ConfirmDialog from '../../confirmDialog';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
-
-const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-        background: 'var(--queue-row-bg)',
-        borderTop: '0.5px solid var(--lg-border)',
-        borderBottom: '0.5px solid var(--lg-border)',
-        paddingTop: 12,
-        paddingBottom: 12,
-        color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
+import { ActionCreateFab, ActionDeleteButton } from '../../actions';
+import { Button } from '../../ui/button';
+import { CampoSelecao } from '../../ui/campos';
+import { PaginaDeLista } from '../../ui/pagina-de-lista';
+import { Pilula, tomDaCor } from '../../ui/pilula';
+import { usePaginacaoLocal } from '../../../lib/usePaginacaoLocal';
 
 const STATUS_COR = {
     solicitado: 'default', coletado: 'info', em_analise: 'warning', liberado: 'success', cancelado: 'error',
@@ -67,8 +52,6 @@ export default function ListaPedidos() {
 
     const [filtroStatus, setFiltroStatus] = useState('');
     const [busca, setBusca] = useState('');
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(15);
     const buscaRef = useRef(null);
     const [editarPedido, setEditarPedido] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
@@ -86,6 +69,7 @@ export default function ListaPedidos() {
     };
 
     const filtrados = pedidos.filter(p => !filtroStatus || p.status === filtroStatus);
+    const { fatia, propsDaPaginacao } = usePaginacaoLocal(filtrados, 15);
 
     const handleDownloadPdf = async (resultadoId, protocolo) => {
         try {
@@ -124,180 +108,109 @@ export default function ListaPedidos() {
         }
     };
 
+    const colunas = [
+        { chave: 'protocolo', titulo: 'Protocolo', render: (pedido) => <span className="font-semibold tracking-wide">{pedido.resultado?.protocolo ?? '—'}</span> },
+        {
+            chave: 'paciente',
+            titulo: 'Paciente',
+            render: (pedido) => (
+                <>
+                    <span className="block font-semibold">{pedido.cliente?.name || '—'}</span>
+                    {pedido.medico_solicitante?.nome && <span className="block text-xs text-muted-foreground">Dr. {pedido.medico_solicitante.nome}</span>}
+                </>
+            ),
+        },
+        {
+            chave: 'data',
+            titulo: 'Data',
+            render: (pedido) => (
+                <>
+                    <span className="block">{formatDate(pedido.data_pedido)}</span>
+                    {pedido.data_coleta && <span className="block text-xs text-muted-foreground">Coleta: {formatDate(pedido.data_coleta)}</span>}
+                </>
+            ),
+        },
+        {
+            chave: 'exames',
+            titulo: 'Exames',
+            render: (pedido) => (
+                <div className="flex flex-wrap items-center gap-1">
+                    {pedido.exames?.slice(0, 2).map(e => (
+                        <span key={e.id} title={e.nome || 'Exame sem nome'} className="rounded-full border border-border px-2.5 py-0.5 text-xs">{formatExamName(e.nome)}</span>
+                    ))}
+                    {pedido.exames?.length > 2 && <span className="text-xs text-muted-foreground">+{pedido.exames.length - 2}</span>}
+                </div>
+            ),
+        },
+        {
+            chave: 'status',
+            titulo: 'Status',
+            render: (pedido) => {
+                const { label, color } = getStatusInfo(pedido);
+                return <Pilula tom={tomDaCor(color)}>{label}</Pilula>;
+            },
+        },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (pedido) => (
+                <div className="flex flex-wrap gap-2">
+                    {!['liberado', 'cancelado'].includes(pedido.status) && (
+                        <Button variant="success" size="icon-sm" title="Editar pedido" aria-label="Editar pedido" onClick={() => dispatch(viewPedidoFetch(pedido.id, setEditarPedido))}>
+                            <Pencil />
+                        </Button>
+                    )}
+                    <Button variant="secondary" size="icon-sm" title="Preencher resultado" aria-label="Preencher resultado" onClick={() => handleAbrirResultado(pedido)}>
+                        <FileText />
+                    </Button>
+                    {pedido.status === 'liberado' && pedido.resultado?.id && (
+                        <Button variant="success" size="icon-sm" title="Baixar laudo PDF" aria-label="Baixar laudo PDF" onClick={() => handleDownloadPdf(pedido.resultado.id, pedido.resultado.protocolo)}>
+                            <Download />
+                        </Button>
+                    )}
+                    {pedido.status !== 'liberado' && (
+                        <ActionDeleteButton title="Remover pedido" onClick={() => handleRemoverPedido(pedido)} />
+                    )}
+                </div>
+            ),
+        },
+    ];
+
+    const barra = (
+        <>
+            <CampoSelecao id="pedidos-filtro-status" label="Status" value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)} className="min-w-[160px]">
+                <option value="">Todos</option>
+                {Object.keys(STATUS_COR).map(s => <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>)}
+            </CampoSelecao>
+            <ActionCreateFab title="Novo Pedido" onClick={() => dispatch(openPedidoModal())} />
+        </>
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page lab-pedidos-page">
-        <ResultadoModal>
-        <PedidoModal>
-            <BaseCard title={`Você possui ${pedidos.length} Pedidos Cadastrados`}>
-                <AlertModal />
-                <Box className="queue-page__toolbar"
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', md: '160px minmax(0,1fr) auto' },
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 2,
-                    }}
-                >
-                    <FormControl
-                        size="small"
-                        sx={{
-                            minWidth: 160,
-                            width: '100%',
-                        }}
+        <>
+            <ResultadoModal>
+                <PedidoModal>
+                    <PaginaDeLista
+                        titulo={`Você possui ${pedidos.length} Pedidos Cadastrados`}
+                        busca={{ rotulo: 'Buscar pedido', placeholder: 'Buscar por nome, CNS, CPF ou protocolo', value: busca, onChange: e => handleBusca(e.target.value) }}
+                        barra={barra}
+                        colunas={colunas}
+                        linhas={fatia}
+                        chaveDaLinha={(pedido) => pedido.id}
+                        vazio="Nenhum pedido encontrado"
+                        rotuloDaTabela="pedidos"
+                        paginacao={{ ...propsDaPaginacao, opcoes: [10, 15, 25] }}
                     >
-                        <InputLabel shrink>Status</InputLabel>
-                        <Select
-                            value={filtroStatus}
-                            label="Status"
-                            displayEmpty
-                            renderValue={(selected) => {
-                                if (!selected) return 'Todos';
-                                return String(selected).replace(/_/g, ' ').toUpperCase();
-                            }}
-                            onChange={e => setFiltroStatus(e.target.value)}
-                        >
-                            <MenuItem value="">Todos</MenuItem>
-                            {Object.keys(STATUS_COR).map(s => <MenuItem key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        className="lg-search-field"
-                        placeholder="Buscar por nome, CNS, CPF ou protocolo"
-                        value={busca}
-                        onChange={e => handleBusca(e.target.value)}
-                        sx={{ minWidth: 0, width: '100%' }}
-                    />
-                    <Fab className="queue-page__fab queue-page__fab--add" color="primary" title="Novo Pedido" onClick={() => dispatch(openPedidoModal())}>
-                        <FeatherIcon icon="plus" />
-                    </Fab>
-                </Box>
-                <TableContainer className="queue-page__table-wrap">
-                    <Table className="queue-page__table" aria-label="pedidos" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><Typography color="textSecondary" variant="h6">Protocolo</Typography></TableCell>
-                                <TableCell><Typography color="textSecondary" variant="h6">Paciente</Typography></TableCell>
-                                <TableCell><Typography color="textSecondary" variant="h6">Data</Typography></TableCell>
-                                <TableCell><Typography color="textSecondary" variant="h6">Exames</Typography></TableCell>
-                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                                <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filtrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(pedido => (
-                                <StyledTableRow key={pedido.id} hover>
-                                    <TableCell>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: 1 }}>
-                                            {pedido.resultado?.protocolo ?? '—'}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>{pedido.cliente?.name || '—'}</Typography>
-                                        {pedido.medico_solicitante?.nome && (
-                                            <Typography color="textSecondary" sx={{ fontSize: '12px' }}>Dr. {pedido.medico_solicitante.nome}</Typography>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="h6">{formatDate(pedido.data_pedido)}</Typography>
-                                        {pedido.data_coleta && <Typography color="textSecondary" sx={{ fontSize: '12px' }}>Coleta: {formatDate(pedido.data_coleta)}</Typography>}
-                                    </TableCell>
-                                    <TableCell>
-                                        {pedido.exames?.slice(0, 2).map(e => (
-                                            <Tooltip key={e.id} title={e.nome || 'Exame sem nome'} arrow>
-                                                <Chip label={formatExamName(e.nome)} size="small" sx={{ mr: 0.5 }} />
-                                            </Tooltip>
-                                        ))}
-                                        {pedido.exames?.length > 2 && <Typography variant="caption">+{pedido.exames.length - 2}</Typography>}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {(() => {
-                                            const { label, color } = getStatusInfo(pedido);
-                                            return <Chip label={label} color={color} size="small" />;
-                                        })()}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
-                                            {!['liberado', 'cancelado'].includes(pedido.status) && (
-                                                <Button
-                                                    title="Editar pedido"
-                                                    onClick={() => dispatch(viewPedidoFetch(pedido.id, setEditarPedido))}
-                                                    className="queue-page__action queue-page__action--primary"
-                                                    color="warning"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="edit-2" width="20" height="20" />
-                                                </Button>
-                                            )}
-                                            <Button
-                                                title="Preencher resultado"
-                                                onClick={() => handleAbrirResultado(pedido)}
-                                                className="queue-page__action queue-page__action--info"
-                                                color="info"
-                                                size="medium"
-                                                variant="contained"
-                                            >
-                                                <FeatherIcon icon="file-text" width="20" height="20" />
-                                            </Button>
-                                            {pedido.status === 'liberado' && pedido.resultado?.id && (
-                                                <Button
-                                                    title="Baixar laudo PDF"
-                                                    onClick={() => handleDownloadPdf(pedido.resultado.id, pedido.resultado.protocolo)}
-                                                    className="queue-page__action queue-page__action--success"
-                                                    color="success"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="download" width="20" height="20" />
-                                                </Button>
-                                            )}
-                                            {pedido.status !== 'liberado' && (
-                                                <Button
-                                                    title="Remover pedido"
-                                                    onClick={() => handleRemoverPedido(pedido)}
-                                                    className="queue-page__action queue-page__action--danger"
-                                                    color="error"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                </StyledTableRow>
-                            ))}
-                            {filtrados.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={6} align="center">
-                                        <Typography color="text.secondary">Nenhum pedido encontrado</Typography>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    <TablePagination
-                        className="queue-page__pagination"
-                        component="div"
-                        count={filtrados.length}
-                        page={page}
-                        onPageChange={(_, p) => setPage(p)}
-                        rowsPerPage={rowsPerPage}
-                        onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-                        rowsPerPageOptions={[10, 15, 25]}
-                        labelRowsPerPage="Por página:"
-                    />
-                </TableContainer>
-            </BaseCard>
-        </PedidoModal>
-        </ResultadoModal>
-        <EditarPedidoDialog
-            open={!!editarPedido}
-            onClose={() => setEditarPedido(null)}
-            pedido={editarPedido}
-        />
-        <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-        </Box>
+                        <AlertModal />
+                    </PaginaDeLista>
+                </PedidoModal>
+            </ResultadoModal>
+            <EditarPedidoDialog
+                open={!!editarPedido}
+                onClose={() => setEditarPedido(null)}
+                pedido={editarPedido}
+            />
+            <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+        </>
     );
 }

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Box, Button, Card, CardContent, FormControlLabel, Stack,
-    Switch, TextField, Typography,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { addExameFetch, editExameFetch } from '../../../store/fetchActions/exames';
+import { Button } from '../../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { CampoTexto } from '../../ui/campos';
+import { Interruptor } from '../../ui/interruptor';
 
 const FORM_INICIAL = { nome: '', codigo: '', categoria: '', descricao: '', ativo: true };
 
@@ -28,7 +28,7 @@ export default function ExameForm() {
         }
     }, [exame]);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
 
     const handleSubmit = () => {
         const onSuccess = (saved) => router.push(`/laboratorio/exames/${saved.id}/campos`);
@@ -42,65 +42,32 @@ export default function ExameForm() {
     const isEdit = !!(exame && exame.id);
 
     return (
-        <Card>
-            <Box p={2}>
-                <Typography variant="h4">{isEdit ? 'Editar Exame' : 'Novo Exame'}</Typography>
-            </Box>
+        <Card className="ui-reset">
+            <CardHeader>
+                <CardTitle>{isEdit ? 'Editar Exame' : 'Novo Exame'}</CardTitle>
+            </CardHeader>
             <CardContent>
-                <Stack spacing={3} maxWidth={600}>
-                    <TextField
-                        className="lg-search-field"
-                        label="Nome do Exame"
-                        name="nome"
-                        value={form.nome}
-                        onChange={change}
-                        required
-                        inputProps={{ maxLength: 100, style: { textTransform: 'uppercase' } }}
-                    />
-                    <Box display="flex" gap={2}>
-                        <TextField
-                            className="lg-search-field"
-                            label="Código"
-                            name="codigo"
-                            value={form.codigo}
-                            onChange={change}
-                            required
-                            inputProps={{ maxLength: 30, style: { textTransform: 'uppercase' } }}
-                            sx={{ flex: 1 }}
-                        />
-                        <TextField
-                            className="lg-search-field"
-                            label="Categoria"
-                            name="categoria"
-                            value={form.categoria}
-                            onChange={change}
-                            inputProps={{ maxLength: 60 }}
-                            sx={{ flex: 2 }}
-                        />
-                    </Box>
-                    <TextField
-                        className="lg-search-field"
-                        label="Descrição"
-                        name="descricao"
-                        value={form.descricao}
-                        onChange={change}
-                        multiline
-                        rows={3}
-                        inputProps={{ maxLength: 500 }}
-                    />
-                    <FormControlLabel
-                        control={<Switch checked={form.ativo} onChange={e => setForm(f => ({ ...f, ativo: e.target.checked }))} />}
-                        label="Exame ativo"
-                    />
-                    <Box display="flex" gap={2}>
-                        <Button variant="contained" onClick={handleSubmit}>
+                <div className="grid max-w-[600px] gap-5">
+                    <CampoTexto id="exame-nome" label="Nome do Exame" name="nome" value={form.nome} onChange={change} required obrigatorio maxLength={100} className="uppercase" />
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="sm:col-span-1">
+                            <CampoTexto id="exame-codigo" label="Código" name="codigo" value={form.codigo} onChange={change} required obrigatorio maxLength={30} className="uppercase" />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <CampoTexto id="exame-categoria" label="Categoria" name="categoria" value={form.categoria} onChange={change} maxLength={60} />
+                        </div>
+                    </div>
+                    <CampoTexto id="exame-descricao" label="Descrição" name="descricao" value={form.descricao} onChange={change} multiline rows={3} maxLength={500} />
+                    <Interruptor id="exame-ativo" marcado={form.ativo} aoMudar={(v) => setForm(f => ({ ...f, ativo: v }))}>Exame ativo</Interruptor>
+                    <div className="flex flex-wrap gap-3">
+                        <Button onClick={handleSubmit}>
                             {isEdit ? 'Salvar e gerenciar campos' : 'Criar e gerenciar campos'}
                         </Button>
-                        <Button variant="outlined" onClick={() => router.push('/laboratorio/exames')}>
+                        <Button variant="outline" onClick={() => router.push('/laboratorio/exames')}>
                             Cancelar
                         </Button>
-                    </Box>
-                </Stack>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );

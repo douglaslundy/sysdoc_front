@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Box, Button, Card, CardContent, Checkbox, Chip, Divider, FormControlLabel,
-    Stack, TextField, Typography,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import { X } from 'lucide-react';
 import { getClientsSelect } from '../../../store/fetchActions/clients';
 import { getAllExames } from '../../../store/fetchActions/exames';
 import { addPedidoFetch } from '../../../store/fetchActions/pedidosExame';
 import InputSelectClient from '../../inputs/inputSelectClient';
+import { Button } from '../../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
+import { CampoTexto } from '../../ui/campos';
 
 const FORM_INICIAL = {
     client_id: '',
@@ -38,7 +39,7 @@ export default function NovoPedido() {
         dispatch(getAllExames({ ativo: true, per_page: 100 }));
     }, []);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
 
     const toggleExame = (exameId) => {
         setForm(f => ({
@@ -59,10 +60,12 @@ export default function NovoPedido() {
     };
 
     return (
-        <Card>
-            <Box p={2}><Typography variant="h4">Novo Pedido de Exame</Typography></Box>
+        <Card className="ui-reset">
+            <CardHeader>
+                <CardTitle>Novo Pedido de Exame</CardTitle>
+            </CardHeader>
             <CardContent>
-                <Stack spacing={3} maxWidth={700}>
+                <div className="grid max-w-[700px] gap-5">
                     <InputSelectClient
                         label="Paciente"
                         name="client_id"
@@ -72,58 +75,61 @@ export default function NovoPedido() {
                         wd="100%"
                     />
 
-                    <TextField
-                        className="lg-search-field"
-                        label="Médico Solicitante"
-                        name="medico_solicitante"
-                        value={form.medico_solicitante}
-                        onChange={change}
-                        inputProps={{ maxLength: 100 }}
-                    />
+                    <CampoTexto id="pedido-medico" label="Médico Solicitante" name="medico_solicitante" value={form.medico_solicitante} onChange={change} maxLength={100} />
 
-                    <Box display="flex" gap={2}>
-                        <TextField className="lg-search-field" label="Data do Pedido" type="date" name="data_pedido" value={form.data_pedido} onChange={change} required InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
-                        <TextField className="lg-search-field" label="Data da Coleta" type="date" name="data_coleta" value={form.data_coleta} onChange={change} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
-                    </Box>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <CampoTexto id="pedido-data" label="Data do Pedido" type="date" name="data_pedido" value={form.data_pedido} onChange={change} required obrigatorio />
+                        <CampoTexto id="pedido-coleta" label="Data da Coleta" type="date" name="data_coleta" value={form.data_coleta} onChange={change} />
+                    </div>
 
-                    <TextField className="lg-search-field" label="Observações" name="observacoes" value={form.observacoes} onChange={change} multiline rows={2} inputProps={{ maxLength: 500 }} />
+                    <CampoTexto id="pedido-obs" label="Observações" name="observacoes" value={form.observacoes} onChange={change} multiline rows={2} maxLength={500} />
 
-                    <Divider />
-                    <Typography variant="h6">Selecionar Exames</Typography>
-                    <TextField className="lg-search-field" placeholder="Filtrar exames" value={busca} onChange={e => setBusca(e.target.value)} />
+                    <hr className="border-border" />
+                    <h3 className="font-display text-base font-bold">Selecionar Exames</h3>
+                    <CampoTexto id="pedido-filtro-exames" label="Filtrar exames" placeholder="Filtrar exames" value={busca} onChange={e => setBusca(e.target.value)} />
 
-                    <Box sx={{ maxHeight: 260, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                    <div className="grid max-h-[260px] gap-2 overflow-y-auto rounded-lg border border-border p-3">
                         {examesFiltrados.map(exame => (
-                            <FormControlLabel
+                            <CaixaDeMarcacao
                                 key={exame.id}
-                                control={<Checkbox checked={form.exames.includes(exame.id)} onChange={() => toggleExame(exame.id)} />}
-                                label={<Box><Typography>{exame.nome}</Typography><Typography variant="caption" color="text.secondary">{formatExamLabel(exame.nome)}</Typography></Box>}
-                                sx={{ display: 'flex', mb: 0.5 }}
-                            />
+                                id={`pedido-exame-${exame.id}`}
+                                marcado={form.exames.includes(exame.id)}
+                                aoMudar={() => toggleExame(exame.id)}
+                            >
+                                <span>
+                                    <span className="block">{exame.nome}</span>
+                                    <span className="block text-xs text-muted-foreground">{formatExamLabel(exame.nome)}</span>
+                                </span>
+                            </CaixaDeMarcacao>
                         ))}
-                        {examesFiltrados.length === 0 && <Typography color="text.secondary" p={1}>Nenhum exame encontrado</Typography>}
-                    </Box>
+                        {examesFiltrados.length === 0 && <p className="p-1 text-sm text-muted-foreground">Nenhum exame encontrado</p>}
+                    </div>
 
                     {form.exames.length > 0 && (
-                        <Box>
-                            <Typography variant="caption" color="text.secondary">{form.exames.length} exame(s) selecionado(s):</Typography>
-                            <Box display="flex" flexWrap="wrap" gap={0.5} mt={0.5}>
+                        <div>
+                            <p className="text-xs text-muted-foreground">{form.exames.length} exame(s) selecionado(s):</p>
+                            <div className="mt-1 flex flex-wrap gap-1.5">
                                 {exames.filter(e => form.exames.includes(e.id)).map(e => (
-                                    <Chip key={e.id} label={formatExamLabel(e.nome)} size="small" onDelete={() => toggleExame(e.id)} title={e.codigo} />
+                                    <span key={e.id} title={e.codigo} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs">
+                                        {formatExamLabel(e.nome)}
+                                        <button type="button" aria-label={`Remover ${e.nome}`} onClick={() => toggleExame(e.id)} className="rounded text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none">
+                                            <X className="size-3.5" />
+                                        </button>
+                                    </span>
                                 ))}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     )}
 
-                    <Box display="flex" gap={2}>
-                        <Button variant="contained" onClick={handleSubmit} disabled={!form.client_id || form.exames.length === 0}>
+                    <div className="flex flex-wrap gap-3">
+                        <Button onClick={handleSubmit} disabled={!form.client_id || form.exames.length === 0}>
                             Criar Pedido
                         </Button>
-                        <Button variant="outlined" onClick={() => router.push('/laboratorio/pedidos')}>
+                        <Button variant="outline" onClick={() => router.push('/laboratorio/pedidos')}>
                             Cancelar
                         </Button>
-                    </Box>
-                </Stack>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );

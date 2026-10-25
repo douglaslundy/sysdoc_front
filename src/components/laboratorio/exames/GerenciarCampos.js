@@ -1,24 +1,19 @@
 ﻿import React, { useEffect, useState } from 'react';
-import {
-    Box, Button, Card, CardContent, Chip, Divider, FormControlLabel,
-    IconButton, MenuItem, Select, Stack, Switch, Table, TableBody,
-    TableCell, TableContainer, TableHead, TableRow, TextField, Typography,
-    FormControl, InputLabel, Modal,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Plus, SlidersHorizontal } from 'lucide-react';
 import { getCamposDoExame, addCampoFetch, editCampoFetch, removeCampoFetch, reordenarCamposFetch } from '../../../store/fetchActions/exameCampos';
-import { showCampo } from '../../../store/ducks/exameCampos';
 import { api } from '../../../services/api';
 import { addAlertMessage, addMessage, turnAlert } from '../../../store/ducks/Layout';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalShellSx,
-} from '../../modal/_shared/modalFormStyles';
+import { AcoesDeLinha } from '../../ui/acoes-de-linha';
+import { Button } from '../../ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { DataTable } from '../../ui/data-table';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
+import { Pilula } from '../../ui/pilula';
 
 const CAMPO_INICIAL = { nome: '', descricao: '', tipo_valor: 'numerico', unidade: '', opcoes_selecao: [], obrigatorio: true, ativo: true };
 const REF_INICIAL   = { perfil: 'geral', valor_min: '', valor_max: '', valor_texto: '', descricao: '' };
@@ -45,7 +40,8 @@ export default function GerenciarCampos() {
         if (exameId) dispatch(getCamposDoExame(exameId));
     }, [exameId]);
 
-    const changeCampo = ({ target }) => setCampoForm(f => ({ ...f, [target.name]: target.value }));
+    const changeCampo = ({ target: { name, value } }) => setCampoForm(f => ({ ...f, [name]: value }));
+    const changeRef = ({ target: { name, value } }) => setRefForm(f => ({ ...f, [name]: value }));
 
     const handleSalvarCampo = () => {
         if (campoEditId) {
@@ -104,301 +100,171 @@ export default function GerenciarCampos() {
         }
     };
 
+    const colunasCampos = [
+        {
+            chave: 'ordem',
+            titulo: 'Ordem',
+            render: (campo, idx) => (
+                <div className="flex gap-1">
+                    <Button variant="ghost" size="icon-xs" title="Subir" aria-label="Subir" onClick={() => handleMoverCampo(idx, -1)} disabled={idx === 0}>
+                        <ChevronUp />
+                    </Button>
+                    <Button variant="ghost" size="icon-xs" title="Descer" aria-label="Descer" onClick={() => handleMoverCampo(idx, 1)} disabled={idx === campos.length - 1}>
+                        <ChevronDown />
+                    </Button>
+                </div>
+            ),
+        },
+        {
+            chave: 'nome',
+            titulo: 'Nome',
+            render: (campo) => (
+                <>
+                    <span className="block font-semibold">{campo.nome}</span>
+                    {campo.descricao && <span className="block text-xs text-muted-foreground">{campo.descricao}</span>}
+                </>
+            ),
+        },
+        { chave: 'tipo', titulo: 'Tipo', render: (campo) => <Pilula tom="neutro" contorno>{campo.tipo_valor}</Pilula> },
+        { chave: 'unidade', titulo: 'Unidade', render: (campo) => campo.unidade || '—' },
+        {
+            chave: 'status',
+            titulo: 'Status',
+            render: (campo) => <Pilula tom={campo.ativo ? 'sucesso' : 'perigo'}>{campo.ativo ? 'Ativo' : 'Inativo'}</Pilula>,
+        },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (campo) => (
+                <AcoesDeLinha
+                    rotuloEditar="Editar campo"
+                    rotuloExcluir="Remover campo"
+                    aoEditar={() => {
+                        setCampoForm({ nome: campo.nome, descricao: campo.descricao || '', tipo_valor: campo.tipo_valor, unidade: campo.unidade || '', opcoes_selecao: campo.opcoes_selecao || [], obrigatorio: campo.obrigatorio, ativo: campo.ativo });
+                        setCampoEditId(campo.id);
+                        setOpenCampo(true);
+                    }}
+                    aoExcluir={() => dispatch(removeCampoFetch(exameId, campo.id))}
+                >
+                    <Button variant="secondary" size="icon-sm" title="Referências" aria-label="Referências" onClick={() => abrirReferencias(campo.id)}>
+                        <SlidersHorizontal />
+                    </Button>
+                </AcoesDeLinha>
+            ),
+        },
+    ];
+
+    const colunasRefs = [
+        { chave: 'perfil', titulo: 'Perfil', render: (ref) => <Pilula tom="neutro" contorno>{ref.perfil}</Pilula> },
+        { chave: 'min', titulo: 'Mín', render: (ref) => ref.valor_min ?? '—' },
+        { chave: 'max', titulo: 'Máx', render: (ref) => ref.valor_max ?? '—' },
+        { chave: 'texto', titulo: 'Texto', render: (ref) => ref.valor_texto || '—' },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (ref) => (
+                <AcoesDeLinha
+                    rotuloEditar="Editar referência"
+                    rotuloExcluir="Remover referência"
+                    aoEditar={() => {
+                        setRefForm({ perfil: ref.perfil, valor_min: ref.valor_min ?? '', valor_max: ref.valor_max ?? '', valor_texto: ref.valor_texto || '', descricao: ref.descricao || '' });
+                        setRefEditId(ref.id);
+                    }}
+                    aoExcluir={() => handleRemoverRef(ref.id)}
+                />
+            ),
+        },
+    ];
+
     return (
         <>
-            <Card>
-                <Box p={2} display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Button
-                            size="small"
-                            startIcon={<FeatherIcon icon="arrow-left" width="20" height="20" />}
-                            onClick={() => router.push('/laboratorio/exames')}
-                        >
-                            Voltar
+            <Card className="ui-reset">
+                <CardHeader>
+                    <CardTitle className="flex flex-wrap items-center gap-3">
+                        <Button variant="ghost" size="sm" onClick={() => router.push('/laboratorio/exames')}>
+                            <ArrowLeft /> Voltar
                         </Button>
-                        <Typography variant="h4" component="span" ml={2}>
-                            Campos do Exame ({campos.length})
-                        </Typography>
-                    </Box>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => { setCampoForm(CAMPO_INICIAL); setCampoEditId(null); setOpenCampo(true); }}
-                    >
-                        <FeatherIcon icon="plus" width="20" height="20" />
-                        &nbsp;Novo Campo
-                    </Button>
-                </Box>
-                <CardContent sx={{ pt: 0 }}>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
-                                    <TableCell><Typography color="textSecondary" variant="h6">Nome</Typography></TableCell>
-                                    <TableCell><Typography color="textSecondary" variant="h6">Tipo</Typography></TableCell>
-                                    <TableCell><Typography color="textSecondary" variant="h6">Unidade</Typography></TableCell>
-                                    <TableCell align="center"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                                    <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {campos.map((campo, idx) => (
-                                    <TableRow key={campo.id} hover>
-                                        <TableCell>
-                                            <IconButton size="small" onClick={() => handleMoverCampo(idx, -1)} disabled={idx === 0}>
-                                                <FeatherIcon icon="chevron-up" width="20" height="20" />
-                                            </IconButton>
-                                            <IconButton size="small" onClick={() => handleMoverCampo(idx, 1)} disabled={idx === campos.length - 1}>
-                                                <FeatherIcon icon="chevron-down" width="20" height="20" />
-                                            </IconButton>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Typography variant="h6" sx={{ fontWeight: 600 }}>{campo.nome}</Typography>
-                                            {campo.descricao && <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{campo.descricao}</Typography>}
-                                        </TableCell>
-                                        <TableCell><Chip label={campo.tipo_valor} size="small" /></TableCell>
-                                        <TableCell><Typography variant="h6">{campo.unidade || '—'}</Typography></TableCell>
-                                        <TableCell align="center">
-                                            <Chip label={campo.ativo ? 'Ativo' : 'Inativo'} color={campo.ativo ? 'success' : 'error'} size="small" />
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{ '& button': { mx: 1 } }}>
-                                                <Button
-                                                    title="Editar campo"
-                                                    onClick={() => {
-                                                        setCampoForm({ nome: campo.nome, descricao: campo.descricao || '', tipo_valor: campo.tipo_valor, unidade: campo.unidade || '', opcoes_selecao: campo.opcoes_selecao || [], obrigatorio: campo.obrigatorio, ativo: campo.ativo });
-                                                        setCampoEditId(campo.id);
-                                                        setOpenCampo(true);
-                                                    }}
-                                                    color="success"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="edit" width="20" height="20" />
-                                                </Button>
-                                                <Button
-                                                    title="Referências"
-                                                    onClick={() => abrirReferencias(campo.id)}
-                                                    color="info"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="sliders" width="20" height="20" />
-                                                </Button>
-                                                <Button
-                                                    title="Remover campo"
-                                                    onClick={() => dispatch(removeCampoFetch(exameId, campo.id))}
-                                                    color="error"
-                                                    size="medium"
-                                                    variant="contained"
-                                                >
-                                                    <FeatherIcon icon="trash" width="20" height="20" />
-                                                </Button>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {campos.length === 0 && (
-                                    <TableRow><TableCell colSpan={6} align="center"><Typography color="text.secondary">Nenhum campo cadastrado</Typography></TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                        Campos do Exame ({campos.length})
+                    </CardTitle>
+                    <CardAction>
+                        <Button onClick={() => { setCampoForm(CAMPO_INICIAL); setCampoEditId(null); setOpenCampo(true); }}>
+                            <Plus /> Novo Campo
+                        </Button>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <DataTable
+                        rotulo="campos do exame"
+                        colunas={colunasCampos}
+                        linhas={campos}
+                        chaveDaLinha={(campo) => campo.id}
+                        vazio="Nenhum campo cadastrado"
+                    />
                 </CardContent>
             </Card>
 
-            {/* Modal - Novo/Editar Campo */}
-            <Modal
-                keepMounted
-                open={openCampo}
-                onClose={() => setOpenCampo(false)}
-                slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            >
-                <Box className="lab-campo-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <BaseCard title={campoEditId ? 'Editar Campo' : 'Novo Campo do Exame'}>
-                        <Stack spacing={3}>
-                            <TextField
-                                className="lg-search-field"
-                                label="Nome do Campo"
-                                name="nome"
-                                value={campoForm.nome}
-                                onChange={changeCampo}
-                                required
-                                inputProps={{ maxLength: 100 }}
-                            />
-                            <TextField
-                                className="lg-search-field"
-                                label="Descrição"
-                                name="descricao"
-                                value={campoForm.descricao}
-                                onChange={changeCampo}
-                                inputProps={{ maxLength: 200 }}
-                            />
-                            <Box display="flex" gap={2}>
-                                <FormControl className="lg-search-field" fullWidth>
-                                    <InputLabel>Tipo de Valor</InputLabel>
-                                    <Select name="tipo_valor" value={campoForm.tipo_valor} label="Tipo de Valor" onChange={changeCampo}>
-                                        {TIPOS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-                                    </Select>
-                                </FormControl>
-                                <TextField
-                                className="lg-search-field"
-                                label="Unidade"
-                                    name="unidade"
-                                    value={campoForm.unidade}
-                                    onChange={changeCampo}
-                                    inputProps={{ maxLength: 30 }}
-                                    sx={{ flex: 1 }}
-                                />
-                            </Box>
-                            {campoForm.tipo_valor === 'selecao' && (
-                                <TextField
-                                className="lg-search-field"
-                                label="Opções (separadas por vírgula)"
-                                    value={campoForm.opcoes_selecao?.join(', ') || ''}
-                                    onChange={e => setCampoForm(f => ({ ...f, opcoes_selecao: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
-                                />
-                            )}
-                            <Box display="flex" gap={2}>
-                                <FormControlLabel
-                                    control={<Switch checked={campoForm.obrigatorio} onChange={e => setCampoForm(f => ({ ...f, obrigatorio: e.target.checked }))} />}
-                                    label="Obrigatório"
-                                />
-                                <FormControlLabel
-                                    control={<Switch checked={campoForm.ativo} onChange={e => setCampoForm(f => ({ ...f, ativo: e.target.checked }))} />}
-                                    label="Ativo"
-                                />
-                            </Box>
-                        </Stack>
-                        <br />
-                        <Box sx={{ '& button': { mx: 1 } }}>
-                            <Button variant="contained" onClick={handleSalvarCampo}>Gravar</Button>
-                            <Button variant="outlined" onClick={() => setOpenCampo(false)}>Cancelar</Button>
-                        </Box>
-                    </BaseCard>
-                </Box>
-            </Modal>
+            <Dialogo aberto={openCampo} aoFechar={() => setOpenCampo(false)} tamanho="lg">
+                <DialogoCabecalho>{campoEditId ? 'Editar Campo' : 'Novo Campo do Exame'}</DialogoCabecalho>
+                <AlertModal />
+                <div className="grid gap-4">
+                    <CampoTexto id="campo-nome" label="Nome do Campo" name="nome" value={campoForm.nome} onChange={changeCampo} required obrigatorio maxLength={100} />
+                    <CampoTexto id="campo-descricao" label="Descrição" name="descricao" value={campoForm.descricao} onChange={changeCampo} maxLength={200} />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <CampoSelecao id="campo-tipo" label="Tipo de Valor" name="tipo_valor" value={campoForm.tipo_valor} onChange={changeCampo}>
+                            {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                        </CampoSelecao>
+                        <CampoTexto id="campo-unidade" label="Unidade" name="unidade" value={campoForm.unidade} onChange={changeCampo} maxLength={30} />
+                    </div>
+                    {campoForm.tipo_valor === 'selecao' && (
+                        <CampoTexto
+                            id="campo-opcoes"
+                            label="Opções (separadas por vírgula)"
+                            value={campoForm.opcoes_selecao?.join(', ') || ''}
+                            onChange={e => setCampoForm(f => ({ ...f, opcoes_selecao: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                        />
+                    )}
+                    <div className="flex flex-wrap gap-6">
+                        <Interruptor id="campo-obrigatorio" marcado={campoForm.obrigatorio} aoMudar={(v) => setCampoForm(f => ({ ...f, obrigatorio: v }))}>Obrigatório</Interruptor>
+                        <Interruptor id="campo-ativo" marcado={campoForm.ativo} aoMudar={(v) => setCampoForm(f => ({ ...f, ativo: v }))}>Ativo</Interruptor>
+                    </div>
+                </div>
+                <DialogoRodape>
+                    <Button variant="outline" onClick={() => setOpenCampo(false)}>Cancelar</Button>
+                    <Button onClick={handleSalvarCampo}>Gravar</Button>
+                </DialogoRodape>
+            </Dialogo>
 
-            {/* Modal - Valores de Referência */}
-            <Modal
-                keepMounted
-                open={openRef}
-                onClose={() => setOpenRef(false)}
-                slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            >
-                <Box className="lab-referencia-campo-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <BaseCard title="Valores de Referência do Campo">
-                        <Stack spacing={3}>
-                            <Box display="flex" gap={2} flexWrap="wrap" alignItems="flex-end">
-                                <FormControl className="lg-search-field" sx={{ minWidth: 140 }}>
-                                    <InputLabel>Perfil</InputLabel>
-                                    <Select value={refForm.perfil} label="Perfil" onChange={e => setRefForm(f => ({ ...f, perfil: e.target.value }))}>
-                                        {PERFIS.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
-                                    </Select>
-                                </FormControl>
-                                <TextField
-                                className="lg-search-field"
-                                label="Valor Mín"
-                                    type="number"
-                                    value={refForm.valor_min}
-                                    onChange={e => setRefForm(f => ({ ...f, valor_min: e.target.value }))}
-                                    sx={{ width: 120 }}
-                                />
-                                <TextField
-                                className="lg-search-field"
-                                label="Valor Máx"
-                                    type="number"
-                                    value={refForm.valor_max}
-                                    onChange={e => setRefForm(f => ({ ...f, valor_max: e.target.value }))}
-                                    sx={{ width: 120 }}
-                                />
-                                <TextField
-                                className="lg-search-field"
-                                label="Valor Texto"
-                                    value={refForm.valor_texto}
-                                    onChange={e => setRefForm(f => ({ ...f, valor_texto: e.target.value }))}
-                                    sx={{ flex: 1, minWidth: 140 }}
-                                />
-                            </Box>
-                            <Box sx={{ '& button': { mx: 1 } }}>
-                                <Button variant="contained" onClick={handleSalvarRef}>
-                                    {refEditId ? 'Atualizar Referência' : 'Adicionar Referência'}
-                                </Button>
-                                {refEditId && (
-                                    <Button variant="outlined" onClick={() => { setRefForm(REF_INICIAL); setRefEditId(null); }}>
-                                        Cancelar Edição
-                                    </Button>
-                                )}
-                            </Box>
-                            <Divider />
-                            <TableContainer>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell><Typography color="textSecondary" variant="h6">Perfil</Typography></TableCell>
-                                            <TableCell><Typography color="textSecondary" variant="h6">Mín</Typography></TableCell>
-                                            <TableCell><Typography color="textSecondary" variant="h6">Máx</Typography></TableCell>
-                                            <TableCell><Typography color="textSecondary" variant="h6">Texto</Typography></TableCell>
-                                            <TableCell align="center"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {referencias.map(ref => (
-                                            <TableRow key={ref.id} hover>
-                                                <TableCell><Chip label={ref.perfil} size="small" /></TableCell>
-                                                <TableCell><Typography variant="h6">{ref.valor_min ?? '—'}</Typography></TableCell>
-                                                <TableCell><Typography variant="h6">{ref.valor_max ?? '—'}</Typography></TableCell>
-                                                <TableCell><Typography variant="h6">{ref.valor_texto || '—'}</Typography></TableCell>
-                                                <TableCell align="center">
-                                                    <Box sx={{ '& button': { mx: 1 } }}>
-                                                        <Button
-                                                            title="Editar referência"
-                                                            onClick={() => {
-                                                                setRefForm({ perfil: ref.perfil, valor_min: ref.valor_min ?? '', valor_max: ref.valor_max ?? '', valor_texto: ref.valor_texto || '', descricao: ref.descricao || '' });
-                                                                setRefEditId(ref.id);
-                                                            }}
-                                                            color="success"
-                                                            size="medium"
-                                                            variant="contained"
-                                                        >
-                                                            <FeatherIcon icon="edit" width="20" height="20" />
-                                                        </Button>
-                                                        <Button
-                                                            title="Remover referência"
-                                                            onClick={() => handleRemoverRef(ref.id)}
-                                                            color="error"
-                                                            size="medium"
-                                                            variant="contained"
-                                                        >
-                                                            <FeatherIcon icon="trash" width="20" height="20" />
-                                                        </Button>
-                                                    </Box>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        {referencias.length === 0 && (
-                                            <TableRow>
-                                                <TableCell colSpan={5} align="center">
-                                                    <Typography color="text.secondary">Nenhuma referência cadastrada</Typography>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-                        <br />
-                        <Box sx={{ '& button': { mx: 1 } }}>
-                            <Button variant="outlined" onClick={() => setOpenRef(false)}>Fechar</Button>
-                        </Box>
-                    </BaseCard>
-                </Box>
-            </Modal>
+            <Dialogo aberto={openRef} aoFechar={() => setOpenRef(false)} tamanho="lg">
+                <DialogoCabecalho>Valores de Referência do Campo</DialogoCabecalho>
+                <AlertModal />
+                <div className="grid gap-4">
+                    <div className="grid gap-3 sm:grid-cols-4">
+                        <CampoSelecao id="ref-perfil" label="Perfil" name="perfil" value={refForm.perfil} onChange={changeRef}>
+                            {PERFIS.map(p => <option key={p} value={p}>{p}</option>)}
+                        </CampoSelecao>
+                        <CampoTexto id="ref-min" label="Valor Mín" name="valor_min" type="number" value={refForm.valor_min} onChange={changeRef} />
+                        <CampoTexto id="ref-max" label="Valor Máx" name="valor_max" type="number" value={refForm.valor_max} onChange={changeRef} />
+                        <CampoTexto id="ref-texto" label="Valor Texto" name="valor_texto" value={refForm.valor_texto} onChange={changeRef} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Button onClick={handleSalvarRef}>{refEditId ? 'Atualizar Referência' : 'Adicionar Referência'}</Button>
+                        {refEditId && (
+                            <Button variant="outline" onClick={() => { setRefForm(REF_INICIAL); setRefEditId(null); }}>Cancelar Edição</Button>
+                        )}
+                    </div>
+                    <hr className="border-border" />
+                    <DataTable
+                        rotulo="valores de referência"
+                        colunas={colunasRefs}
+                        linhas={referencias}
+                        chaveDaLinha={(ref) => ref.id}
+                        vazio="Nenhuma referência cadastrada"
+                    />
+                </div>
+                <DialogoRodape>
+                    <Button variant="outline" onClick={() => setOpenRef(false)}>Fechar</Button>
+                </DialogoRodape>
+            </Dialogo>
         </>
     );
 }
-
-

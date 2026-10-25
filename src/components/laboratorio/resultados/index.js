@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions,
-    DialogContent, DialogContentText, DialogTitle, Divider, MenuItem,
-    Select, Stack, TextField, Typography,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import { getResultado, salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
+import { Banner } from '../../ui/banner';
+import { Button, buttonVariants } from '../../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Input, SelectNativo } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Pilula, tomDaCor } from '../../ui/pilula';
 
 const STATUS_COR = { normal: 'success', baixo: 'info', alto: 'error', critico: 'secondary', indefinido: 'default' };
 
@@ -70,154 +71,148 @@ export default function PreencherResultado() {
     };
 
     if (!resultado || !resultado.id) {
-        return <Card><CardContent><Typography color="text.secondary">Carregando resultado...</Typography></CardContent></Card>;
+        return (
+            <Card className="ui-reset">
+                <CardContent><p className="text-sm text-muted-foreground">Carregando resultado...</p></CardContent>
+            </Card>
+        );
     }
 
     return (
-        <Card>
-            <Box p={2} display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                <Box>
-                    <Button size="small" startIcon={<FeatherIcon icon="arrow-left" size={14} />} onClick={() => router.push('/laboratorio/pedidos')}>
-                        Voltar
+        <Card className="ui-reset">
+            <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+                <CardTitle className="flex flex-wrap items-center gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => router.push('/laboratorio/pedidos')}>
+                        <ArrowLeft /> Voltar
                     </Button>
-                    <Typography variant="h4" component="span" ml={2}>
-                        Resultado — {resultado.pedido?.cliente?.name || '—'}
-                    </Typography>
-                </Box>
+                    Resultado — {resultado.pedido?.cliente?.name || '—'}
+                </CardTitle>
                 {jaLiberado ? (
-                    <Box display="flex" gap={1}>
-                        <Chip label={`Protocolo: ${resultado.protocolo}`} color="success" />
-                        <Button
-                            variant="outlined"
-                            startIcon={<FeatherIcon icon="download" size={16} />}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Pilula tom="sucesso">{`Protocolo: ${resultado.protocolo}`}</Pilula>
+                        <a
+                            className={buttonVariants({ variant: 'outline' })}
                             href={`${process.env.NEXT_PUBLIC_API_URL}/laboratorio/resultados/${resultado.id}/pdf`}
                             target="_blank"
+                            rel="noreferrer"
                         >
-                            Baixar PDF
-                        </Button>
-                    </Box>
+                            <Download /> Baixar PDF
+                        </a>
+                    </div>
                 ) : (
-                    <Box display="flex" gap={1}>
-                        <Button variant="outlined" onClick={handleSalvar}>Salvar Rascunho</Button>
-                        <Button variant="contained" color="success" onClick={() => setOpenConfirm(true)}>Liberar Resultado</Button>
-                    </Box>
+                    <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" onClick={handleSalvar}>Salvar Rascunho</Button>
+                        <Button variant="success" onClick={() => setOpenConfirm(true)}>Liberar Resultado</Button>
+                    </div>
                 )}
-            </Box>
+            </CardHeader>
 
             {jaLiberado && (
-                <Box px={3} pb={1}>
-                    <Alert severity="success">
+                <div className="px-6">
+                    <Banner tom="sucesso">
                         Resultado liberado em {resultado.data_liberacao ? new Date(resultado.data_liberacao).toLocaleString('pt-BR') : '—'}.
                         {protocoloGerado && ` Protocolo: ${protocoloGerado}`}
-                    </Alert>
-                </Box>
+                    </Banner>
+                </div>
             )}
 
             <CardContent>
                 {examesGrouped.map(exame => {
                     const camposAtivos = exame.campos_ativos || exame.camposAtivos || [];
                     return (
-                        <Box key={exame.id} mb={4}>
-                            <Typography variant="h6" color="primary" gutterBottom>{exame.nome}</Typography>
-                            <Stack spacing={2}>
+                        <div key={exame.id} className="mb-8">
+                            <h3 className="mb-3 font-display text-base font-bold text-primary-text">{exame.nome}</h3>
+                            <div className="grid gap-3">
                                 {camposAtivos.map(campo => {
                                     const val = valoresCampos[campo.id] || {};
                                     const ref = getRef(campo);
                                     const rcSalvo = resultado.campos?.find(rc => rc.exame_campo_id === campo.id);
+                                    const rotulo = campo.unidade ? `${campo.nome} (${campo.unidade})` : campo.nome;
 
                                     return (
-                                        <Box key={campo.id} display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                                            <Typography sx={{ minWidth: 160, fontWeight: 500 }}>
+                                        <div key={campo.id} className="flex flex-wrap items-center gap-3">
+                                            <span className="min-w-[160px] text-sm font-medium">
                                                 {campo.nome}
-                                                {campo.unidade && <Typography component="span" variant="caption" color="text.secondary" ml={0.5}>({campo.unidade})</Typography>}
-                                            </Typography>
+                                                {campo.unidade && <span className="ml-1 text-xs text-muted-foreground">({campo.unidade})</span>}
+                                            </span>
 
                                             {campo.tipo_valor === 'numerico' && (
-                                                <TextField
-                                className="lg-search-field"
-                                size="small"
+                                                <Input
+                                                    aria-label={rotulo}
                                                     type="number"
                                                     value={val.valor_numerico ?? ''}
                                                     onChange={e => setCampoValor(campo.id, exame.id, 'valor_numerico', e.target.value)}
                                                     disabled={jaLiberado}
-                                                    sx={{ width: 120 }}
+                                                    className="w-[120px]"
                                                 />
                                             )}
                                             {campo.tipo_valor === 'texto' && (
-                                                <TextField
-                                className="lg-search-field"
-                                size="small"
+                                                <Input
+                                                    aria-label={rotulo}
                                                     value={val.valor_texto ?? ''}
                                                     onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
                                                     disabled={jaLiberado}
-                                                    sx={{ flex: 1, minWidth: 200 }}
+                                                    className="min-w-[200px] flex-1"
                                                 />
                                             )}
                                             {campo.tipo_valor === 'booleano' && (
-                                                <Select
-                                                    size="small"
-                                                    value={val.valor_texto ?? ''}
-                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
-                                                    disabled={jaLiberado}
-                                                    sx={{ width: 120 }}
-                                                >
-                                                    <MenuItem value="">—</MenuItem>
-                                                    <MenuItem value="Reagente">Reagente</MenuItem>
-                                                    <MenuItem value="Não Reagente">Não Reagente</MenuItem>
-                                                </Select>
+                                                <div className="w-[160px]">
+                                                    <SelectNativo
+                                                        aria-label={rotulo}
+                                                        value={val.valor_texto ?? ''}
+                                                        onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
+                                                        disabled={jaLiberado}
+                                                    >
+                                                        <option value="">—</option>
+                                                        <option value="Reagente">Reagente</option>
+                                                        <option value="Não Reagente">Não Reagente</option>
+                                                    </SelectNativo>
+                                                </div>
                                             )}
                                             {campo.tipo_valor === 'selecao' && (
-                                                <Select
-                                                    size="small"
-                                                    value={val.valor_texto ?? ''}
-                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
-                                                    disabled={jaLiberado}
-                                                    sx={{ minWidth: 140 }}
-                                                >
-                                                    <MenuItem value="">—</MenuItem>
-                                                    {(campo.opcoes_selecao || []).map(op => <MenuItem key={op} value={op}>{op}</MenuItem>)}
-                                                </Select>
+                                                <div className="min-w-[160px]">
+                                                    <SelectNativo
+                                                        aria-label={rotulo}
+                                                        value={val.valor_texto ?? ''}
+                                                        onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
+                                                        disabled={jaLiberado}
+                                                    >
+                                                        <option value="">—</option>
+                                                        {(campo.opcoes_selecao || []).map(op => <option key={op} value={op}>{op}</option>)}
+                                                    </SelectNativo>
+                                                </div>
                                             )}
 
                                             {ref && (
-                                                <Typography variant="caption" color="text.secondary">
+                                                <span className="text-xs text-muted-foreground">
                                                     Ref: {ref.valor_min !== null ? `${ref.valor_min} – ${ref.valor_max}` : ref.valor_texto || '—'}
-                                                </Typography>
+                                                </span>
                                             )}
 
                                             {rcSalvo && (
-                                                <Chip
-                                                    label={rcSalvo.status_referencia}
-                                                    color={STATUS_COR[rcSalvo.status_referencia] || 'default'}
-                                                    size="small"
-                                                />
+                                                <Pilula tom={tomDaCor(STATUS_COR[rcSalvo.status_referencia] || 'default')}>{rcSalvo.status_referencia}</Pilula>
                                             )}
-                                        </Box>
+                                        </div>
                                     );
                                 })}
-                            </Stack>
-                            <Divider sx={{ mt: 2 }} />
-                        </Box>
+                            </div>
+                            <hr className="mt-4 border-border" />
+                        </div>
                     );
                 })}
             </CardContent>
 
             {/* Confirmação de liberação */}
-            <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
-                <DialogTitle>Confirmar Liberação</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Ao liberar, o resultado ficará disponível para o paciente via protocolo e senha gerados automaticamente. Esta ação não pode ser desfeita.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenConfirm(false)}>Cancelar</Button>
-                    <Button variant="contained" color="success" onClick={handleLiberar}>Confirmar Liberação</Button>
-                </DialogActions>
-            </Dialog>
+            <Dialogo aberto={openConfirm} aoFechar={() => setOpenConfirm(false)} alerta tamanho="sm">
+                <DialogoCabecalho>Confirmar Liberação</DialogoCabecalho>
+                <p className="text-sm text-muted-foreground">
+                    Ao liberar, o resultado ficará disponível para o paciente via protocolo e senha gerados automaticamente. Esta ação não pode ser desfeita.
+                </p>
+                <DialogoRodape>
+                    <Button variant="outline" onClick={() => setOpenConfirm(false)}>Cancelar</Button>
+                    <Button variant="success" onClick={handleLiberar}>Confirmar Liberação</Button>
+                </DialogoRodape>
+            </Dialogo>
         </Card>
     );
 }
-
-
-
