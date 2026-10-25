@@ -59,7 +59,7 @@ export default function CampoFotos({ fotos, aoMudar, max = 4, desabilitado = fal
       </div>
       {aviso ? <Banner tom="alerta">{aviso}</Banner> : null}
       {fotos.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(140px,200px))] gap-3">
           {fotos.map((foto, i) => (
             <li key={`${foto.name}-${foto.size}-${i}`} className="relative overflow-hidden rounded-lg border border-border">
               <img src={urls[i]} alt={`${textoAlt} ${i + 1}`} className="aspect-square w-full object-cover" />
