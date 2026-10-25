@@ -1,34 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Link, Maximize2 } from 'lucide-react';
+import { Grade } from '../ui/grade';
+import { StatCard } from '../ui/stat-card';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 import Chart from '../charts/ApexChartSafe';
 
+const ICONES = { 'link': Link, 'maximize-2': Maximize2 };
+
+const TOMS = { '#1565c0': 'info', '#2196f3': 'info', '#2e7d32': 'sucesso', '#4caf50': 'sucesso' };
+
 function CardTotal({ icon, titulo, valor, cor }) {
-    return (
-        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            width: 56, height: 56,
-                            borderRadius: '50%',
-                            bgcolor: cor + '22',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
 
 export default function LogsDashboard() {
@@ -68,46 +52,46 @@ export default function LogsDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box className="dashboard-neon-home">
+        <div className="ui-reset">
             {/* Totalizadores */}
-            <Grid container spacing={3} mb={3}>
-                <Grid item xs={6} sm={3}>
+            <Grade container spacing={3} mb={3}>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="maximize-2"
                         titulo="Total QR CODE"
                         valor={totais?.total_qr}
                         cor="#2196f3"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="link"
                         titulo="Total Link Público"
                         valor={totais?.total_link}
                         cor="#4caf50"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="maximize-2"
                         titulo="QR CODE x Mês"
                         valor={totais?.qr_mes}
                         cor="#1565c0"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="link"
                         titulo="Link Público x Mês"
                         valor={totais?.link_mes}
                         cor="#2e7d32"
                     />
-                </Grid>
-            </Grid>
+                </Grade>
+            </Grade>
 
-            <Grid container spacing={3}>
+            <Grade container spacing={3}>
                 {/* Acesso QR Code por dia — linha */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Acesso QR Code por Dia do Mês">
                         {chart.qrDias.length > 0 ? (
                             <Chart
@@ -131,13 +115,13 @@ export default function LogsDashboard() {
                                 series={[{ name: 'QR Code', data: chart.qrVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Acessos ao Link Público por dia — linha */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Acessos ao Link Público por Dia do Mês">
                         {chart.lkDias.length > 0 ? (
                             <Chart
@@ -161,11 +145,11 @@ export default function LogsDashboard() {
                                 series={[{ name: 'Link Público', data: chart.lkVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
-            </Grid>
-        </Box>
+                </Grade>
+            </Grade>
+        </div>
     );
 }

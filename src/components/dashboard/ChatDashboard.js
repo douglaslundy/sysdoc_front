@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Card,
-  Grid,
-  LinearProgress,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { File, Layers, Mail, MessageCircle, Paperclip, Radio, UserCheck, Users } from "lucide-react";
 import { api } from "../../services/api";
+import { Banner } from "../ui/banner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { DataTable } from "../ui/data-table";
+import { Esqueleto } from "../ui/esqueleto";
+import { StatCard } from "../ui/stat-card";
 
 const number = (value) =>
   new Intl.NumberFormat("pt-BR").format(Number(value || 0));
@@ -28,29 +18,40 @@ const bytes = (value) => {
   return `${(size / 1024 ** 3).toFixed(1)} GB`;
 };
 
-function MetricCard({ icon, label, value, detail }) {
+const colunasHistorico = [
+  {
+    chave: "data",
+    titulo: "Data",
+    render: (item) => new Intl.DateTimeFormat("pt-BR").format(new Date(`${String(item.usage_date).slice(0, 10)}T12:00:00`)),
+  },
+  { chave: "mensagens", titulo: "Mensagens", numerica: true, render: (item) => number(item.messages_sent) },
+  { chave: "eventos", titulo: "Eventos", numerica: true, render: (item) => number(item.events_published) },
+  { chave: "pico", titulo: "Pico de conexões", numerica: true, render: (item) => number(item.peak_connections) },
+  { chave: "anexos", titulo: "Anexos", numerica: true, render: (item) => number(item.attachments_sent) },
+  { chave: "falhas", titulo: "Falhas", numerica: true, render: (item) => number(item.failed_events) },
+];
+
+function Uso({ titulo, linhaEsquerda, percentual, casas, aviso, legenda }) {
   return (
-    <Card
-      className="dashboard-neon-kpi"
-      sx={{
-        height: "100%",
-        p: 2.2,
-        border: "1px solid var(--lg-border)",
-        background: "var(--lg-glass-panel)",
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1 }}>
-        <FeatherIcon icon={icon} width="19" />
-        <Typography color="text.secondary" sx={{ fontWeight: 700, fontSize: 13 }}>
-          {label}
-        </Typography>
-      </Box>
-      <Typography variant="h3" sx={{ fontWeight: 800 }}>
-        {value}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {detail}
-      </Typography>
+    <Card>
+      <CardContent className="grid gap-2">
+        <p className="font-bold">{titulo}</p>
+        <div className="flex justify-between text-sm">
+          <span>{linhaEsquerda}</span>
+          <span>{percentual.toFixed(casas)}%</span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label={titulo}
+          aria-valuenow={Math.round(percentual)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="h-[9px] overflow-hidden rounded-full bg-border"
+        >
+          <div className={`h-full rounded-full ${aviso ? "bg-primary" : "bg-success-strong"}`} style={{ width: `${percentual}%` }} />
+        </div>
+        <p className="text-xs text-muted-foreground">{legenda}</p>
+      </CardContent>
     </Card>
   );
 }
@@ -71,32 +72,26 @@ export default function ChatDashboard() {
       );
   }, []);
 
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (error) return <Banner tom="perigo">{error}</Banner>;
   if (!data) {
     return (
-      <Box>
-        <Grid container spacing={2}>
+      <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Grid item xs={12} sm={6} lg={3} key={`metric-${index}`}>
-              <Skeleton variant="rounded" height={126} />
-            </Grid>
+            <Esqueleto key={`metric-${index}`} className="h-[126px]" />
           ))}
-        </Grid>
-        <Grid container spacing={2} sx={{ mt: 0.2 }}>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
           {Array.from({ length: 2 }).map((_, index) => (
-            <Grid item xs={12} md={6} key={`progress-${index}`}>
-              <Skeleton variant="rounded" height={150} />
-            </Grid>
+            <Esqueleto key={`progress-${index}`} className="h-[150px]" />
           ))}
-        </Grid>
-        <Grid container spacing={2} sx={{ mt: 0.2 }}>
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Grid item xs={6} md={3} key={`small-${index}`}>
-              <Skeleton variant="rounded" height={100} />
-            </Grid>
+            <Esqueleto key={`small-${index}`} className="h-[100px]" />
           ))}
-        </Grid>
-      </Box>
+        </div>
+      </div>
     );
   }
 
@@ -117,112 +112,59 @@ export default function ChatDashboard() {
     : 0;
 
   return (
-    <Box className="dashboard-neon-home">
-      <Alert severity="info" sx={{ mb: 2 }}>
+    <div className="grid gap-4">
+      <Banner tom="info">
         {isSoketi
           ? "O SysDoc está monitorando o uso do servidor Soketi. Os limites dependem da capacidade do servidor onde ele está hospedado."
           : "O sistema registra publicações e conexões do chat. No Pusher, uma publicação entregue a vários usuários pode consumir mais de uma mensagem; confirme o valor faturável no painel do provedor."}
-      </Alert>
+      </Banner>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} lg={3}>
-          <MetricCard icon="message-circle" label="Mensagens hoje" value={number(data.today?.messages_sent)} detail={`${number(data.month?.messages_sent)} no mes`} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <MetricCard icon="radio" label="Eventos publicados hoje" value={number(dailyEvents)} detail={`${number(data.month?.events_published)} no mes`} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <MetricCard icon="users" label="Conexões atuais" value={number(currentConnections)} detail={`${number(data.today?.peak_connections)} pico hoje`} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <MetricCard icon="paperclip" label="Anexos no mes" value={number(data.month?.attachments_sent)} detail={bytes(data.month?.attachment_bytes)} />
-        </Grid>
-      </Grid>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard Icone={MessageCircle} titulo="Mensagens hoje" valor={number(data.today?.messages_sent)} legenda={`${number(data.month?.messages_sent)} no mes`} />
+        <StatCard Icone={Radio} tom="info" titulo="Eventos publicados hoje" valor={number(dailyEvents)} legenda={`${number(data.month?.events_published)} no mes`} />
+        <StatCard Icone={Users} tom="sucesso" titulo="Conexões atuais" valor={number(currentConnections)} legenda={`${number(data.today?.peak_connections)} pico hoje`} />
+        <StatCard Icone={Paperclip} titulo="Anexos no mes" valor={number(data.month?.attachments_sent)} legenda={bytes(data.month?.attachment_bytes)} />
+      </div>
 
-      <Grid container spacing={2} sx={{ mt: 0.2 }}>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2.2, height: "100%", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Typography sx={{ fontWeight: 800, mb: 1 }}>Consumo diário do plano</Typography>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.8 }}>
-              <Typography variant="body2">{number(dailyEvents)} eventos registrados</Typography>
-              <Typography variant="body2">{dailyPercent.toFixed(2)}%</Typography>
-            </Box>
-            <LinearProgress variant="determinate" value={dailyPercent} color={dailyPercent >= 80 ? "warning" : "primary"} sx={{ height: 9, borderRadius: 5 }} />
-            <Typography variant="caption" color="text.secondary">
-              {eventLimit
-                ? `Referência: ${number(eventLimit)} mensagens por dia no ${data.limits?.plan}.`
-                : "Sem limite fixo configurado pelo provedor. Acompanhe a capacidade do servidor Soketi."}
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2.2, height: "100%", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Typography sx={{ fontWeight: 800, mb: 1 }}>Conexões simultâneas</Typography>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.8 }}>
-              <Typography variant="body2">{number(currentConnections)} conexões</Typography>
-              <Typography variant="body2">{connectionPercent.toFixed(1)}%</Typography>
-            </Box>
-            <LinearProgress variant="determinate" value={connectionPercent} color={connectionPercent >= 80 ? "warning" : "success"} sx={{ height: 9, borderRadius: 5 }} />
-            <Typography variant="caption" color="text.secondary">
-              {connectionLimit
-                ? `Limite de ${number(connectionLimit)} conexões simultâneas.`
-                : "Sem limite fixo configurado. O teto depende dos recursos do servidor Soketi."}
-            </Typography>
-          </Card>
-        </Grid>
-      </Grid>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Uso
+          titulo="Consumo diário do plano"
+          linhaEsquerda={`${number(dailyEvents)} eventos registrados`}
+          percentual={dailyPercent}
+          casas={2}
+          aviso={dailyPercent >= 80}
+          legenda={eventLimit
+            ? `Referência: ${number(eventLimit)} mensagens por dia no ${data.limits?.plan}.`
+            : "Sem limite fixo configurado pelo provedor. Acompanhe a capacidade do servidor Soketi."}
+        />
+        <Uso
+          titulo="Conexões simultâneas"
+          linhaEsquerda={`${number(currentConnections)} conexões`}
+          percentual={connectionPercent}
+          casas={1}
+          aviso={connectionPercent >= 80}
+          legenda={connectionLimit
+            ? `Limite de ${number(connectionLimit)} conexões simultâneas.`
+            : "Sem limite fixo configurado. O teto depende dos recursos do servidor Soketi."}
+        />
+      </div>
 
-      <Card sx={{ mt: 2, border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-        <Box sx={{ p: 2 }}>
-          <Typography sx={{ fontWeight: 800 }}>Histórico dos últimos 30 dias</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Mensagens, eventos, pico de conexões, anexos e falhas registrados pelo SysDoc.
-          </Typography>
-        </Box>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Data</TableCell>
-                <TableCell align="right">Mensagens</TableCell>
-                <TableCell align="right">Eventos</TableCell>
-                <TableCell align="right">Pico de conexões</TableCell>
-                <TableCell align="right">Anexos</TableCell>
-                <TableCell align="right">Falhas</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(data.daily || []).map((item) => (
-                <TableRow key={item.usage_date}>
-                  <TableCell>
-                    {new Intl.DateTimeFormat("pt-BR").format(new Date(`${String(item.usage_date).slice(0, 10)}T12:00:00`))}
-                  </TableCell>
-                  <TableCell align="right">{number(item.messages_sent)}</TableCell>
-                  <TableCell align="right">{number(item.events_published)}</TableCell>
-                  <TableCell align="right">{number(item.peak_connections)}</TableCell>
-                  <TableCell align="right">{number(item.attachments_sent)}</TableCell>
-                  <TableCell align="right">{number(item.failed_events)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico dos últimos 30 dias</CardTitle>
+          <CardDescription>Mensagens, eventos, pico de conexões, anexos e falhas registrados pelo SysDoc.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DataTable rotulo="histórico dos últimos 30 dias" colunas={colunasHistorico} linhas={data.daily || []} chaveDaLinha={(item) => item.usage_date} vazio="Sem histórico no período." />
+        </CardContent>
       </Card>
 
-      <Grid container spacing={2} sx={{ mt: 0.2 }}>
-        <Grid item xs={6} md={3}>
-          <MetricCard icon="layers" label="Conversas" value={number(data.totals?.conversations)} detail="Total persistido" />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <MetricCard icon="mail" label="Mensagens" value={number(data.totals?.messages)} detail={`${number(data.current?.unread_messages)} não lidas`} />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <MetricCard icon="file" label="Arquivos" value={number(data.totals?.attachments)} detail={bytes(data.totals?.storage_bytes)} />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <MetricCard icon="user-check" label="Usuários online" value={number(data.current?.online_users)} detail={`${number(data.month?.connection_events)} eventos de presença no mês`} />
-        </Grid>
-      </Grid>
-    </Box>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatCard Icone={Layers} titulo="Conversas" valor={number(data.totals?.conversations)} legenda="Total persistido" />
+        <StatCard Icone={Mail} titulo="Mensagens" valor={number(data.totals?.messages)} legenda={`${number(data.current?.unread_messages)} não lidas`} />
+        <StatCard Icone={File} titulo="Arquivos" valor={number(data.totals?.attachments)} legenda={bytes(data.totals?.storage_bytes)} />
+        <StatCard Icone={UserCheck} tom="sucesso" titulo="Usuários online" valor={number(data.current?.online_users)} legenda={`${number(data.month?.connection_events)} eventos de presença no mês`} />
+      </div>
+    </div>
   );
 }

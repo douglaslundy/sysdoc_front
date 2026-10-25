@@ -1,34 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Activity, Calendar, CheckCircle, Users } from 'lucide-react';
+import { Grade } from '../ui/grade';
+import { StatCard } from '../ui/stat-card';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 import Chart from '../charts/ApexChartSafe';
 
+const ICONES = { 'activity': Activity, 'calendar': Calendar, 'check-circle': CheckCircle, 'users': Users };
+
+const TOMS = { '#2196f3': 'info', '#4caf50': 'sucesso', '#9c27b0': 'primario', '#ff9800': 'primario' };
+
 function CardTotal({ icon, titulo, valor, cor }) {
-    return (
-        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            width: 56, height: 56,
-                            borderRadius: '50%',
-                            bgcolor: cor + '22',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
 
 function gerarMeses(mapa) {
@@ -84,46 +68,46 @@ export default function FilaDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box className="dashboard-neon-home">
+        <div className="ui-reset">
             {/* Totalizadores */}
-            <Grid container spacing={3} mb={3}>
-                <Grid item xs={6} sm={3}>
+            <Grade container spacing={3} mb={3}>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="activity"
                         titulo="Especialidades Cadastradas"
                         valor={totais?.especialidades}
                         cor="#9c27b0"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="users"
                         titulo="Total na Fila"
                         valor={totais?.total_na_fila}
                         cor="#2196f3"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="calendar"
                         titulo="Fila Últimos 7 Dias"
                         valor={totais?.fila_7dias}
                         cor="#ff9800"
                     />
-                </Grid>
-                <Grid item xs={6} sm={3}>
+                </Grade>
+                <Grade item xs={6} sm={3}>
                     <CardTotal
                         icon="check-circle"
                         titulo="Total Realizados"
                         valor={totais?.total_realizados}
                         cor="#4caf50"
                     />
-                </Grid>
-            </Grid>
+                </Grade>
+            </Grade>
 
-            <Grid container spacing={3}>
+            <Grade container spacing={3}>
                 {/* Fila x Especialidades — barras empilhadas */}
-                <Grid item xs={12} md={12}>
+                <Grade item xs={12} md={12}>
                     <BaseCard title="Fila x Especialidades">
                         {chart.espNomes.length > 0 ? (
                             <Chart
@@ -153,13 +137,13 @@ export default function FilaDashboard() {
                                 ]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Entradas na fila — últimos 12 meses */}
-                <Grid item xs={12} md={12}>
+                <Grade item xs={12} md={12}>
                     <BaseCard title="Entradas na Fila — Últimos 12 Meses">
                         <Chart
                             type="area"
@@ -184,10 +168,10 @@ export default function FilaDashboard() {
                             series={[{ name: 'Entradas', data: chart.porMes.valores }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Especialidades realizadas */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Especialidades Realizadas (total geral)">
                         {chart.especialidadeRealizadaNomes.length > 0 ? (
                             <Chart
@@ -207,12 +191,12 @@ export default function FilaDashboard() {
                                 }}
                                 series={[{ name: 'Realizados', data: chart.especialidadeRealizadaVals }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Realizados por mês */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Atendimentos Realizados por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -234,8 +218,8 @@ export default function FilaDashboard() {
                             series={[{ name: 'Realizados', data: chart.realizadasPorMes.valores }]}
                         />
                     </BaseCard>
-                </Grid>
-            </Grid>
-        </Box>
+                </Grade>
+            </Grade>
+        </div>
     );
 }

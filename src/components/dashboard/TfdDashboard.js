@@ -1,34 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Calendar, MapPin, Truck, Users } from 'lucide-react';
+import { Abas } from '../ui/abas';
+import { Grade } from '../ui/grade';
+import { StatCard } from '../ui/stat-card';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
 import Chart from '../charts/ApexChartSafe';
 
+const ICONES = { 'calendar': Calendar, 'map-pin': MapPin, 'truck': Truck, 'users': Users };
+
+const TOMS = { '#2196f3': 'info', '#4caf50': 'sucesso', '#ff9800': 'primario' };
+
 function CardTotal({ icon, titulo, valor, cor }) {
-    return (
-        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            width: 56, height: 56,
-                            borderRadius: '50%',
-                            bgcolor: cor + '22',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
 
 export default function TfdDashboard() {
@@ -105,45 +90,43 @@ export default function TfdDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box className="dashboard-neon-home">
+        <div className="ui-reset">
             {/* Totalizadores */}
-            <Grid container spacing={3} mb={3}>
-                <Grid item xs={12} sm={4}>
+            <Grade container spacing={3} mb={3}>
+                <Grade item xs={12} sm={4}>
                     <CardTotal
                         icon="truck"
                         titulo="Total de Viagens (mês)"
                         valor={totais?.total_viagens}
                         cor="#4caf50"
                     />
-                </Grid>
-                <Grid item xs={12} sm={4}>
+                </Grade>
+                <Grade item xs={12} sm={4}>
                     <CardTotal
                         icon="users"
                         titulo="Pessoas Transportadas (mês)"
                         valor={totais?.pessoas_transportadas_mes}
                         cor="#2196f3"
                     />
-                </Grid>
-                <Grid item xs={12} sm={4}>
+                </Grade>
+                <Grade item xs={12} sm={4}>
                     <CardTotal
                         icon="map-pin"
                         titulo="KM Rodados (mês)"
                         valor={totais?.km_rodados}
                         cor="#ff9800"
                     />
-                </Grid>
-            </Grid>
+                </Grade>
+            </Grade>
 
-            <Box mb={2} display="flex" alignItems="center" gap={1}>
-                <FeatherIcon icon="calendar" width={16} height={16} style={{ opacity: 0.6 }} />
-                <Typography variant="caption" color="text.secondary">
-                    Referência: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                </Typography>
-            </Box>
+            <p className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <Calendar className="size-4 opacity-60" aria-hidden />
+                Referência: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+            </p>
 
-            <Grid container spacing={3}>
+            <Grade container spacing={3}>
                 {/* Viagens realizadas por dia do mês — linha */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title={`Viagens por Dia do Mês — ${nomeMes}`}>
                         {chart.diasLabels.length > 0 ? (
                             <Chart
@@ -165,13 +148,13 @@ export default function TfdDashboard() {
                                 series={[{ name: 'Viagens', data: chart.diasVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Viagens agendadas por dia do mês — linha */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title={`Viagens Agendadas — ${nomeMes}`}>
                         {chart.diasAgLabels.length > 0 ? (
                             <Chart
@@ -193,30 +176,30 @@ export default function TfdDashboard() {
                                 series={[{ name: 'Agendadas', data: chart.diasAgVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem viagens agendadas</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem viagens agendadas</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Seletor de período para motoristas e rotas */}
-                <Grid item xs={12}>
-                    <Box display="flex" alignItems="center" gap={2}>
-                        <Typography variant="body2" color="text.secondary">Período (motoristas e rotas):</Typography>
-                        <ToggleButtonGroup
-                            value={periodo}
-                            exclusive
-                            onChange={(_, v) => v && setPeriodo(v)}
-                            size="small"
-                        >
-                            <ToggleButton value="mes">Mês atual</ToggleButton>
-                            <ToggleButton value="12meses">Últimos 12 meses</ToggleButton>
-                            <ToggleButton value="ano">Este ano</ToggleButton>
-                        </ToggleButtonGroup>
-                    </Box>
-                </Grid>
+                <Grade item xs={12}>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <p className="text-sm text-muted-foreground">Período (motoristas e rotas):</p>
+                        <Abas
+                            rotulo="Período"
+                            valor={periodo}
+                            aoMudar={setPeriodo}
+                            itens={[
+                                { chave: 'mes', rotulo: 'Mês atual' },
+                                { chave: '12meses', rotulo: 'Últimos 12 meses' },
+                                { chave: 'ano', rotulo: 'Este ano' },
+                            ]}
+                        />
+                    </div>
+                </Grade>
 
                 {/* Viagens por Motorista — barras horizontal */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Viagens por Motorista">
                         {chart.motoristaNomes.length > 0 ? (
                             <Chart
@@ -243,13 +226,13 @@ export default function TfdDashboard() {
                                 series={[{ name: 'Viagens', data: chart.motoristaVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Rotas mais utilizadas — barras horizontal */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Rotas Mais Utilizadas">
                         {chart.rotaNomes.length > 0 ? (
                             <Chart
@@ -276,13 +259,13 @@ export default function TfdDashboard() {
                                 series={[{ name: 'Viagens', data: chart.rotaVals }]}
                             />
                         ) : (
-                            <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>
+                            <p className="mt-8 text-center text-muted-foreground">Sem dados</p>
                         )}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Viagens por Mês */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Viagens por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
@@ -306,10 +289,10 @@ export default function TfdDashboard() {
                             series={[{ name: 'Viagens', data: chart.mesViagens }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Pessoas por Mês */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Pessoas por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
@@ -333,10 +316,10 @@ export default function TfdDashboard() {
                             series={[{ name: 'Pessoas', data: chart.mesPessoas }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* KM Rodados por Mês */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="KM Rodados por Mês (Últimos 12 Meses)">
                         <Chart
                             type="bar"
@@ -360,10 +343,10 @@ export default function TfdDashboard() {
                             series={[{ name: 'KM Rodados', data: chart.mesKm }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Viagens por Ano */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Viagens por Ano (Últimos 5 Anos)">
                         <Chart
                             type="bar"
@@ -384,10 +367,10 @@ export default function TfdDashboard() {
                             series={[{ name: 'Viagens', data: chart.anoViagens }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Pessoas por Ano */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Pessoas por Ano (Últimos 5 Anos)">
                         <Chart
                             type="bar"
@@ -408,10 +391,10 @@ export default function TfdDashboard() {
                             series={[{ name: 'Pessoas', data: chart.anoPessoas }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* KM Rodados por Ano */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="KM Rodados por Ano (Últimos 5 Anos)">
                         <Chart
                             type="bar"
@@ -432,8 +415,8 @@ export default function TfdDashboard() {
                             series={[{ name: 'KM Rodados', data: chart.anoKm }]}
                         />
                     </BaseCard>
-                </Grid>
-            </Grid>
-        </Box>
+                </Grade>
+            </Grade>
+        </div>
     );
 }

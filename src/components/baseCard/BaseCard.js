@@ -1,29 +1,16 @@
 import React from "react";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
-import {
-  Card,
-  CardContent,
-  Box,
-  Typography,
-} from "@mui/material";
-
-const BaseCard = (props) => {
-  return (
-    <Card className="card info-card" sx={props.sx}>
-      <Box p={2} pb={props.subtitle ? 1 : 2} display="flex" alignItems="center" justifyContent="space-between" gap={2} flexWrap="wrap">
-        <Box>
-          <Typography variant="h4" className="card__title">{props.title}</Typography>
-          {props.subtitle ? (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {props.subtitle}
-            </Typography>
-          ) : null}
-        </Box>
-        {props.action ? <Box>{props.action}</Box> : null}
-      </Box>
-      <CardContent className="card__content" sx={props.contentSx}>{props.children}</CardContent>
-    </Card>
-  );
-};
+// Cartão com título, subtítulo e ação opcionais (telas ainda não migradas para o Card direto).
+const BaseCard = ({ title, subtitle, action, className, children }) => (
+  <Card className={className}>
+    <CardHeader>
+      <CardTitle>{title}</CardTitle>
+      {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
+      {action ? <CardAction>{action}</CardAction> : null}
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+);
 
 export default BaseCard;

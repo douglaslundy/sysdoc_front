@@ -1,39 +1,33 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Grid, Box, Typography, Card, CardContent, ToggleButton, ToggleButtonGroup,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import FeatherIcon from 'feather-icons-react';
+import { AlertTriangle, Archive, CheckCircle, ShoppingCart } from 'lucide-react';
+import { Abas } from '../ui/abas';
+import { DataTable } from '../ui/data-table';
+import { Grade } from '../ui/grade';
+import { StatCard } from '../ui/stat-card';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
 import { DashboardErro, DashboardLoading, getDashboardErrorMessage } from './DashboardStatus';
 
+const ICONES = { 'alert-triangle': AlertTriangle, 'archive': Archive, 'check-circle': CheckCircle, 'shopping-cart': ShoppingCart };
+
+const TOMS = { '#1e88e5': 'info', '#43a047': 'sucesso', '#e53935': 'perigo', '#fb8c00': 'primario' };
+
 function CardTotal({ icon, titulo, valor, cor }) {
-    return (
-        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '-'}</Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            width: 56, height: 56,
-                            borderRadius: '50%',
-                            bgcolor: cor + '22',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
+
+const COLUNAS_RISCO = [
+    { chave: 'medicamento', titulo: 'Medicamento', render: (item) => item.nome },
+    { chave: 'estoque', titulo: 'Estoque Atual', numerica: true, render: (item) => item.estoque_atual },
+    { chave: 'consumo', titulo: 'Consumo/dia', numerica: true, render: (item) => item.consumo_medio_diario },
+    {
+        chave: 'dias',
+        titulo: 'Dias Restantes',
+        numerica: true,
+        render: (item) => <span className={`font-bold ${item.dias_restantes < 5 ? 'text-danger' : 'text-primary-text'}`}>{item.dias_restantes}</span>,
+    },
+];
 
 function normalizeMeses(aquisicoesPorMes = [], janelaMeses = 12) {
     const mapa = new Map((aquisicoesPorMes || []).map((row) => [row.mes, row]));
@@ -124,51 +118,51 @@ export default function FarmaciaDashboard() {
     const alturaTop = Math.max(300, chart.topNomes.length * 36);
 
     return (
-        <Box className="dashboard-neon-home">
-            <Grid container spacing={3} mb={3}>
-                <Grid item xs={12} sm={6} md={3}>
+        <div className="ui-reset">
+            <Grade container spacing={3} mb={3}>
+                <Grade item xs={12} sm={6} md={3}>
                     <CardTotal icon="archive" titulo="Medicamentos Ativos" valor={totais.medicamentos_ativos} cor="#1e88e5" />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                </Grade>
+                <Grade item xs={12} sm={6} md={3}>
                     <CardTotal icon="check-circle" titulo="Disponibilidade Hoje" valor={`${totais.taxa_disponibilidade_hoje || 0}%`} cor="#43a047" />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                </Grade>
+                <Grade item xs={12} sm={6} md={3}>
                     <CardTotal icon="alert-triangle" titulo="Indisponíveis Hoje" valor={totais.indisponiveis_hoje} cor="#e53935" />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                </Grade>
+                <Grade item xs={12} sm={6} md={3}>
                     <CardTotal icon="shopping-cart" titulo="Qtd. Adquirida no Mês" valor={totais.qtd_adquirida_mes_atual} cor="#fb8c00" />
-                </Grid>
-            </Grid>
+                </Grade>
+            </Grade>
 
-            <Box mb={2} display="flex" alignItems="center" gap={2}>
-                <Typography variant="body2" color="text.secondary">Período de análise:</Typography>
-                <ToggleButtonGroup
-                    value={janelaDias}
-                    exclusive
-                    onChange={(_, v) => v && setJanelaDias(v)}
-                    size="small"
-                >
-                    <ToggleButton value={7}>7 dias</ToggleButton>
-                    <ToggleButton value={30}>30 dias</ToggleButton>
-                    <ToggleButton value={90}>90 dias</ToggleButton>
-                </ToggleButtonGroup>
-            </Box>
-            <Box mb={2} display="flex" alignItems="center" gap={2}>
-                <Typography variant="body2" color="text.secondary">Janela de aquisições:</Typography>
-                <ToggleButtonGroup
-                    value={janelaMeses}
-                    exclusive
-                    onChange={(_, v) => v && setJanelaMeses(v)}
-                    size="small"
-                >
-                    <ToggleButton value={3}>3 meses</ToggleButton>
-                    <ToggleButton value={6}>6 meses</ToggleButton>
-                    <ToggleButton value={12}>12 meses</ToggleButton>
-                </ToggleButtonGroup>
-            </Box>
+            <div className="mb-4 flex flex-wrap items-center gap-4">
+                <p className="text-sm text-muted-foreground">Período de análise:</p>
+                <Abas
+                    rotulo="Período de análise"
+                    valor={janelaDias}
+                    aoMudar={setJanelaDias}
+                    itens={[
+                                { chave: 7, rotulo: '7 dias' },
+                                { chave: 30, rotulo: '30 dias' },
+                                { chave: 90, rotulo: '90 dias' },
+                    ]}
+                />
+            </div>
+            <div className="mb-4 flex flex-wrap items-center gap-4">
+                <p className="text-sm text-muted-foreground">Janela de aquisições:</p>
+                <Abas
+                    rotulo="Janela de aquisições"
+                    valor={janelaMeses}
+                    aoMudar={setJanelaMeses}
+                    itens={[
+                                { chave: 3, rotulo: '3 meses' },
+                                { chave: 6, rotulo: '6 meses' },
+                                { chave: 12, rotulo: '12 meses' },
+                    ]}
+                />
+            </div>
 
-            <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+            <Grade container spacing={3}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title={`Disponibilidade Diária (últimos ${janelaDias} dias)`}>
                         {chart.statusLabels.length > 0 ? (
                             <Chart
@@ -193,11 +187,11 @@ export default function FarmaciaDashboard() {
                                     { name: 'Indisponíveis', data: chart.indisponiveisDia },
                                 ]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title={`Aquisições por Mês (últimos ${janelaMeses} meses)`}>
                         <Chart
                             type="bar"
@@ -221,9 +215,9 @@ export default function FarmaciaDashboard() {
                             ]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title={`Top Medicamentos com Indisponibilidade (${janelaDias} dias)`}>
                         {chart.topNomes.length > 0 ? (
                             <Chart
@@ -241,11 +235,11 @@ export default function FarmaciaDashboard() {
                                 }}
                                 series={[{ name: 'Dias indisponível', data: chart.topDias }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Origem das Aquisições (mês atual)">
                         {chart.fontesLabels.length > 0 ? (
                             <Chart
@@ -260,15 +254,15 @@ export default function FarmaciaDashboard() {
                                 }}
                                 series={chart.fontesValores}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Medicamentos Mais Consumidos (média mensal, últimos 3 meses)">
-                        <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                        <p className="mb-2 text-xs text-muted-foreground">
                             Consumo estimado a partir do status diário de disponibilidade — depende de lançamento consistente.
-                        </Typography>
+                        </p>
                         {chart.consumoNomes.length > 0 ? (
                             <Chart
                                 type="bar"
@@ -285,50 +279,26 @@ export default function FarmaciaDashboard() {
                                 }}
                                 series={[{ name: 'Consumo médio mensal', data: chart.consumoValores }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados suficientes</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados suficientes</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Risco de Falta (menos de 15 dias de estoque)">
-                        <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                        <p className="mb-2 text-xs text-muted-foreground">
                             Consumo estimado a partir do status diário de disponibilidade — depende de lançamento consistente.
-                        </Typography>
+                        </p>
                         {(dados.risco_falta || []).length > 0 ? (
-                            <TableContainer>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Medicamento</TableCell>
-                                            <TableCell align="right">Estoque Atual</TableCell>
-                                            <TableCell align="right">Consumo/dia</TableCell>
-                                            <TableCell align="right">Dias Restantes</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {(dados.risco_falta || []).map((item) => (
-                                            <TableRow key={item.medicine_item_id}>
-                                                <TableCell>{item.nome}</TableCell>
-                                                <TableCell align="right">{item.estoque_atual}</TableCell>
-                                                <TableCell align="right">{item.consumo_medio_diario}</TableCell>
-                                                <TableCell
-                                                    align="right"
-                                                    sx={{
-                                                        color: item.dias_restantes < 5 ? '#e53935' : '#fb8c00',
-                                                        fontWeight: 700,
-                                                    }}
-                                                >
-                                                    {item.dias_restantes}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Nenhum medicamento em risco de falta no momento</Typography>}
+                            <DataTable
+                                rotulo="risco de falta"
+                                colunas={COLUNAS_RISCO}
+                                linhas={dados.risco_falta || []}
+                                chaveDaLinha={(item) => item.medicine_item_id}
+                            />
+                        ) : <p className="mt-8 text-center text-muted-foreground">Nenhum medicamento em risco de falta no momento</p>}
                     </BaseCard>
-                </Grid>
-            </Grid>
-        </Box>
+                </Grade>
+            </Grade>
+        </div>
     );
 }

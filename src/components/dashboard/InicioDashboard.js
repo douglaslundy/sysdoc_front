@@ -1,60 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Box, Typography, Card, CardActionArea, CardContent, Skeleton } from '@mui/material';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
+import { Archive, FileText, Package, Shield, Thermometer, Truck, Users } from 'lucide-react';
 import { api } from '../../services/api';
 import { DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
+import { Esqueleto } from '../ui/esqueleto';
 
 const SETOR_META = {
-  farmacia: { icon: 'archive', destino: '/dashboard/farmacia' },
-  vigilancia: { icon: 'shield', destino: '/dashboard/vigilancia' },
-  almoxarifado: { icon: 'package', destino: '/dashboard/almoxarifado' },
-  protocolo: { icon: 'file-text', destino: '/protocolo/caixa-entrada' },
-  laboratorio: { icon: 'thermometer', destino: '/dashboard/laboratorio' },
-  fila: { icon: 'users', destino: '/dashboard/fila' },
-  tfd: { icon: 'truck', destino: '/dashboard/tfd' },
+  farmacia: { Icone: Archive, destino: '/dashboard/farmacia' },
+  vigilancia: { Icone: Shield, destino: '/dashboard/vigilancia' },
+  almoxarifado: { Icone: Package, destino: '/dashboard/almoxarifado' },
+  protocolo: { Icone: FileText, destino: '/protocolo/caixa-entrada' },
+  laboratorio: { Icone: Thermometer, destino: '/dashboard/laboratorio' },
+  fila: { Icone: Users, destino: '/dashboard/fila' },
+  tfd: { Icone: Truck, destino: '/dashboard/tfd' },
 };
 
 const ORDEM_SETORES = ['farmacia', 'vigilancia', 'almoxarifado', 'protocolo', 'laboratorio', 'fila', 'tfd'];
 
 function SetorCard({ chave, setor, onClick }) {
-  const meta = SETOR_META[chave];
+  const { Icone } = SETOR_META[chave];
   const alerta = Boolean(setor.alerta);
 
-  const cores = alerta
-    ? { iconBg: 'rgba(239, 68, 68, 0.16)', iconColor: '#f87171' }
-    : { iconBg: 'rgba(37, 99, 235, 0.14)', iconColor: '#93c5fd' };
-
   return (
-    <Card
-      className={`dashboard-neon-kpi dashboard-neon-kpi--${alerta ? 'alerta' : 'blue'}`}
-      sx={{
-        height: '100%',
-        transition: 'transform 0.15s ease',
-        '&:hover': { transform: 'translateY(-2px)' },
-      }}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex h-full w-full items-center justify-between gap-4 rounded-xl border border-t-2 border-border bg-card p-5 text-left transition-colors hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none ${
+        alerta ? 'border-t-danger-strong' : 'border-t-info-strong'
+      }`}
     >
-      <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
-        <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Box>
-              <Typography color="textSecondary" variant="subtitle1">{setor.label}</Typography>
-              <Typography color="textSecondary" variant="caption" sx={{ display: 'block', mt: -0.5 }}>{setor.kpi || ''}</Typography>
-              <Typography variant="h3" fontWeight="bold" mt={0.5}>{setor.valor ?? '—'}</Typography>
-              <Typography color={alerta ? 'error' : 'textSecondary'} variant="body2" mt={1} fontWeight={alerta ? 700 : 400}>
-                {alerta ? 'Requer atenção' : 'Sem pendências críticas'}
-              </Typography>
-            </Box>
-            <Box sx={{
-              width: 72, height: 72, borderRadius: '50%',
-              background: cores.iconBg, display: 'grid', placeItems: 'center',
-            }}>
-              <FeatherIcon icon={meta.icon} color={cores.iconColor} width="28" height="28" />
-            </Box>
-          </Box>
-        </CardContent>
-      </CardActionArea>
-    </Card>
+      <span className="min-w-0">
+        <span className="block text-base text-muted-foreground">{setor.label}</span>
+        <span className="block min-h-4 text-xs text-muted-foreground">{setor.kpi || ''}</span>
+        <span className="mt-1 block font-mono text-3xl font-bold">{setor.valor ?? '—'}</span>
+        <span className={`mt-2 block text-sm ${alerta ? 'font-bold text-danger' : 'text-muted-foreground'}`}>
+          {alerta ? 'Requer atenção' : 'Sem pendências críticas'}
+        </span>
+      </span>
+      <span className={`flex size-[72px] shrink-0 items-center justify-center rounded-full ${alerta ? 'bg-danger/15 text-danger' : 'bg-info/15 text-info'}`}>
+        <Icone className="size-7" aria-hidden />
+      </span>
+    </button>
   );
 }
 
@@ -73,15 +59,11 @@ export default function InicioDashboard({ onNavigateToSetor }) {
 
   if (loading) {
     return (
-      <Box className="dashboard-neon-home" sx={{ mt: 1 }}>
-        <Grid container spacing={3}>
-          {ORDEM_SETORES.map((chave) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={chave}>
-              <Skeleton variant="rounded" height={190} />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+      <div className="mt-2 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {ORDEM_SETORES.map((chave) => (
+          <Esqueleto key={chave} className="h-[190px]" />
+        ))}
+      </div>
     );
   }
 
@@ -97,21 +79,17 @@ export default function InicioDashboard({ onNavigateToSetor }) {
 
   if (setoresVisiveis.length === 0) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-        <Typography color="text.secondary">Nenhum setor disponível para o seu perfil.</Typography>
-      </Box>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-muted-foreground">Nenhum setor disponível para o seu perfil.</p>
+      </div>
     );
   }
 
   return (
-    <Box className="dashboard-neon-home" sx={{ mt: 1 }}>
-      <Grid container spacing={3}>
-        {setoresVisiveis.map((chave) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={chave}>
-            <SetorCard chave={chave} setor={dados.setores[chave]} onClick={() => handleClick(chave)} />
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+    <div className="mt-2 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {setoresVisiveis.map((chave) => (
+        <SetorCard key={chave} chave={chave} setor={dados.setores[chave]} onClick={() => handleClick(chave)} />
+      ))}
+    </div>
   );
 }

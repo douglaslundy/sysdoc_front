@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, Skeleton, Chip } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import FeatherIcon from 'feather-icons-react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, AlertOctagon, AlertTriangle, Calendar, CheckCircle, Clipboard, Home, MessageCircle, Shield } from 'lucide-react';
+import { ColorModeContext } from '../../contexts/ThemeContext';
+import { DataTable } from '../ui/data-table';
+import { Esqueleto } from '../ui/esqueleto';
+import { Grade } from '../ui/grade';
+import { StatCard } from '../ui/stat-card';
 import { normalizeIconName } from '../../utils/iconResolver';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
@@ -18,32 +21,12 @@ function normalizarRisco(valor) {
   return 'N/A';
 }
 
-function CardTotal({ icon, titulo, valor, cor, iconBoxWidth = 60 }) {
-  return (
-    <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-      <CardContent sx={{ px: 2.5, py: 2 }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600, lineHeight: 1.25 }}>{titulo}</Typography>
-            <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '-'}</Typography>
-          </Box>
-          <Box
-            sx={{
-              minWidth: iconBoxWidth,
-              width: iconBoxWidth,
-              height: iconBoxWidth,
-              borderRadius: '50%',
-              bgcolor: cor + '22',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <FeatherIcon icon={normalizeIconName(icon, 'circle')} color={cor} width="26" height="26" />
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+const ICONES = { 'alert-circle': AlertCircle, 'alert-octagon': AlertOctagon, 'alert-triangle': AlertTriangle, 'calendar': Calendar, 'check-circle': CheckCircle, 'clipboard': Clipboard, 'home': Home, 'message-circle': MessageCircle, 'shield': Shield };
+
+const TOMS = { '#00acc1': 'info', '#2196f3': 'info', '#4caf50': 'sucesso', '#607d8b': 'info', '#f44336': 'perigo', '#ff5722': 'perigo' };
+
+function CardTotal({ icon, titulo, valor, cor }) {
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
 
 function gerarMesesFromMap(mapa) {
@@ -61,8 +44,8 @@ function gerarMesesFromMap(mapa) {
 }
 
 export default function VigilanciaDashboard() {
-  const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
+  const { mode } = useContext(ColorModeContext);
+  const isDarkMode = mode === 'dark';
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
@@ -103,34 +86,24 @@ export default function VigilanciaDashboard() {
 
   if (loading) {
     return (
-      <Box className="dashboard-neon-home">
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: 'repeat(2, minmax(0, 1fr))',
-              md: 'repeat(5, minmax(0, 1fr))',
-            },
-            gap: 1,
-            mb: 3,
-          }}
-        >
+      <div className="ui-reset">
+        <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
           {Array.from({ length: 5 }).map((_, index) => (
-            <Skeleton variant="rounded" height={96} key={`metric-${index}`} />
+            <Esqueleto className="h-24" key={`metric-${index}`} />
           ))}
-        </Box>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Skeleton variant="rounded" height={300} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Skeleton variant="rounded" height={300} />
-          </Grid>
-          <Grid item xs={12}>
-            <Skeleton variant="rounded" height={320} />
-          </Grid>
-        </Grid>
-      </Box>
+        </div>
+        <Grade container spacing={3}>
+          <Grade item xs={12} md={6}>
+            <Esqueleto className="h-[300px]" />
+          </Grade>
+          <Grade item xs={12} md={6}>
+            <Esqueleto className="h-[300px]" />
+          </Grade>
+          <Grade item xs={12}>
+            <Esqueleto className="h-80" />
+          </Grade>
+        </Grade>
+      </div>
     );
   }
 
@@ -148,38 +121,43 @@ export default function VigilanciaDashboard() {
     return `${d}/${m}/${y}`;
   };
 
+  const colunasVencimentos = [
+    { chave: 'numero', titulo: 'Número', render: (alv) => <span className="font-semibold">{alv.numero_alvara}</span> },
+    { chave: 'estabelecimento', titulo: 'Estabelecimento', render: (alv) => alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? '-' },
+    {
+      chave: 'risco',
+      titulo: 'Risco',
+      render: (alv) => {
+        const risco = normalizarRisco(alv.nivel_risco);
+        const corRisco = RISCO_COR[risco] || '#607d8b';
+        return (
+          <span
+            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold"
+            style={{
+              backgroundColor: isDarkMode ? `${corRisco}33` : `${corRisco}22`,
+              color: isDarkMode ? corRisco : '#0f172a',
+              borderColor: isDarkMode ? `${corRisco}44` : `${corRisco}88`,
+            }}
+          >
+            {`Risco ${risco}`}
+          </span>
+        );
+      },
+    },
+    { chave: 'status', titulo: 'Status', render: (alv) => alv.status || '-' },
+    { chave: 'vencimento', titulo: 'Vencimento', render: (alv) => <span className="font-semibold text-primary-text">{formatDate(alv.vencimento_alvara)}</span> },
+  ];
   return (
-    <Box className="dashboard-neon-home">
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(5, minmax(0, 1fr))',
-          },
-          gap: 1,
-          mb: 3,
-          '& > *': {
-            minWidth: 0,
-          },
-        }}
-      >
+    <div className="ui-reset">
+      <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
         <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
         <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />
         <CardTotal icon="check-circle" titulo="Vigentes" valor={totais.vigentes} cor="#4caf50" />
         <CardTotal icon="alert-circle" titulo="Vencidos" valor={totais.vencidos} cor="#f44336" />
         <CardTotal icon="alert-triangle" titulo="Vencem em 30d" valor={totais.vencendo_em_30} cor="#ff5722" />
-      </Box>
+      </div>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
-          gap: 1,
-          mb: 3,
-          '& > *': { minWidth: 0 },
-        }}
-      >
+      <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-4">
         <CardTotal icon="clipboard" titulo="Fiscalizações no ano" valor={fiscalizacoes.no_ano} cor="#2196f3" />
         <CardTotal icon="calendar" titulo="Fiscalizações no mês" valor={fiscalizacoes.no_mes} cor="#00acc1" />
         <CardTotal
@@ -189,119 +167,63 @@ export default function VigilanciaDashboard() {
           cor={Number(fiscalizacoes.denuncias_pendentes) > 0 ? '#ff9800' : '#4caf50'}
         />
         <CardTotal icon="alert-octagon" titulo="Autos de infração no ano" valor={fiscalizacoes.autos_infracao_ano} cor="#f44336" />
-      </Box>
+      </div>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
-          gap: 2,
-          minHeight: { xs: 'auto', md: 'calc((100vh - 320px) * 0.56)' },
-          mb: 3,
-          alignItems: 'stretch',
-          '& .vigi-fill-card .card': {
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            m: '0 !important',
-            width: '100%',
-            minWidth: 0,
-          },
-          '& .vigi-fill-card .card__content': {
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            minWidth: 0,
-          },
-          '& .vigi-fill-card.risk .card__content': {
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingTop: '8px !important',
-            paddingBottom: '8px !important',
-          },
-          '& .vigi-fill-card': {
-            minWidth: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-          },
-        }}
-      >
-        <Box className="vigi-fill-card">
-          <BaseCard title="Alvarás por Status">
-            {chart.statusLabels.length > 0 ? (
+      <div className="mb-6 grid items-stretch gap-4 md:grid-cols-2">
+        <BaseCard title="Alvarás por Status">
+          {chart.statusLabels.length > 0 ? (
+            <Chart
+              type="bar"
+              height={300}
+              options={{
+                chart: { ...chartFont, ...toolbarOff },
+                plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                colors: ['#2196f3'],
+                xaxis: {
+                  categories: chart.statusLabels,
+                  labels: { style: { colors: '#b0bec5' } },
+                },
+                yaxis: {
+                  labels: { style: { colors: '#b0bec5', fontSize: '11px' } },
+                },
+                dataLabels: { enabled: false },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: 'transparent' },
+              }}
+              series={[{ name: 'Alvarás', data: chart.statusValues }]}
+            />
+          ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
+        </BaseCard>
+
+        <BaseCard title="Por Nível de Risco">
+          {chart.riscoLabels.length > 0 ? (
+            <div className="mx-auto flex min-h-[260px] w-full items-center justify-center overflow-visible pb-3 [&_.apexcharts-canvas]:!overflow-visible [&_.apexcharts-inner]:!overflow-visible [&_.apexcharts-legend]:!overflow-visible">
               <Chart
-                type="bar"
-                height="70%"
+                type="donut"
+                height={300}
                 options={{
-                  chart: { ...chartFont, ...toolbarOff },
-                  plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
-                  colors: ['#2196f3'],
-                  xaxis: {
-                    categories: chart.statusLabels,
-                    labels: { style: { colors: '#b0bec5' } },
+                  chart: { ...chartFont, width: '100%' },
+                  labels: chart.riscoLabels,
+                  colors: chart.riscoCores,
+                  legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetY: 8,
+                    labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' },
                   },
-                  yaxis: {
-                    labels: { style: { colors: '#b0bec5', fontSize: '11px' } },
-                  },
-                  dataLabels: { enabled: false },
+                  plotOptions: { pie: { donut: { size: '68%' } } },
+                  dataLabels: { enabled: true },
                   tooltip: { theme: 'dark' },
-                  grid: { borderColor: 'transparent' },
                 }}
-                series={[{ name: 'Alvarás', data: chart.statusValues }]}
+                series={chart.riscoValues}
               />
-            ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
-          </BaseCard>
-        </Box>
+            </div>
+          ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
+        </BaseCard>
+      </div>
 
-        <Box className="vigi-fill-card risk">
-          <BaseCard title="Por Nível de Risco">
-            {chart.riscoLabels.length > 0 ? (
-              <Box
-                className="vigi-risk-donut-wrap"
-                sx={{
-                  width: '100%',
-                  maxWidth: '100%',
-                  height: { xs: 280, md: '70%' },
-                  minHeight: { xs: 240, md: 260 },
-                  mx: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  pb: 1.5,
-                  overflow: 'visible',
-                  '& .apexcharts-canvas, & .apexcharts-inner, & .apexcharts-legend': {
-                    overflow: 'visible !important',
-                  },
-                }}
-              >
-                <Chart
-                  type="donut"
-                  height="82%"
-                  options={{
-                    chart: { ...chartFont, width: '100%' },
-                    labels: chart.riscoLabels,
-                    colors: chart.riscoCores,
-                    legend: {
-                      position: 'bottom',
-                      horizontalAlign: 'center',
-                      offsetY: 8,
-                      labels: { colors: isDarkMode ? '#ffffff' : '#546e7a' },
-                    },
-                    plotOptions: { pie: { donut: { size: '68%' } } },
-                    dataLabels: { enabled: true },
-                    tooltip: { theme: 'dark' },
-                  }}
-                  series={chart.riscoValues}
-                />
-              </Box>
-            ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
-          </BaseCard>
-        </Box>
-      </Box>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
+      <Grade container spacing={3}>
+        <Grade item xs={12}>
           <BaseCard title="Alvarás Emitidos por Mês (últimos 12 meses)">
             <Chart
               type="area"
@@ -326,56 +248,21 @@ export default function VigilanciaDashboard() {
               series={[{ name: 'Alvarás', data: chart.porMes.valores }]}
             />
           </BaseCard>
-        </Grid>
+        </Grade>
 
         {chart.proximos.length > 0 && (
-          <Grid item xs={12}>
+          <Grade item xs={12}>
             <BaseCard title="Próximos Vencimentos">
-              <Box sx={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      {['Número', 'Estabelecimento', 'Risco', 'Status', 'Vencimento'].map(h => (
-                        <th key={h} style={{ textAlign: 'left', padding: '6px 12px', color: '#90a4ae', fontWeight: 600, fontSize: 12, borderBottom: '1px solid #2a3140' }}>
-                          {h.toUpperCase()}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chart.proximos.map((alv) => (
-                      <tr key={alv.id} style={{ borderBottom: '1px solid #1e2736' }}>
-                        <td style={{ padding: '8px 12px', fontWeight: 600 }}>{alv.numero_alvara}</td>
-                        <td style={{ padding: '8px 12px' }}>{alv.estabelecimento?.nome_estabelecimento?.toUpperCase() ?? '-'}</td>
-                        <td style={{ padding: '8px 12px' }}>
-                          {(() => {
-                            const risco = normalizarRisco(alv.nivel_risco);
-                            const corRisco = RISCO_COR[risco] || '#607d8b';
-                            return (
-                          <Chip
-                            label={`Risco ${risco}`}
-                            size="small"
-                            sx={{
-                              bgcolor: isDarkMode ? `${corRisco}33` : `${corRisco}22`,
-                              color: isDarkMode ? corRisco : '#0f172a',
-                              border: isDarkMode ? `1px solid ${corRisco}44` : `1px solid ${corRisco}88`,
-                              fontWeight: 700,
-                            }}
-                          />
-                            );
-                          })()}
-                        </td>
-                        <td style={{ padding: '8px 12px' }}>{alv.status || '-'}</td>
-                        <td style={{ padding: '8px 12px', color: '#ff9800', fontWeight: 600 }}>{formatDate(alv.vencimento_alvara)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Box>
+              <DataTable
+                rotulo="próximos vencimentos"
+                colunas={colunasVencimentos}
+                linhas={chart.proximos}
+                chaveDaLinha={(alv) => alv.id}
+              />
             </BaseCard>
-          </Grid>
+          </Grade>
         )}
-      </Grid>
-    </Box>
+      </Grade>
+    </div>
   );
 }

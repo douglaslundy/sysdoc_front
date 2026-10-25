@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Grid, Box, Typography, Card, CardContent, CircularProgress, Chip } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { Clipboard, Tag, Thermometer, User, UserCheck } from 'lucide-react';
+import { Carregando } from '../ui/carregando';
+import { Grade } from '../ui/grade';
+import { Pilula } from '../ui/pilula';
+import { StatCard } from '../ui/stat-card';
 import { api } from '../../services/api';
 import BaseCard from '../baseCard/BaseCard';
 import { DashboardLoading, DashboardErro, getDashboardErrorMessage } from './DashboardStatus';
@@ -14,29 +17,12 @@ const CORES_STATUS = {
     cancelado:  '#f44336',
 };
 
+const ICONES = { 'clipboard': Clipboard, 'tag': Tag, 'thermometer': Thermometer, 'user': User, 'user-check': UserCheck };
+
+const TOMS = { '#2196f3': 'info', '#607d8b': 'info', '#9c27b0': 'primario', '#f44336': 'perigo', '#ff9800': 'primario' };
+
 function CardTotal({ icon, titulo, valor, cor }) {
-    return (
-        <Card className="dashboard-neon-kpi" sx={{ height: '100%', borderColor: `${cor}aa` }}>
-            <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                        <Typography color="textSecondary" variant="subtitle2">{titulo}</Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5}>{valor ?? '—'}</Typography>
-                    </Box>
-                    <Box
-                        sx={{
-                            width: 56, height: 56,
-                            borderRadius: '50%',
-                            bgcolor: cor + '22',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                    >
-                        <FeatherIcon icon={icon} color={cor} width="28" height="28" />
-                    </Box>
-                </Box>
-            </CardContent>
-        </Card>
-    );
+    return <StatCard Icone={ICONES[icon]} tom={TOMS[cor] || 'primario'} titulo={titulo} valor={valor ?? '—'} />;
 }
 
 function gerarMeses(mapa) {
@@ -104,9 +90,7 @@ export default function LabDashboard() {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-                <CircularProgress />
-            </Box>
+            <Carregando className="min-h-[300px] justify-center">Carregando...</Carregando>
         );
     }
 
@@ -118,32 +102,19 @@ export default function LabDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <Box className="dashboard-neon-home">
+        <div className="ui-reset">
             {/* Totalizadores */}
-            <Box
-                sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                        xs: 'repeat(2, minmax(0, 1fr))',
-                        md: 'repeat(5, minmax(0, 1fr))',
-                    },
-                    gap: 1,
-                    mb: 3,
-                    '& > *': {
-                        minWidth: 0,
-                    },
-                }}
-            >
+            <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
                 <CardTotal icon="thermometer" titulo="Exames" valor={totais.exames} cor="#2196f3" />
                 <CardTotal icon="clipboard" titulo="Pedidos" valor={totais.pedidos} cor="#ff9800" />
                 <CardTotal icon="user-check" titulo="Médicos" valor={totais.medicos} cor="#9c27b0" />
                 <CardTotal icon="tag" titulo="Categorias" valor={totais.categorias} cor="#f44336" />
                 <CardTotal icon="user" titulo="Usuários" valor={totais.usuarios} cor="#607d8b" />
-            </Box>
+            </div>
 
-            <Grid container spacing={2}>
+            <Grade container spacing={2}>
                 {/* Pedidos por status - Velocímetro */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Pedidos por Status">
                         {chart.statusLabels.length > 0 ? (
                             <>
@@ -182,23 +153,24 @@ export default function LabDashboard() {
                                     }}
                                     series={[chart.pctPedidosLiberados]}
                                 />
-                                <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center" mt={-1} mb={1}>
+                                <div className="-mt-2 mb-2 flex flex-wrap justify-center gap-1">
                                     {chart.statusCounts.map(s => (
-                                        <Chip
+                                        <span
                                             key={s.label}
-                                            label={`${s.label}: ${s.value}`}
-                                            size="small"
-                                            sx={{ bgcolor: s.cor + '33', color: s.cor, fontWeight: 600, fontSize: '11px' }}
-                                        />
+                                            className="inline-flex h-6 items-center rounded-full px-2.5 text-[11px] font-semibold"
+                                            style={{ backgroundColor: s.cor + '33', color: s.cor }}
+                                        >
+                                            {`${s.label}: ${s.value}`}
+                                        </span>
                                     ))}
-                                </Box>
+                                </div>
                             </>
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Resultados liberados vs pendentes - Gauge semicircular */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Resultados: Liberados vs Pendentes">
                         <Chart
                             type="radialBar"
@@ -223,15 +195,15 @@ export default function LabDashboard() {
                             }}
                             series={[chart.pctResultadosLiberados]}
                         />
-                        <Box display="flex" justifyContent="center" gap={1} mt={1}>
-                            <Chip size="small" label={`Liberados: ${dados?.resultados_status?.liberados ?? 0}`} sx={{ bgcolor: '#4caf50', color: '#fff' }} />
-                            <Chip size="small" label={`Pendentes: ${dados?.resultados_status?.pendentes ?? 0}`} sx={{ bgcolor: '#607d8b', color: '#fff' }} />
-                        </Box>
+                        <div className="mt-2 flex justify-center gap-2">
+                            <Pilula tom="sucesso">{`Liberados: ${dados?.resultados_status?.liberados ?? 0}`}</Pilula>
+                            <Pilula tom="neutro">{`Pendentes: ${dados?.resultados_status?.pendentes ?? 0}`}</Pilula>
+                        </div>
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Top médicos */}
-                <Grid item xs={12} md={4}>
+                <Grade item xs={12} md={4}>
                     <BaseCard title="Top 5 Médicos Solicitantes">
                         {chart.medicoNomes.length > 0 ? (
                             <Chart
@@ -256,12 +228,12 @@ export default function LabDashboard() {
                                 }}
                                 series={[{ name: 'Pedidos', data: chart.medicoVals }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Pedidos por mês */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Pedidos por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -286,10 +258,10 @@ export default function LabDashboard() {
                             series={[{ name: 'Pedidos', data: chart.pedidos.valores }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Clientes por mês */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Clientes Cadastrados por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -314,10 +286,10 @@ export default function LabDashboard() {
                             series={[{ name: 'Clientes', data: chart.clientes.valores }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Resultados liberados por mês */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Resultados Liberados por Mês (últimos 12 meses)">
                         <Chart
                             type="area"
@@ -339,10 +311,10 @@ export default function LabDashboard() {
                             series={[{ name: 'Liberados', data: chart.realizadosMes.valores }]}
                         />
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Resultados liberados por ano */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Resultados Liberados por Ano">
                         {chart.realizadosAno.length > 0 ? (
                             <Chart
@@ -362,12 +334,12 @@ export default function LabDashboard() {
                                 }}
                                 series={[{ name: 'Liberados', data: chart.realizadosAno.map(r => r.total) }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Top 10 exames */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Top 10 Exames Mais Solicitados">
                         {chart.topExameNomes.length > 0 ? (
                             <Chart
@@ -392,12 +364,12 @@ export default function LabDashboard() {
                                 }}
                                 series={[{ name: 'Solicitações', data: chart.topExameVals }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
+                </Grade>
 
                 {/* Pedidos por categoria */}
-                <Grid item xs={12} md={6}>
+                <Grade item xs={12} md={6}>
                     <BaseCard title="Pedidos por Categoria de Exame">
                         {chart.catNomes.length > 0 ? (
                             <Chart
@@ -421,10 +393,10 @@ export default function LabDashboard() {
                                 }}
                                 series={[{ name: 'Pedidos', data: chart.catVals }]}
                             />
-                        ) : <Typography color="textSecondary" textAlign="center" mt={4}>Sem dados</Typography>}
+                        ) : <p className="mt-8 text-center text-muted-foreground">Sem dados</p>}
                     </BaseCard>
-                </Grid>
-            </Grid>
-        </Box>
+                </Grade>
+            </Grade>
+        </div>
     );
 }

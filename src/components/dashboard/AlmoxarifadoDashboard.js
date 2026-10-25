@@ -1,36 +1,28 @@
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Card,
-  Grid,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { AlertTriangle, Clipboard, Layers, Package } from "lucide-react";
 import { api } from "../../services/api";
+import { Banner } from "../ui/banner";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { DataTable } from "../ui/data-table";
+import { Esqueleto } from "../ui/esqueleto";
+import { StatCard } from "../ui/stat-card";
 
 const number = (value) =>
   new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 }).format(Number(value || 0));
 
-function MetricCard({ icon, label, value, detail }) {
-  return (
-    <Card sx={{ height: "100%", p: 2.2, border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1 }}>
-        <FeatherIcon icon={icon} width="19" />
-        <Typography color="text.secondary" sx={{ fontWeight: 700, fontSize: 13 }}>{label}</Typography>
-      </Box>
-      <Typography variant="h3" sx={{ fontWeight: 800 }}>{value}</Typography>
-      <Typography variant="caption" color="text.secondary">{detail}</Typography>
-    </Card>
-  );
-}
+const colunasEstoque = [
+  { chave: "produto", titulo: "Produto", render: (item) => item.nome },
+  { chave: "codigo", titulo: "Código", render: (item) => item.codigo_interno || "-" },
+  { chave: "disponivel", titulo: "Disponível", numerica: true, render: (item) => number(item.quantidade_disponivel) },
+  { chave: "minimo", titulo: "Mínimo", numerica: true, render: (item) => number(item.estoque_minimo) },
+];
+
+const colunasMovimentacoes = [
+  { chave: "produto", titulo: "Produto", render: (item) => item.produto },
+  { chave: "tipo", titulo: "Tipo", render: (item) => String(item.tipo || "-").replace(/_/g, " ") },
+  { chave: "quantidade", titulo: "Quantidade", numerica: true, render: (item) => number(item.quantidade) },
+  { chave: "data", titulo: "Data", render: (item) => (item.created_at ? new Intl.DateTimeFormat("pt-BR").format(new Date(item.created_at)) : "-") },
+];
 
 export default function AlmoxarifadoDashboard() {
   const [data, setData] = useState(null);
@@ -44,77 +36,45 @@ export default function AlmoxarifadoDashboard() {
       );
   }, []);
 
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (error) return <Banner tom="perigo">{error}</Banner>;
   if (!data) return (
-    <Box className="dashboard-neon-home">
-      <Grid container spacing={2}>
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Grid item xs={12} sm={6} lg={3} key={`metric-${index}`}>
-            <Skeleton variant="rounded" height={126} />
-          </Grid>
+          <Esqueleto key={`metric-${index}`} className="h-[126px]" />
         ))}
-      </Grid>
-      <Grid container spacing={2} sx={{ mt: 0.2 }}>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
         {Array.from({ length: 2 }).map((_, index) => (
-          <Grid item xs={12} lg={6} key={`table-${index}`}>
-            <Skeleton variant="rounded" height={320} />
-          </Grid>
+          <Esqueleto key={`table-${index}`} className="h-80" />
         ))}
-      </Grid>
-    </Box>
+      </div>
+    </div>
   );
 
   return (
-    <Box className="dashboard-neon-home">
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} lg={3}><MetricCard icon="package" label="Produtos ativos" value={number(data.totais?.produtos)} detail="Itens cadastrados no almoxarifado" /></Grid>
-        <Grid item xs={12} sm={6} lg={3}><MetricCard icon="layers" label="Saldo disponível" value={number(data.totais?.quantidade_disponivel)} detail="Soma das quantidades disponíveis" /></Grid>
-        <Grid item xs={12} sm={6} lg={3}><MetricCard icon="alert-triangle" label="Estoque abaixo do mínimo" value={number(data.totais?.estoque_baixo)} detail="Itens que exigem reposição" /></Grid>
-        <Grid item xs={12} sm={6} lg={3}><MetricCard icon="clipboard" label="Requisições pendentes" value={number(data.totais?.requisicoes_pendentes)} detail={`${number(data.totais?.movimentacoes_mes)} movimentações no mês`} /></Grid>
-      </Grid>
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard Icone={Package} titulo="Produtos ativos" valor={number(data.totais?.produtos)} legenda="Itens cadastrados no almoxarifado" />
+        <StatCard Icone={Layers} titulo="Saldo disponível" valor={number(data.totais?.quantidade_disponivel)} legenda="Soma das quantidades disponíveis" />
+        <StatCard Icone={AlertTriangle} tom="perigo" titulo="Estoque abaixo do mínimo" valor={number(data.totais?.estoque_baixo)} legenda="Itens que exigem reposição" />
+        <StatCard Icone={Clipboard} tom="info" titulo="Requisições pendentes" valor={number(data.totais?.requisicoes_pendentes)} legenda={`${number(data.totais?.movimentacoes_mes)} movimentações no mês`} />
+      </div>
 
-      <Grid container spacing={2} sx={{ mt: 0.2 }}>
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ height: "100%", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Box sx={{ p: 2 }}><Typography sx={{ fontWeight: 800 }}>Itens com estoque baixo</Typography></Box>
-            <TableContainer>
-              <Table size="small">
-                <TableHead><TableRow><TableCell>Produto</TableCell><TableCell>Código</TableCell><TableCell align="right">Disponível</TableCell><TableCell align="right">Mínimo</TableCell></TableRow></TableHead>
-                <TableBody>
-                  {(data.estoque_baixo || []).map((item) => (
-                    <TableRow key={`${item.codigo_interno}-${item.nome}`}>
-                      <TableCell>{item.nome}</TableCell>
-                      <TableCell>{item.codigo_interno || "-"}</TableCell>
-                      <TableCell align="right">{number(item.quantidade_disponivel)}</TableCell>
-                      <TableCell align="right">{number(item.estoque_minimo)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ height: "100%", border: "1px solid var(--lg-border)", background: "var(--lg-glass-panel)" }}>
-            <Box sx={{ p: 2 }}><Typography sx={{ fontWeight: 800 }}>Movimentações recentes</Typography></Box>
-            <TableContainer>
-              <Table size="small">
-                <TableHead><TableRow><TableCell>Produto</TableCell><TableCell>Tipo</TableCell><TableCell align="right">Quantidade</TableCell><TableCell>Data</TableCell></TableRow></TableHead>
-                <TableBody>
-                  {(data.movimentacoes_recentes || []).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.produto}</TableCell>
-                      <TableCell>{String(item.tipo || "-").replace(/_/g, " ")}</TableCell>
-                      <TableCell align="right">{number(item.quantidade)}</TableCell>
-                      <TableCell>{item.created_at ? new Intl.DateTimeFormat("pt-BR").format(new Date(item.created_at)) : "-"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle>Itens com estoque baixo</CardTitle></CardHeader>
+          <CardContent>
+            <DataTable rotulo="itens com estoque baixo" colunas={colunasEstoque} linhas={data.estoque_baixo || []} chaveDaLinha={(item) => `${item.codigo_interno}-${item.nome}`} vazio="Nenhum item com estoque baixo." />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Movimentações recentes</CardTitle></CardHeader>
+          <CardContent>
+            <DataTable rotulo="movimentações recentes" colunas={colunasMovimentacoes} linhas={data.movimentacoes_recentes || []} chaveDaLinha={(item) => item.id} vazio="Nenhuma movimentação recente." />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

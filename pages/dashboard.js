@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Box, Tabs, Tab, Typography, useTheme } from '@mui/material';
+import { Abas } from '../src/components/ui/abas';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
 import ConformidadesDashboard from '../src/components/dashboard/ConformidadesDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
@@ -14,7 +14,6 @@ import ArquivoDashboard from '../src/components/dashboard/ArquivoDashboard';
 import { AuthContext } from '../src/contexts/AuthContext';
 
 export default function DashboardPage() {
-    const theme = useTheme();
     const { myPermissions, authorizedPages, profile, canUseChat } = useContext(AuthContext);
     const [aba, setAba] = useState(0);
 
@@ -57,54 +56,28 @@ export default function DashboardPage() {
 
     if (abasVisiveis.length === 0) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-                <Typography color="text.secondary">
+            <div className="ui-reset flex min-h-[300px] items-center justify-center">
+                <p className="text-muted-foreground">
                     Nenhuma aba disponível para seu perfil. Entre em contato com o administrador.
-                </Typography>
-            </Box>
+                </p>
+            </div>
         );
     }
 
     return (
-        <Box className="dashboard-neon-page">
-            <Box className="dashboard-neon-tabs-wrap" sx={{ borderBottom: '1px solid var(--lg-border-row)', mb: 3 }}>
-                <Tabs
-                    value={abaSegura}
-                    onChange={(_, novaAba) => setAba(novaAba)}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    sx={{
-                        '& .MuiTabs-indicator': {
-                            backgroundColor: '#2e89ff',
-                            height: 2,
-                            borderRadius: 2,
-                        },
-                        '& .MuiTab-root': {
-                            textTransform: 'none',
-                            fontSize: '15px',
-                            color: theme.palette.mode === 'light' ? '#475569 !important' : 'var(--lg-text-muted)',
-                            minHeight: 46,
-                        },
-                        '& .MuiTab-root.Mui-selected': {
-                            color: theme.palette.mode === 'light' ? '#1d4ed8 !important' : '#48a7ff',
-                        },
-                        '& .MuiTabScrollButton-root': {
-                            color: theme.palette.mode === 'light' ? '#334155 !important' : 'var(--lg-text-primary)',
-                        },
-                        '& .MuiTabScrollButton-root.Mui-disabled': {
-                            color: theme.palette.mode === 'light' ? 'rgba(51, 65, 85, 0.35) !important' : 'rgba(255, 255, 255, 0.3)',
-                        },
-                    }}
-                >
-                    {abasVisiveis.map((item) => (
-                        <Tab key={item.permission} label={item.label} />
-                    ))}
-                </Tabs>
-            </Box>
+        <div className="ui-reset">
+            <div className="mb-6">
+                <Abas
+                    rotulo="Painéis do dashboard"
+                    valor={abaSegura}
+                    aoMudar={setAba}
+                    itens={abasVisiveis.map((item, indice) => ({ chave: indice, rotulo: item.label }))}
+                />
+            </div>
 
-            <Box role="tabpanel" className="dashboard-neon-content">
+            <div role="tabpanel">
                 {abasVisiveis[abaSegura]?.component}
-            </Box>
-        </Box>
+            </div>
+        </div>
     );
 }

@@ -1,23 +1,19 @@
-import { Box, Grid, Skeleton, Typography } from '@mui/material';
+import { Esqueleto } from '../ui/esqueleto';
 
 export function DashboardLoading() {
     return (
-        <Box>
-            <Grid container spacing={3}>
+        <div className="grid gap-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, index) => (
-                    <Grid item xs={12} sm={6} lg={3} key={`metric-${index}`}>
-                        <Skeleton variant="rounded" height={126} />
-                    </Grid>
+                    <Esqueleto key={`metric-${index}`} className="h-[126px]" />
                 ))}
-            </Grid>
-            <Grid container spacing={3} mt={0.5}>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
                 {Array.from({ length: 2 }).map((_, index) => (
-                    <Grid item xs={12} md={6} key={`chart-${index}`}>
-                        <Skeleton variant="rounded" height={320} />
-                    </Grid>
+                    <Esqueleto key={`chart-${index}`} className="h-80" />
                 ))}
-            </Grid>
-        </Box>
+            </div>
+        </div>
     );
 }
 
@@ -36,8 +32,8 @@ export function getDashboardErrorMessage(modulo, erro) {
 
 export function DashboardErro({ message = 'Dados indisponiveis.' }) {
     return (
-        <Box p={4} textAlign="center">
-            <Typography color="textSecondary">{message}</Typography>
-        </Box>
+        <div className="p-8 text-center">
+            <p className="text-muted-foreground">{message}</p>
+        </div>
     );
 }

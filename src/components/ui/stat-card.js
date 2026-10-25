@@ -9,10 +9,13 @@ const FILETE = {
 };
 
 /** KPI. tom: primario|sucesso|perigo|info. Com href vira link. */
-export function StatCard({ titulo, valor, legenda, tom = 'primario', href }) {
+export function StatCard({ titulo, valor, legenda, tom = 'primario', href, Icone }) {
   const corpo = (
     <>
-      <p className="text-xs font-semibold tracking-[0.05em] text-muted-foreground uppercase">{titulo}</p>
+      <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.05em] text-muted-foreground uppercase">
+        {Icone ? <Icone aria-hidden className="size-[18px] shrink-0" /> : null}
+        {titulo}
+      </p>
       <p className="mt-1 font-mono text-[26px] leading-tight font-bold">{valor}</p>
       {legenda ? <p className="mt-1 text-xs text-muted-foreground">{legenda}</p> : null}
     </>
