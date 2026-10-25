@@ -1,14 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import {
-    Alert, Button, Chip, Dialog, DialogActions, DialogContent,
-    DialogContentText, DialogTitle, Divider, Grid, MenuItem,
-    Select, Stack, TextField, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../../baseCard/BaseCard';
+import { Download } from 'lucide-react';
 import AlertModal from '../../messagesModal';
 import { api } from '../../../services/api';
 import { turnResultadoModal } from '../../../store/ducks/Layout';
@@ -16,13 +8,11 @@ import { clearResultado } from '../../../store/ducks/resultadoExames';
 import { salvarCamposFetch, liberarResultadoFetch } from '../../../store/fetchActions/resultadoExames';
 import { getAllPedidos } from '../../../store/fetchActions/pedidosExame';
 import { getLabConfig } from '../../../store/fetchActions/labConfig';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { Input, SelectNativo } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape } from '../../ui/dialogo';
+import { Pilula, tomDaCor } from '../../ui/pilula';
 
 const STATUS_COR = {
     normal: 'success', baixo: 'info', alto: 'error',
@@ -75,7 +65,7 @@ export default function ResultadoModal(props) {
         try {
             const res = await api.get(`/laboratorio/resultados/${resultado.id}/pdf`, {
                 responseType: 'blob',
-                params: draft ? { rascunho: 1 } : undefined,
+                params: draft === true ? { rascunho: 1 } : undefined,
             });
             const url = URL.createObjectURL(res.data);
             const a = document.createElement('a');
@@ -127,225 +117,160 @@ export default function ResultadoModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenResultadoModal} onClose={handleClose} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-                <Box className="lab-resultado-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <Grid container spacing={0}>
-                        <Grid item xs={12}>
-                            <BaseCard
-                                title={`Resultado — ${resultado?.pedido?.cliente?.name || '...'}`}
-                                action={
-                                    jaLiberado && (
-                                        <Box display="flex" gap={1} alignItems="center">
-                                            <Chip label={`Protocolo: ${resultado.protocolo}`} color="success" size="small" />
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                startIcon={<FeatherIcon icon="download" size={14} />}
-                                                onClick={handleDownloadPdf}
-                                            >
-                                                PDF
-                                            </Button>
-                                        </Box>
-                                    )
-                                }
-                            >
-                                {jaLiberado && (
-                                    <Alert severity="success" sx={{ mb: 2 }}>
-                                        Resultado liberado em {resultado.data_liberacao
-                                            ? new Date(resultado.data_liberacao).toLocaleString('pt-BR')
-                                            : '—'}.
-                                    </Alert>
-                                )}
+            <Dialogo aberto={Boolean(isOpenResultadoModal)} aoFechar={handleClose} tamanho="xl">
+                <DialogoCabecalho>{`Resultado — ${resultado?.pedido?.cliente?.name || '...'}`}</DialogoCabecalho>
+                <AlertModal />
 
-                                {examesGrouped.map(exame => {
-                                    const camposAtivos = exame.campos_ativos || exame.camposAtivos || [];
+                {jaLiberado && (
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                        <Pilula tom="sucesso">Protocolo: {resultado.protocolo}</Pilula>
+                        <Button type="button" variant="outline" size="sm" onClick={() => handleDownloadPdf()}>
+                            <Download aria-hidden /> PDF
+                        </Button>
+                    </div>
+                )}
+                {jaLiberado && (
+                    <div className="mb-4">
+                        <Banner tom="sucesso">
+                            Resultado liberado em {resultado.data_liberacao
+                                ? new Date(resultado.data_liberacao).toLocaleString('pt-BR')
+                                : '—'}.
+                        </Banner>
+                    </div>
+                )}
+
+                {examesGrouped.map(exame => {
+                    const camposAtivos = exame.campos_ativos || exame.camposAtivos || [];
+                    return (
+                        <section key={exame.id} className="mb-6 border-b border-border pb-4">
+                            <h3 className="mb-3 font-display text-base font-bold text-primary-text">{exame.nome}</h3>
+                            <div className="grid gap-3">
+                                {camposAtivos.map(campo => {
+                                    const val = valoresCampos[campo.id] || {};
+                                    const ref = getRef(campo);
+                                    const rcSalvo = resultado.campos?.find(rc => rc.exame_campo_id === campo.id);
+                                    const idCampo = `res-${campo.id}`;
+
                                     return (
-                                        <Box key={exame.id} mb={4}>
-                                            <Typography variant="h6" color="primary" gutterBottom>
-                                                {exame.nome}
-                                            </Typography>
-                                            <Stack spacing={2}>
-                                                {camposAtivos.map(campo => {
-                                                    const val = valoresCampos[campo.id] || {};
-                                                    const ref = getRef(campo);
-                                                    const rcSalvo = resultado.campos?.find(rc => rc.exame_campo_id === campo.id);
+                                        <div key={campo.id} className="flex flex-wrap items-center gap-3">
+                                            <label htmlFor={idCampo} className="min-w-[160px] text-sm font-medium">
+                                                {campo.nome}
+                                                {campo.unidade && <span className="ml-1 text-xs text-muted-foreground">({campo.unidade})</span>}
+                                            </label>
 
-                                                    return (
-                                                        <Box key={campo.id} display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                                                            <Typography sx={{ minWidth: 160, fontWeight: 500 }}>
-                                                                {campo.nome}
-                                                                {campo.unidade && (
-                                                                    <Typography component="span" variant="caption" color="text.secondary" ml={0.5}>
-                                                                        ({campo.unidade})
-                                                                    </Typography>
-                                                                )}
-                                                            </Typography>
+                                            {campo.tipo_valor === 'numerico' && (
+                                                <Input
+                                                    id={idCampo}
+                                                    type="number"
+                                                    value={val.valor_numerico ?? ''}
+                                                    onChange={({ target: { value } }) => setCampoValor(campo.id, exame.id, 'valor_numerico', value)}
+                                                    disabled={jaLiberado}
+                                                    max={99999999999}
+                                                    step="any"
+                                                    className="w-[120px]"
+                                                />
+                                            )}
+                                            {campo.tipo_valor === 'texto' && (
+                                                <Input
+                                                    id={idCampo}
+                                                    value={val.valor_texto ?? ''}
+                                                    onChange={({ target: { value } }) => setCampoValor(campo.id, exame.id, 'valor_texto', value)}
+                                                    disabled={jaLiberado}
+                                                    className="min-w-[200px] flex-1"
+                                                />
+                                            )}
+                                            {campo.tipo_valor === 'booleano' && (
+                                                <div className="w-[160px]">
+                                                    <SelectNativo id={idCampo} value={val.valor_texto ?? ''} onChange={({ target: { value } }) => setCampoValor(campo.id, exame.id, 'valor_texto', value)} disabled={jaLiberado}>
+                                                        <option value="">—</option>
+                                                        <option value="Reagente">Reagente</option>
+                                                        <option value="Não Reagente">Não Reagente</option>
+                                                    </SelectNativo>
+                                                </div>
+                                            )}
+                                            {campo.tipo_valor === 'selecao' && (
+                                                <div className="min-w-[140px]">
+                                                    <SelectNativo id={idCampo} value={val.valor_texto ?? ''} onChange={({ target: { value } }) => setCampoValor(campo.id, exame.id, 'valor_texto', value)} disabled={jaLiberado}>
+                                                        <option value="">—</option>
+                                                        {(campo.opcoes_selecao || []).map(op => <option key={op} value={op}>{op}</option>)}
+                                                    </SelectNativo>
+                                                </div>
+                                            )}
 
-                                                            {campo.tipo_valor === 'numerico' && (
-                                                                <TextField
-                                                                    size="small"
-                                                                    type="number"
-                                                                    value={val.valor_numerico ?? ''}
-                                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_numerico', e.target.value)}
-                                                                    disabled={jaLiberado}
-                                                                    inputProps={{ max: 99999999999, step: 'any' }}
-                                                                    sx={{ width: 120 }}
-                                                                />
-                                                            )}
-                                                            {campo.tipo_valor === 'texto' && (
-                                                                <TextField
-                                                                    size="small"
-                                                                    value={val.valor_texto ?? ''}
-                                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
-                                                                    disabled={jaLiberado}
-                                                                    sx={{ flex: 1, minWidth: 200 }}
-                                                                />
-                                                            )}
-                                                            {campo.tipo_valor === 'booleano' && (
-                                                                <Select
-                                                                    size="small"
-                                                                    value={val.valor_texto ?? ''}
-                                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
-                                                                    disabled={jaLiberado}
-                                                                    sx={{ width: 160 }}
-                                                                >
-                                                                    <MenuItem value="">—</MenuItem>
-                                                                    <MenuItem value="Reagente">Reagente</MenuItem>
-                                                                    <MenuItem value="Não Reagente">Não Reagente</MenuItem>
-                                                                </Select>
-                                                            )}
-                                                            {campo.tipo_valor === 'selecao' && (
-                                                                <Select
-                                                                    size="small"
-                                                                    value={val.valor_texto ?? ''}
-                                                                    onChange={e => setCampoValor(campo.id, exame.id, 'valor_texto', e.target.value)}
-                                                                    disabled={jaLiberado}
-                                                                    sx={{ minWidth: 140 }}
-                                                                >
-                                                                    <MenuItem value="">—</MenuItem>
-                                                                    {(campo.opcoes_selecao || []).map(op => (
-                                                                        <MenuItem key={op} value={op}>{op}</MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            )}
+                                            {ref && (
+                                                <span className="text-xs text-muted-foreground">
+                                                    Ref:{' '}
+                                                    {ref.valor_min !== null && ref.valor_max !== null
+                                                        ? `${ref.valor_min} – ${ref.valor_max}`
+                                                        : ref.valor_texto || '—'}
+                                                </span>
+                                            )}
 
-                                                            {ref && (
-                                                                <Typography variant="caption" color="text.secondary">
-                                                                    Ref:{' '}
-                                                                    {ref.valor_min !== null && ref.valor_max !== null
-                                                                        ? `${ref.valor_min} – ${ref.valor_max}`
-                                                                        : ref.valor_texto || '—'}
-                                                                </Typography>
-                                                            )}
-
-                                                            {rcSalvo?.status_referencia && (
-                                                                <Chip
-                                                                    label={rcSalvo.status_referencia}
-                                                                    color={STATUS_COR[rcSalvo.status_referencia] || 'default'}
-                                                                    size="small"
-                                                                />
-                                                            )}
-                                                        </Box>
-                                                    );
-                                                })}
-                                            </Stack>
-                                            <Divider sx={{ mt: 2 }} />
-                                        </Box>
+                                            {rcSalvo?.status_referencia && (
+                                                <Pilula tom={tomDaCor(STATUS_COR[rcSalvo.status_referencia])}>{rcSalvo.status_referencia}</Pilula>
+                                            )}
+                                        </div>
                                     );
                                 })}
+                            </div>
+                        </section>
+                    );
+                })}
 
-                                {!jaLiberado && (
-                                    <Box mt={2}>
-                                        <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                                            <Button
-                                                variant="outlined"
-                                                onClick={handleSalvar}
-                                                disabled={!temCampoPreenchido}
-                                                sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
-                                            >
-                                                Salvar Rascunho
-                                            </Button>
-                                            {!jaLiberado && temCampoSalvo && labConfig?.imprimir_rascunho_exame && (
-                                                <Button
-                                                    variant="outlined"
-                                                    startIcon={<FeatherIcon icon="download" size={14} />}
-                                                    onClick={() => handleDownloadPdf(true)}
-                                                    sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
-                                                >
-                                                    Baixar Rascunho
-                                                </Button>
-                                            )}
-                                            <Button
-                                                variant="contained"
-                                                color="success"
-                                                onClick={() => setOpenConfirm(true)}
-                                                disabled={!temCampoSalvo}
-                                                title={!temCampoSalvo ? 'Salve o rascunho antes de liberar' : ''}
-                                                sx={{ ...modalPrimaryButtonSx, flex: '0 0 auto', minWidth: 180 }}
-                                            >
-                                                Liberar Resultado
-                                            </Button>
-                                            <Button variant="outlined" onClick={handleClose} sx={{ ...modalSecondaryButtonSx, flex: '0 0 auto', minWidth: 120 }}>
-                                                Fechar
-                                            </Button>
-                                        </Box>
-                                        {!temCampoSalvo && temCampoPreenchido && (
-                                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1, mt: 0.5, display: 'block' }}>
-                                                Salve o rascunho para habilitar a liberação.
-                                            </Typography>
-                                        )}
-                                    </Box>
-                                )}
-                                {jaLiberado && (
-                                    <Box mt={2}>
-                                        <Button variant="outlined" onClick={handleClose} sx={modalSecondaryButtonSx}>
-                                            Fechar
-                                        </Button>
-                                    </Box>
-                                )}
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
+                {!jaLiberado && !temCampoSalvo && temCampoPreenchido && (
+                    <p className="text-xs text-muted-foreground">Salve o rascunho para habilitar a liberação.</p>
+                )}
 
-            <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
-                <DialogTitle>Confirmar Liberação</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Ao liberar, o resultado ficará disponível para o paciente via protocolo gerado automaticamente. Esta ação não pode ser desfeita.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenConfirm(false)}>Cancelar</Button>
-                    <Button variant="contained" color="success" onClick={handleLiberar}>
-                        Confirmar Liberação
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                <DialogoRodape className="sm:flex-wrap">
+                    {!jaLiberado && (
+                        <>
+                            <Button type="button" variant="outline" onClick={handleSalvar} disabled={!temCampoPreenchido}>
+                                Salvar Rascunho
+                            </Button>
+                            {temCampoSalvo && labConfig?.imprimir_rascunho_exame && (
+                                <Button type="button" variant="outline" onClick={() => handleDownloadPdf(true)}>
+                                    <Download aria-hidden /> Baixar Rascunho
+                                </Button>
+                            )}
+                            <Button type="button" variant="success" onClick={() => setOpenConfirm(true)} disabled={!temCampoSalvo} title={!temCampoSalvo ? 'Salve o rascunho antes de liberar' : ''}>
+                                Liberar Resultado
+                            </Button>
+                        </>
+                    )}
+                    <Button type="button" variant="outline" onClick={handleClose}>Fechar</Button>
+                </DialogoRodape>
+            </Dialogo>
 
-            <Dialog open={!!credenciais} onClose={() => setCredenciais(null)}>
-                <DialogTitle>Resultado Liberado — Dados para o Paciente</DialogTitle>
-                <DialogContent>
-                    <DialogContentText sx={{ mb: 2 }}>
-                        Anote as informações abaixo e repasse ao paciente. A senha não poderá ser recuperada depois.
-                    </DialogContentText>
-                    <Box display="flex" flexDirection="column" gap={1.5}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="body2" sx={{ minWidth: 80, fontWeight: 600 }}>Protocolo:</Typography>
-                            <Chip label={credenciais?.protocolo} color="primary" />
-                        </Box>
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="body2" sx={{ minWidth: 80, fontWeight: 600 }}>Senha:</Typography>
-                            <Chip label={credenciais?.senha} color="warning" />
-                        </Box>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button variant="contained" onClick={() => setCredenciais(null)}>Entendido</Button>
-                </DialogActions>
-            </Dialog>
+            <Dialogo aberto={openConfirm} aoFechar={() => setOpenConfirm(false)} tamanho="sm" alerta elevado>
+                <DialogoCabecalho>Confirmar Liberação</DialogoCabecalho>
+                <DialogoDescricao>
+                    Ao liberar, o resultado ficará disponível para o paciente via protocolo gerado automaticamente. Esta ação não pode ser desfeita.
+                </DialogoDescricao>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={() => setOpenConfirm(false)}>Cancelar</Button>
+                    <Button type="button" variant="success" onClick={handleLiberar}>Confirmar Liberação</Button>
+                </DialogoRodape>
+            </Dialogo>
+
+            <Dialogo aberto={Boolean(credenciais)} aoFechar={() => setCredenciais(null)} tamanho="sm" bloqueante elevado>
+                <DialogoCabecalho comFechar={false}>Resultado Liberado — Dados para o Paciente</DialogoCabecalho>
+                <DialogoDescricao className="mb-3">
+                    Anote as informações abaixo e repasse ao paciente. A senha não poderá ser recuperada depois.
+                </DialogoDescricao>
+                <dl className="grid gap-2">
+                    <div className="flex items-center gap-2">
+                        <dt className="min-w-[80px] text-sm font-semibold">Protocolo:</dt>
+                        <dd><Pilula tom="info">{credenciais?.protocolo}</Pilula></dd>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <dt className="min-w-[80px] text-sm font-semibold">Senha:</dt>
+                        <dd><Pilula tom="alerta">{credenciais?.senha}</Pilula></dd>
+                    </div>
+                </dl>
+                <DialogoRodape>
+                    <Button type="button" onClick={() => setCredenciais(null)}>Entendido</Button>
+                </DialogoRodape>
+            </Dialogo>
         </div>
     );
 }

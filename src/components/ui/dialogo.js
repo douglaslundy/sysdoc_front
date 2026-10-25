@@ -1,6 +1,6 @@
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { X } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '../../lib/cn';
 
 /**
@@ -9,8 +9,20 @@ import { cn } from '../../lib/cn';
  * z-index acima do Modal do MUI (1300) enquanto houver telas legadas; `elevado` fica na frente de tudo.
  * Largura: nunca passa da tela (celular); altura rola dentro da caixa.
  */
+// Diálogos abertos, do mais antigo ao mais novo.
+const pilha = [];
+
 export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', alerta = false, elevado = false, className, children, ...props }) {
   const popup = useRef(null);
+  const token = useRef({});
+  useEffect(() => {
+    if (!aberto) return undefined;
+    const meu = token.current;
+    pilha.push(meu);
+    return () => {
+      pilha.splice(pilha.indexOf(meu), 1);
+    };
+  }, [aberto]);
   const largura = { sm: 'max-w-sm', md: 'max-w-[560px]', lg: 'max-w-[760px]', xl: 'max-w-[1100px]' }[tamanho] || 'max-w-[560px]';
   return (
     <DialogPrimitive.Root
@@ -18,6 +30,8 @@ export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', 
       onOpenChange={(abrir, detalhes) => {
         if (abrir) return;
         if (bloqueante && detalhes?.reason !== 'close-press') return;
+        // Esc e clique fora valem só para o diálogo de cima (aviso/confirmação aberto sobre outro não fecha o de baixo).
+        if (detalhes?.reason !== 'close-press' && pilha[pilha.length - 1] !== token.current) return;
         aoFechar?.();
       }}
     >
