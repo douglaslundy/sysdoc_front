@@ -23,7 +23,7 @@ export function Pilula({ tom, contorno = false, children }) {
       data-tom={tom}
       data-contorno={contorno ? 'true' : undefined}
       className={cn(
-        'inline-flex items-center rounded-full px-[11px] py-[3px] font-display text-[11px] font-bold tracking-[0.04em] uppercase',
+        'inline-flex items-center rounded-full whitespace-nowrap px-[11px] py-[3px] font-display text-[11px] font-bold tracking-[0.04em] uppercase',
         contorno ? cn('border-[1.5px] bg-transparent', CONTORNO[tom]) : SOLIDA[tom],
       )}
     >

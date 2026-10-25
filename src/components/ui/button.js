@@ -3,7 +3,7 @@ import { cva } from 'class-variance-authority';
 import { forwardRef } from 'react';
 import { cn } from '../../lib/cn';
 
-export const buttonVariants = cva(
+const variantesDoBotao = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-primary/25 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
@@ -30,6 +30,9 @@ export const buttonVariants = cva(
     defaultVariants: { variant: 'default', size: 'default' },
   },
 );
+
+/** Classes do botão para <a>/<label>. Passa pelo twMerge: sem isso `border-transparent` da base vence `border-border` da variante. */
+export const buttonVariants = (opcoes) => cn(variantesDoBotao(opcoes));
 
 /** Botão do layout CRM. variant: default|outline|secondary|ghost|destructive|success|link. */
 export const Button = forwardRef(function Button({ className, variant = 'default', size = 'default', ...props }, ref) {
