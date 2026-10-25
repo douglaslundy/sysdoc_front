@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
+import { IconeDinamico } from '../ui/icone-dinamico';
 import { normalizeIconName, resolveIconForPath } from '../../utils/iconResolver';
 import {
   getAllPages,
@@ -191,7 +191,7 @@ export default function PaginasSistema() {
       titulo: 'Titulo',
       render: (pg) => (
         <span className="flex items-center gap-2 font-semibold">
-          {pg.icone && <FeatherIcon icon={resolveIconForPath(pg.path, pg.icone, 'circle')} width="16" height="16" />}
+          {pg.icone && <IconeDinamico nome={resolveIconForPath(pg.path, pg.icone, 'circle')} />}
           {pg.titulo}
         </span>
       ),
@@ -251,7 +251,7 @@ export default function PaginasSistema() {
         antes={<AlertModal />}
         depois={form.icone && form.icone !== '-' ? (
           <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <FeatherIcon icon={resolveIconForPath(form.path, form.icone, 'circle')} width="16" height="16" /> {form.icone}
+            <IconeDinamico nome={resolveIconForPath(form.path, form.icone, 'circle')} /> {form.icone}
           </p>
         ) : null}
       />

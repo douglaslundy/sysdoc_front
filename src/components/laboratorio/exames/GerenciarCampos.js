@@ -178,7 +178,7 @@ export default function GerenciarCampos() {
 
     return (
         <>
-            <Card className="ui-reset">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex flex-wrap items-center gap-3">
                         <Button variant="ghost" size="sm" onClick={() => router.push('/laboratorio/exames')}>

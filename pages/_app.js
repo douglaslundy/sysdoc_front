@@ -1,15 +1,9 @@
 import React, { useContext, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
-import { CacheProvider } from "@emotion/react";
-import CssBaseline from "@mui/material/CssBaseline";
-import createEmotionCache from "../src/createEmotionCache";
 import FullLayout from "../src/layouts/FullLayout";
 import "../styles/crm-tokens.css";
 import "../styles/style.css";
-import "../styles/theme-liquid-glass.css";
-import "../styles/dashboard-neon.css";
-import "../styles/queue-page.css";
 import "leaflet/dist/leaflet.css";
 import "react-quill/dist/quill.snow.css";
 import { Provider } from "react-redux";
@@ -24,8 +18,6 @@ import { CustomThemeProvider } from "../src/contexts/ThemeContext";
 import { api } from "../src/services/api";
 import { getPageTitle } from "../src/utils/pageTitle";
 import { ChatProvider } from "../src/contexts/ChatContext";
-
-const clientSideEmotionCache = createEmotionCache();
 
 const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/petition", "/petition/track", "/denuncia", "/denuncia/consulta", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/painel-esus", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
 
@@ -50,7 +42,7 @@ function isPublicRoute(pathname) {
 }
 
 export default function MyApp(props) {
-  const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
+  const { Component, pageProps } = props;
   const router = useRouter();
 
   // showLayout based on route (not cookies) so SSR and client agree — prevents hydration mismatch.
@@ -70,7 +62,7 @@ export default function MyApp(props) {
   }, [router.pathname]);
 
   return (
-    <CacheProvider value={emotionCache}>
+    <>
       <Head>
         <title>{`SysDoc - ${getPageTitle(router.pathname)}`}</title>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -87,7 +79,6 @@ export default function MyApp(props) {
             <CustomThemeProvider>
               {showLayout ? (
                 <>
-                  <CssBaseline />
                   <FullLayout>
                     <Loading />
                     <AlertDialog />
@@ -102,12 +93,11 @@ export default function MyApp(props) {
           </ChatProvider>
         </AuthProvider>
       </Provider>
-    </CacheProvider>
+    </>
   );
 }
 
 MyApp.propTypes = {
   Component: PropTypes.elementType.isRequired,
-  emotionCache: PropTypes.object,
   pageProps: PropTypes.object.isRequired,
 };

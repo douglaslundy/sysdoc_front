@@ -16,7 +16,7 @@ export default function AttendanceServiceCurrentPage() {
   }, [router]);
 
   return (
-    <div className="ui-reset p-6">
+    <div className="p-6">
       <Carregando>Redirecionando para o atendimento atual...</Carregando>
     </div>
   );

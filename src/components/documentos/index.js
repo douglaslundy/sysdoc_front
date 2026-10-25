@@ -327,7 +327,7 @@ export default function Documentos() {
   ];
 
   return (
-    <div className="ui-reset documentos-page">
+    <div className="documentos-page">
       <CabecalhoDePagina
         titulo={`Você possui ${total} Documentos Cadastrados`}
         subtitulo="Listagem, filtros e ações do módulo de documentos."

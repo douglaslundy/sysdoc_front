@@ -4,7 +4,7 @@ import MotivosPeticao from '../src/components/peticoes/MotivosPeticao';
 
 export default function PeticaoMotivosPage() {
     return (
-        <div className="ui-reset">
+        <div>
             <AlertModal />
             <Card>
                 <CardHeader><CardTitle>Motivos de Petição</CardTitle></CardHeader>

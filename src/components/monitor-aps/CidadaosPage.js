@@ -418,7 +418,7 @@ export default function CidadaosPage() {
     ];
 
     return (
-        <div className="ui-reset monitor-aps-cidadaos-page">
+        <div className="monitor-aps-cidadaos-page">
             <CabecalhoDePagina
                 titulo={`Cidadãos (${meta.total.toLocaleString('pt-BR')})`}
             />

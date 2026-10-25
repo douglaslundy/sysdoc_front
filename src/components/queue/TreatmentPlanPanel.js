@@ -203,12 +203,12 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
     );
 
     if (!speciality?.allows_session_scheduling) return null;
-    if (loading) return <p className="ui-reset text-sm text-muted-foreground">Carregando agendamento por sessões…</p>;
+    if (loading) return <p className="text-sm text-muted-foreground">Carregando agendamento por sessões…</p>;
 
     const hasActivePlan = plan && plan.status === 'active';
 
     return (
-        <div className="ui-reset mt-4 rounded-lg border border-border p-4">
+        <div className="mt-4 rounded-lg border border-border p-4">
             <h4 className="mb-2 font-display text-sm font-bold">Agendamento por sessões</h4>
 
             {error && <div className="mb-2"><Banner tom="perigo">{error}</Banner></div>}

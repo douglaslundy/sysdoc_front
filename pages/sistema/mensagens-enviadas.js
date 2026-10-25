@@ -67,7 +67,7 @@ export default function MensagensEnviadasPage() {
   ];
 
   return (
-    <div className="ui-reset flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <CabecalhoDePagina
         titulo="Mensagens enviadas"
         subtitulo="Histórico de mensagens enviadas pelo sistema por WhatsApp e e-mail"

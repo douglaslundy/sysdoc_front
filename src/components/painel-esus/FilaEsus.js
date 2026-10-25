@@ -222,7 +222,7 @@ export default function FilaEsus() {
     ];
 
     return (
-        <div className="ui-reset">
+        <div>
             {/* Nome da unidade selecionada */}
             {unidadeAtual && (
                 <p className="mb-4 text-sm font-semibold text-muted-foreground">

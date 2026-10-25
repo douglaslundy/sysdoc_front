@@ -167,7 +167,7 @@ export default function ClientReportContent({ reportData }) {
   const exames = reportData?.pedidos_exame?.length ? [...reportData.pedidos_exame].sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido)) : [];
 
   return (
-    <div className="ui-reset flex flex-col gap-8">
+    <div className="flex flex-col gap-8">
       <Secao titulo="Cliente">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <InfoItem label="Nome" value={reportData?.name?.toUpperCase()} />

@@ -446,7 +446,7 @@ export default () => {
     };
 
     return (
-        <div className="ui-reset queue-page queue-main-page">
+        <div className="queue-page queue-main-page">
             <Card>
                 <CardHeader>
                     <CardTitle>{`Você possui ${pagination?.total ?? queues.length} registros cadastrados`}</CardTitle>

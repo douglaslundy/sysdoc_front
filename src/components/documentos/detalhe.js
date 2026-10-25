@@ -164,7 +164,7 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
   );
 
   const mainArea = (
-    <div className="ui-reset documentos-page grid gap-4">
+    <div className="documentos-page grid gap-4">
       {alertState.visible && (
         <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
           {alertState.message}

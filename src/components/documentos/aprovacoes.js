@@ -139,7 +139,7 @@ export default function DocumentosAprovacoes() {
   ];
 
   return (
-    <div className="ui-reset documentos-page">
+    <div className="documentos-page">
       <CabecalhoDePagina
         titulo="Aprovações de Documentos"
         subtitulo="Solicitações pendentes e histórico formal de exclusões submetidas à tripla assinatura."

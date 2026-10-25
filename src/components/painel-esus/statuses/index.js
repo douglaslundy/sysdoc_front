@@ -60,7 +60,7 @@ export default function PainelEsusStatuses() {
   });
 
   return (
-    <div className="ui-reset painel-esus-statuses-page">
+    <div className="painel-esus-statuses-page">
       <CabecalhoDePagina titulo="Status dos Painéis de Senha" subtitulo="Lista de CNES com indicador visual de conectividade." />
       <div className="mb-4 flex justify-end">
         <CampoSelecao id="painel-esus-status-filter" label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-w-[180px]">

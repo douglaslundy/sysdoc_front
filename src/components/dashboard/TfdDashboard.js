@@ -90,7 +90,7 @@ export default function TfdDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <div className="ui-reset">
+        <div>
             {/* Totalizadores */}
             <Grade container spacing={3} mb={3}>
                 <Grade item xs={12} sm={4}>

@@ -99,7 +99,7 @@ export default function ContatosWhatsapp() {
   };
 
   return (
-    <div className="ui-reset grid gap-4">
+    <div className="grid gap-4">
       <div>
         <h2 className="font-display text-lg font-bold">Avisos por WhatsApp</h2>
         <p className="mt-1 text-sm text-muted-foreground">

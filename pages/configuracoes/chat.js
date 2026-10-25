@@ -236,7 +236,7 @@ export default function ChatConfigPage() {
   const tomDoFeedback = feedback?.type === "success" ? "sucesso" : "perigo";
 
   return (
-    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <CabecalhoDePagina
         titulo="Configurações do Chat"
         subtitulo="Escolha e configure o motor responsável pela comunicação em tempo real."

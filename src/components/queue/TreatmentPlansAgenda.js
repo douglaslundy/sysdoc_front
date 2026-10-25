@@ -42,7 +42,7 @@ export default function TreatmentPlansAgenda() {
     ];
 
     return (
-        <Card className="ui-reset">
+        <Card>
             <CardHeader>
                 <CardTitle>Agenda de Tratamentos</CardTitle>
                 <CardAction>

@@ -209,7 +209,7 @@ export default function AgendaColeta() {
     };
 
     return (
-        <div className="ui-reset lab-agenda-page">
+        <div className="lab-agenda-page">
             <PedidoModal defaultDataColeta={defaultDataColeta} onSaved={buscarAgenda} />
             <AlertModal />
             <Card>

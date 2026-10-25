@@ -1,48 +1,27 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useContext } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Drawer,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  ListItemText,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
-import BaseCard from "../../src/components/baseCard/BaseCard";
+import { Paperclip } from "lucide-react";
 import AlertModal from "../../src/components/messagesModal";
 import NewProtocolModal from "../../src/components/protocolo/NewProtocolModal";
-import {
-  modalFormRootSx,
-  modalSecondaryButtonSx,
-} from "../../src/components/modal/_shared/modalFormStyles";
 import { AuthContext } from "../../src/contexts/AuthContext";
 import { api } from "../../src/services/api";
+import { Banner } from "../../src/components/ui/banner";
+import { Button, buttonVariants } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CaixaDeMarcacao } from "../../src/components/ui/caixa-de-marcacao";
+import { CampoDeBusca } from "../../src/components/ui/campo-de-busca";
+import { CampoSelecao, CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { Carregando } from "../../src/components/ui/carregando";
+import { Dado } from "../../src/components/ui/dado";
+import { DataTable } from "../../src/components/ui/data-table";
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
+import { Gaveta } from "../../src/components/ui/gaveta";
+import { Interruptor } from "../../src/components/ui/interruptor";
+import { Paginacao } from "../../src/components/ui/paginacao";
+import { Pilula, tomDaCor } from "../../src/components/ui/pilula";
+import { StatCard } from "../../src/components/ui/stat-card";
 
 const routes = {
   "caixa-entrada": "inbox",
@@ -208,43 +187,27 @@ const normalizeStringList = (values) =>
 
 function MultiSelectField({ label, helperText, value, onChange, options, placeholder }) {
   const selected = normalizeStringList(value);
-  const labelMap = new Map(options.map((option) => [option.value, option.label]));
+  const alterna = (optionValue, marcado) =>
+    onChange(normalizeStringList(marcado ? [...selected, optionValue] : selected.filter((entry) => entry !== optionValue)));
 
   return (
-    <FormControl fullWidth>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        multiple
-        value={selected}
-        label={label}
-        onChange={(event) => onChange(normalizeStringList(event.target.value))}
-        renderValue={(selectedValues) => {
-          if (!selectedValues.length) {
-            return <Typography color="text.secondary">{placeholder || "Selecione"}</Typography>;
-          }
-
-          return (
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-              {selectedValues.map((entry) => (
-                <Chip key={entry} size="small" label={labelMap.get(entry) || entry} />
-              ))}
-            </Stack>
-          );
-        }}
-      >
+    <fieldset className="min-w-0 space-y-1">
+      <legend className="text-[13px] text-muted-foreground">{label}</legend>
+      <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-lg border border-input bg-background p-3">
+        {options.length === 0 ? <span className="text-sm text-muted-foreground">{placeholder || "Selecione"}</span> : null}
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            <Checkbox checked={selected.indexOf(option.value) > -1} />
-            <ListItemText primary={option.label} />
-          </MenuItem>
+          <CaixaDeMarcacao
+            key={option.value}
+            id={`${label}-${option.value}`}
+            marcado={selected.indexOf(option.value) > -1}
+            aoMudar={(marcado) => alterna(option.value, marcado)}
+          >
+            {option.label}
+          </CaixaDeMarcacao>
         ))}
-      </Select>
-      {helperText ? (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75 }}>
-          {helperText}
-        </Typography>
-      ) : null}
-    </FormControl>
+      </div>
+      {helperText ? <p className="text-[11px] text-muted-foreground">{helperText}</p> : null}
+    </fieldset>
   );
 }
 
@@ -811,152 +774,138 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     }
   };
 
-  const renderHome = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-            <Typography variant="overline">Novos</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>{countInfo?.novos ?? 0}</Typography>
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-            <Typography variant="overline">Vencem em breve</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>{countInfo?.vence_em_breve ?? 0}</Typography>
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ p: 2, border: "1px solid var(--lg-border)", borderRadius: 2, bgcolor: "var(--lg-glass-panel)" }}>
-            <Typography variant="overline">Vencidos</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>{countInfo?.vencidos ?? 0}</Typography>
-          </Box>
-        </Grid>
-      </Grid>
-
-      <BaseCard title="Protocolos">
-        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mb: 2 }}>
-          <TextField
-            className="lg-search-field"
-            placeholder="Pesquisar protocolo"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-            }}
-            sx={{ minWidth: 280, flex: 1 }}
-          />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Situação</InputLabel>
-            <Select
-              label="Situação"
-              value={situacao}
-              data-testid="protocolo-filtro-situacao"
-              onChange={(e) => {
-                setSituacao(e.target.value);
-                setPage(0);
-              }}
+  const colunasProtocolos = [
+    {
+      chave: "numero",
+      titulo: "Número / Remetente",
+      render: (protocol) => (
+        <>
+          <span className="block text-sm">{protocol.numero}</span>
+          <span className="block text-xs text-muted-foreground" title={protocol.criado_por?.name || ""} data-testid="protocolo-remetente">
+            {protocol.criado_por?.name ? `De: ${truncateText(protocol.criado_por.name)}` : "—"}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "assunto",
+      titulo: "Assunto / Destino",
+      render: (protocol) => (
+        <>
+          <span title={protocol.assunto || ""}>{truncateText(protocol.assunto)}</span>
+          {Number(protocol.attachments_count) > 0 && (
+            <span
+              title={`${protocol.attachments_count} arquivo(s) anexado(s)`}
+              aria-label="Possui anexo"
+              data-testid="protocolo-anexo-icon"
+              className="ml-2 inline-flex align-middle text-muted-foreground"
             >
-              <MenuItem value="abertos">Abertos</MenuItem>
-              <MenuItem value="concluidos">Concluídos</MenuItem>
-              <MenuItem value="todos">Todos</MenuItem>
-            </Select>
-          </FormControl>
-          <Button variant="contained" onClick={() => setNovoModalOpen(true)}>
-            + Novo Protocolo
-          </Button>
-        </Box>
+              <Paperclip className="size-4" aria-hidden />
+            </span>
+          )}
+          <span className="block text-xs text-muted-foreground" title={destinoLabel(protocol)} data-testid="protocolo-destino">
+            {destinoLabel(protocol) ? `Para: ${truncateText(destinoLabel(protocol))}` : "—"}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "prioridade",
+      titulo: "Prioridade",
+      render: (protocol) => <Pilula tom={isUrgent(protocol) ? "perigo" : "neutro"}>{protocol.prioridade || "normal"}</Pilula>,
+    },
+    {
+      chave: "status",
+      titulo: "Status",
+      render: (protocol) => <Pilula tom={tomDaCor(statusColor(protocol.status))}>{String(protocol.status || "").replace(/_/g, " ") || "—"}</Pilula>,
+    },
+    { chave: "criado", titulo: "Criado em", render: (protocol) => <span className="whitespace-nowrap">{formatDateTime(protocol.created_at)}</span> },
+    {
+      chave: "prazo",
+      titulo: "Prazo / Conclusão",
+      render: (protocol) => (
+        <>
+          <span className={`block text-sm ${isOverdue(protocol) ? "font-semibold text-danger-text" : ""}`}>
+            {formatDate(protocol.prazo_atendimento)}{isOverdue(protocol) ? " (vencido)" : ""}
+          </span>
+          <span className="block text-xs text-muted-foreground" data-testid="protocolo-conclusao-movimentacao">
+            {renderConclusaoOuMovimentacao(protocol)}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (protocol) => (
+        <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/protocolo/${protocol.id}`); }}>
+          Abrir
+        </Button>
+      ),
+    },
+  ];
 
-        <Table sx={{ whiteSpace: "nowrap" }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Número / Remetente</TableCell>
-              <TableCell>Assunto / Destino</TableCell>
-              <TableCell>Prioridade</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Criado em</TableCell>
-              <TableCell>Prazo / Conclusão</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {protocols.length > 0 ? protocols.map((protocol) => (
-              <TableRow
-                key={protocol.id}
-                hover
-                sx={{
-                  cursor: "pointer",
-                  ...(isOverdue(protocol) && {
-                    backgroundColor: "rgba(211, 47, 47, 0.10)",
-                    "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.18)" },
-                  }),
-                }}
-                data-overdue={isOverdue(protocol) ? "true" : undefined}
-                onClick={() => router.push(`/protocolo/${protocol.id}`)}
-              >
-                <TableCell>
-                  <Typography variant="body2">{protocol.numero}</Typography>
-                  <Typography variant="caption" color="text.secondary" component="div" title={protocol.criado_por?.name || ""} data-testid="protocolo-remetente">
-                    {protocol.criado_por?.name ? `De: ${truncateText(protocol.criado_por.name)}` : "—"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Box component="span" title={protocol.assunto || ""}>{truncateText(protocol.assunto)}</Box>
-                  {Number(protocol.attachments_count) > 0 && (
-                    <Box
-                      component="span"
-                      title={`${protocol.attachments_count} arquivo(s) anexado(s)`}
-                      aria-label="Possui anexo"
-                      data-testid="protocolo-anexo-icon"
-                      sx={{ ml: 1, display: "inline-flex", verticalAlign: "middle", color: "text.secondary" }}
-                    >
-                      <FeatherIcon icon="paperclip" size={16} />
-                    </Box>
-                  )}
-                  <Typography variant="caption" color="text.secondary" component="div" title={destinoLabel(protocol)} data-testid="protocolo-destino">
-                    {destinoLabel(protocol) ? `Para: ${truncateText(destinoLabel(protocol))}` : "—"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip size="small" color={isUrgent(protocol) ? "error" : "default"} label={protocol.prioridade || "normal"} />
-                </TableCell>
-                <TableCell>
-                  <Chip size="small" color={statusColor(protocol.status)} label={String(protocol.status || "").replace(/_/g, " ") || "—"} />
-                </TableCell>
-                <TableCell>{formatDateTime(protocol.created_at)}</TableCell>
-                <TableCell>
-                  <Typography variant="body2" color={isOverdue(protocol) ? "error" : undefined} sx={isOverdue(protocol) ? { fontWeight: 600 } : undefined}>
-                    {formatDate(protocol.prazo_atendimento)}{isOverdue(protocol) ? " (vencido)" : ""}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" component="div" data-testid="protocolo-conclusao-movimentacao">
-                    {renderConclusaoOuMovimentacao(protocol)}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); router.push(`/protocolo/${protocol.id}`); }}>
-                    Abrir
-                  </Button>
-                </TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell colSpan={7} align="center">Nenhum protocolo encontrado.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={total}
-          page={page}
-          onPageChange={(_, newPage) => setPage(newPage)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
+  const renderHome = () => (
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard titulo="Novos" valor={countInfo?.novos ?? 0} tom="info" />
+        <StatCard titulo="Vencem em breve" valor={countInfo?.vence_em_breve ?? 0} tom="primario" />
+        <StatCard titulo="Vencidos" valor={countInfo?.vencidos ?? 0} tom="perigo" />
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <CampoDeBusca
+          rotulo="Pesquisar protocolo"
+          placeholder="Pesquisar protocolo"
+          className="min-w-[260px] flex-[1_1_280px]"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
             setPage(0);
           }}
         />
-      </BaseCard>
+        <CampoSelecao
+          id="protocolo-situacao"
+          label="Situação"
+          value={situacao}
+          data-testid="protocolo-filtro-situacao"
+          className="min-w-[160px]"
+          onChange={(e) => {
+            setSituacao(e.target.value);
+            setPage(0);
+          }}
+        >
+          <option value="abertos">Abertos</option>
+          <option value="concluidos">Concluídos</option>
+          <option value="todos">Todos</option>
+        </CampoSelecao>
+        <Button onClick={() => setNovoModalOpen(true)}>
+          + Novo Protocolo
+        </Button>
+      </div>
+
+      <div>
+        <DataTable
+          rotulo="protocolos"
+          colunas={colunasProtocolos}
+          linhas={protocols}
+          chaveDaLinha={(protocol) => protocol.id}
+          vazio="Nenhum protocolo encontrado."
+          aoAbrir={(protocol) => router.push(`/protocolo/${protocol.id}`)}
+          propsDaLinha={(protocol) => (isOverdue(protocol) ? { "data-overdue": "true", className: "bg-danger/10 hover:bg-danger/20" } : {})}
+        />
+        <Paginacao
+          total={total}
+          pagina={page}
+          porPagina={rowsPerPage}
+          opcoes={[15, 25, 50, 100]}
+          aoMudarPagina={setPage}
+          aoMudarPorPagina={(n) => {
+            setRowsPerPage(n);
+            setPage(0);
+          }}
+        />
+      </div>
 
       <NewProtocolModal
         open={novoModalOpen}
@@ -967,7 +916,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           loadList();
         }}
       />
-    </Box>
+    </div>
   );
   // Volta para a página anterior do histórico do navegador; sem histórico (aba aberta
   // direto pelo link), cai na caixa de entrada.
@@ -982,7 +931,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const renderDetail = () => {
     if (!protocolDetail?.id) {
       return (
-        <Button variant="outlined" onClick={goBack}>Voltar</Button>
+        <div><Button variant="outline" onClick={goBack}>Voltar</Button></div>
       );
     }
     const p = protocolDetail;
@@ -992,303 +941,257 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <BaseCard title={`Protocolo ${p.numero || ""}`}>
-          <Box sx={{ mb: 2 }}>
-            <Button variant="outlined" size="small" onClick={goBack} aria-label="Voltar à página anterior">
-              ← Voltar
-            </Button>
-          </Box>
-          <Stack direction="row" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 2 }}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>{p.assunto || "Sem assunto"}</Typography>
-              <Typography variant="body2" color="text.secondary">{p.descricao || "Sem descrição"}</Typography>
-            </Box>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip label={String(p.status || "—").replace(/_/g, " ")} color={statusColor(p.status)} />
-              <Chip label={p.prioridade || "normal"} />
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleOpenLogs}
-                sx={{ ...modalSecondaryButtonSx, flex: "0 0 auto", py: 0.75 }}
-              >
-                Movimentação
+      <div className="flex flex-col gap-4">
+        <Card>
+          <CardHeader><CardTitle>{`Protocolo ${p.numero || ""}`}</CardTitle></CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div>
+              <Button variant="outline" size="sm" onClick={goBack} aria-label="Voltar à página anterior">
+                ← Voltar
               </Button>
-            </Stack>
-          </Stack>
+            </div>
+            <div className="flex flex-wrap justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold">{p.assunto || "Sem assunto"}</h2>
+                <p className="text-sm text-muted-foreground">{p.descricao || "Sem descrição"}</p>
+              </div>
+              <div className="flex flex-wrap items-start gap-2">
+                <Pilula tom={tomDaCor(statusColor(p.status))}>{String(p.status || "—").replace(/_/g, " ")}</Pilula>
+                <Pilula tom="neutro">{p.prioridade || "normal"}</Pilula>
+                <Button variant="outline" size="sm" onClick={handleOpenLogs}>
+                  Movimentação
+                </Button>
+              </div>
+            </div>
 
-          {p.status === "devolvido" && p.justificativa_devolucao && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Protocolo devolvido{p.devolvido_em ? ` em ${formatDateTime(p.devolvido_em)}` : ""}
-              </Typography>
-              {p.justificativa_devolucao}
-            </Alert>
-          )}
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography variant="body1">{p.solicitante_nome || "—"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Documento</Typography><Typography variant="body1">{p.solicitante_documento || "—"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Prazo</Typography><Typography variant="body1">{formatDate(p.prazo_atendimento)}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography variant="body1">{p.origem_unit?.nome || "—"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Destino</Typography><Typography variant="body1">{p.destino_unit?.nome || "—"}</Typography></Grid>
-            <Grid item xs={12} md={4}><Typography variant="caption">Responsável</Typography><Typography variant="body1">{p.responsavel_atual?.name || "—"}</Typography></Grid>
-          </Grid>
-
-          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 3, mb: 1 }}>
-            <Button variant="outlined" onClick={goBack}>Voltar</Button>
-            {!p.recebido_em && (
-              loggedProfile === "admin"
-              || (p.responsavel_atual_id ? String(p.responsavel_atual_id) === String(loggedUserId) : String(p.criado_por_id) !== String(loggedUserId))
-            ) && (
-              <Button variant="contained" onClick={() => handleDetailAction("receber")}>Receber</Button>
+            {p.status === "devolvido" && p.justificativa_devolucao && (
+              <Banner tom="alerta">
+                <strong className="block">
+                  Protocolo devolvido{p.devolvido_em ? ` em ${formatDateTime(p.devolvido_em)}` : ""}
+                </strong>
+                {p.justificativa_devolucao}
+              </Banner>
             )}
-            <Button variant="outlined" onClick={() => setForwardDialogOpen(true)}>
-              Encaminhar
-            </Button>
-            {p.pode_devolver && (
-              <Button variant="outlined" color="warning" onClick={() => setReturnDialogOpen(true)}>
-                Devolver ao remetente
-              </Button>
-            )}
-            <Button variant="contained" color="error" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuário" })}>
-              Encerrar
-            </Button>
-            <Button variant="outlined" onClick={() => handleDetailAction("reabrir")} disabled={p.status !== "encerrado"}>
-              Reabrir
-            </Button>
-          </Stack>
 
-        </BaseCard>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Dado rotulo="Solicitante">{p.solicitante_nome || "—"}</Dado>
+              <Dado rotulo="Documento">{p.solicitante_documento || "—"}</Dado>
+              <Dado rotulo="Prazo">{formatDate(p.prazo_atendimento)}</Dado>
+              <Dado rotulo="Origem">{p.origem_unit?.nome || "—"}</Dado>
+              <Dado rotulo="Destino">{p.destino_unit?.nome || "—"}</Dado>
+              <Dado rotulo="Responsável">{p.responsavel_atual?.name || "—"}</Dado>
+            </div>
 
-        <Dialog
-          open={forwardDialogOpen}
-          onClose={() => setForwardDialogOpen(false)}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{
-            sx: {
-              border: "1px solid var(--lg-border)",
-              background: "var(--lg-glass-panel)",
-              backdropFilter: "var(--lg-blur-panel)",
-            },
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 700 }}>Encaminhar protocolo</DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1, bgcolor: "transparent" }}>
-            <FormControl fullWidth sx={{ mt: 1 }}>
-              <InputLabel>Destino para encaminhamento</InputLabel>
-              <Select
-                value={detailForwardUnit}
-                label="Destino para encaminhamento"
-                onChange={(e) => setDetailForwardUnit(e.target.value)}
-              >
-                <MenuItem value="">Selecione</MenuItem>
-                {unitOptions.map((unit) => (
-                  <MenuItem key={unit.id} value={String(unit.id)}>
-                    {`${"  ".repeat(unit.level)}${unit.nome}`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Responsável opcional</InputLabel>
-              <Select
-                value={detailForwardUser}
-                label="Responsável opcional"
-                onChange={(e) => setDetailForwardUser(e.target.value)}
-              >
-                <MenuItem value="">Nenhum (fica endereçado à unidade inteira)</MenuItem>
-                {forwardEligibleUsers.map((user) => (
-                  <MenuItem key={user.id} value={String(user.id)}>
-                    {user.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {detailForwardUnit && forwardEligibleUsers.length === 0 && (
-                <FormHelperText>
-                  Nenhum usuário com acesso à página "Protocolo" foi encontrado — libere a página em Gestão de Perfis para poder escolher um responsável específico. Sem responsável, o protocolo fica endereçado à unidade inteira.
-                </FormHelperText>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Button variant="outline" onClick={goBack}>Voltar</Button>
+              {!p.recebido_em && (
+                loggedProfile === "admin"
+                || (p.responsavel_atual_id ? String(p.responsavel_atual_id) === String(loggedUserId) : String(p.criado_por_id) !== String(loggedUserId))
+              ) && (
+                <Button onClick={() => handleDetailAction("receber")}>Receber</Button>
               )}
-            </FormControl>
+              <Button variant="outline" onClick={() => setForwardDialogOpen(true)}>
+                Encaminhar
+              </Button>
+              {p.pode_devolver && (
+                <Button variant="outline" onClick={() => setReturnDialogOpen(true)}>
+                  Devolver ao remetente
+                </Button>
+              )}
+              <Button variant="destructive" onClick={() => handleDetailAction("encerrar", { justificativa_encerramento: "Encerrado pelo usuário" })}>
+                Encerrar
+              </Button>
+              <Button variant="outline" onClick={() => handleDetailAction("reabrir")} disabled={p.status !== "encerrado"}>
+                Reabrir
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-            <TextField
-              fullWidth
-              multiline
-              minRows={3}
+        <Dialogo aberto={forwardDialogOpen} aoFechar={() => setForwardDialogOpen(false)} tamanho="md">
+          <DialogoCabecalho>
+            <DialogoTitulo>Encaminhar protocolo</DialogoTitulo>
+          </DialogoCabecalho>
+          <div className="flex flex-col gap-4">
+            <CampoSelecao
+              id="enc-destino"
+              label="Destino para encaminhamento"
+              value={detailForwardUnit}
+              onChange={(e) => setDetailForwardUnit(e.target.value)}
+            >
+              <option value="">Selecione</option>
+              {unitOptions.map((unit) => (
+                <option key={unit.id} value={String(unit.id)}>
+                  {`${"  ".repeat(unit.level)}${unit.nome}`}
+                </option>
+              ))}
+            </CampoSelecao>
+
+            <CampoSelecao
+              id="enc-responsavel"
+              label="Responsável opcional"
+              value={detailForwardUser}
+              onChange={(e) => setDetailForwardUser(e.target.value)}
+              dica={detailForwardUnit && forwardEligibleUsers.length === 0
+                ? 'Nenhum usuário com acesso à página "Protocolo" foi encontrado — libere a página em Gestão de Perfis para poder escolher um responsável específico. Sem responsável, o protocolo fica endereçado à unidade inteira.'
+                : undefined}
+            >
+              <option value="">Nenhum (fica endereçado à unidade inteira)</option>
+              {forwardEligibleUsers.map((user) => (
+                <option key={user.id} value={String(user.id)}>
+                  {user.name}
+                </option>
+              ))}
+            </CampoSelecao>
+
+            <CampoTexto
+              id="enc-observacao"
               label="Observação"
+              multiline
+              rows={3}
               placeholder="Opcional: informe uma justificativa ou orientação para quem receber o protocolo."
               value={detailForwardObservation}
               onChange={(e) => setDetailForwardObservation(e.target.value)}
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setForwardDialogOpen(false)} variant="outlined">
+          </div>
+          <DialogoRodape>
+            <Button variant="outline" onClick={() => setForwardDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSubmitForward}
-              variant="contained"
-              disabled={saving || !detailForwardUnit}
-            >
+            <Button onClick={handleSubmitForward} disabled={saving || !detailForwardUnit}>
               {saving ? "Encaminhando..." : "Encaminhar"}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </DialogoRodape>
+        </Dialogo>
 
-        <Dialog
-          open={returnDialogOpen}
-          onClose={() => setReturnDialogOpen(false)}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{
-            sx: {
-              border: "1px solid var(--lg-border)",
-              background: "var(--lg-glass-panel)",
-              backdropFilter: "var(--lg-blur-panel)",
-            },
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 700 }}>Devolver protocolo ao remetente</DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1, bgcolor: "transparent" }}>
+        <Dialogo aberto={returnDialogOpen} aoFechar={() => setReturnDialogOpen(false)} tamanho="md">
+          <DialogoCabecalho>
+            <DialogoTitulo>Devolver protocolo ao remetente</DialogoTitulo>
+          </DialogoCabecalho>
+          <div className="flex flex-col gap-4">
             {p.devolver_para && (
-              <Typography variant="body2" color="text.secondary">
+              <p className="text-sm text-muted-foreground">
                 O protocolo voltará para <strong>{p.devolver_para}</strong>, que fez o último encaminhamento.
-              </Typography>
+              </p>
             )}
-            <TextField
+            <CampoTexto
+              id="dev-motivo"
+              obrigatorio
               required
-              fullWidth
-              multiline
-              minRows={3}
               label="Motivo da devolução e adequações necessárias"
+              multiline
+              rows={3}
               placeholder="Descreva por que o protocolo está sendo devolvido e o que precisa ser ajustado antes de reenviar."
               value={returnMotivo}
               onChange={(e) => setReturnMotivo(e.target.value)}
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setReturnDialogOpen(false)} variant="outlined">
+          </div>
+          <DialogoRodape>
+            <Button variant="outline" onClick={() => setReturnDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSubmitReturn}
-              variant="contained"
-              color="warning"
-              disabled={saving || returnMotivo.trim().length < 5}
-            >
+            <Button onClick={handleSubmitReturn} disabled={saving || returnMotivo.trim().length < 5}>
               {saving ? "Devolvendo..." : "Devolver"}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </DialogoRodape>
+        </Dialogo>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <BaseCard title="Comentário">
-              <Box component="form" onSubmit={handleSubmitComment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  maxRows={3}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader><CardTitle>Comentário</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmitComment} className="flex flex-col gap-4">
+                <CampoTexto
+                  id="com-texto"
                   label="Escreva um comentário"
+                  multiline
+                  rows={3}
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                 />
-                <FormControlLabel
-                  control={<Switch checked={commentPrivate} onChange={(e) => setCommentPrivate(e.target.checked)} />}
-                  label="Comentário privado"
-                />
-                <Stack direction="row" justifyContent="flex-end">
-                  <Button type="submit" variant="contained" disabled={saving || !commentText.trim()}>
+                <Interruptor id="com-privado" marcado={commentPrivate} aoMudar={setCommentPrivate}>
+                  Comentário privado
+                </Interruptor>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={saving || !commentText.trim()}>
                     {saving ? "Salvando..." : "Comentar"}
                   </Button>
-                </Stack>
-              </Box>
-            </BaseCard>
-          </Grid>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-          <Grid item xs={12} md={6}>
-            <BaseCard title="Anexar documento">
-              <Box component="form" onSubmit={handleSubmitAttachment} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <TextField
-                  fullWidth
+          <Card>
+            <CardHeader><CardTitle>Anexar documento</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmitAttachment} className="flex flex-col gap-4">
+                <CampoTexto
+                  id="anx-descricao"
                   label="Descrição do anexo"
                   value={attachmentDescription}
                   onChange={(e) => setAttachmentDescription(e.target.value)}
                 />
-                <Button variant="outlined" component="label">
+                <label className={`${buttonVariants({ variant: "outline" })} cursor-pointer`}>
                   {attachmentFile ? attachmentFile.name : "Selecionar arquivo"}
                   <input
                     hidden
                     type="file"
                     onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
                   />
-                </Button>
-                <Stack direction="row" justifyContent="flex-end">
-                  <Button type="submit" variant="contained" disabled={saving || !attachmentFile}>
+                </label>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={saving || !attachmentFile}>
                     {saving ? "Enviando..." : "Enviar anexo"}
                   </Button>
-                </Stack>
-              </Box>
-            </BaseCard>
-          </Grid>
-        </Grid>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
 
-        <BaseCard title="Anexos do protocolo">
-          <Stack spacing={0} divider={<Divider flexItem />}>
-            {attachments.length > 0 ? attachments.map((attachment) => (
-              <Stack
-                key={attachment.id}
-                direction={{ xs: "column", sm: "row" }}
-                justifyContent="space-between"
-                alignItems={{ xs: "stretch", sm: "center" }}
-                gap={1.5}
-                sx={{ py: 1.5 }}
-              >
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {attachment.nome_original}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {attachment.descricao || "Sem descrição"} • {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
-                  </Typography>
-                </Box>
-                <Button size="small" variant="outlined" onClick={() => handleDownloadAttachment(attachment)}>
-                  Baixar
-                </Button>
-              </Stack>
-            )) : <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum anexo enviado.</Typography>}
-          </Stack>
-        </BaseCard>
+        <Card>
+          <CardHeader><CardTitle>Anexos do protocolo</CardTitle></CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border">
+              {attachments.length > 0 ? attachments.map((attachment) => (
+                <div key={attachment.id} className="flex flex-col justify-between gap-3 py-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">{attachment.nome_original}</p>
+                    <span className="text-xs text-muted-foreground">
+                      {attachment.descricao || "Sem descrição"} • {attachment.user?.name || "—"} • {formatDateTime(attachment.created_at)}
+                    </span>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(attachment)}>
+                    Baixar
+                  </Button>
+                </div>
+              )) : <p className="py-2 text-muted-foreground">Nenhum anexo enviado.</p>}
+            </div>
+          </CardContent>
+        </Card>
 
-        <BaseCard title="Comentários">
-          <Stack spacing={0} divider={<Divider flexItem />}>
-            {comments.length > 0 ? comments.map((comment) => (
-              <Box key={comment.id} sx={{ py: 1.5 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {comment.user?.name || "Usuário não identificado"}
-                  </Typography>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    {comment.privado ? <Chip size="small" variant="outlined" label="Privado" /> : null}
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDateTime(comment.created_at)}
-                    </Typography>
-                  </Stack>
-                </Stack>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}>
-                  {comment.conteudo}
-                </Typography>
-              </Box>
-            )) : <Typography color="text.secondary" sx={{ py: 1 }}>Nenhum comentário registrado.</Typography>}
-          </Stack>
-        </BaseCard>
+        <Card>
+          <CardHeader><CardTitle>Comentários</CardTitle></CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border">
+              {comments.length > 0 ? comments.map((comment) => (
+                <div key={comment.id} className="py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-bold">{comment.user?.name || "Usuário não identificado"}</p>
+                    <div className="flex items-center gap-2">
+                      {comment.privado ? <Pilula tom="neutro" contorno>Privado</Pilula> : null}
+                      <span className="text-xs text-muted-foreground">{formatDateTime(comment.created_at)}</span>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">{comment.conteudo}</p>
+                </div>
+              )) : <p className="py-2 text-muted-foreground">Nenhum comentário registrado.</p>}
+            </div>
+          </CardContent>
+        </Card>
 
         {renderProtocolLogsDrawer()}
-      </Box>
+      </div>
     );
   };
 
@@ -1334,380 +1237,312 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     const loadingLogs = loadingVisualizations || loadingHistorico;
 
     return (
-      <Drawer
-        anchor="right"
-        open={logDrawerOpen}
-        onClose={() => setLogDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: { xs: "100%", sm: 480 },
-            maxWidth: "100vw",
-            bgcolor: "var(--lg-glass-panel)",
-            color: "var(--lg-text-primary)",
-            borderLeft: "1px solid var(--lg-border)",
-            backdropFilter: "var(--lg-blur-panel)",
-          },
-        }}
+      <Gaveta
+        aberto={logDrawerOpen}
+        aoFechar={() => setLogDrawerOpen(false)}
+        titulo="Movimentação"
+        subtitulo={`${p.numero || "Protocolo"} • ${accessLogs.length} acessos • ${movementLogs.length} movimentações`}
       >
-        <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", minHeight: "100%" }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Movimentação</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {p.numero || "Protocolo"} • {accessLogs.length} acessos • {movementLogs.length} movimentações
-              </Typography>
-            </Box>
-            <Button size="small" variant="outlined" onClick={() => setLogDrawerOpen(false)}>
-              Fechar
-            </Button>
-          </Stack>
-
-          <Divider sx={{ my: 2 }} />
-
-          {loadingLogs ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3 }}>
-              <CircularProgress size={22} />
-              <Typography variant="body2">Carregando movimentações...</Typography>
-            </Box>
-          ) : (
-            <Stack spacing={0} divider={<Divider flexItem />}>
-              {logs.length > 0 ? logs.map((log) => (
-                <Box key={log.key} sx={{ py: 1.5 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                    <Chip size="small" variant="outlined" label={log.type} />
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDateTime(log.timestamp)}
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.75 }}>
-                    {log.title}
-                  </Typography>
-                  {log.detail ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, whiteSpace: "pre-wrap" }}>
-                      {log.detail}
-                    </Typography>
-                  ) : null}
-                </Box>
-              )) : (
-                <Typography color="text.secondary" sx={{ py: 2 }}>Nenhuma movimentação ou acesso registrado.</Typography>
-              )}
-            </Stack>
-          )}
-
-          <Box sx={{ flex: 1 }} />
-        </Box>
-      </Drawer>
+        {loadingLogs ? (
+          <Carregando>Carregando movimentações...</Carregando>
+        ) : (
+          <div className="divide-y divide-border">
+            {logs.length > 0 ? logs.map((log) => (
+              <div key={log.key} className="py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Pilula tom="neutro" contorno>{log.type}</Pilula>
+                  <span className="text-xs text-muted-foreground">{formatDateTime(log.timestamp)}</span>
+                </div>
+                <p className="mt-1.5 text-sm font-bold">{log.title}</p>
+                {log.detail ? (
+                  <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">{log.detail}</p>
+                ) : null}
+              </div>
+            )) : (
+              <p className="py-4 text-muted-foreground">Nenhuma movimentação ou acesso registrado.</p>
+            )}
+          </div>
+        )}
+      </Gaveta>
     );
   };
 
+  const colunasUnidades = [
+    { chave: "nome", titulo: "Nome", render: (unit) => <span style={{ paddingLeft: `${unit.level * 16}px` }} className="block">{unit.nome}</span> },
+    { chave: "tipo", titulo: "Tipo", render: (unit) => unit.tipo },
+    { chave: "codigo", titulo: "Código", render: (unit) => unit.codigo || "—" },
+    { chave: "status", titulo: "Status", render: (unit) => <Pilula tom={unit.ativo ? "sucesso" : "neutro"}>{unit.ativo ? "Ativo" : "Inativo"}</Pilula> },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (unit) => (
+        <span className="inline-flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => openEditUnit(unit)}>Editar</Button>
+          <Button size="sm" variant="outline" className="text-danger-text" disabled={!unit.ativo} onClick={() => setDeletingUnit(unit)}>Excluir</Button>
+        </span>
+      ),
+    },
+  ];
+
   const renderStructure = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Box>
-        <Button variant="outlined" size="small" onClick={goBack} aria-label="Voltar à página anterior">
+    <div className="flex flex-col gap-4">
+      <div>
+        <Button variant="outline" size="sm" onClick={goBack} aria-label="Voltar à página anterior">
           ← Voltar
         </Button>
-      </Box>
-      <BaseCard title="Nova unidade organizacional">
-        <Box component="form" onSubmit={handleSubmitUnit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Unidade pai</InputLabel>
-                <Select value={unitForm.parent_id} label="Unidade pai" onChange={(e) => setUnitForm((prev) => ({ ...prev, parent_id: e.target.value }))}>
-                  <MenuItem value="">Nenhuma</MenuItem>
-                  {unitOptions.map((unit) => <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>)}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Tipo"
-                value={unitForm.tipo}
-                onChange={(e) => setUnitForm((prev) => ({ ...prev, tipo: e.target.value }))}
-              >
-                {protocolUnitTypeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Código" value={unitForm.codigo} onChange={(e) => setUnitForm((prev) => ({ ...prev, codigo: e.target.value }))} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Nome" value={unitForm.nome} onChange={(e) => setUnitForm((prev) => ({ ...prev, nome: e.target.value }))} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Descrição" value={unitForm.descricao} onChange={(e) => setUnitForm((prev) => ({ ...prev, descricao: e.target.value }))} />
-            </Grid>
-          </Grid>
-          <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? "Salvando..." : "Cadastrar"}</Button>
-          </Stack>
-        </Box>
-      </BaseCard>
-
-      <BaseCard title="Estrutura cadastrada">
-        <FormControlLabel
-          sx={{ mb: 1 }}
-          control={(
-            <Checkbox
-              checked={showInactiveUnits}
-              onChange={(e) => setShowInactiveUnits(e.target.checked)}
-              inputProps={{ "data-testid": "estrutura-mostrar-inativas" }}
-            />
-          )}
-          label="Exibir todos, inclusive inativos"
-        />
-        <Table sx={{ whiteSpace: "nowrap" }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Código</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visibleUnits.length > 0 ? visibleUnits.map((unit) => (
-              <TableRow key={unit.id} hover>
-                <TableCell><Box sx={{ pl: `${unit.level * 16}px` }}>{unit.nome}</Box></TableCell>
-                <TableCell>{unit.tipo}</TableCell>
-                <TableCell>{unit.codigo || "—"}</TableCell>
-                <TableCell><Chip size="small" color={unit.ativo ? "success" : "default"} label={unit.ativo ? "Ativo" : "Inativo"} /></TableCell>
-                <TableCell align="right">
-                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Button size="small" variant="outlined" onClick={() => openEditUnit(unit)}>Editar</Button>
-                    <Button size="small" variant="outlined" color="error" disabled={!unit.ativo} onClick={() => setDeletingUnit(unit)}>Excluir</Button>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell colSpan={5} align="center">Nenhuma unidade cadastrada.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </BaseCard>
-
-      <Dialog open={Boolean(editingUnit)} onClose={() => setEditingUnit(null)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Editar unidade organizacional</DialogTitle>
-        {editingUnit ? (
-          <Box component="form" onSubmit={handleSubmitEditUnit}>
-            <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-              <FormControl fullWidth sx={{ mt: 1 }}>
-                <InputLabel>Unidade pai</InputLabel>
-                <Select
-                  value={editingUnit.parent_id}
-                  label="Unidade pai"
-                  onChange={(e) => setEditingUnit((prev) => ({ ...prev, parent_id: e.target.value }))}
-                >
-                  <MenuItem value="">Nenhuma</MenuItem>
-                  {editParentOptions.map((unit) => (
-                    <MenuItem key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</MenuItem>
+      </div>
+      <Card>
+        <CardHeader><CardTitle>Nova unidade organizacional</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmitUnit} className="flex flex-col gap-4">
+            <div className="grid gap-4 md:grid-cols-12">
+              <div className="md:col-span-4">
+                <CampoSelecao id="un-pai" label="Unidade pai" value={unitForm.parent_id} onChange={(e) => setUnitForm((prev) => ({ ...prev, parent_id: e.target.value }))}>
+                  <option value="">Nenhuma</option>
+                  {unitOptions.map((unit) => <option key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>)}
+                </CampoSelecao>
+              </div>
+              <div className="md:col-span-4">
+                <CampoSelecao id="un-tipo" label="Tipo" value={unitForm.tipo} onChange={(e) => setUnitForm((prev) => ({ ...prev, tipo: e.target.value }))}>
+                  {protocolUnitTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
-                </Select>
-              </FormControl>
-              <TextField
-                select
-                fullWidth
-                label="Tipo"
-                value={editingUnit.tipo}
-                onChange={(e) => setEditingUnit((prev) => ({ ...prev, tipo: e.target.value }))}
-              >
-                {protocolUnitTypeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                ))}
-              </TextField>
-              <TextField fullWidth label="Código" value={editingUnit.codigo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, codigo: e.target.value }))} />
-              <TextField fullWidth required label="Nome" value={editingUnit.nome} onChange={(e) => setEditingUnit((prev) => ({ ...prev, nome: e.target.value }))} />
-              <TextField fullWidth label="Descrição" value={editingUnit.descricao} onChange={(e) => setEditingUnit((prev) => ({ ...prev, descricao: e.target.value }))} />
-              <FormControlLabel
-                control={<Switch checked={editingUnit.ativo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, ativo: e.target.checked }))} />}
-                label="Ativo"
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button variant="outlined" onClick={() => setEditingUnit(null)}>Cancelar</Button>
-              <Button type="submit" variant="contained" disabled={saving || !editingUnit.nome.trim()}>
+                </CampoSelecao>
+              </div>
+              <div className="md:col-span-4">
+                <CampoTexto id="un-codigo" label="Código" value={unitForm.codigo} onChange={(e) => setUnitForm((prev) => ({ ...prev, codigo: e.target.value }))} />
+              </div>
+              <div className="md:col-span-6">
+                <CampoTexto id="un-nome" label="Nome" value={unitForm.nome} onChange={(e) => setUnitForm((prev) => ({ ...prev, nome: e.target.value }))} />
+              </div>
+              <div className="md:col-span-6">
+                <CampoTexto id="un-descricao" label="Descrição" value={unitForm.descricao} onChange={(e) => setUnitForm((prev) => ({ ...prev, descricao: e.target.value }))} />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Cadastrar"}</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Estrutura cadastrada</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <CaixaDeMarcacao
+            id="estrutura-inativas"
+            marcado={showInactiveUnits}
+            aoMudar={setShowInactiveUnits}
+            data-testid="estrutura-mostrar-inativas"
+          >
+            Exibir todos, inclusive inativos
+          </CaixaDeMarcacao>
+          <DataTable
+            rotulo="estrutura cadastrada"
+            colunas={colunasUnidades}
+            linhas={visibleUnits}
+            chaveDaLinha={(unit) => unit.id}
+            vazio="Nenhuma unidade cadastrada."
+          />
+        </CardContent>
+      </Card>
+
+      <Dialogo aberto={Boolean(editingUnit)} aoFechar={() => setEditingUnit(null)} tamanho="md">
+        <DialogoCabecalho>
+          <DialogoTitulo>Editar unidade organizacional</DialogoTitulo>
+        </DialogoCabecalho>
+        {editingUnit ? (
+          <form onSubmit={handleSubmitEditUnit} className="flex flex-col gap-4">
+            <CampoSelecao
+              id="ed-pai"
+              label="Unidade pai"
+              value={editingUnit.parent_id}
+              onChange={(e) => setEditingUnit((prev) => ({ ...prev, parent_id: e.target.value }))}
+            >
+              <option value="">Nenhuma</option>
+              {editParentOptions.map((unit) => (
+                <option key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>
+              ))}
+            </CampoSelecao>
+            <CampoSelecao id="ed-tipo" label="Tipo" value={editingUnit.tipo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, tipo: e.target.value }))}>
+              {protocolUnitTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </CampoSelecao>
+            <CampoTexto id="ed-codigo" label="Código" value={editingUnit.codigo} onChange={(e) => setEditingUnit((prev) => ({ ...prev, codigo: e.target.value }))} />
+            <CampoTexto id="ed-nome" label="Nome" obrigatorio required value={editingUnit.nome} onChange={(e) => setEditingUnit((prev) => ({ ...prev, nome: e.target.value }))} />
+            <CampoTexto id="ed-descricao" label="Descrição" value={editingUnit.descricao} onChange={(e) => setEditingUnit((prev) => ({ ...prev, descricao: e.target.value }))} />
+            <Interruptor id="ed-ativo" marcado={editingUnit.ativo} aoMudar={(marcado) => setEditingUnit((prev) => ({ ...prev, ativo: marcado }))}>
+              Ativo
+            </Interruptor>
+            <DialogoRodape className="mt-1">
+              <Button type="button" variant="outline" onClick={() => setEditingUnit(null)}>Cancelar</Button>
+              <Button type="submit" disabled={saving || !editingUnit.nome.trim()}>
                 {saving ? "Salvando..." : "Salvar"}
               </Button>
-            </DialogActions>
-          </Box>
+            </DialogoRodape>
+          </form>
         ) : null}
-      </Dialog>
+      </Dialogo>
 
-      <Dialog open={Boolean(deletingUnit)} onClose={() => setDeletingUnit(null)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 700 }}>Excluir unidade</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Excluir a unidade "{deletingUnit?.nome}"? Ela será inativada e deixará de aparecer para novos protocolos; os protocolos já existentes são preservados.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" onClick={() => setDeletingUnit(null)}>Cancelar</Button>
-          <Button variant="contained" color="error" onClick={handleConfirmDeleteUnit} disabled={saving}>
+      <Dialogo aberto={Boolean(deletingUnit)} aoFechar={() => setDeletingUnit(null)} tamanho="sm">
+        <DialogoCabecalho>
+          <DialogoTitulo>Excluir unidade</DialogoTitulo>
+        </DialogoCabecalho>
+        <p>
+          Excluir a unidade "{deletingUnit?.nome}"? Ela será inativada e deixará de aparecer para novos protocolos; os protocolos já existentes são preservados.
+        </p>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setDeletingUnit(null)}>Cancelar</Button>
+          <Button variant="destructive" onClick={handleConfirmDeleteUnit} disabled={saving}>
             {saving ? "Excluindo..." : "Excluir"}
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        </DialogoRodape>
+      </Dialogo>
+    </div>
   );
 
-  const renderAlerts = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <BaseCard title="Novo alerta">
-        <Box component="form" onSubmit={handleSubmitAlert} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nome"
-                value={alertForm.nome}
-                onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Módulo"
-                value={alertForm.modulo}
-                onChange={(e) =>
-                  setAlertForm((prev) => ({
-                    ...prev,
-                    modulo: e.target.value,
-                    gatilho: getAlertTriggerOptions(e.target.value)[0]?.value || "",
-                  }))
-                }
-              >
-                {alertModuleOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Gatilho"
-                value={alertForm.gatilho}
-                onChange={(e) => setAlertForm((prev) => ({ ...prev, gatilho: e.target.value }))}
-              >
-                {getAlertTriggerOptions(alertForm.modulo).map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Frequência"
-                value={alertForm.frequencia}
-                onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <MultiSelectField
-                label="Motores de envio"
-                helperText="WhatsApp e e-mail são configurados em suas páginas próprias."
-                value={alertForm.canais}
-                onChange={(value) => setAlertForm((prev) => ({ ...prev, canais: value }))}
-                options={alertChannelOptions}
-                placeholder="Ex.: whatsapp"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <MultiSelectField
-                label="Destinatários"
-                helperText="Selecione destinatários predefinidos."
-                value={alertForm.destinatarios}
-                onChange={(value) => setAlertForm((prev) => ({ ...prev, destinatarios: value }))}
-                options={alertRecipientOptions}
-                placeholder="Ex.: administrador"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <MultiSelectField
-                label="Condições"
-                helperText="Selecione condições predefinidas."
-                value={alertForm.condicoes}
-                onChange={(value) => setAlertForm((prev) => ({ ...prev, condicoes: value }))}
-                options={alertConditionOptions}
-                placeholder="Ex.: vencido"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                minRows={4}
-                label="Template"
-                placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
-                value={alertForm.template}
-                onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                minRows={3}
-                label="Descrição"
-                placeholder="Explique quando o alerta deve ser usado e o que o usuário verá quando ele disparar."
-                value={alertForm.descricao}
-                onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <FormControlLabel control={<Switch checked={Boolean(alertForm.ativo)} onChange={(e) => setAlertForm((prev) => ({ ...prev, ativo: e.target.checked }))} />} label="Ativo" />
-                <FormControlLabel control={<Switch checked={Boolean(alertForm.prevenir_duplicidade)} onChange={(e) => setAlertForm((prev) => ({ ...prev, prevenir_duplicidade: e.target.checked }))} />} label="Prevenir duplicidade" />
-              </Stack>
-            </Grid>
-          </Grid>
-          <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
-          </Stack>
-        </Box>
-      </BaseCard>
+  const colunasAlertas = [
+    { chave: "nome", titulo: "Nome", render: (alert) => alert.nome },
+    { chave: "modulo", titulo: "Módulo", render: (alert) => alert.modulo },
+    { chave: "gatilho", titulo: "Gatilho", render: (alert) => alert.gatilho },
+    { chave: "status", titulo: "Status", render: (alert) => <Pilula tom={alert.ativo ? "sucesso" : "neutro"}>{alert.ativo ? "Ativo" : "Inativo"}</Pilula> },
+  ];
 
-      <BaseCard title="Alertas cadastrados">
-        <Table sx={{ whiteSpace: "nowrap" }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Módulo</TableCell>
-              <TableCell>Gatilho</TableCell>
-              <TableCell>Status</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {alerts.length > 0 ? alerts.map((alert) => (
-              <TableRow key={alert.id} hover>
-                <TableCell>{alert.nome}</TableCell>
-                <TableCell>{alert.modulo}</TableCell>
-                <TableCell>{alert.gatilho}</TableCell>
-                <TableCell><Chip size="small" color={alert.ativo ? "success" : "default"} label={alert.ativo ? "Ativo" : "Inativo"} /></TableCell>
-              </TableRow>
-            )) : (
-              <TableRow>
-                <TableCell colSpan={4} align="center">Nenhum alerta cadastrado.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </BaseCard>
-    </Box>
+  const renderAlerts = () => (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader><CardTitle>Novo alerta</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmitAlert} className="flex flex-col gap-4">
+            <div className="grid gap-4 md:grid-cols-12">
+              <div className="md:col-span-6">
+                <CampoTexto
+                  id="al-nome"
+                  label="Nome"
+                  value={alertForm.nome}
+                  onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <CampoSelecao
+                  id="al-modulo"
+                  label="Módulo"
+                  value={alertForm.modulo}
+                  onChange={({ target: { value } }) =>
+                    setAlertForm((prev) => ({
+                      ...prev,
+                      modulo: value,
+                      gatilho: getAlertTriggerOptions(value)[0]?.value || "",
+                    }))
+                  }
+                >
+                  {alertModuleOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </CampoSelecao>
+              </div>
+              <div className="md:col-span-6">
+                <CampoSelecao
+                  id="al-gatilho"
+                  label="Gatilho"
+                  value={alertForm.gatilho}
+                  onChange={(e) => setAlertForm((prev) => ({ ...prev, gatilho: e.target.value }))}
+                >
+                  {getAlertTriggerOptions(alertForm.modulo).map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </CampoSelecao>
+              </div>
+              <div className="md:col-span-6">
+                <CampoTexto
+                  id="al-frequencia"
+                  label="Frequência"
+                  value={alertForm.frequencia}
+                  onChange={(e) => setAlertForm((prev) => ({ ...prev, frequencia: e.target.value }))}
+                />
+              </div>
+              <div className="md:col-span-4">
+                <MultiSelectField
+                  label="Motores de envio"
+                  helperText="WhatsApp e e-mail são configurados em suas páginas próprias."
+                  value={alertForm.canais}
+                  onChange={(value) => setAlertForm((prev) => ({ ...prev, canais: value }))}
+                  options={alertChannelOptions}
+                  placeholder="Ex.: whatsapp"
+                />
+              </div>
+              <div className="md:col-span-4">
+                <MultiSelectField
+                  label="Destinatários"
+                  helperText="Selecione destinatários predefinidos."
+                  value={alertForm.destinatarios}
+                  onChange={(value) => setAlertForm((prev) => ({ ...prev, destinatarios: value }))}
+                  options={alertRecipientOptions}
+                  placeholder="Ex.: administrador"
+                />
+              </div>
+              <div className="md:col-span-4">
+                <MultiSelectField
+                  label="Condições"
+                  helperText="Selecione condições predefinidas."
+                  value={alertForm.condicoes}
+                  onChange={(value) => setAlertForm((prev) => ({ ...prev, condicoes: value }))}
+                  options={alertConditionOptions}
+                  placeholder="Ex.: vencido"
+                />
+              </div>
+              <div className="md:col-span-12">
+                <CampoTexto
+                  id="al-template"
+                  label="Template"
+                  multiline
+                  rows={4}
+                  placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
+                  value={alertForm.template}
+                  onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
+                />
+              </div>
+              <div className="md:col-span-12">
+                <CampoTexto
+                  id="al-descricao"
+                  label="Descrição"
+                  multiline
+                  rows={3}
+                  placeholder="Explique quando o alerta deve ser usado e o que o usuário verá quando ele disparar."
+                  value={alertForm.descricao}
+                  onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6 md:col-span-12">
+                <Interruptor id="al-ativo" marcado={Boolean(alertForm.ativo)} aoMudar={(marcado) => setAlertForm((prev) => ({ ...prev, ativo: marcado }))}>
+                  Ativo
+                </Interruptor>
+                <Interruptor id="al-duplicidade" marcado={Boolean(alertForm.prevenir_duplicidade)} aoMudar={(marcado) => setAlertForm((prev) => ({ ...prev, prevenir_duplicidade: marcado }))}>
+                  Prevenir duplicidade
+                </Interruptor>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Alertas cadastrados</CardTitle></CardHeader>
+        <CardContent>
+          <DataTable
+            rotulo="alertas cadastrados"
+            colunas={colunasAlertas}
+            linhas={alerts}
+            chaveDaLinha={(alert) => alert.id}
+            vazio="Nenhum alerta cadastrado."
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 
   const renderContent = () => {
@@ -1718,26 +1553,17 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   };
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page protocolo-page">
-      <BaseCard title={currentTitle}>
-        <AlertModal />
-        {message ? (
-          <Alert severity={message.toLowerCase().includes("não foi possível") ? "error" : "success"} sx={{ mb: 2 }}>
-            {message}
-          </Alert>
-        ) : null}
-        {loading ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
-            <CircularProgress size={22} />
-            <Typography variant="h6">Carregando protocolo...</Typography>
-          </Box>
-        ) : renderContent()}
-      </BaseCard>
-    </Box>
+    <div className="protocolo-page">
+      <AlertModal />
+      <CabecalhoDePagina titulo={currentTitle} />
+      {message ? (
+        <div className="mb-4">
+          <Banner tom={message.toLowerCase().includes("não foi possível") ? "perigo" : "sucesso"}>{message}</Banner>
+        </div>
+      ) : null}
+      {loading ? (
+        <Carregando>Carregando protocolo...</Carregando>
+      ) : renderContent()}
+    </div>
   );
 }
-
-
-
-
-

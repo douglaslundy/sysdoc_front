@@ -36,7 +36,7 @@ export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', 
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className={cn('ui-reset fixed inset-0 bg-black/60', elevado ? 'z-[1600]' : 'z-[1400]')} />
+        <DialogPrimitive.Backdrop className={cn('fixed inset-0 bg-black/60', elevado ? 'z-[1600]' : 'z-[1400]')} />
         <DialogPrimitive.Popup
           ref={popup}
           // Foco inicial no primeiro campo (não no X); sem campo, o padrão do base-ui.
@@ -50,7 +50,7 @@ export function Dialogo({ aberto, aoFechar, bloqueante = false, tamanho = 'md', 
           }}
           className={cn(
             elevado ? 'z-[1601]' : 'z-[1401]',
-            'ui-reset ui-raiz fixed left-1/2 top-1/2 flex max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-xl border border-border bg-card p-5 font-sans text-card-foreground shadow-[0_4px_20px_rgba(0,0,0,0.35)] outline-none sm:p-7',
+            'ui-raiz fixed left-1/2 top-1/2 flex max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-xl border border-border bg-card p-5 font-sans text-card-foreground shadow-[0_4px_20px_rgba(0,0,0,0.35)] outline-none sm:p-7',
             largura,
             className,
           )}

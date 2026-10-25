@@ -60,7 +60,7 @@ export default function NovoPedido() {
     };
 
     return (
-        <Card className="ui-reset">
+        <Card>
             <CardHeader>
                 <CardTitle>Novo Pedido de Exame</CardTitle>
             </CardHeader>

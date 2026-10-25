@@ -106,7 +106,7 @@ export default function MotivosPeticao() {
   };
 
   return (
-    <div className="ui-reset grid gap-4">
+    <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-lg font-bold">Motivos de petição</h2>
         <Button onClick={openNew}>Novo motivo</Button>

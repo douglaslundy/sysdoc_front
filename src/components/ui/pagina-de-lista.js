@@ -9,7 +9,7 @@ import { Paginacao } from './paginacao';
  */
 export function PaginaDeLista({ titulo, subtitulo, busca, barra, colunas, linhas, chaveDaLinha, carregando, vazio, paginacao, rotuloDaTabela, children }) {
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo={titulo} subtitulo={subtitulo} />
       {busca || barra ? (
         <div className="mb-4 flex flex-wrap items-center gap-3">

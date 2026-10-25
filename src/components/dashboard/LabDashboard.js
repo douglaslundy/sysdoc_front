@@ -102,7 +102,7 @@ export default function LabDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <div className="ui-reset">
+        <div>
             {/* Totalizadores */}
             <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
                 <CardTotal icon="thermometer" titulo="Exames" valor={totais.exames} cor="#2196f3" />

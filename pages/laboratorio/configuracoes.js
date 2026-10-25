@@ -101,7 +101,7 @@ export default function ConfiguracoesLaboratorio() {
     );
 
     return (
-        <div className="ui-reset">
+        <div>
             <AlertModal />
             <Card>
                 <CardHeader><CardTitle>Configurações do Laboratório</CardTitle></CardHeader>

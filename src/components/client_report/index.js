@@ -89,7 +89,7 @@ export default () => {
     }, [router.isReady, router.query.value]);
 
     return (
-        <div className="ui-reset">
+        <div>
             <CabecalhoDePagina
                 titulo={hasData && reportData?.name ? `Relatório do Cliente ${reportData.name}` : "Relatório detalhado do cliente"}
             />

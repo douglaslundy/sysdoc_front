@@ -113,7 +113,7 @@ export default function EstoquePage() {
   ];
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Estoque" subtitulo="Saldo por produto e secretaria." />
       <AlertModal />
 

@@ -52,7 +52,7 @@ export default function LogsDashboard() {
     const toolbarOff = { toolbar: { show: false } };
 
     return (
-        <div className="ui-reset">
+        <div>
             {/* Totalizadores */}
             <Grade container spacing={3} mb={3}>
                 <Grade item xs={6} sm={3}>

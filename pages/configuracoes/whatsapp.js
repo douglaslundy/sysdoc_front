@@ -237,7 +237,7 @@ export default function WhatsappConfigPage() {
   }
 
   return (
-    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <CabecalhoDePagina
         titulo="Configurações WhatsApp"
         subtitulo="Configuração geral do sistema para a integração com a Evolution API."

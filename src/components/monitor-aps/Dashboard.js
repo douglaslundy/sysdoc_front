@@ -92,7 +92,7 @@ export default function MonitorApsDashboard() {
     ];
 
     return (
-        <div className="ui-reset monitor-aps-page">
+        <div className="monitor-aps-page">
             <CabecalhoDePagina
                 titulo="Monitor APS — Cofinanciamento Federal"
                 acoes={(
@@ -145,7 +145,7 @@ export default function MonitorApsDashboard() {
                                         chart: { ...FONT },
                                         labels: ['Ótimo', 'Bom', 'Suficiente', 'Regular'],
                                         colors: [COR.otimo, COR.bom, COR.suficiente, COR.regular],
-                                        legend: { position: 'bottom', fontSize: '12px', labels: { colors: 'var(--lg-text-secondary)' } },
+                                        legend: { position: 'bottom', fontSize: '12px', labels: { colors: '#8a94a6' } },
                                         dataLabels: { enabled: false },
                                         tooltip: { theme: 'dark' },
                                         plotOptions: { pie: { donut: { size: '60%' } } },

@@ -76,7 +76,7 @@ export default function ProtocoloConfiguracoesPage() {
   const alterna = (campo) => () => setForm((prev) => ({ ...prev, [campo]: !prev[campo] }));
 
   return (
-    <div className="ui-reset mx-auto max-w-[1120px]">
+    <div className="mx-auto max-w-[1120px]">
       <CabecalhoDePagina
         titulo="Configurações do Protocolo"
         subtitulo="Apenas regras do fluxo de protocolo, sem integração de envio."

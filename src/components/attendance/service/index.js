@@ -107,7 +107,7 @@ export default function AttendanceService() {
 
   if (!data && !initialLoadDone) {
     return (
-      <Card className="ui-reset">
+      <Card>
         <CardHeader><CardTitle>Atendimento</CardTitle></CardHeader>
         <CardContent><Carregando>Carregando...</Carregando></CardContent>
       </Card>
@@ -116,7 +116,7 @@ export default function AttendanceService() {
 
   if (!data && initialLoadDone) {
     return (
-      <Card className="ui-reset">
+      <Card>
         <CardHeader><CardTitle>Atendimento</CardTitle></CardHeader>
         <CardContent className="grid gap-4">
           <Banner tom="perigo">{error || "Falha ao carregar atendimento."}</Banner>
@@ -129,7 +129,7 @@ export default function AttendanceService() {
   const ticket = data.ticket || {};
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>{`Atendimento - ${ticket.display_code || ""}`}</CardTitle>
       </CardHeader>

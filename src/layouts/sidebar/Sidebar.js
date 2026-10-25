@@ -7,7 +7,7 @@ const Sidebar = ({ menu }) => {
   const { pathname } = useRouter();
 
   return (
-    <aside className="ui-reset no-print hidden w-[230px] shrink-0 border-r border-border bg-surface md:block">
+    <aside className="no-print hidden w-[230px] shrink-0 border-r border-border bg-surface md:block">
       <div className="sticky top-0 h-dvh">
         <MenuDeNavegacao menu={menu} pathname={pathname} rotulo="Navegação principal" />
       </div>

@@ -68,7 +68,7 @@ export default function PetitionTrack() {
     });
 
   return (
-    <div className="ui-reset flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
+    <div className="flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
       <div className="w-full max-w-[720px]">
         <h1 className="mb-1 text-3xl font-extrabold">Acompanhar petição</h1>
         <p className="mb-6 text-muted-foreground">

@@ -466,7 +466,7 @@ export default function ConformidadeCidadao() {
     );
 
     return (
-        <div className="ui-reset conformidade-theme-surface grid gap-6">
+        <div className="conformidade-theme-surface grid gap-6">
             {erro && <Banner tom="perigo" onDispensar={() => setErro(null)}>{erro}</Banner>}
 
             {fase === 'idle' && (

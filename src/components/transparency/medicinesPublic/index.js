@@ -49,7 +49,7 @@ export default function MedicinesPublicList() {
     }, []);
 
     return (
-        <main className="ui-reset min-h-screen p-4 sm:p-6">
+        <main className="min-h-screen p-4 sm:p-6">
             <PublicThemeToggle />
             <h1 className="mb-1 pr-12 font-display text-2xl leading-tight font-extrabold sm:text-3xl">Transparência da Farmácia - Medicamentos Diários</h1>
             <p className="mb-4 text-sm text-muted-foreground">

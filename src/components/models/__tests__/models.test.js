@@ -8,7 +8,6 @@ jest.mock("next/router", () => ({ __esModule: true, default: { push: jest.fn() }
 jest.mock("../../../store/fetchActions/models", () => ({ getAllModels: () => () => {} }));
 jest.mock("../../modal/model/view", () => () => null);
 jest.mock("../../messagesModal", () => () => null);
-jest.mock("feather-icons-react", () => () => null);
 
 import Models from "../index";
 import modelsReducer, { addModels } from "../../../store/ducks/models";

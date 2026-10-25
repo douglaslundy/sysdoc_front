@@ -96,7 +96,7 @@ export default function AttendancePanel() {
   }, []);
 
   return (
-    <main className="ui-reset min-h-screen bg-background p-4 text-foreground md:p-10">
+    <main className="min-h-screen bg-background p-4 text-foreground md:p-10">
       <h1 className="mb-6 font-display text-3xl font-extrabold md:text-5xl">Painel de Atendimento</h1>
       {error ? <p className="mb-4 text-danger">{error}</p> : null}
 

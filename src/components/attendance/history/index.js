@@ -119,7 +119,7 @@ export default function AttendanceHistory() {
   ];
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>Atendimentos Realizados</CardTitle>
       </CardHeader>

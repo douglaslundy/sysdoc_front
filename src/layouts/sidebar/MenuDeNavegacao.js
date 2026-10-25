@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import FeatherIcon from "feather-icons-react";
+import { IconeDinamico } from "../../components/ui/icone-dinamico";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { normalizeIconName } from "../../utils/iconResolver";
@@ -19,7 +19,7 @@ function ItemDeLink({ href, titulo, icone, ativo, aoNavegar, recuo = false }) {
         aria-current={ativo ? "page" : undefined}
         className={cn(CLASSE_ITEM, recuo && "pl-6", ativo && CLASSE_ITEM_ATIVO)}
       >
-        <FeatherIcon icon={normalizeIconName(icone, "circle")} size={16} className="shrink-0" aria-hidden />
+        <IconeDinamico nome={normalizeIconName(icone, "circle")} />
         <span className="min-w-0 leading-tight break-words">{titulo}</span>
       </a>
     </Link>
@@ -70,7 +70,7 @@ export default function MenuDeNavegacao({ menu, pathname, rotulo, aoNavegar }) {
                   temAtivo && !aberto && "text-primary-text",
                 )}
               >
-                <FeatherIcon icon={normalizeIconName(grupo.icon, "grid")} size={16} className="shrink-0" aria-hidden />
+                <IconeDinamico nome={normalizeIconName(grupo.icon, "grid")} />
                 <span className="min-w-0 flex-1 leading-tight">{grupo.title}</span>
                 <ChevronDown aria-hidden className={cn("size-4 shrink-0 transition-transform", aberto && "rotate-180")} />
               </button>

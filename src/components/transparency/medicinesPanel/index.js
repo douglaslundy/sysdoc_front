@@ -73,7 +73,7 @@ export default function MedicinesPanel() {
   );
 
   return (
-    <div className="ui-reset h-screen overflow-hidden">
+    <div className="h-screen overflow-hidden">
       <PublicThemeToggle />
       <header
         className="relative z-[2] flex flex-col justify-end border-b border-border bg-surface px-6 pt-6 pb-[5px]"

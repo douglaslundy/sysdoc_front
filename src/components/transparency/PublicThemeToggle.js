@@ -15,7 +15,7 @@ export default function PublicThemeToggle() {
       onClick={toggleColorMode}
       aria-label="Alternar tema"
       title={rotulo}
-      className="ui-reset fixed top-3 right-3 z-50 bg-card"
+      className="fixed top-3 right-3 z-50 bg-card"
     >
       {mode === "dark" ? <Sun /> : <Moon />}
     </Button>

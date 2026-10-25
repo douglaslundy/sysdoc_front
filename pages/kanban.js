@@ -1,28 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import {
-  modalFormRootSx,
-  modalShellSx,
-} from "../src/components/modal/_shared/modalFormStyles";
+import { Banner } from "../src/components/ui/banner";
+import { Button } from "../src/components/ui/button";
+import { CampoDeBusca } from "../src/components/ui/campo-de-busca";
+import { CampoSelecao, CampoTexto } from "../src/components/ui/campos";
+import { Carregando } from "../src/components/ui/carregando";
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../src/components/ui/dialogo";
+import { Pilula, tomDaCor } from "../src/components/ui/pilula";
 import { api } from "../src/services/api";
 import PeticaoChips from "../src/components/kanban/PeticaoChips";
 
@@ -100,10 +84,10 @@ const vencimentoLabel = (value) => {
   const due = new Date(value);
   if (Number.isNaN(due.getTime())) return null;
   const diffDays = Math.ceil((due - today) / 86400000);
-  if (diffDays < 0) return { text: `Vencida há ${Math.abs(diffDays)} dia${Math.abs(diffDays) !== 1 ? "s" : ""}`, color: "error.main", bold: true };
-  if (diffDays === 0) return { text: "Vence hoje", color: "warning.main", bold: true };
-  if (diffDays <= 3) return { text: `Vence em ${diffDays} dia${diffDays !== 1 ? "s" : ""}`, color: "warning.main", bold: false };
-  return { text: `Vence ${formatDateBR(value)}`, color: "text.secondary", bold: false };
+  if (diffDays < 0) return { text: `Vencida há ${Math.abs(diffDays)} dia${Math.abs(diffDays) !== 1 ? "s" : ""}`, classe: "text-danger-text", bold: true };
+  if (diffDays === 0) return { text: "Vence hoje", classe: "text-warning", bold: true };
+  if (diffDays <= 3) return { text: `Vence em ${diffDays} dia${diffDays !== 1 ? "s" : ""}`, classe: "text-warning", bold: false };
+  return { text: `Vence ${formatDateBR(value)}`, classe: "text-muted-foreground", bold: false };
 };
 
 const CONCLUIDO_VISIVEL_DIAS = 7;
@@ -119,68 +103,6 @@ const formatHistoryText = (value) => {
   return readable ? readable.charAt(0).toUpperCase() + readable.slice(1) : "Ação";
 };
 
-const fieldStyle = {
-  width: "100%",
-  background: "var(--lg-glass-input)",
-  borderRadius: 12,
-};
-
-const selectStyle = {
-  minWidth: 130,
-  "& .MuiOutlinedInput-root": {
-    color: "var(--lg-text-primary)",
-    background: "var(--lg-glass-input)",
-    borderRadius: 1.5,
-    "& fieldset": { borderColor: "var(--lg-border-input)" },
-    "&:hover fieldset": { borderColor: "var(--lg-border-input-focus)" },
-    "&.Mui-focused fieldset": {
-      borderColor: "var(--lg-border-input-focus)",
-      boxShadow: "var(--lg-focus-ring)",
-    },
-  },
-  "& .MuiInputLabel-root": { color: "var(--lg-text-secondary)" },
-  "& .MuiSvgIcon-root": { color: "var(--lg-text-secondary)" },
-  "& .MuiSelect-select": {
-    color: "var(--lg-text-primary)",
-    WebkitTextFillColor: "var(--lg-text-primary)",
-  },
-};
-
-const toolbarButtonSx = {
-  minHeight: 40,
-  height: 40,
-  px: 2,
-  borderRadius: 1.5,
-  whiteSpace: "nowrap",
-};
-
-const boardColumnSx = {
-  minWidth: 0,
-  borderRadius: 3,
-  border: "1px solid rgba(var(--lg-accent-rgb), 0.28)",
-  background: (theme) =>
-    theme.palette.mode === "light"
-      ? "radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86))"
-      : "radial-gradient(860px 340px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(4, 16, 50, 0.97), rgba(3, 11, 36, 0.96))",
-  boxShadow: (theme) =>
-    theme.palette.mode === "light"
-      ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset, 0 0 16px rgba(var(--lg-accent-rgb), 0.12), 0 14px 30px rgba(37, 99, 235, 0.14)"
-      : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.09) inset, 0 0 22px rgba(var(--lg-accent-rgb), 0.14), 0 20px 46px rgba(2, 8, 27, 0.60)",
-  overflow: "hidden",
-};
-
-const boardCardSx = {
-  borderRadius: 2,
-  border: "1px solid var(--lg-border)",
-  background: (theme) =>
-    theme.palette.mode === "light"
-      ? "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.12), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.90), rgba(242, 247, 255, 0.86))"
-      : "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.10), transparent 70%), linear-gradient(140deg, rgba(4, 16, 50, 0.88), rgba(3, 11, 36, 0.84))",
-  boxShadow: (theme) =>
-    theme.palette.mode === "light"
-      ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.08) inset, 0 0 16px rgba(var(--lg-accent-rgb), 0.10), 0 14px 30px rgba(37, 99, 235, 0.12)"
-      : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.09) inset, 0 0 18px rgba(var(--lg-accent-rgb), 0.12), 0 18px 36px rgba(2, 8, 27, 0.36)",
-};
 
 const flattenUnits = (items, level = 0) =>
   (Array.isArray(items) ? items : []).flatMap((item) => [
@@ -190,105 +112,37 @@ const flattenUnits = (items, level = 0) =>
 
 function KanbanCard({ item, onOpen, onDragStart, dragging, onOpenFiscalizacao }) {
   const column = BOARD_COLUMNS.find((entry) => entry.value === String(item.status || "").toLowerCase()) || BOARD_COLUMNS[0];
+  const vc = vencimentoLabel(item.vencimento);
 
   return (
-    <Box
+    <div
       draggable
       onDragStart={(event) => onDragStart(event, item)}
       onClick={() => onOpen(item)}
-      sx={{
-        p: 1.5,
-        ...boardCardSx,
-        cursor: dragging ? "grabbing" : "grab",
-        opacity: dragging ? 0.55 : 1,
-        transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
-        "&:hover": {
-          transform: "translateY(-2px)",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.16), transparent 70%), linear-gradient(140deg, rgba(255, 255, 255, 0.94), rgba(236, 245, 255, 0.92))"
-              : "radial-gradient(520px 220px at 16% 0%, rgba(var(--lg-accent-rgb), 0.14), transparent 70%), linear-gradient(140deg, rgba(6, 19, 58, 0.92), rgba(4, 14, 42, 0.90))",
-          borderColor: "rgba(var(--lg-accent-rgb),0.32)",
-          boxShadow: (theme) =>
-            theme.palette.mode === "light"
-              ? "0 0 0 1px rgba(var(--lg-accent-rgb), 0.10) inset, 0 0 18px rgba(var(--lg-accent-rgb), 0.12), 0 16px 32px rgba(37, 99, 235, 0.14)"
-              : "0 0 0 1px rgba(var(--lg-accent-rgb), 0.12) inset, 0 0 22px rgba(var(--lg-accent-rgb), 0.16), 0 20px 40px rgba(2, 8, 27, 0.40)",
-        },
-      }}
+      className={`min-w-0 rounded-xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md ${dragging ? "cursor-grabbing opacity-55" : "cursor-grab"}`}
     >
-      <Box sx={{ minWidth: 0 }}>
-        <Chip
-          size="small"
-          color={column.color}
-          label={column.label}
-          sx={{
-            mb: 1,
-            maxWidth: "100%",
-            "& .MuiChip-label": {
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            },
-          }}
-        />
-        <Chip
-          size="small"
-          variant="outlined"
-          label={item.visibility === "private" ? "Privado" : "Público"}
-          sx={{ mb: 1, ml: 1 }}
-        />
-        <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.25, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-          {item.titulo}
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 0.75, lineHeight: 1.35, color: "text.secondary", overflowWrap: "anywhere", wordBreak: "break-word" }}>
+      <div className="min-w-0">
+        <div className="mb-2 flex flex-wrap gap-2">
+          <Pilula tom={tomDaCor(column.color)}>{column.label}</Pilula>
+          <Pilula tom="neutro" contorno>{item.visibility === "private" ? "Privado" : "Público"}</Pilula>
+        </div>
+        <p className="text-sm leading-tight font-extrabold [overflow-wrap:anywhere]">{item.titulo}</p>
+        <p className="mt-1.5 text-sm leading-snug text-muted-foreground [overflow-wrap:anywhere]">
           {item.descricao || "Sem descrição"}
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
-      <Stack direction="row" spacing={1} sx={{ mt: 1, minWidth: 0 }} flexWrap="wrap" useFlexGap>
-        <Chip
-          size="small"
-          variant="outlined"
-          label={`Prioridade: ${item.prioridade || "normal"}`}
-          sx={{
-            maxWidth: "100%",
-            "& .MuiChip-label": {
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            },
-          }}
-        />
-        {item.protocol ? (
-          <Chip
-            size="small"
-            color="success"
-            label={item.protocol.numero}
-            sx={{
-              maxWidth: "100%",
-              "& .MuiChip-label": {
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              },
-            }}
-          />
-        ) : null}
-      </Stack>
+      <div className="mt-2 flex min-w-0 flex-wrap gap-2">
+        <Pilula tom="neutro" contorno>{`Prioridade: ${item.prioridade || "normal"}`}</Pilula>
+        {item.protocol ? <Pilula tom="sucesso">{item.protocol.numero}</Pilula> : null}
+      </div>
 
-      {(() => {
-        const vc = vencimentoLabel(item.vencimento);
-        return vc ? (
-          <Typography
-            variant="caption"
-            sx={{ display: "block", mt: 0.75, color: vc.color, fontWeight: vc.bold ? 700 : 400 }}
-          >
-            {vc.text}
-          </Typography>
-        ) : null;
-      })()}
+      {vc ? <span className={`mt-1.5 block text-xs ${vc.classe} ${vc.bold ? "font-bold" : ""}`}>{vc.text}</span> : null}
       <PeticaoChips item={item} onOpen={onOpenFiscalizacao} />
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+      <span className="mt-1 block text-xs text-muted-foreground">
         Atualizado em {formatDateTime(item.updated_at)}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   );
 }
 
@@ -317,123 +171,52 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
     });
   };
 
+  const campo = (nome) => ({ target: { value } }) => setForm((current) => ({ ...current, [nome]: value }));
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{
-        className: "kanban-modal-shell",
-        sx: {
-          ...modalShellSx,
-          ...modalFormRootSx,
-          position: "relative",
-          transform: "none",
-          inset: "auto",
-        },
-      }}
-    >
-      <DialogTitle>{item ? "Editar item do kanban" : "Novo item do kanban"}</DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ display: "grid", gap: 2 }}>
-          <TextField
-            label="Título"
-            value={form.titulo}
-            onChange={(event) => setForm((current) => ({ ...current, titulo: event.target.value }))}
-            required
-            fullWidth
-            sx={fieldStyle}
-          />
-          <TextField
-            label="Descrição"
-            value={form.descricao}
-            onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))}
-            fullWidth
-            multiline
-            minRows={3}
-            sx={fieldStyle}
-          />
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                label="Status"
-                value={form.status}
-                onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Prioridade</InputLabel>
-              <Select
-                label="Prioridade"
-                value={form.prioridade}
-                onChange={(event) => setForm((current) => ({ ...current, prioridade: event.target.value }))}
-              >
-                {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-          <FormControl fullWidth>
-            <InputLabel>Visibilidade</InputLabel>
-            <Select
-              label="Visibilidade"
-              value={form.visibility}
-              onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value }))}
-            >
-              {VISIBILITY_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              type="date"
-              label="Vencimento"
-              value={form.vencimento}
-              onChange={(event) => setForm((current) => ({ ...current, vencimento: event.target.value }))}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              sx={fieldStyle}
-            />
-            <TextField
-              type="number"
-              label="Ordem"
-              value={form.ordem}
-              onChange={(event) => setForm((current) => ({ ...current, ordem: event.target.value }))}
-              fullWidth
-              sx={fieldStyle}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+    <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="md" className="max-h-[92vh] overflow-y-auto">
+      <DialogoCabecalho>
+        <DialogoTitulo>{item ? "Editar item do kanban" : "Novo item do kanban"}</DialogoTitulo>
+      </DialogoCabecalho>
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <CampoTexto id="kb-titulo" label="Título" obrigatorio required value={form.titulo} onChange={campo("titulo")} />
+        <CampoTexto id="kb-descricao" label="Descrição" multiline rows={3} value={form.descricao} onChange={campo("descricao")} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CampoSelecao id="kb-status" label="Status" value={form.status} onChange={campo("status")}>
+            {STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </CampoSelecao>
+          <CampoSelecao id="kb-prioridade" label="Prioridade" value={form.prioridade} onChange={campo("prioridade")}>
+            {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </CampoSelecao>
+        </div>
+        <CampoSelecao id="kb-visibilidade" label="Visibilidade" value={form.visibility} onChange={campo("visibility")}>
+          {VISIBILITY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </CampoSelecao>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CampoTexto id="kb-vencimento" type="date" label="Vencimento" value={form.vencimento} onChange={campo("vencimento")} />
+          <CampoTexto id="kb-ordem" type="number" label="Ordem" value={form.ordem} onChange={campo("ordem")} />
+        </div>
+        <DialogoRodape className="mt-1">
           {item ? (
-            <Button color="error" onClick={() => onDelete(item)} disabled={saving}>
+            <Button type="button" variant="destructive" onClick={() => onDelete(item)} disabled={saving} className="sm:mr-auto">
               Excluir
             </Button>
           ) : null}
-          <Box sx={{ flex: 1 }} />
-          <Button onClick={onClose} disabled={saving}>
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" disabled={saving}>
+          <Button type="submit" disabled={saving}>
             {saving ? "Salvando..." : "Salvar"}
           </Button>
-        </DialogActions>
+        </DialogoRodape>
       </form>
-    </Dialog>
+    </Dialogo>
   );
 }
 
@@ -528,124 +311,100 @@ function ProtocolDialog({ open, item, onClose, onChanged }) {
     }
   };
 
+  const campo = (nome) => ({ target: { value } }) => setForm((current) => ({ ...current, [nome]: value }));
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      PaperProps={{
-        sx: { ...modalShellSx, ...modalFormRootSx, position: "relative", transform: "none", inset: "auto" },
-      }}
-    >
-      <DialogTitle>{protocol ? `${protocol.numero} - ${protocol.assunto}` : "Protocolo"}</DialogTitle>
-      <DialogContent>
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={5}><CircularProgress /></Box>
-        ) : (
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            {message && <Typography color="error">{message}</Typography>}
-            <TextField fullWidth label="Assunto" value={form.assunto || ""} onChange={(event) => setForm((current) => ({ ...current, assunto: event.target.value }))} />
-            <TextField fullWidth multiline minRows={3} label="Descrição" value={form.descricao || ""} onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))} />
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Tipo</InputLabel>
-                  <Select value={form.tipo || ""} label="Tipo" onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value }))}>
-                    {types.filter((type) => type.ativo !== false).map((type) => <MenuItem key={type.id} value={type.codigo}>{type.nome}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Prioridade</InputLabel>
-                  <Select value={form.prioridade || "normal"} label="Prioridade" onChange={(event) => setForm((current) => ({ ...current, prioridade: event.target.value }))}>
-                    {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth type="date" label="Prazo" InputLabelProps={{ shrink: true }} value={form.prazo_atendimento || ""} onChange={(event) => setForm((current) => ({ ...current, prazo_atendimento: event.target.value }))} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Unidade de destino</InputLabel>
-                  <Select value={form.destino_unit_id || ""} label="Unidade de destino" onChange={(event) => setForm((current) => ({ ...current, destino_unit_id: event.target.value }))}>
-                    <MenuItem value="">Sem unidade</MenuItem>
-                    {units.filter((unit) => unit.ativo !== false).map((unit) => <MenuItem key={unit.id} value={unit.id}>{`${"— ".repeat(unit.level || 0)}${unit.nome}`}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Responsável</InputLabel>
-                  <Select value={form.destino_user_id || ""} label="Responsável" onChange={(event) => setForm((current) => ({ ...current, destino_user_id: event.target.value }))}>
-                    <MenuItem value="">Sem responsável</MenuItem>
-                    {users.map((user) => <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Etapa no Kanban</InputLabel>
-                  <Select value={form.kanban_status || "novo"} label="Etapa no Kanban" onChange={(event) => setForm((current) => ({ ...current, kanban_status: event.target.value }))}>
-                    {STATUS_OPTIONS.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
+    <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="lg" className="max-h-[92vh] overflow-y-auto">
+      <DialogoCabecalho>
+        <DialogoTitulo>{protocol ? `${protocol.numero} - ${protocol.assunto}` : "Protocolo"}</DialogoTitulo>
+      </DialogoCabecalho>
+      {loading ? (
+        <Carregando className="justify-center py-12" />
+      ) : (
+        <div className="flex flex-col gap-4">
+          {message && <Banner tom="perigo">{message}</Banner>}
+          <CampoTexto id="kbp-assunto" label="Assunto" value={form.assunto || ""} onChange={campo("assunto")} />
+          <CampoTexto id="kbp-descricao" label="Descrição" multiline rows={3} value={form.descricao || ""} onChange={campo("descricao")} />
+          <div className="grid gap-4 md:grid-cols-6">
+            <div className="md:col-span-2">
+              <CampoSelecao id="kbp-tipo" label="Tipo" value={form.tipo || ""} onChange={campo("tipo")}>
+                {types.filter((type) => type.ativo !== false).map((type) => <option key={type.id} value={type.codigo}>{type.nome}</option>)}
+              </CampoSelecao>
+            </div>
+            <div className="md:col-span-2">
+              <CampoSelecao id="kbp-prioridade" label="Prioridade" value={form.prioridade || "normal"} onChange={campo("prioridade")}>
+                {PRIORITY_OPTIONS.filter((option) => option.value).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </CampoSelecao>
+            </div>
+            <div className="md:col-span-2">
+              <CampoTexto id="kbp-prazo" type="date" label="Prazo" value={form.prazo_atendimento || ""} onChange={campo("prazo_atendimento")} />
+            </div>
+            <div className="md:col-span-3">
+              <CampoSelecao id="kbp-unidade" label="Unidade de destino" value={form.destino_unit_id || ""} onChange={campo("destino_unit_id")}>
+                <option value="">Sem unidade</option>
+                {units.filter((unit) => unit.ativo !== false).map((unit) => <option key={unit.id} value={unit.id}>{`${"— ".repeat(unit.level || 0)}${unit.nome}`}</option>)}
+              </CampoSelecao>
+            </div>
+            <div className="md:col-span-3">
+              <CampoSelecao id="kbp-responsavel" label="Responsável" value={form.destino_user_id || ""} onChange={campo("destino_user_id")}>
+                <option value="">Sem responsável</option>
+                {users.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+              </CampoSelecao>
+            </div>
+            <div className="md:col-span-6">
+              <CampoSelecao id="kbp-etapa" label="Etapa no Kanban" value={form.kanban_status || "novo"} onChange={campo("kanban_status")}>
+                {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </CampoSelecao>
+            </div>
+          </div>
 
-            <Divider />
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}><Typography variant="caption">Solicitante</Typography><Typography>{protocol?.solicitante_nome || "—"}</Typography></Grid>
-              <Grid item xs={12} md={4}><Typography variant="caption">Origem</Typography><Typography>{protocol?.origem_unit?.nome || "—"}</Typography></Grid>
-              <Grid item xs={12} md={4}><Typography variant="caption">Status do protocolo</Typography><Typography>{protocol?.status || "—"}</Typography></Grid>
-            </Grid>
+          <div className="grid gap-4 border-t border-border pt-4 md:grid-cols-3">
+            <div><span className="block text-xs text-muted-foreground">Solicitante</span><p>{protocol?.solicitante_nome || "—"}</p></div>
+            <div><span className="block text-xs text-muted-foreground">Origem</span><p>{protocol?.origem_unit?.nome || "—"}</p></div>
+            <div><span className="block text-xs text-muted-foreground">Status do protocolo</span><p>{protocol?.status || "—"}</p></div>
+          </div>
 
-            <Typography variant="h6">Histórico</Typography>
-            <Stack divider={<Divider />}>
-              {(protocol?.movements || []).slice().reverse().map((movement) => (
-                <Box key={movement.id} py={1}>
-                  <Typography sx={{ fontWeight: 700, fontSize: "0.72rem" }}>
-                    {formatHistoryText(movement.acao)}
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.65rem" }}>{movement.user?.name || "Sistema"} · {formatDateTime(movement.created_at)}</Typography>
-                  {movement.observacao && <Typography color="text.secondary" sx={{ fontSize: "0.65rem" }}>{movement.observacao}</Typography>}
-                </Box>
+          <h3 className="text-lg font-bold">Histórico</h3>
+          <div className="divide-y divide-border">
+            {(protocol?.movements || []).slice().reverse().map((movement) => (
+              <div key={movement.id} className="py-2">
+                <p className="text-xs font-bold">{formatHistoryText(movement.acao)}</p>
+                <p className="text-[11px]">{movement.user?.name || "Sistema"} · {formatDateTime(movement.created_at)}</p>
+                {movement.observacao && <p className="text-[11px] text-muted-foreground">{movement.observacao}</p>}
+              </div>
+            ))}
+          </div>
+
+          <h3 className="text-lg font-bold">Comentários</h3>
+          {(protocol?.comments || []).length ? (
+            <div className="divide-y divide-border">
+              {protocol.comments.map((comment) => (
+                <div key={comment.id} className="py-2">
+                  <p>{comment.conteudo}</p>
+                  <p className="text-sm text-muted-foreground">{comment.user?.name || "Sistema"} · {formatDateTime(comment.created_at)}</p>
+                </div>
               ))}
-            </Stack>
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Sem comentários.</p>}
 
-            <Typography variant="h6">Comentários</Typography>
-            {(protocol?.comments || []).length ? (
-              <Stack divider={<Divider />}>
-                {protocol.comments.map((comment) => (
-                  <Box key={comment.id} py={1}>
-                    <Typography>{comment.conteudo}</Typography>
-                    <Typography variant="body2" color="text.secondary">{comment.user?.name || "Sistema"} · {formatDateTime(comment.created_at)}</Typography>
-                  </Box>
-                ))}
-              </Stack>
-            ) : <Typography variant="body2" color="text.secondary">Sem comentários.</Typography>}
-
-            <Typography variant="h6">Anexos</Typography>
-            {(protocol?.attachments || []).length ? (
-              <Stack spacing={1}>
-                {protocol.attachments.map((attachment) => (
-                  <Box key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" gap={2}>
-                    <Typography variant="body2">{attachment.nome_original}</Typography>
-                    <Button size="small" variant="outlined" onClick={() => downloadAttachment(attachment)}>Baixar</Button>
-                  </Box>
-                ))}
-              </Stack>
-            ) : <Typography variant="body2" color="text.secondary">Sem anexos.</Typography>}
-          </Stack>
-        )}
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={save} disabled={loading || saving}>{saving ? "Salvando..." : "Salvar e movimentar"}</Button>
-      </DialogActions>
-    </Dialog>
+          <h3 className="text-lg font-bold">Anexos</h3>
+          {(protocol?.attachments || []).length ? (
+            <div className="flex flex-col gap-2">
+              {protocol.attachments.map((attachment) => (
+                <div key={attachment.id} className="flex items-center justify-between gap-3">
+                  <span className="text-sm">{attachment.nome_original}</span>
+                  <Button size="sm" variant="outline" onClick={() => downloadAttachment(attachment)}>Baixar</Button>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Sem anexos.</p>}
+        </div>
+      )}
+      <DialogoRodape>
+        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button onClick={save} disabled={loading || saving}>{saving ? "Salvando..." : "Salvar e movimentar"}</Button>
+      </DialogoRodape>
+    </Dialogo>
   );
 }
 
@@ -847,235 +606,100 @@ export default function KanbanPage() {
   };
 
   return (
-    <Box
-      className="queue-page kanban-page"
-      sx={{ ...modalFormRootSx, maxWidth: 1600, mx: "auto", p: { xs: 2, md: 3 }, color: "var(--lg-text-primary)" }}
-    >
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        justifyContent="space-between"
-        gap={2}
-        sx={{ mb: 3, alignItems: { xs: "stretch", md: "flex-end" } }}
-      >
-        <Box>
-          <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Chip
-              size="small"
-              label={`Você possui ${totals.total} itens`}
-              sx={{
-                fontWeight: 700,
-                color: "var(--lg-text-primary)",
-                background: "var(--lg-glass-chip)",
-                border: "0.5px solid var(--lg-border)",
-              }}
-            />
-          </Stack>
-          <Stack
-            className="queue-page__toolbar"
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            useFlexGap
-            sx={{ alignItems: "center", mt: 1.5 }}
-          >
-            <TextField
-              size="small"
-              className="lg-search-field kanban-page__search"
-              label="Pesquisar item"
+    <div className="kanban-page mx-auto max-w-[1600px]">
+      <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div className="min-w-0">
+          <Pilula tom="neutro">{`Você possui ${totals.total} itens`}</Pilula>
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <CampoDeBusca
+              rotulo="Pesquisar item"
+              placeholder="Pesquisar item"
+              className="kanban-page__search w-full flex-none sm:w-60 md:w-64"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              sx={{
-                ...fieldStyle,
-                width: { xs: "100%", sm: 240, md: 260 },
-                "& .MuiOutlinedInput-root": {
-                  color: "var(--lg-text-primary)",
-                  background: "var(--lg-glass-input)",
-                  borderRadius: 1.5,
-                  "& fieldset": { borderColor: "var(--lg-border-input)" },
-                  "&:hover fieldset": { borderColor: "var(--lg-border-input-focus)" },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "var(--lg-border-input-focus)",
-                    boxShadow: "var(--lg-focus-ring)",
-                  },
-                },
-                "& .MuiInputLabel-root": { color: "var(--lg-text-secondary)" },
-                "& .MuiInputBase-input": {
-                  color: "var(--lg-text-primary)",
-                  WebkitTextFillColor: "var(--lg-text-primary)",
-                },
-              }}
             />
-            <FormControl size="small" sx={{ ...selectStyle, width: { xs: "100%", sm: 170, md: 180 } }}>
-              <InputLabel>Status</InputLabel>
-              <Select label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                <MenuItem value="">Todos os status</MenuItem>
+            <div className="w-full sm:w-44">
+              <CampoSelecao id="kb-filtro-status" label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <option value="">Todos os status</option>
                 {BOARD_COLUMNS.map((status) => (
-                  <MenuItem key={status.value} value={status.value}>
-                    {status.label}
-                  </MenuItem>
+                  <option key={status.value} value={status.value}>{status.label}</option>
                 ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ ...selectStyle, width: { xs: "100%", sm: 170, md: 180 } }}>
-              <InputLabel>Prioridade</InputLabel>
-              <Select
-                label="Prioridade"
-                value={priorityFilter}
-                onChange={(event) => setPriorityFilter(event.target.value)}
-              >
+              </CampoSelecao>
+            </div>
+            <div className="w-full sm:w-44">
+              <CampoSelecao id="kb-filtro-prioridade" label="Prioridade" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}>
                 {PRIORITY_OPTIONS.map((priority) => (
-                  <MenuItem key={priority.value || "all"} value={priority.value}>
-                    {priority.label}
-                  </MenuItem>
+                  <option key={priority.value || "all"} value={priority.value}>{priority.label}</option>
                 ))}
-              </Select>
-            </FormControl>
-          </Stack>
-        </Box>
+              </CampoSelecao>
+            </div>
+          </div>
+        </div>
 
-        <Stack
-          direction="row"
-          spacing={1}
-          flexWrap="wrap"
-          justifyContent="flex-end"
-          useFlexGap
-          sx={{ alignItems: "center" }}
-        >
-          <Button size="small" variant="outlined" sx={toolbarButtonSx} onClick={() => router.push("/protocolo/caixa-entrada")}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button variant="outline" onClick={() => router.push("/protocolo/caixa-entrada")}>
             Caixa de Entrada
           </Button>
-          <Button size="small" variant="contained" sx={toolbarButtonSx} onClick={() => openCreate("novo")}>
+          <Button onClick={() => openCreate("novo")}>
             Novo Item
           </Button>
-          <Button size="small" variant="text" sx={toolbarButtonSx} onClick={loadItems} disabled={refreshing}>
+          <Button variant="ghost" onClick={loadItems} disabled={refreshing}>
             {refreshing ? "Atualizando..." : "Atualizar"}
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </div>
 
-      {message ? (
-        <Box
-          sx={{
-            mb: 2,
-            p: 1.5,
-            borderRadius: 2,
-            border: "1px solid rgba(220,38,38,.25)",
-            bgcolor: "rgba(220,38,38,.08)",
-            color: "var(--danger)",
-          }}
-        >
-          {message}
-        </Box>
-      ) : null}
+      {message ? <div className="mb-4"><Banner tom="perigo">{message}</Banner></div> : null}
 
       {loading ? (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
-          <CircularProgress size={24} />
-          <Typography variant="body2" color="text.secondary">
-            Carregando kanban...
-          </Typography>
-        </Box>
+        <Carregando>Carregando kanban...</Carregando>
       ) : (
-        <Box
-          sx={{
-            mt: 3,
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, minmax(0, 1fr))",
-              lg: "repeat(5, minmax(0, 1fr))",
-            },
-            gap: 2,
-            alignItems: "flex-start",
-          }}
-        >
-            {columns.map((column) => (
-              <Box
-                key={column.value}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  event.dataTransfer.dropEffect = "move";
-                  setDragOverColumn(column.value);
-                }}
-                onDragLeave={() => setDragOverColumn("")}
-                onDrop={(event) => handleDrop(event, column.value)}
-                sx={{
-                  ...boardColumnSx,
-                  bgcolor:
-                    dragOverColumn === column.value
-                      ? "var(--lg-glass-input-focus)"
-                      : boardColumnSx.bgcolor,
-                  boxShadow:
-                    dragOverColumn === column.value
-                      ? "var(--lg-focus-ring)"
-                      : boardColumnSx.boxShadow,
-                }}
-              >
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderBottom: "1px solid rgba(var(--lg-accent-rgb), 0.22)",
-                    background: (theme) =>
-                      theme.palette.mode === "light"
-                        ? "rgba(255, 255, 255, 0.50)"
-                        : "rgba(4, 16, 50, 0.46)",
-                  }}
+        <div className="mt-6 grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {columns.map((column) => (
+            <div
+              key={column.value}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                setDragOverColumn(column.value);
+              }}
+              onDragLeave={() => setDragOverColumn("")}
+              onDrop={(event) => handleDrop(event, column.value)}
+              className={`min-w-0 overflow-hidden rounded-xl border bg-muted ${dragOverColumn === column.value ? "border-primary ring-[3px] ring-primary/25" : "border-border"}`}
+            >
+              <div className="border-b border-border bg-card p-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-extrabold">{column.label}</h2>
+                  <Pilula tom={tomDaCor(column.color)}>{`${column.items.length}`}</Pilula>
+                </div>
+                <Button
+                  className="kanban-page__column-add-button mt-2 w-full"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openCreate(column.value)}
                 >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                      {column.label}
-                    </Typography>
-                    <Chip size="small" color={column.color} label={`${column.items.length}`} />
-                  </Stack>
-                  <Button
-                    className="kanban-page__column-add-button"
-                    fullWidth
-                    size="small"
-                    variant="outlined"
-                    onClick={() => openCreate(column.value)}
-                    sx={{
-                      mt: 1,
-                      borderColor: "var(--lg-border)",
-                      background: "var(--lg-glass-input)",
-                      color: "var(--lg-text-primary)",
-                      "&:hover": {
-                        borderColor: "rgba(var(--lg-accent-rgb),0.3)",
-                        background: "var(--queue-row-hover)",
-                      },
-                    }}
-                  >
-                    Adicionar tarefa
-                  </Button>
-                </Box>
-                <Box
-                  sx={{
-                    p: 1.5,
-                    display: "grid",
-                    gap: 1.25,
-                    minHeight: 320,
-                    background: "transparent",
-                  }}
-                >
-                  {column.items.length ? (
-                    column.items.map((item) => (
-                      <KanbanCard
-                        key={item.id}
-                        item={item}
-                        onOpen={openEdit}
-                        onOpenFiscalizacao={(protocolo) => router.push(`/fiscalizacoes?busca=${encodeURIComponent(protocolo)}`)}
-                        onDragStart={handleDragStart}
-                        dragging={draggedItemId === item.id}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                      Nenhum item nesta etapa.
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            ))}
-        </Box>
+                  Adicionar tarefa
+                </Button>
+              </div>
+              <div className="grid min-h-80 gap-3 p-3">
+                {column.items.length ? (
+                  column.items.map((item) => (
+                    <KanbanCard
+                      key={item.id}
+                      item={item}
+                      onOpen={openEdit}
+                      onOpenFiscalizacao={(protocolo) => router.push(`/fiscalizacoes?busca=${encodeURIComponent(protocolo)}`)}
+                      onDragStart={handleDragStart}
+                      dragging={draggedItemId === item.id}
+                    />
+                  ))
+                ) : (
+                  <p className="py-4 text-sm text-muted-foreground">Nenhum item nesta etapa.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <TaskDialog
@@ -1093,6 +717,6 @@ export default function KanbanPage() {
         onClose={closeProtocolDialog}
         onChanged={loadItems}
       />
-    </Box>
+    </div>
   );
 }

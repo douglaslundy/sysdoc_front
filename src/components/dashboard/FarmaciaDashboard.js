@@ -118,7 +118,7 @@ export default function FarmaciaDashboard() {
     const alturaTop = Math.max(300, chart.topNomes.length * 36);
 
     return (
-        <div className="ui-reset">
+        <div>
             <Grade container spacing={3} mb={3}>
                 <Grade item xs={12} sm={6} md={3}>
                     <CardTotal icon="archive" titulo="Medicamentos Ativos" valor={totais.medicamentos_ativos} cor="#1e88e5" />

@@ -151,7 +151,7 @@ export default function ConfiguracoesAPS() {
             : Circle;
 
     return (
-        <div className="ui-reset monitor-aps-page monitor-aps-config-page flex flex-col gap-5">
+        <div className="monitor-aps-page monitor-aps-config-page flex flex-col gap-5">
             <AlertModal />
 
             <div className="flex flex-col gap-3">

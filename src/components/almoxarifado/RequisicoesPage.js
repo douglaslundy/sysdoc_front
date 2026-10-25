@@ -179,7 +179,7 @@ export default function RequisicoesPage() {
   ];
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Requisições" subtitulo="Solicitações, aprovações e entrega." />
       <AlertModal />
       {feedback && (

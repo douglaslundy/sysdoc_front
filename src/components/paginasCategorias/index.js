@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import FeatherIcon from 'feather-icons-react';
+import { IconeDinamico } from '../ui/icone-dinamico';
 import { normalizeIconName } from '../../utils/iconResolver';
 import {
   getAllPageCategories,
@@ -122,7 +122,7 @@ export default function PaginasCategorias() {
       titulo: 'Icone',
       render: (cat) => (cat.icone ? (
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <FeatherIcon icon={normalizeIconName(cat.icone, 'circle')} width="16" height="16" />
+          <IconeDinamico nome={normalizeIconName(cat.icone, 'circle')} />
           {cat.icone}
         </span>
       ) : <span className="text-xs text-muted-foreground">-</span>),
@@ -167,7 +167,7 @@ export default function PaginasCategorias() {
         antes={<AlertModal />}
         depois={form.icone ? (
           <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <FeatherIcon icon={normalizeIconName(form.icone, 'circle')} width="16" height="16" /> {form.icone}
+            <IconeDinamico nome={normalizeIconName(form.icone, 'circle')} /> {form.icone}
           </p>
         ) : null}
       />

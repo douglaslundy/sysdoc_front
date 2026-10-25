@@ -26,7 +26,7 @@ export default function RelatoriosPage() {
   }, []);
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Relatórios" subtitulo="Resumo do almoxarifado." />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard titulo="Produtos" valor={kpi.produtos} />

@@ -276,7 +276,7 @@ export default function Clients() {
   ];
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Cidadãos" subtitulo={`Você possui ${pagination?.total || clients.length} cidadãos cadastrados`} />
       <AlertModal />
 

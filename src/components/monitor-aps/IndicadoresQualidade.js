@@ -174,7 +174,7 @@ export default function IndicadoresQualidade() {
     );
 
     return (
-        <div className="ui-reset monitor-aps-page">
+        <div className="monitor-aps-page">
             <CabecalhoDePagina titulo="Indicadores de Qualidade" acoes={filtros} />
             {isRestrito && !loadingPerms && equipes.length === 0 && (
                 <div className="mb-4">

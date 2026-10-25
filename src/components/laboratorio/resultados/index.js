@@ -72,14 +72,14 @@ export default function PreencherResultado() {
 
     if (!resultado || !resultado.id) {
         return (
-            <Card className="ui-reset">
+            <Card>
                 <CardContent><p className="text-sm text-muted-foreground">Carregando resultado...</p></CardContent>
             </Card>
         );
     }
 
     return (
-        <Card className="ui-reset">
+        <Card>
             <CardHeader className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="flex flex-wrap items-center gap-3">
                     <Button variant="ghost" size="sm" onClick={() => router.push('/laboratorio/pedidos')}>

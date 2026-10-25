@@ -85,7 +85,7 @@ export default function AttendanceRooms() {
   };
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>Salas de Atendimento</CardTitle>
       </CardHeader>

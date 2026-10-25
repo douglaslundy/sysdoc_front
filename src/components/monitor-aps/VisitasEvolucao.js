@@ -240,7 +240,7 @@ export default function VisitasEvolucao() {
     };
 
     return (
-        <div className="ui-reset monitor-aps-page monitor-aps-evolucao-page">
+        <div className="monitor-aps-page monitor-aps-evolucao-page">
             <CabecalhoDePagina
                 titulo="Evolução de Visitas ACS/TACS"
                 acoes={(

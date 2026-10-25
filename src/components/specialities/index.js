@@ -86,7 +86,7 @@ export default function Specialities() {
   ];
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Especialidades" subtitulo={`Você possui ${allSpecialities.length} especialidades cadastradas`} />
       <AlertModal />
       <div className="mb-4 flex flex-wrap items-center gap-3">

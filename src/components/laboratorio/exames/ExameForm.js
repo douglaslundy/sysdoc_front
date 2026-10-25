@@ -42,7 +42,7 @@ export default function ExameForm() {
     const isEdit = !!(exame && exame.id);
 
     return (
-        <Card className="ui-reset">
+        <Card>
             <CardHeader>
                 <CardTitle>{isEdit ? 'Editar Exame' : 'Novo Exame'}</CardTitle>
             </CardHeader>

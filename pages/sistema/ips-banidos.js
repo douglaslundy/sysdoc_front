@@ -129,7 +129,7 @@ export default function IpsBanidosPage() {
   ];
 
   return (
-    <div className="ui-reset flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <CabecalhoDePagina
         titulo={`IPs banidos — ${total} ${total === 1 ? "registro" : "registros"}`}
         subtitulo="Robôs que varrem rotas inexistentes são banidos automaticamente. O limite conta 404 em rotas inexistentes em 10 minutos (padrão 5)."

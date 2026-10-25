@@ -5,8 +5,9 @@ const LINHAS_DE_ESQUELETO = 5;
 /**
  * Tabela em cartão. colunas: [{ chave, titulo, render(linha, indice), numerica? }].
  * Com aoAbrir a linha vira clicável (Enter/Espaço também).
+ * propsDaLinha(linha) devolve atributos extras do <tr> (className, data-*), ex.: realce de atrasados.
  */
-export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = false, vazio = 'Nada por aqui ainda.', aoAbrir }) {
+export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = false, vazio = 'Nada por aqui ainda.', aoAbrir, propsDaLinha }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
       <table aria-label={rotulo} aria-busy={carregando} className="w-full border-collapse text-left">
@@ -35,19 +36,23 @@ export function DataTable({ rotulo, colunas, linhas, chaveDaLinha, carregando = 
               <td colSpan={colunas.length} className="px-4 py-10 text-center text-sm text-muted-foreground">{vazio}</td>
             </tr>
           ) : (
-            linhas.map((linha, indice) => (
+            linhas.map((linha, indice) => {
+              const extra = propsDaLinha ? propsDaLinha(linha) : {};
+              return (
               <tr
+                {...extra}
                 key={chaveDaLinha(linha)}
                 tabIndex={aoAbrir ? 0 : undefined}
                 onClick={aoAbrir ? () => aoAbrir(linha) : undefined}
                 onKeyDown={aoAbrir ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); aoAbrir(linha); } } : undefined}
-                className={cn(aoAbrir && 'cursor-pointer hover:bg-hover focus-visible:bg-hover focus-visible:outline-none')}
+                className={cn(aoAbrir && 'cursor-pointer hover:bg-hover focus-visible:bg-hover focus-visible:outline-none', extra.className)}
               >
                 {colunas.map((c) => (
                   <td key={c.chave} className={cn('border-b border-border px-4 py-3 text-sm', c.numerica && 'font-mono')}>{c.render(linha, indice)}</td>
                 ))}
               </tr>
-            ))
+              );
+            })
           )}
         </tbody>
       </table>

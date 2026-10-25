@@ -100,7 +100,7 @@ export default function ConfiguracoesVigilancia() {
     );
 
     return (
-        <div className="ui-reset">
+        <div>
             <AlertModal />
             <Card>
                 <CardHeader><CardTitle>Configurações da Vigilância Sanitária</CardTitle></CardHeader>

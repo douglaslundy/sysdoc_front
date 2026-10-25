@@ -121,7 +121,7 @@ export default function ProtocolTypesPage() {
   ];
 
   return (
-    <div className="ui-reset flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <CabecalhoDePagina
         titulo="Tipos de Protocolo"
         subtitulo="Cadastre os tipos usados no campo tipo do novo protocolo."

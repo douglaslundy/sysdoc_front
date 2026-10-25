@@ -35,7 +35,7 @@ export default function AuthGuard({ children }) {
     const router = useRouter();
 
     if (!permissionsLoaded) {
-        return <Carregando className="ui-reset min-h-[60vh] justify-center">Carregando permissões...</Carregando>;
+        return <Carregando className="min-h-[60vh] justify-center">Carregando permissões...</Carregando>;
     }
 
     if (ALWAYS_ALLOWED.includes(router.pathname)) return children;
@@ -68,7 +68,7 @@ export default function AuthGuard({ children }) {
     }
 
     return (
-        <div className="ui-reset flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
             <ShieldOff className="size-16 text-danger" aria-hidden />
             <h1 className="mt-6 font-display text-3xl font-extrabold text-danger">Acesso Não Autorizado</h1>
             <p className="mt-4 max-w-md text-muted-foreground">

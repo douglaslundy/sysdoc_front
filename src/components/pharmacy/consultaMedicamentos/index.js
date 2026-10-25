@@ -178,7 +178,7 @@ export default function ConsultaMedicamentos() {
   ];
 
   return (
-    <div className="ui-reset pharmacy-consulta-medicamentos-page pharmacy-medicines-page">
+    <div className="pharmacy-consulta-medicamentos-page pharmacy-medicines-page">
       <CabecalhoDePagina titulo="Consulta de Medicamentos" />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <CampoDeBusca

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
  */
 export default function AuthCard({ titulo, descricao, destaque, children, rodape }) {
   return (
-    <main className="ui-raiz ui-reset flex min-h-dvh bg-background font-sans text-foreground">
+    <main className="ui-raiz flex min-h-dvh bg-background font-sans text-foreground">
       <aside
         data-testid="painel-de-marca"
         className="hidden flex-1 flex-col justify-center bg-surface bg-[radial-gradient(circle_at_30%_50%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_60%)] p-14 lg:flex"

@@ -49,7 +49,7 @@ export default function MedicineComplianceDashboard() {
     }, [dispatch]);
 
     return (
-        <div className="ui-reset pharmacy-compliance-page">
+        <div className="pharmacy-compliance-page">
             <CabecalhoDePagina titulo="Compliance da Farmácia" />
             <AlertModal />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

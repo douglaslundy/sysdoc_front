@@ -494,7 +494,7 @@ export default function VisitasAcs() {
     ];
 
     return (
-        <div className="ui-reset monitor-visitas-page">
+        <div className="monitor-visitas-page">
             <CabecalhoDePagina
                 titulo="Visitas ACS / TACS"
                 acoes={(

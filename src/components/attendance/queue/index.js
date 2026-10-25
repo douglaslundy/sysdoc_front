@@ -71,7 +71,7 @@ export default function AttendanceQueue() {
   };
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>Fila de Atendimento</CardTitle>
       </CardHeader>

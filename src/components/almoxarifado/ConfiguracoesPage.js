@@ -91,7 +91,7 @@ export default function ConfiguracoesPage() {
   ]), [form]);
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Configurações do Almoxarifado" subtitulo="Regras operacionais e atalhos para os cadastros-base." />
       <AlertModal />
 

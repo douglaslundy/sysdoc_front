@@ -59,7 +59,7 @@ export default function ConsultaExame() {
     };
 
     return (
-        <div className="ui-reset flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+        <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
             <div className="w-full max-w-[680px]">
                 <h1 className="mb-6 text-center text-3xl font-extrabold text-primary-text">
                     Consulta de Resultado de Exame

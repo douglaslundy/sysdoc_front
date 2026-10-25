@@ -8,7 +8,7 @@ const diasDeLicenca = () =>
   );
 
 const Footer = () => (
-  <footer className="ui-reset no-print px-4 py-6 text-center text-sm text-muted-foreground">
+  <footer className="no-print px-4 py-6 text-center text-sm text-muted-foreground">
     <p>
       © 2022 All rights reserved by{" "}
       <Link href="https://www.dlsistemas.com.br">

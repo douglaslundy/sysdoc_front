@@ -1,8 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from "react";
-import { ThemeProvider, CssBaseline } from "@mui/material";
-
-import themeLight from "../../src/theme/theme";
-import themeDark from "../../src/theme/darkTheme";
+import { createContext, useEffect, useState } from "react";
 
 export const ColorModeContext = createContext({
   toggleColorMode: () => {},
@@ -10,7 +6,7 @@ export const ColorModeContext = createContext({
 });
 
 const THEME_STORAGE_KEY = "themeMode";
-const LIQUID_GLASS_STORAGE_KEY = "lg-theme";
+const LEGACY_STORAGE_KEY = "lg-theme";
 
 const getInitialMode = () => {
   if (typeof window === "undefined") {
@@ -18,14 +14,14 @@ const getInitialMode = () => {
   }
 
   const storedMode = localStorage.getItem(THEME_STORAGE_KEY);
-  const storedLiquidGlassMode = localStorage.getItem(LIQUID_GLASS_STORAGE_KEY);
+  const legacyMode = localStorage.getItem(LEGACY_STORAGE_KEY);
 
   if (storedMode === "light" || storedMode === "dark") {
     return storedMode;
   }
 
-  if (storedLiquidGlassMode === "light" || storedLiquidGlassMode === "dark") {
-    return storedLiquidGlassMode;
+  if (legacyMode === "light" || legacyMode === "dark") {
+    return legacyMode;
   }
 
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -45,18 +41,13 @@ export const CustomThemeProvider = ({ children }) => {
 
     if (typeof window !== "undefined") {
       localStorage.setItem(THEME_STORAGE_KEY, mode);
-      localStorage.setItem(LIQUID_GLASS_STORAGE_KEY, mode);
+      localStorage.setItem(LEGACY_STORAGE_KEY, mode);
     }
   }, [mode]);
 
-  const theme = useMemo(() => (mode === "light" ? themeLight : themeDark), [mode]);
-
   return (
     <ColorModeContext.Provider value={{ toggleColorMode, mode }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
+      {children}
     </ColorModeContext.Provider>
   );
 };

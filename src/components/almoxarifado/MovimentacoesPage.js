@@ -68,7 +68,7 @@ export default function MovimentacoesPage() {
   ];
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo="Movimentações" subtitulo="Entradas, saídas e transferências." />
       <AlertModal />
 

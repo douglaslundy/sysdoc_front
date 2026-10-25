@@ -37,7 +37,7 @@ export default function MenuMobile({ menu }) {
   }, [router.events]);
 
   return (
-    <div className="ui-reset no-print md:hidden">
+    <div className="no-print md:hidden">
       <Button ref={botao} variant="ghost" size="icon" aria-label="Abrir menu" aria-expanded={aberto} onClick={() => setAberto(true)}>
         <Menu className="size-5" />
       </Button>

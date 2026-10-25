@@ -12,7 +12,7 @@ export function Gaveta({ aberto, aoFechar, titulo, subtitulo, semCabecalho = fal
   return (
     <DialogPrimitive.Root open={aberto} onOpenChange={(abrir) => { if (!abrir) aoFechar?.(); }}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className="ui-reset fixed inset-0 z-[1400] bg-black/60" />
+        <DialogPrimitive.Backdrop className="fixed inset-0 z-[1400] bg-black/60" />
         <DialogPrimitive.Popup
           ref={popup}
           onKeyDown={(e) => {
@@ -21,7 +21,7 @@ export function Gaveta({ aberto, aoFechar, titulo, subtitulo, semCabecalho = fal
             aoFechar?.();
           }}
           className={cn(
-            'ui-reset ui-raiz fixed inset-y-0 right-0 z-[1401] flex w-full flex-col overflow-y-auto border-l border-border bg-card p-5 font-sans text-card-foreground shadow-[0_4px_20px_rgba(0,0,0,0.35)] outline-none sm:w-[480px]',
+            'ui-raiz fixed inset-y-0 right-0 z-[1401] flex w-full flex-col overflow-y-auto border-l border-border bg-card p-5 font-sans text-card-foreground shadow-[0_4px_20px_rgba(0,0,0,0.35)] outline-none sm:w-[480px]',
             className,
           )}
         >

@@ -21,7 +21,7 @@ const AREAS = [
 
 export default function AlmoxarifadoHome() {
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina
         titulo="Almoxarifado"
         subtitulo="Estrutura inicial do módulo de almoxarifado. As próximas etapas vão liberar os cadastros e fluxos operacionais."

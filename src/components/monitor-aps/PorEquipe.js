@@ -160,7 +160,7 @@ export default function PorEquipe() {
     );
 
     return (
-        <div className="ui-reset monitor-aps-page">
+        <div className="monitor-aps-page">
             <CabecalhoDePagina titulo="Desempenho por Equipe" acoes={filtros} />
             {isRestrito && !loadingPerms && equipes.length === 0 && (
                 <div className="mb-4">
@@ -202,11 +202,11 @@ export default function PorEquipe() {
                                             chart: { ...FONT },
                                             xaxis: { categories: radar.categories },
                                             yaxis: { show: false, min: 0, max: 100 },
-                                            plotOptions: { radar: { size: 120, polygons: { strokeColors: 'var(--lg-border)', fill: { colors: ['transparent'] } } } },
+                                            plotOptions: { radar: { size: 120, polygons: { strokeColors: '#8a94a633', fill: { colors: ['transparent'] } } } },
                                             stroke: { width: 2 },
                                             fill: { opacity: 0.15 },
                                             markers: { size: 3 },
-                                            legend: { position: 'bottom', labels: { colors: 'var(--lg-text-secondary)' } },
+                                            legend: { position: 'bottom', labels: { colors: '#8a94a6' } },
                                             colors: ['#1351B4', '#168821'],
                                             tooltip: { theme: 'dark' },
                                         }}
@@ -227,12 +227,12 @@ export default function PorEquipe() {
                                         options={{
                                             chart: { ...FONT },
                                             stroke: { curve: 'smooth', width: 2 },
-                                            xaxis: { categories: linha.labels, labels: { style: { colors: 'var(--lg-text-muted)' } } },
-                                            yaxis: { min: 0, max: 100, labels: { formatter: v => `${v}%`, style: { colors: 'var(--lg-text-muted)' } } },
+                                            xaxis: { categories: linha.labels, labels: { style: { colors: '#8a94a6' } } },
+                                            yaxis: { min: 0, max: 100, labels: { formatter: v => `${v}%`, style: { colors: '#8a94a6' } } },
                                             markers: { size: 4 },
                                             colors: ['#1351B4'],
                                             tooltip: { theme: 'dark', y: { formatter: v => `${v}%` } },
-                                            grid: { borderColor: 'var(--lg-border)' },
+                                            grid: { borderColor: '#8a94a633' },
                                         }}
                                         series={[{ name: 'IND 8', data: linha.valores }]}
                                     />

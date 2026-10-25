@@ -96,7 +96,7 @@ export default function DocumentosTipos() {
   ];
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>Tipos de Documentos</CardTitle>
       </CardHeader>

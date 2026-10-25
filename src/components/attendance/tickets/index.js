@@ -62,7 +62,7 @@ export default function AttendanceTickets() {
   };
 
   return (
-    <Card className="ui-reset">
+    <Card>
       <CardHeader>
         <CardTitle>Emissão de Senha</CardTitle>
       </CardHeader>

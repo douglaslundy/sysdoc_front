@@ -35,7 +35,7 @@ export default function Loading() {
         isOpenResultadoModal;
 
     return (
-        <div role="status" aria-live="polite" className="ui-reset fixed inset-0 z-[1700] flex flex-col items-center justify-center gap-3 bg-black/60 text-white">
+        <div role="status" aria-live="polite" className="fixed inset-0 z-[1700] flex flex-col items-center justify-center gap-3 bg-black/60 text-white">
             <Loader2 aria-hidden className="size-9 animate-spin" />
             <p className="text-sm font-medium">{hasAnyModalOpen ? 'Salvando registro...' : 'Carregando...'}</p>
         </div>

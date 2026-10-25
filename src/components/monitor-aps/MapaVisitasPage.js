@@ -180,7 +180,7 @@ export default function MapaVisitasPage() {
     }
 
     return (
-        <div className="ui-reset monitor-aps-page monitor-aps-mapa-page">
+        <div className="monitor-aps-page monitor-aps-mapa-page">
             {/* Cabeçalho — oculto na impressão (substituído pelo print-header abaixo) */}
             <div className="no-print">
                 <CabecalhoDePagina

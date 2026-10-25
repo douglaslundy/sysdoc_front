@@ -157,7 +157,7 @@ export default function AdminSystemNotices() {
   ];
 
   return (
-    <div className="ui-reset avisos-page">
+    <div className="avisos-page">
       <Card>
         <CardHeader>
           <CardTitle>Cadastro de Avisos</CardTitle>

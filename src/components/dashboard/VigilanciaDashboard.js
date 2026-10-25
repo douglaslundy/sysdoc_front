@@ -86,7 +86,7 @@ export default function VigilanciaDashboard() {
 
   if (loading) {
     return (
-      <div className="ui-reset">
+      <div>
         <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
           {Array.from({ length: 5 }).map((_, index) => (
             <Esqueleto className="h-24" key={`metric-${index}`} />
@@ -148,7 +148,7 @@ export default function VigilanciaDashboard() {
     { chave: 'vencimento', titulo: 'Vencimento', render: (alv) => <span className="font-semibold text-primary-text">{formatDate(alv.vencimento_alvara)}</span> },
   ];
   return (
-    <div className="ui-reset">
+    <div>
       <div className="mb-6 grid grid-cols-2 gap-2 md:grid-cols-5">
         <CardTotal icon="home" titulo="Estabelecimentos" valor={totais.estabelecimentos} cor="#2196f3" />
         <CardTotal icon="shield" titulo="Alvarás" valor={totais.alvaras} cor="#607d8b" />

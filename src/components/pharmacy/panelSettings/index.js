@@ -87,7 +87,7 @@ export default function MedicinesPanelSettings() {
   };
 
   return (
-    <Card className="ui-reset pharmacy-panelsettings-page">
+    <Card className="pharmacy-panelsettings-page">
       <CardHeader>
         <CardTitle>Configuração do Painel de Medicamentos</CardTitle>
       </CardHeader>

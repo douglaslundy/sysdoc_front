@@ -297,7 +297,7 @@ export default function PharmacyStockImportManager() {
   ];
 
   return (
-    <div className="ui-reset pharmacy-stockimport-page">
+    <div className="pharmacy-stockimport-page">
       <CabecalhoDePagina titulo="Importação de Estoque (CSV)" />
       <AlertModal />
       <div className="mb-4 flex flex-wrap items-center gap-3">

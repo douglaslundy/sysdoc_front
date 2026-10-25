@@ -95,7 +95,7 @@ export default function EmailConfigPage() {
   const campo = (nome) => ({ target: { value } }) => setForm((prev) => ({ ...prev, [nome]: value }));
 
   return (
-    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <CabecalhoDePagina
         titulo="Configurações E-mail"
         subtitulo="Configuração do motor de envio por e-mail usado pelos alertas do sistema."

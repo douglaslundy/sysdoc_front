@@ -38,7 +38,7 @@ export default function Backup() {
     };
 
     return (
-        <div className="ui-reset">
+        <div>
             <CabecalhoDePagina titulo="Backup do Banco de Dados" />
             <div className="flex max-w-[560px] flex-col gap-6">
                 <div className="flex items-start gap-4">

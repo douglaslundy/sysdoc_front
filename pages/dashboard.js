@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
     if (abasVisiveis.length === 0) {
         return (
-            <div className="ui-reset flex min-h-[300px] items-center justify-center">
+            <div className="flex min-h-[300px] items-center justify-center">
                 <p className="text-muted-foreground">
                     Nenhuma aba disponível para seu perfil. Entre em contato com o administrador.
                 </p>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="ui-reset">
+        <div>
             <div className="mb-6">
                 <Abas
                     rotulo="Painéis do dashboard"

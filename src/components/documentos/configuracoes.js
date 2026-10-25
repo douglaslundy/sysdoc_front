@@ -101,7 +101,7 @@ export default function DocumentosConfiguracoes() {
   };
 
   return (
-    <Card className="ui-reset documentos-page">
+    <Card className="documentos-page">
       <CardHeader>
         <CardTitle>Configurações de Documentos</CardTitle>
       </CardHeader>

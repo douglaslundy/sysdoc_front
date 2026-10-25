@@ -26,7 +26,7 @@ function CardTotal({ icon, titulo, valor, cor }) {
 
 function LoadingState() {
   return (
-    <div className="ui-reset">
+    <div>
       <Grade container spacing={3}>
         {Array.from({ length: 8 }).map((_, index) => (
           <Grade item xs={12} sm={6} md={3} key={index}>
@@ -166,7 +166,7 @@ export default function ConformidadesDashboard() {
   const toolbarOff = { toolbar: { show: false } };
 
   return (
-    <div className="ui-reset">
+    <div>
       <Grade container spacing={3} mb={3}>
         <Grade item xs={12} sm={6} md={3}>
           <CardTotal icon="users" titulo="Usuários ativos" valor={totais.usuarios_total} cor={STATUS_STYLES.neutral} descricao="Base ativa do sistema" />

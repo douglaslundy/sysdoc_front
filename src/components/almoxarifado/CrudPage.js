@@ -185,7 +185,7 @@ export default function CrudPage({
   };
 
   return (
-    <div className="ui-reset">
+    <div>
       <CabecalhoDePagina titulo={title} subtitulo={subtitle} />
       <AlertModal />
 
