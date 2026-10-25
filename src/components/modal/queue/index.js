@@ -1,27 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import {
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
-import Modal from '@mui/material/Modal';
-import BaseCard from '../../baseCard/BaseCard';
-import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    FormGroup,
-    FormControlLabel,
-    Switch,
-    Typography,
-    Divider,
-    Box as MuiBox
-} from "@mui/material";
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
+import AnexosDoRegistro from '../_shared/AnexosDoRegistro';
 import ConfirmDialog from '../../confirmDialog';
 import { showQueue, editQueue } from '../../../store/ducks/queues';
 import { closeQueueModal, changeTitleAlert } from '../../../store/ducks/Layout';
@@ -39,21 +23,6 @@ import { getAllSpecialities } from '../../../store/fetchActions/specialities';
 import Select from '../../inputs/selects';
 import protocolPDF from "../../../reports/protocol";
 export default function QueueModal(props) {
-    const controlHeight = 40;
-    const controlSx = {
-        "& .MuiInputBase-root": { height: `${controlHeight}px` },
-    };
-    const selectControlSx = {
-        "& .MuiInputBase-root": { height: `${controlHeight}px` },
-        "& .MuiSelect-select": {
-            display: "flex",
-            alignItems: "center",
-            minHeight: "unset",
-            height: `${controlHeight}px`,
-            boxSizing: "border-box",
-        },
-    };
-    const buttonSx = { height: `${controlHeight}px` };
 
 
     const [form, setForm] = useState({
@@ -388,14 +357,6 @@ export default function QueueModal(props) {
         }
     };
 
-    const formatBytes = (bytes) => {
-        if (!bytes || bytes <= 0) return '0 B';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-        const value = bytes / (1024 ** idx);
-        return `${value.toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`;
-    };
-
     useEffect(() => {
         if (queue && queue.id) {
             setForm((prev) => ({
@@ -447,174 +408,88 @@ export default function QueueModal(props) {
 
     }, [isOpenQueueModal]);
 
+    const fechaBanner = () => setAlertState({ visible: false, type: 'success', message: '' });
+    const tomDoAlerta = { success: 'sucesso', warning: 'alerta', error: 'perigo' }[alertState.type] || 'info';
+
     return (
         <div>
             {props.children}
-            <Modal
-                open={isOpenQueueModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-            >
-                <Box className="queue-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
+            <Dialogo aberto={Boolean(isOpenQueueModal)} aoFechar={handleClose} tamanho="lg">
+                <DialogoCabecalho>{queue && queue.id ? "Editar Fila" : "Cadastrar na Fila"}</DialogoCabecalho>
 
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={queue && queue.id ? "Editar Fila" : "Cadastrar na Fila"}>
-                                {alertState.visible && (
-                                    <Alert
-                                        sx={{ mb: 2 }}
-                                        variant="filled"
-                                        severity={alertState.type}
-                                        onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-                                    >
-                                        {alertState.message}
-                                    </Alert>
-                                )}
+                {alertState.visible && (
+                    <div className="mb-4">
+                        <Banner tom={tomDoAlerta} onDispensar={fechaBanner}>{alertState.message}</Banner>
+                    </div>
+                )}
 
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
+                <div className="grid gap-5">
+                    {isOpenQueueModal && (
+                        <InputSelectClient
+                            id="client"
+                            label="Selecione o cliente"
+                            name="client"
+                            clients={clients}
+                            value={form.client}
+                            setClient={setClient}
+                            wd="100%"
+                        />
+                    )}
+                    <Select
+                        value={speciality}
+                        label={'Especialidade'}
+                        name={'speciality'}
+                        store={selectableSpecialities}
+                        changeItem={changeItem}
+                        wd={"100%"}
+                    />
 
-                                    {
-                                        isOpenQueueModal &&
+                    <Interruptor id="fila-urgente" marcado={form.urgency} aoMudar={handleIsUrgency}>
+                        {form.urgency ? "Está como Urgente" : "Não está como urgente"}
+                    </Interruptor>
 
-                                        <InputSelectClient
-                                            id="client"
-                                            label="Selecione o cliente"
-                                            name="client"
-                                            clients={clients}
-                                            value={form.client}
-                                            setClient={setClient}
-                                            wd="100%"
-                                        />
+                    <CampoTexto
+                        id="Obs"
+                        label={obs && obs.length > 0 ? `Observações: ${200 - obs.length} caracteres restantes` : 'Observações'}
+                        multiline
+                        rows={2}
+                        className="uppercase"
+                        value={obs ? obs : ''}
+                        name="obs"
+                        onChange={changeItem}
+                        maxLength={200}
+                    />
+                </div>
 
-                                    }
-                                    <Select
-                                        value={speciality}
-                                        label={'Especialidade'}
-                                        name={'speciality'}
-                                        store={selectableSpecialities}
-                                        changeItem={changeItem}
-                                        wd={"100%"}
-                                        selectSx={selectControlSx}
-                                    />
+                <AnexosDoRegistro
+                    rotulo="do Pedido"
+                    registro="o registro"
+                    salvo={Boolean(queue?.id)}
+                    anexos={attachments}
+                    carregando={isAttachmentsLoading}
+                    enviando={isAttachmentUploading}
+                    pendentes={pendingFiles}
+                    aoEnviar={handleUploadAttachment}
+                    aoEscolherPendentes={handlePendingFiles}
+                    aoBaixar={handleDownloadAttachment}
+                    aoRemover={confirmDeleteAttachment}
+                />
 
-                                    <FormGroup>
-                                    <FormControlLabel control={<Switch checked={form.urgency}
-                                            onClick={handleIsUrgency} />} label={form.urgency ? "Est\u00e1 como Urgente" : "N\u00e3o est\u00e1 como urgente"} />
-                                    </FormGroup>
-
-                                    <TextField
-                                        id="Obs"
-                                        label={obs && obs.length > 0 ? `Observa\u00e7\u00f5es: ${200 - obs.length} caracteres restantes` : 'Observa\u00e7\u00f5es'}
-                                        multiline
-                                        rows={2}
-                                        sx={controlSx}
-                                        value={obs ? obs : ''}
-                                        name="obs"
-                                        // disabled={queue?.id ? true : false}
-                                        onChange={changeItem}
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase"
-                                            },
-                                            maxLength: 200
-                                        }}
-                                    />
-
-                                </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-
-                                <Divider />
-                                <MuiBox mt={2.5} mb={1}>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                        Anexos do Pedido
-                                    </Typography>
-                                    {queue?.id ? (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                Este registro aceita múltiplos anexos (PDF, JPG, JPEG e PNG).
-                                            </Typography>
-                                            <Button component="label" variant="outlined" size="small" disabled={isAttachmentUploading} sx={{ mt: 0.5, ...buttonSx }}>
-                                                {isAttachmentUploading ? 'Enviando...' : 'Enviar Anexo(s)'}
-                                                <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleUploadAttachment} />
-                                            </Button>
-
-                                            <MuiBox mt={1.5}>
-                                                {isAttachmentsLoading && (
-                                                    <Typography color="text.secondary">Carregando anexos...</Typography>
-                                                )}
-                                                {!isAttachmentsLoading && attachments.length === 0 && (
-                                                    <Typography color="text.secondary">Nenhum anexo enviado.</Typography>
-                                                )}
-                                                {!isAttachmentsLoading && attachments.map((attachment) => (
-                                                    <MuiBox key={attachment.id} display="flex" alignItems="center" justifyContent="space-between" py={0.7}>
-                                                        <MuiBox>
-                                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                                                {attachment.original_name}
-                                                            </Typography>
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                {attachment.mime_type} | {formatBytes(attachment.size_bytes)}
-                                                            </Typography>
-                                                        </MuiBox>
-                                                        <MuiBox sx={{ "& button": { ml: 1 } }}>
-                                                            <Button variant="outlined" size="small" onClick={() => handleDownloadAttachment(attachment)} sx={buttonSx}>
-                                                                Baixar
-                                                            </Button>
-                                                            <Button variant="outlined" color="error" size="small" onClick={() => confirmDeleteAttachment(attachment)} sx={buttonSx}>
-                                                                Remover
-                                                            </Button>
-                                                        </MuiBox>
-                                                    </MuiBox>
-                                                ))}
-                                            </MuiBox>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Selecione os anexos agora e clique em Gravar. O sistema salva o registro e envia os arquivos em seguida.
-                                            </Typography>
-                                            <MuiBox mt={1}>
-                                                <Button component="label" variant="outlined" size="small" sx={buttonSx}>
-                                                    Selecionar Anexo(s) (PDF/JPG/PNG)
-                                                    <input hidden type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handlePendingFiles} />
-                                                </Button>
-                                                {pendingFiles.length > 0 && (
-                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.8 }}>
-                                                        {pendingFiles.length} arquivo(s) pronto(s) para envio após salvar.
-                                                    </Typography>
-                                                )}
-                                            </MuiBox>
-                                        </>
-                                    )}
-                                </MuiBox>
-
-                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, ...buttonSx }} disabled={isSubmittingQueue || isAttachmentUploading}>
-                                        {isSubmittingQueue ? 'Salvando...' : 'Gravar'}
-                                    </Button>
-
-                                    {queue?.id && (
-                                        <Button onClick={() => protocolPDF(queue)} variant="contained" color="success" sx={{ ...modalPrimaryButtonSx, ...buttonSx }}>
-                                            Gerar Recibo
-                                        </Button>
-                                    )}
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={{ ...modalSecondaryButtonSx, ...buttonSx }} disabled={isSubmittingQueue}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
-                </Box>
-            </Modal>
+                <DialogoRodape>
+                    <Button variant="outline" onClick={() => { cleanForm() }} disabled={isSubmittingQueue}>
+                        Cancelar
+                    </Button>
+                    {queue?.id && (
+                        <Button variant="success" onClick={() => protocolPDF(queue)}>
+                            Gerar Recibo
+                        </Button>
+                    )}
+                    <Button onClick={handleSaveData} disabled={isSubmittingQueue || isAttachmentUploading}>
+                        {isSubmittingQueue ? 'Salvando...' : 'Gravar'}
+                    </Button>
+                </DialogoRodape>
+            </Dialogo>
             <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
         </div>
     );
 }
-
-
-

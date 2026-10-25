@@ -1,20 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
-import {
-    Alert,
-    Box,
-    Button,
-    Checkbox,
-    FormControlLabel,
-    Stack,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    TextField,
-    Typography,
-} from '@mui/material';
 import BasicDatePicker from '../inputs/datePicker';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CaixaDeMarcacao } from '../ui/caixa-de-marcacao';
+import { CampoTexto } from '../ui/campos';
 import { AuthContext } from '../../contexts/AuthContext';
 import {
     previewTreatmentPlan,
@@ -178,89 +167,89 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
     };
 
     const renderSessionsTable = (sessions, { readOnly = false } = {}) => (
-        <Table size="small">
-            <TableHead>
-                <TableRow>
-                    <TableCell>Data</TableCell>
-                    <TableCell>Status</TableCell>
-                    {!readOnly && <TableCell align="right">Ações</TableCell>}
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {sessions.map((session) => (
-                    <TableRow key={session.id}>
-                        <TableCell>{formatDate(session.scheduled_date)}</TableCell>
-                        <TableCell>{statusLabel(session.status)}</TableCell>
-                        {!readOnly && (
-                            <TableCell align="right">
-                                {['pending', 'rescheduled_pending'].includes(session.status) && (
-                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                        <Button size="small" disabled={submitting} onClick={() => handleComplete(session.id)}>
-                                            Concluir
-                                        </Button>
-                                        <Button size="small" disabled={submitting} onClick={() => setRescheduling({ sessionId: session.id, date: null, reason: '' })}>
-                                            Adiar
-                                        </Button>
-                                    </Stack>
-                                )}
-                            </TableCell>
-                        )}
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-sm">
+                <thead>
+                    <tr>
+                        <th scope="col" className="border-b border-border px-3 py-2 text-xs font-semibold uppercase text-muted-foreground">Data</th>
+                        <th scope="col" className="border-b border-border px-3 py-2 text-xs font-semibold uppercase text-muted-foreground">Status</th>
+                        {!readOnly && <th scope="col" className="border-b border-border px-3 py-2 text-right text-xs font-semibold uppercase text-muted-foreground">Ações</th>}
+                    </tr>
+                </thead>
+                <tbody>
+                    {sessions.map((session) => (
+                        <tr key={session.id}>
+                            <td className="border-b border-border px-3 py-2">{formatDate(session.scheduled_date)}</td>
+                            <td className="border-b border-border px-3 py-2">{statusLabel(session.status)}</td>
+                            {!readOnly && (
+                                <td className="border-b border-border px-3 py-2 text-right">
+                                    {['pending', 'rescheduled_pending'].includes(session.status) && (
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="sm" disabled={submitting} onClick={() => handleComplete(session.id)}>
+                                                Concluir
+                                            </Button>
+                                            <Button variant="ghost" size="sm" disabled={submitting} onClick={() => setRescheduling({ sessionId: session.id, date: null, reason: '' })}>
+                                                Adiar
+                                            </Button>
+                                        </div>
+                                    )}
+                                </td>
+                            )}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     );
 
     if (!speciality?.allows_session_scheduling) return null;
-    if (loading) return <Typography variant="body2">Carregando agendamento por sessões…</Typography>;
+    if (loading) return <p className="ui-reset text-sm text-muted-foreground">Carregando agendamento por sessões…</p>;
 
     const hasActivePlan = plan && plan.status === 'active';
 
     return (
-        <Box sx={{ mt: 2, p: 2, border: '1px solid var(--lg-border)', borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                Agendamento por sessões
-            </Typography>
+        <div className="ui-reset mt-4 rounded-lg border border-border p-4">
+            <h4 className="mb-2 font-display text-sm font-bold">Agendamento por sessões</h4>
 
-            {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
+            {error && <div className="mb-2"><Banner tom="perigo">{error}</Banner></div>}
 
             {plan && !hasActivePlan && (
-                <Stack spacing={1.5} sx={{ mb: 2 }}>
-                    <Typography variant="body2">
+                <div className="mb-4 grid gap-3">
+                    <p className="text-sm">
                         Histórico: <strong>{statusLabel(plan.status)}</strong> — Previsão de término: {formatDate(plan.expected_end_at)}
-                    </Typography>
+                    </p>
                     {renderSessionsTable(plan.sessions, { readOnly: true })}
-                </Stack>
+                </div>
             )}
 
             {!hasActivePlan && (
-                <Stack spacing={1.5}>
-                    <Typography variant="body2">Dias da semana:</Typography>
-                    <Stack direction="row" flexWrap="wrap">
+                <div className="grid gap-3">
+                    <p className="text-sm">Dias da semana:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
                         {WEEKDAY_LABELS.map((day) => (
-                            <FormControlLabel
+                            <CaixaDeMarcacao
                                 key={day.value}
-                                control={
-                                    <Checkbox
-                                        checked={weekdays.includes(day.value)}
-                                        onChange={() => toggleWeekday(day.value)}
-                                    />
-                                }
-                                label={day.label}
-                            />
+                                id={`dia-semana-${day.value}`}
+                                marcado={weekdays.includes(day.value)}
+                                aoMudar={() => toggleWeekday(day.value)}
+                            >
+                                {day.label}
+                            </CaixaDeMarcacao>
                         ))}
-                    </Stack>
-                    <TextField
+                    </div>
+                    <CampoTexto
+                        id="total-sessoes"
                         label="Quantidade total de sessões"
                         type="number"
                         value={totalSessions}
                         onChange={(e) => { setTotalSessions(Math.max(1, Number(e.target.value) || 1)); setPreviewDates(null); }}
-                        sx={{ maxWidth: 240 }}
+                        className="max-w-[240px]"
                     />
 
                     {!previewDates && (
                         <Button
-                            variant="outlined"
+                            variant="outline"
+                            className="justify-self-start"
                             disabled={weekdays.length === 0 || submitting}
                             onClick={handlePreview}
                         >
@@ -270,85 +259,85 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
 
                     {previewDates && (
                         <>
-                            <Alert severity="warning">
+                            <Banner tom="alerta">
                                 Ao confirmar, o paciente sairá da fila de espera imediatamente. As sessões
                                 ficarão agendadas nas datas geradas abaixo.
-                            </Alert>
-                            <Typography variant="body2">
-                                {previewDates.map(formatDate).join(', ')}
-                            </Typography>
-                            <Stack direction="row" spacing={1}>
-                                <Button variant="contained" disabled={submitting} onClick={handleConfirm}>
+                            </Banner>
+                            <p className="text-sm">{previewDates.map(formatDate).join(', ')}</p>
+                            <div className="flex flex-wrap gap-2">
+                                <Button disabled={submitting} onClick={handleConfirm}>
                                     Confirmar agendamento
                                 </Button>
-                                <Button variant="text" disabled={submitting} onClick={() => setPreviewDates(null)}>
+                                <Button variant="ghost" disabled={submitting} onClick={() => setPreviewDates(null)}>
                                     Voltar
                                 </Button>
-                            </Stack>
+                            </div>
                         </>
                     )}
-                </Stack>
+                </div>
             )}
 
             {hasActivePlan && (
-                <Stack spacing={1.5}>
-                    <Typography variant="body2">
+                <div className="grid gap-3">
+                    <p className="text-sm">
                         Status: <strong>{statusLabel(plan.status)}</strong> — Previsão de término: {formatDate(plan.expected_end_at)}
-                    </Typography>
+                    </p>
 
                     {renderSessionsTable(plan.sessions)}
 
                     {rescheduling && (
-                        <Stack spacing={1} sx={{ p: 1.5, border: '1px dashed var(--lg-border)' }}>
+                        <div className="grid gap-2 rounded-lg border border-dashed border-border p-3">
                             <BasicDatePicker
                                 label="Nova data da sessão"
                                 name="new_date"
                                 value={rescheduling.date}
                                 setValue={(value) => setRescheduling((current) => ({ ...current, date: value }))}
                             />
-                            <TextField
+                            <CampoTexto
+                                id="motivo-adiamento"
                                 label="Motivo do adiamento"
                                 value={rescheduling.reason}
                                 onChange={(e) => setRescheduling((current) => ({ ...current, reason: e.target.value }))}
                                 multiline
-                                minRows={2}
+                                rows={2}
                             />
-                            <Stack direction="row" spacing={1}>
-                                <Button variant="contained" disabled={submitting} onClick={handleReschedule}>Salvar adiamento</Button>
-                                <Button variant="text" disabled={submitting} onClick={() => setRescheduling(null)}>Cancelar</Button>
-                            </Stack>
-                        </Stack>
+                            <div className="flex flex-wrap gap-2">
+                                <Button disabled={submitting} onClick={handleReschedule}>Salvar adiamento</Button>
+                                <Button variant="ghost" disabled={submitting} onClick={() => setRescheduling(null)}>Cancelar</Button>
+                            </div>
+                        </div>
                     )}
 
                     {profile === 'admin' && plan.status === 'active' && (
-                        <Box sx={{ mt: 1 }}>
+                        <div className="mt-1">
                             {!showCancelForm ? (
-                                <Button color="error" variant="outlined" onClick={() => setShowCancelForm(true)}>
+                                <Button variant="destructive" onClick={() => setShowCancelForm(true)}>
                                     Cancelar tratamento e devolver à fila
                                 </Button>
                             ) : (
-                                <Stack spacing={1} sx={{ p: 1.5, border: '1px dashed var(--lg-border)' }}>
-                                    <TextField
+                                <div className="grid gap-2 rounded-lg border border-dashed border-border p-3">
+                                    <CampoTexto
+                                        id="justificativa-cancelamento"
                                         label="Justificativa (obrigatória, mínimo 10 caracteres)"
                                         value={cancelReason}
                                         onChange={(e) => setCancelReason(e.target.value)}
                                         multiline
-                                        minRows={2}
+                                        rows={2}
                                     />
-                                    <Stack direction="row" spacing={1}>
-                                        <Button color="error" variant="contained" disabled={submitting} onClick={handleCancelPlan}>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant="destructive" disabled={submitting} onClick={handleCancelPlan}>
                                             Confirmar cancelamento
                                         </Button>
-                                        <Button variant="text" disabled={submitting} onClick={() => setShowCancelForm(false)}>
+                                        <Button variant="ghost" disabled={submitting} onClick={() => setShowCancelForm(false)}>
                                             Voltar
                                         </Button>
-                                    </Stack>
-                                </Stack>
+                                    </div>
+                                </div>
                             )}
-                        </Box>
+                        </div>
                     )}
-                </Stack>
+                </div>
             )}
-        </Box>
+        </div>
     );
 }

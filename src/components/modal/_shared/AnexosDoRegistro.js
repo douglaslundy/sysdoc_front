@@ -21,7 +21,7 @@ function BotaoDeArquivo({ disabled, children, ...props }) {
  * Anexos de ofício/portaria. Registro já salvo: lista com baixar/remover e envio imediato.
  * Registro novo: escolhe os arquivos agora, que sobem depois de gravar.
  */
-export default function AnexosDoRegistro({ rotulo, salvo, anexos, carregando, enviando, pendentes, aoEnviar, aoEscolherPendentes, aoBaixar, aoRemover }) {
+export default function AnexosDoRegistro({ rotulo, salvo, anexos, carregando, enviando, pendentes, registro, aoEnviar, aoEscolherPendentes, aoBaixar, aoRemover }) {
     return (
         <div className="mt-5 border-t border-border pt-4">
             <h3 className="mb-2 font-display text-sm font-bold">{`Anexos ${rotulo}`}</h3>
@@ -48,7 +48,7 @@ export default function AnexosDoRegistro({ rotulo, salvo, anexos, carregando, en
                 </>
             ) : (
                 <>
-                    <p className="mb-2 text-sm text-muted-foreground">{`Selecione os anexos agora e clique em Gravar. O sistema salva ${rotulo === 'da Portaria' ? 'a portaria' : 'o ofício'} e envia os arquivos em seguida.`}</p>
+                    <p className="mb-2 text-sm text-muted-foreground">{`Selecione os anexos agora e clique em Gravar. O sistema salva ${registro || (rotulo === 'da Portaria' ? 'a portaria' : 'o ofício')} e envia os arquivos em seguida.`}</p>
                     <BotaoDeArquivo onChange={aoEscolherPendentes}>Selecionar Anexo(s) (PDF/JPG/PNG)</BotaoDeArquivo>
                     {pendentes.length > 0 && <p className="mt-2 text-xs text-muted-foreground">{pendentes.length} arquivo(s) pronto(s) para envio após salvar.</p>}
                 </>
