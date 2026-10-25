@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    Box, Button, CircularProgress, Divider, Grid, IconButton,
-    List, ListItem, ListItemText, TextField, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../../src/components/baseCard/BaseCard';
+import { Save, Trash2 } from 'lucide-react';
 import ContatosWhatsapp from '../../src/components/vigilancia/ContatosWhatsapp';
 import AlertModal from '../../src/components/messagesModal';
-import { modalFormRootSx } from '../../src/components/modal/_shared/modalFormStyles';
 import { getVigilanciaConfig, updateVigilanciaConfig } from '../../src/store/fetchActions/vigilanciaConfig';
+import { Button } from '../../src/components/ui/button';
+import { CampoTexto } from '../../src/components/ui/campos';
+import { Card, CardContent, CardHeader, CardTitle } from '../../src/components/ui/card';
+import { Carregando } from '../../src/components/ui/carregando';
 
 const emptyForm = {
     estado: '',
@@ -28,6 +26,15 @@ const emptyForm = {
     grant_type: 'ALVARÁ SANITÁRIO DE FUNCIONAMENTO',
     observacoes: [],
 };
+
+function Secao({ titulo, children }) {
+    return (
+        <section className="border-t border-border pt-5 first:border-t-0 first:pt-0">
+            <h2 className="mb-3 text-lg font-bold">{titulo}</h2>
+            {children}
+        </section>
+    );
+}
 
 export default function ConfiguracoesVigilancia() {
     const dispatch = useDispatch();
@@ -62,8 +69,8 @@ export default function ConfiguracoesVigilancia() {
         }
     }, [config]);
 
-    const change = ({ target }) =>
-        setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) =>
+        setForm(f => ({ ...f, [name]: value }));
 
     const addObs = () => {
         const text = novaObs.trim();
@@ -85,167 +92,94 @@ export default function ConfiguracoesVigilancia() {
     };
 
     if (loading && !config) {
-        return (
-            <Box display="flex" justifyContent="center" p={6}>
-                <CircularProgress />
-            </Box>
-        );
+        return <Carregando className="justify-center py-16" />;
     }
 
+    const campo = (name, label, extra = {}) => (
+        <CampoTexto id={`vig-${name}`} label={label} name={name} value={form[name]} onChange={change} {...extra} />
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page vigilancia-config-page">
+        <div className="ui-reset">
             <AlertModal />
-            <BaseCard title="Configurações da Vigilância Sanitária">
+            <Card>
+                <CardHeader><CardTitle>Configurações da Vigilância Sanitária</CardTitle></CardHeader>
+                <CardContent className="flex flex-col gap-5">
+                    <Secao titulo="Identificação Institucional">
+                        <div className="grid gap-4 md:grid-cols-12">
+                            <div className="md:col-span-2">{campo('estado', 'UF (Estado)', { maxLength: 2, className: 'uppercase' })}</div>
+                            <div className="md:col-span-4">{campo('nome_municipio', 'Município')}</div>
+                            <div className="md:col-span-6">{campo('nome_prefeitura', 'Nome da Prefeitura')}</div>
+                            <div className="md:col-span-4">{campo('cnpj_prefeitura', 'CNPJ da Prefeitura', { maxLength: 18 })}</div>
+                            <div className="md:col-span-8">{campo('nome_secretaria', 'Nome da Secretaria', { placeholder: 'Ex: Secretaria Municipal de Saúde' })}</div>
+                            <div className="md:col-span-4">{campo('cnpj_secretaria', 'CNPJ da Secretaria', { maxLength: 18 })}</div>
+                            <div className="md:col-span-8">{campo('divisao', 'Divisão', { placeholder: 'Ex: Divisão de Vigilância Sanitária' })}</div>
+                        </div>
+                    </Secao>
 
-                {/* ── Identificação Institucional ── */}
-                <Typography variant="h6" gutterBottom mt={1}>Identificação Institucional</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={2}>
-                        <TextField className="lg-search-field" fullWidth label="UF (Estado)" name="estado"
-                            value={form.estado} onChange={change}
-                            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <TextField className="lg-search-field" fullWidth label="Município" name="nome_municipio"
-                            value={form.nome_municipio} onChange={change} />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field" fullWidth label="Nome da Prefeitura" name="nome_prefeitura"
-                            value={form.nome_prefeitura} onChange={change} />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <TextField className="lg-search-field" fullWidth label="CNPJ da Prefeitura" name="cnpj_prefeitura"
-                            value={form.cnpj_prefeitura} onChange={change}
-                            inputProps={{ maxLength: 18 }} />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField className="lg-search-field" fullWidth label="Nome da Secretaria" name="nome_secretaria"
-                            value={form.nome_secretaria} onChange={change}
-                            placeholder="Ex: Secretaria Municipal de Saúde" />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <TextField className="lg-search-field" fullWidth label="CNPJ da Secretaria" name="cnpj_secretaria"
-                            value={form.cnpj_secretaria} onChange={change}
-                            inputProps={{ maxLength: 18 }} />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField className="lg-search-field" fullWidth label="Divisão" name="divisao"
-                            value={form.divisao} onChange={change}
-                            placeholder="Ex: Divisão de Vigilância Sanitária" />
-                    </Grid>
-                </Grid>
+                    <Secao titulo="Endereço e Contato">
+                        <div className="grid gap-4 md:grid-cols-12">
+                            <div className="md:col-span-6">{campo('endereco', 'Endereço')}</div>
+                            <div className="md:col-span-2">{campo('cep', 'CEP', { maxLength: 9 })}</div>
+                            <div className="md:col-span-4">{campo('telefone', 'Telefone')}</div>
+                            <div className="md:col-span-6">{campo('email', 'E-mail', { type: 'email' })}</div>
+                        </div>
+                    </Secao>
 
-                <Divider sx={{ my: 3 }} />
+                    <Secao titulo="Responsável pela Vigilância">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {campo('nome_responsavel', 'Nome do Responsável')}
+                            {campo('cargo_responsavel', 'Cargo', { placeholder: 'Ex: Coordenador de Vigilância Sanitária' })}
+                        </div>
+                    </Secao>
 
-                {/* ── Contato ── */}
-                <Typography variant="h6" gutterBottom>Endereço e Contato</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field" fullWidth label="Endereço" name="endereco"
-                            value={form.endereco} onChange={change} />
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                        <TextField className="lg-search-field" fullWidth label="CEP" name="cep"
-                            value={form.cep} onChange={change}
-                            inputProps={{ maxLength: 9 }} />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <TextField className="lg-search-field" fullWidth label="Telefone" name="telefone"
-                            value={form.telefone} onChange={change} />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field" fullWidth label="E-mail" name="email"
-                            value={form.email} onChange={change}
-                            type="email" />
-                    </Grid>
-                </Grid>
+                    <Secao titulo="Tipo de Alvará">
+                        <div className="max-w-2xl">
+                            {campo('grant_type', 'Título do Alvará (grant_type)', { placeholder: 'Ex: ALVARÁ SANITÁRIO DE FUNCIONAMENTO' })}
+                        </div>
+                    </Secao>
 
-                <Divider sx={{ my: 3 }} />
+                    <Secao titulo="Observações (aparecem no PDF do Alvará)">
+                        <div className="mb-2 flex items-end gap-2">
+                            <div className="flex-1">
+                                <CampoTexto
+                                    id="vig-nova-obs"
+                                    label="Nova observação"
+                                    value={novaObs}
+                                    onChange={e => setNovaObs(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && addObs()}
+                                    maxLength={500}
+                                />
+                            </div>
+                            <Button variant="outline" onClick={addObs} className="whitespace-nowrap">
+                                Adicionar
+                            </Button>
+                        </div>
+                        {form.observacoes && form.observacoes.length > 0 && (
+                            <ul>
+                                {form.observacoes.map((obs, i) => (
+                                    <li key={i} className="flex items-center justify-between gap-2 border-b border-border py-1.5 text-sm">
+                                        <span>{`${i + 1}. ${obs}`}</span>
+                                        <Button variant="ghost" size="icon-sm" aria-label={`Remover observação ${i + 1}`} onClick={() => removeObs(i)}>
+                                            <Trash2 className="text-danger-text" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </Secao>
 
-                {/* ── Responsável ── */}
-                <Typography variant="h6" gutterBottom>Responsável pela Vigilância</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field" fullWidth label="Nome do Responsável" name="nome_responsavel"
-                            value={form.nome_responsavel} onChange={change} />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field" fullWidth label="Cargo" name="cargo_responsavel"
-                            value={form.cargo_responsavel} onChange={change}
-                            placeholder="Ex: Coordenador de Vigilância Sanitária" />
-                    </Grid>
-                </Grid>
+                    <div className="flex justify-end border-t border-border pt-5">
+                        <Button disabled={loading} onClick={handleSave}>
+                            <Save /> {loading ? 'Salvando...' : 'Salvar Configurações'}
+                        </Button>
+                    </div>
 
-                <Divider sx={{ my: 3 }} />
-
-                {/* ── Tipo de Alvará (grant_type) ── */}
-                <Typography variant="h6" gutterBottom>Tipo de Alvará</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
-                        <TextField className="lg-search-field" fullWidth label="Título do Alvará (grant_type)" name="grant_type"
-                            value={form.grant_type} onChange={change}
-                            placeholder="Ex: ALVARÁ SANITÁRIO DE FUNCIONAMENTO" />
-                    </Grid>
-                </Grid>
-
-                <Divider sx={{ my: 3 }} />
-
-                {/* ── Observações ── */}
-                <Typography variant="h6" gutterBottom>Observações (aparecem no PDF do Alvará)</Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                    <TextField className="lg-search-field"
-                        fullWidth
-                        size="small"
-                        label="Nova observação"
-                        value={novaObs}
-                        onChange={e => setNovaObs(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addObs()}
-                        inputProps={{ maxLength: 500 }}
-                    />
-                    <Button variant="outlined" onClick={addObs} sx={{ whiteSpace: 'nowrap' }}>
-                        Adicionar
-                    </Button>
-                </Box>
-                {form.observacoes && form.observacoes.length > 0 && (
-                    <List dense disablePadding>
-                        {form.observacoes.map((obs, i) => (
-                            <ListItem
-                                key={i}
-                                disableGutters
-                                secondaryAction={
-                                    <IconButton size="small" onClick={() => removeObs(i)} color="error">
-                                        <FeatherIcon icon="trash-2" width="16" height="16" />
-                                    </IconButton>
-                                }
-                                sx={{ borderBottom: '1px solid', borderColor: 'divider', py: 0.5 }}
-                            >
-                                <ListItemText primary={`${i + 1}. ${obs}`} />
-                            </ListItem>
-                        ))}
-                    </List>
-                )}
-
-                <Divider sx={{ my: 3 }} />
-
-                <Box display="flex" justifyContent="flex-end">
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        disabled={loading}
-                        onClick={handleSave}
-                        startIcon={<FeatherIcon icon="save" width="18" height="18" />}
-                    >
-                        {loading ? 'Salvando...' : 'Salvar Configurações'}
-                    </Button>
-                </Box>
-
-                <Divider sx={{ my: 3 }} />
-
-                <ContatosWhatsapp />
-
-            </BaseCard>
-        </Box>
+                    <div className="border-t border-border pt-5">
+                        <ContatosWhatsapp />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

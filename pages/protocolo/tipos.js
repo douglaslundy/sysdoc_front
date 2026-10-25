@@ -1,26 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoTexto } from "../../src/components/ui/campos";
+import { DataTable } from "../../src/components/ui/data-table";
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
+import { Interruptor } from "../../src/components/ui/interruptor";
+import { Pilula } from "../../src/components/ui/pilula";
 import { api } from "../../src/services/api";
 
 const emptyForm = {
@@ -113,137 +99,102 @@ export default function ProtocolTypesPage() {
     }
   };
 
+  const colunas = [
+    { chave: "codigo", titulo: "Código", render: (item) => item.codigo },
+    { chave: "nome", titulo: "Nome", render: (item) => item.nome },
+    { chave: "descricao", titulo: "Descrição", render: (item) => item.descricao || "—" },
+    { chave: "ordem", titulo: "Ordem", render: (item) => item.ordem ?? 0 },
+    { chave: "status", titulo: "Status", render: (item) => <Pilula tom={item.ativo ? "sucesso" : "neutro"}>{item.ativo ? "Ativo" : "Inativo"}</Pilula> },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      numerica: true,
+      render: (item) => (
+        <span className="inline-flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => openEdit(item)}>Editar</Button>
+          <Button size="sm" variant="outline" onClick={() => handleDelete(item)} disabled={saving || !item.ativo} className="text-danger-text">
+            Inativar
+          </Button>
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={{ ...modalFormRootSx, display: "flex", flexDirection: "column", gap: 3 }} className="queue-page protocolo-page">
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between">
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-            Tipos de Protocolo
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Cadastre os tipos usados no campo tipo do novo protocolo.
-          </Typography>
-        </Box>
-        <Button variant="contained" onClick={openCreate}>
-          Novo tipo
-        </Button>
-      </Stack>
+    <div className="ui-reset flex flex-col gap-4">
+      <CabecalhoDePagina
+        titulo="Tipos de Protocolo"
+        subtitulo="Cadastre os tipos usados no campo tipo do novo protocolo."
+        acoes={<Button onClick={openCreate}>Novo tipo</Button>}
+      />
 
       {message ? (
-        <Alert severity={message.toLowerCase().includes("não foi") ? "error" : "success"} onClose={() => setMessage("")}>
+        <Banner tom={message.toLowerCase().includes("não foi") ? "perigo" : "sucesso"} onDispensar={() => setMessage("")}>
           {message}
-        </Alert>
+        </Banner>
       ) : null}
 
-      <BaseCard title="Tipos cadastrados">
-        {loading ? (
-          <Typography color="text.secondary">Carregando...</Typography>
-        ) : (
-          <Table sx={{ whiteSpace: "nowrap" }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>Código</TableCell>
-                <TableCell>Nome</TableCell>
-                <TableCell>Descrição</TableCell>
-                <TableCell>Ordem</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {types.length > 0 ? types.map((item) => (
-                <TableRow key={item.id} hover>
-                  <TableCell>{item.codigo}</TableCell>
-                  <TableCell>{item.nome}</TableCell>
-                  <TableCell>{item.descricao || "—"}</TableCell>
-                  <TableCell>{item.ordem ?? 0}</TableCell>
-                  <TableCell>
-                    <Chip size="small" color={item.ativo ? "success" : "default"} label={item.ativo ? "Ativo" : "Inativo"} />
-                  </TableCell>
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button size="small" variant="outlined" onClick={() => openEdit(item)}>
-                        Editar
-                      </Button>
-                      <Button size="small" variant="outlined" color="error" onClick={() => handleDelete(item)} disabled={saving || !item.ativo}>
-                        Inativar
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">Nenhum tipo cadastrado.</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        )}
-      </BaseCard>
+      <DataTable
+        rotulo="tipos de protocolo"
+        colunas={colunas}
+        linhas={types}
+        chaveDaLinha={(item) => item.id}
+        carregando={loading}
+        vazio="Nenhum tipo cadastrado."
+      />
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{editingId ? "Editar tipo" : "Novo tipo"}</DialogTitle>
-        <DialogContent sx={{ ...modalFormRootSx, pt: 1 }}>
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Código"
-                  value={form.codigo}
-                  onChange={(e) => setForm((prev) => ({ ...prev, codigo: e.target.value }))}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Ordem"
-                  type="number"
-                  value={form.ordem}
-                  onChange={(e) => setForm((prev) => ({ ...prev, ordem: Number(e.target.value) }))}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Nome"
-                  value={form.nome}
-                  onChange={(e) => setForm((prev) => ({ ...prev, nome: e.target.value }))}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  label="Descrição"
-                  value={form.descricao}
-                  onChange={(e) => setForm((prev) => ({ ...prev, descricao: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Switch
-                    checked={Boolean(form.ativo)}
-                    onChange={(e) => setForm((prev) => ({ ...prev, ativo: e.target.checked }))}
-                  />
-                  <Typography variant="body2">Ativo</Typography>
-                </Stack>
-              </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} variant="outlined">
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={saving}>
-            {saving ? "Salvando..." : "Salvar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      <Dialogo aberto={dialogOpen} aoFechar={() => setDialogOpen(false)} tamanho="md">
+        <DialogoCabecalho>
+          <DialogoTitulo>{editingId ? "Editar tipo" : "Novo tipo"}</DialogoTitulo>
+        </DialogoCabecalho>
+        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+          <CampoTexto
+            id="tipo-codigo"
+            label="Código"
+            value={form.codigo}
+            onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, codigo: value }))}
+            obrigatorio
+            required
+          />
+          <CampoTexto
+            id="tipo-ordem"
+            label="Ordem"
+            type="number"
+            value={form.ordem}
+            onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, ordem: Number(value) }))}
+          />
+          <div className="sm:col-span-2">
+            <CampoTexto
+              id="tipo-nome"
+              label="Nome"
+              value={form.nome}
+              onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, nome: value }))}
+              obrigatorio
+              required
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <CampoTexto
+              id="tipo-descricao"
+              label="Descrição"
+              multiline
+              rows={3}
+              value={form.descricao}
+              onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, descricao: value }))}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Interruptor id="tipo-ativo" marcado={Boolean(form.ativo)} aoMudar={(marcado) => setForm((prev) => ({ ...prev, ativo: marcado }))}>
+              Ativo
+            </Interruptor>
+          </div>
+          <button type="submit" hidden aria-hidden tabIndex={-1} />
+        </form>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+        </DialogoRodape>
+      </Dialogo>
+    </div>
   );
 }

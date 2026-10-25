@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Alert, Box, Button, Card, CardContent, Chip, Divider, Stack, TextField, Typography } from "@mui/material";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent } from "../../src/components/ui/card";
+import { Pilula } from "../../src/components/ui/pilula";
 import { format, isValid, parseISO } from "date-fns";
 import { consultarPeticao } from "../../src/services/peticaoPublica";
 import { printFiscalizacaoPdf } from "../../src/reports/fiscalizacao";
@@ -23,10 +27,10 @@ export default function PetitionTrack() {
     }
   }, [router?.isReady, router?.query?.protocolo]);
 
-  const change = ({ target }) =>
+  const change = ({ target: { name, value } }) =>
     setForm((current) => ({
       ...current,
-      [target.name]: target.name === "protocolo" ? target.value.toUpperCase() : target.value,
+      [name]: name === "protocolo" ? value.toUpperCase() : value,
     }));
 
   const handleConsultar = async (event) => {
@@ -64,62 +68,59 @@ export default function PetitionTrack() {
     });
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4, px: 2, display: "flex", justifyContent: "center" }}>
-      <Box sx={{ width: "100%", maxWidth: 720 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Acompanhar petição</Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
+    <div className="ui-reset flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
+      <div className="w-full max-w-[720px]">
+        <h1 className="mb-1 text-3xl font-extrabold">Acompanhar petição</h1>
+        <p className="mb-6 text-muted-foreground">
           Informe o protocolo e a senha recebidos ao registrar a petição.
-        </Typography>
+        </p>
 
-        <Card sx={{ mb: 3 }}>
+        <Card className="mb-6">
           <CardContent>
-            <Box component="form" onSubmit={handleConsultar}>
-              <Stack spacing={2}>
-                {erro && <Alert severity="error">{erro}</Alert>}
-                <TextField label="Protocolo" name="protocolo" value={form.protocolo} onChange={change} fullWidth />
-                <TextField label="Senha" name="senha" value={form.senha} onChange={change} type="password" autoComplete="off" fullWidth />
-                <Button type="submit" variant="contained" disabled={loading || !form.protocolo || !form.senha}>
-                  Consultar
-                </Button>
-              </Stack>
-            </Box>
+            <form onSubmit={handleConsultar} className="flex flex-col gap-4">
+              {erro && <Banner tom="perigo">{erro}</Banner>}
+              <CampoTexto id="track-protocolo" label="Protocolo" name="protocolo" value={form.protocolo} onChange={change} />
+              <CampoTexto id="track-senha" label="Senha" name="senha" value={form.senha} onChange={change} type="password" autoComplete="off" />
+              <Button type="submit" disabled={loading || !form.protocolo || !form.senha}>
+                Consultar
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
         {resultado && (
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
-                <Box>
-                  <Typography variant="overline">Protocolo</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>{resultado.protocolo}</Typography>
-                </Box>
-                <Chip color={resultado.situacao === "Apurada" ? "success" : "info"} label={resultado.situacao} />
-              </Stack>
-              {resultado.motivo ? <Typography sx={{ mt: 1 }}><strong>Motivo:</strong> {resultado.motivo}</Typography> : null}
-              <Typography sx={{ mt: resultado.motivo ? 0 : 1 }}><strong>Assunto:</strong> {resultado.assunto}</Typography>
-              <Typography><strong>Local:</strong> {resultado.local_endereco}</Typography>
-              <Typography><strong>Registrada em:</strong> {formatDateTime(resultado.registrada_em)}</Typography>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <span className="block text-xs tracking-wide text-muted-foreground uppercase">Protocolo</span>
+                  <p className="text-lg font-extrabold">{resultado.protocolo}</p>
+                </div>
+                <Pilula tom={resultado.situacao === "Apurada" ? "sucesso" : "info"}>{resultado.situacao}</Pilula>
+              </div>
+              {resultado.motivo ? <p className="mt-2"><strong>Motivo:</strong> {resultado.motivo}</p> : null}
+              <p className={resultado.motivo ? "" : "mt-2"}><strong>Assunto:</strong> {resultado.assunto}</p>
+              <p><strong>Local:</strong> {resultado.local_endereco}</p>
+              <p><strong>Registrada em:</strong> {formatDateTime(resultado.registrada_em)}</p>
 
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Movimentação</Typography>
-              <Stack divider={<Divider flexItem />} sx={{ mt: 1 }}>
+              <h2 className="mt-4 border-t border-border pt-4 font-bold">Movimentação</h2>
+              <div className="mt-1 divide-y divide-border">
                 {resultado.movimentacoes.map((mov, index) => (
-                  <Box key={`${mov.data}-${index}`} sx={{ py: 1.25 }}>
-                    <Stack direction="row" justifyContent="space-between" gap={1}>
-                      <Typography sx={{ fontWeight: 700 }}>{mov.titulo}</Typography>
-                      <Typography variant="caption" color="text.secondary">{formatDateTime(mov.data)}</Typography>
-                    </Stack>
-                    {mov.descricao ? <Typography color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>{mov.descricao}</Typography> : null}
-                  </Box>
+                  <div key={`${mov.data}-${index}`} className="py-3">
+                    <div className="flex justify-between gap-2">
+                      <span className="font-bold">{mov.titulo}</span>
+                      <span className="text-xs text-muted-foreground">{formatDateTime(mov.data)}</span>
+                    </div>
+                    {mov.descricao ? <p className="whitespace-pre-wrap text-muted-foreground">{mov.descricao}</p> : null}
+                  </div>
                 ))}
-              </Stack>
+              </div>
 
-              <Button variant="outlined" onClick={handlePdf} sx={{ mt: 2 }}>Imprimir PDF</Button>
+              <Button variant="outline" onClick={handlePdf} className="mt-4">Imprimir PDF</Button>
             </CardContent>
           </Card>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

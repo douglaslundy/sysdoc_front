@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import {
-    Alert, Box, Button, Card, CardContent, Chip, CircularProgress,
-    Divider, Stack, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, TextField, Typography,
-} from '@mui/material';
 import axios from 'axios';
+import { Download, Loader2 } from 'lucide-react';
+import { Banner } from '../src/components/ui/banner';
+import { Button } from '../src/components/ui/button';
+import { CampoTexto } from '../src/components/ui/campos';
+import { Card, CardContent } from '../src/components/ui/card';
+import { Pilula, tomDaCor } from '../src/components/ui/pilula';
 
 const STATUS_COR = { normal: 'success', baixo: 'info', alto: 'error', critico: 'secondary', indefinido: 'default' };
 
@@ -14,8 +15,8 @@ export default function ConsultaExame() {
     const [erro, setErro]             = useState('');
     const [loading, setLoading]       = useState(false);
 
-    const change = ({ target }) =>
-        setForm(f => ({ ...f, [target.name]: target.name === 'protocolo' ? target.value.toUpperCase() : target.value }));
+    const change = ({ target: { name, value } }) =>
+        setForm(f => ({ ...f, [name]: name === 'protocolo' ? value.toUpperCase() : value }));
 
     const handleConsultar = async () => {
         setErro('');
@@ -58,113 +59,93 @@ export default function ConsultaExame() {
     };
 
     return (
-        <Box minHeight="100vh" bgcolor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" p={2}>
-            <Box maxWidth={680} width="100%">
-                <Typography variant="h4" align="center" mb={3} color="primary.main">
+        <div className="ui-reset flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+            <div className="w-full max-w-[680px]">
+                <h1 className="mb-6 text-center text-3xl font-extrabold text-primary-text">
                     Consulta de Resultado de Exame
-                </Typography>
+                </h1>
 
                 {!resultado ? (
                     <Card>
-                        <CardContent>
-                            <Stack spacing={2}>
-                                <TextField
-                                    label="Protocolo"
-                                    name="protocolo"
-                                    value={form.protocolo}
-                                    onChange={change}
-                                    placeholder="LAB-XXXXXXXX"
-                                    inputProps={{ maxLength: 20, style: { textTransform: 'uppercase', letterSpacing: 2 } }}
-                                    fullWidth
-                                />
-                                <TextField
-                                    label="Senha"
-                                    name="senha"
-                                    type="password"
-                                    value={form.senha}
-                                    onChange={change}
-                                    inputProps={{ maxLength: 6 }}
-                                    fullWidth
-                                />
-                                {erro && <Alert severity="error">{erro}</Alert>}
-                                <Button
-                                    variant="contained"
-                                    size="large"
-                                    onClick={handleConsultar}
-                                    disabled={loading || !form.protocolo || !form.senha}
-                                    startIcon={loading ? <CircularProgress size={18} color="inherit" /> : null}
-                                >
-                                    {loading ? 'Consultando...' : 'Consultar'}
-                                </Button>
-                            </Stack>
+                        <CardContent className="flex flex-col gap-4">
+                            <CampoTexto
+                                id="consulta-protocolo"
+                                label="Protocolo"
+                                name="protocolo"
+                                value={form.protocolo}
+                                onChange={change}
+                                placeholder="LAB-XXXXXXXX"
+                                maxLength={20}
+                                className="uppercase tracking-widest"
+                            />
+                            <CampoTexto
+                                id="consulta-senha"
+                                label="Senha"
+                                name="senha"
+                                type="password"
+                                value={form.senha}
+                                onChange={change}
+                                maxLength={6}
+                            />
+                            {erro && <Banner tom="perigo">{erro}</Banner>}
+                            <Button size="lg" onClick={handleConsultar} disabled={loading || !form.protocolo || !form.senha}>
+                                {loading ? <Loader2 className="animate-spin" /> : null}
+                                {loading ? 'Consultando...' : 'Consultar'}
+                            </Button>
                         </CardContent>
                     </Card>
                 ) : (
                     <Card>
                         <CardContent>
-                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
-                                <Box>
-                                    <Typography variant="h6">{resultado.paciente?.nome}</Typography>
-                                    <Typography variant="caption" color="text.secondary">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+                                <div>
+                                    <h2 className="text-lg font-bold">{resultado.paciente?.nome}</h2>
+                                    <span className="text-xs text-muted-foreground">
                                         Protocolo: {resultado.protocolo} &nbsp;|&nbsp;
                                         Válido até: {resultado.data_validade ? new Date(resultado.data_validade).toLocaleDateString('pt-BR') : '—'}
-                                    </Typography>
-                                </Box>
-                                <Box display="flex" gap={1}>
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        color="success"
-                                        onClick={handleImprimirLaudo}
-                                        startIcon={<span style={{ fontSize: 14 }}>⬇</span>}
-                                    >
-                                        Baixar Laudo PDF
+                                    </span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button variant="success" size="sm" onClick={handleImprimirLaudo}>
+                                        <Download /> Baixar Laudo PDF
                                     </Button>
-                                    <Button variant="outlined" size="small" onClick={handleNova}>Nova Consulta</Button>
-                                </Box>
-                            </Box>
-
-                            <Divider sx={{ mb: 2 }} />
+                                    <Button variant="outline" size="sm" onClick={handleNova}>Nova Consulta</Button>
+                                </div>
+                            </div>
 
                             {Object.entries(resultado.campos_por_exame || {}).map(([exameId, grupo]) => (
-                                <Box key={exameId} mb={3}>
-                                    <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
-                                        {grupo.nome_exame}
-                                    </Typography>
-                                    <TableContainer>
-                                        <Table size="small">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Campo</TableCell>
-                                                    <TableCell>Valor</TableCell>
-                                                    <TableCell>Unidade</TableCell>
-                                                    <TableCell align="center">Status</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
+                                <section key={exameId} className="mb-6">
+                                    <h3 className="mb-2 font-bold text-primary-text">{grupo.nome_exame}</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse text-left text-sm">
+                                            <thead>
+                                                <tr className="border-b border-border text-xs text-muted-foreground uppercase">
+                                                    <th scope="col" className="px-3 py-2">Campo</th>
+                                                    <th scope="col" className="px-3 py-2">Valor</th>
+                                                    <th scope="col" className="px-3 py-2">Unidade</th>
+                                                    <th scope="col" className="px-3 py-2 text-center">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 {(grupo.campos || []).map((rc, i) => (
-                                                    <TableRow key={i}>
-                                                        <TableCell>{rc.campo}</TableCell>
-                                                        <TableCell>{rc.valor_numerico ?? rc.valor_texto ?? '—'}</TableCell>
-                                                        <TableCell>{rc.unidade || '—'}</TableCell>
-                                                        <TableCell align="center">
-                                                            <Chip
-                                                                label={rc.status_referencia}
-                                                                color={STATUS_COR[rc.status_referencia] || 'default'}
-                                                                size="small"
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
+                                                    <tr key={i} className="border-b border-border">
+                                                        <td className="px-3 py-2">{rc.campo}</td>
+                                                        <td className="px-3 py-2">{rc.valor_numerico ?? rc.valor_texto ?? '—'}</td>
+                                                        <td className="px-3 py-2">{rc.unidade || '—'}</td>
+                                                        <td className="px-3 py-2 text-center">
+                                                            <Pilula tom={tomDaCor(STATUS_COR[rc.status_referencia])}>{rc.status_referencia}</Pilula>
+                                                        </td>
+                                                    </tr>
                                                 ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </Box>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
                             ))}
                         </CardContent>
                     </Card>
                 )}
-            </Box>
-        </Box>
+            </div>
+        </div>
     );
 }

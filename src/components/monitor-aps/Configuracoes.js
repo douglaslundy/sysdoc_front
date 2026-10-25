@@ -75,7 +75,7 @@ export default function ConfiguracoesAPS() {
         monitorApsApi.get('/config/equipes').then((d) => setEquipes(d.equipes ?? [])).catch(() => {});
     }, [dispatch]);
 
-    const change = ({ target }) => setConfig((c) => ({ ...c, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setConfig((c) => ({ ...c, [name]: value }));
 
     async function testar() {
         setTestando(true);
@@ -247,19 +247,19 @@ export default function ConfiguracoesAPS() {
                             id="cfg-ibge"
                             label="Código IBGE"
                             value={municipio.ibge}
-                            onChange={(e) => setMunicipio((m) => ({ ...m, ibge: e.target.value }))}
+                            onChange={({ target: { value } }) => setMunicipio((m) => ({ ...m, ibge: value }))}
                         />
                         <CampoTexto
                             id="cfg-municipio"
                             label="Nome do Município"
                             value={municipio.nome}
-                            onChange={(e) => setMunicipio((m) => ({ ...m, nome: e.target.value }))}
+                            onChange={({ target: { value } }) => setMunicipio((m) => ({ ...m, nome: value }))}
                         />
                         <CampoSelecao
                             id="cfg-estrato"
                             label="Estrato IED (1-4)"
                             value={municipio.estrato}
-                            onChange={(e) => setMunicipio((m) => ({ ...m, estrato: Number(e.target.value) }))}
+                            onChange={({ target: { value } }) => setMunicipio((m) => ({ ...m, estrato: Number(value) }))}
                         >
                             {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
                         </CampoSelecao>

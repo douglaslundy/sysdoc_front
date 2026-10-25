@@ -1,27 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import {
-  modalFormRootSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-} from "../../src/components/modal/_shared/modalFormStyles";
-import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
+import { Activity, Pencil, PauseCircle, PlayCircle, Save, Trash2 } from "lucide-react";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoSelecao, CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { Carregando } from "../../src/components/ui/carregando";
+import { Interruptor } from "../../src/components/ui/interruptor";
+import { Pilula } from "../../src/components/ui/pilula";
 import { api } from "../../src/services/api";
 import DestructiveConfirmDialog from "../../src/components/confirmDialog/DestructiveConfirmDialog";
 
@@ -241,110 +227,83 @@ export default function ChatConfigPage() {
       ? "Já configurado. Deixe em branco para manter o valor atual."
       : example;
 
+  const toggle = (field) => (checked) => update(field)({ target: { type: "checkbox", checked } });
+
   if (loading) {
-    return <Box sx={{ p: 4, color: "var(--lg-text-muted)" }}>Carregando configurações...</Box>;
+    return <Carregando className="justify-center py-16">Carregando configurações...</Carregando>;
   }
 
+  const tomDoFeedback = feedback?.type === "success" ? "sucesso" : "perigo";
+
   return (
-    <Box className="queue-page chat-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
-      <BaseCard
-        title="Configurações do Chat"
-        subtitle="Escolha e configure o motor responsável pela comunicação em tempo real."
-      >
-        <Stack spacing={2.2}>
-          {config?.configured && (
-            <Box className="system-config-surface" sx={{ p: 2 }}>
-              <Stack spacing={1.5}>
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800 }}>Conexão configurada</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {config.engine === "soketi" ? "Soketi" : "Pusher Cloud"}
-                      {config.updated_at
-                        ? ` · Atualizada em ${new Date(config.updated_at).toLocaleString("pt-BR")}`
-                        : ""}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={config.active ? "Ativa" : "Inativa"}
-                    color={config.active ? "success" : "default"}
-                    variant={config.active ? "filled" : "outlined"}
-                  />
-                </Box>
+    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+      <CabecalhoDePagina
+        titulo="Configurações do Chat"
+        subtitulo="Escolha e configure o motor responsável pela comunicação em tempo real."
+      />
 
-                <Typography variant="body2" color="text.secondary">
-                  Status: credenciais salvas. Use “Testar conexão” para validar a comunicação com o motor.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Limites atuais: global {config?.rate_limit_global ?? 300}/min, sincronização {config?.rate_limit_sync ?? 120}/min, mensagens {config?.rate_limit_messages ?? 30}/min, digitação {config?.rate_limit_typing ?? 60}/min e presença {config?.rate_limit_presence ?? 60}/min. Janela: {config?.rate_limit_decay_minutes ?? 1} min.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Comportamento ao receber mensagem: abertura automática {config?.auto_open_on_message ? "ativada" : "desativada"} e som {config?.play_sound_on_message ? "ativado" : "desativado"}.
-                </Typography>
+      {config?.configured && (
+        <Card>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-extrabold">Conexão configurada</p>
+                <p className="text-sm text-muted-foreground">
+                  {config.engine === "soketi" ? "Soketi" : "Pusher Cloud"}
+                  {config.updated_at
+                    ? ` · Atualizada em ${new Date(config.updated_at).toLocaleString("pt-BR")}`
+                    : ""}
+                </p>
+              </div>
+              <Pilula tom={config.active ? "sucesso" : "neutro"}>{config.active ? "Ativa" : "Inativa"}</Pilula>
+            </div>
 
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  <Button
-                    variant="outlined"
-                    onClick={testConnection}
-                    disabled={testing || saving || changingStatus || deleting}
-                    startIcon={<FeatherIcon icon="activity" width="17" />}
-                    sx={modalSecondaryButtonSx}
-                  >
-                    {testing ? "Testando..." : "Testar conexão"}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setEditing(true)}
-                    disabled={saving || deleting}
-                    startIcon={<FeatherIcon icon="edit-2" width="17" />}
-                    sx={modalSecondaryButtonSx}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={toggleActive}
-                    disabled={changingStatus || saving || deleting}
-                    startIcon={<FeatherIcon icon={config.active ? "pause-circle" : "play-circle"} width="17" />}
-                    sx={modalSecondaryButtonSx}
-                  >
-                    {changingStatus
-                      ? "Atualizando..."
-                      : config.active
-                      ? "Desativar"
-                      : "Ativar"}
-                  </Button>
-                  <Button
-                    color="error"
-                    variant="outlined"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    disabled={deleting || saving || changingStatus}
-                    startIcon={<FeatherIcon icon="trash-2" width="17" />}
-                  >
-                    {deleting ? "Apagando..." : "Apagar"}
-                  </Button>
-                </Box>
-              </Stack>
-            </Box>
-          )}
+            <p className="text-sm text-muted-foreground">
+              Status: credenciais salvas. Use “Testar conexão” para validar a comunicação com o motor.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Limites atuais: global {config?.rate_limit_global ?? 300}/min, sincronização {config?.rate_limit_sync ?? 120}/min, mensagens {config?.rate_limit_messages ?? 30}/min, digitação {config?.rate_limit_typing ?? 60}/min e presença {config?.rate_limit_presence ?? 60}/min. Janela: {config?.rate_limit_decay_minutes ?? 1} min.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Comportamento ao receber mensagem: abertura automática {config?.auto_open_on_message ? "ativada" : "desativada"} e som {config?.play_sound_on_message ? "ativado" : "desativado"}.
+            </p>
 
-          {(!config?.configured || editing) && (
-            <>
-          <Box className="system-config-surface" sx={{ p: 2 }}>
-            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Motor de comunicação</Typography>
-            <FormControl fullWidth>
-              <InputLabel id="chat-engine-label">Motor do chat</InputLabel>
-              <Select labelId="chat-engine-label" label="Motor do chat" value={form.engine} onChange={update("engine")}>
-                <MenuItem value="pusher">Pusher Cloud</MenuItem>
-                <MenuItem value="soketi">Soketi (servidor próprio)</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={testConnection} disabled={testing || saving || changingStatus || deleting}>
+                <Activity /> {testing ? "Testando..." : "Testar conexão"}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(true)} disabled={saving || deleting}>
+                <Pencil /> Editar
+              </Button>
+              <Button variant="outline" onClick={toggleActive} disabled={changingStatus || saving || deleting}>
+                {config.active ? <PauseCircle /> : <PlayCircle />}
+                {changingStatus ? "Atualizando..." : config.active ? "Desativar" : "Ativar"}
+              </Button>
+              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} disabled={deleting || saving || changingStatus}>
+                <Trash2 /> {deleting ? "Apagando..." : "Apagar"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <Box className="system-config-surface" sx={{ p: 2 }}>
-            <Typography sx={{ fontWeight: 800, mb: 2 }}>Credenciais da aplicação</Typography>
-            <Stack spacing={2}>
-              <TextField
+      {(!config?.configured || editing) && (
+        <>
+          <Card>
+            <CardHeader><CardTitle>Motor de comunicação</CardTitle></CardHeader>
+            <CardContent>
+              <CampoSelecao id="chat-engine" label="Motor do chat" value={form.engine} onChange={update("engine")}>
+                <option value="pusher">Pusher Cloud</option>
+                <option value="soketi">Soketi (servidor próprio)</option>
+              </CampoSelecao>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Credenciais da aplicação</CardTitle></CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <CampoTexto
+                id="chat-app-id"
                 label="App ID"
                 value={form.app_id}
                 onChange={update("app_id")}
@@ -352,7 +311,8 @@ export default function ChatConfigPage() {
                 type="password"
                 autoComplete="new-password"
               />
-              <TextField
+              <CampoTexto
+                id="chat-app-key"
                 label="App Key"
                 value={form.app_key}
                 onChange={update("app_key")}
@@ -360,7 +320,8 @@ export default function ChatConfigPage() {
                 type="password"
                 autoComplete="new-password"
               />
-              <TextField
+              <CampoTexto
+                id="chat-app-secret"
                 label="App Secret"
                 value={form.app_secret}
                 onChange={update("app_secret")}
@@ -368,167 +329,111 @@ export default function ChatConfigPage() {
                 type="password"
                 autoComplete="new-password"
               />
-            </Stack>
-          </Box>
+            </CardContent>
+          </Card>
 
           {form.engine === "pusher" ? (
-            <Box className="system-config-surface" sx={{ p: 2 }}>
-              <Typography sx={{ fontWeight: 800, mb: 2 }}>Pusher Cloud</Typography>
-              <TextField
-                fullWidth
-                label="Cluster"
-                value={form.cluster}
-                onChange={update("cluster")}
-                placeholder="Ex.: mt1, us2, eu ou sa1, conforme o painel Pusher"
-              />
-            </Box>
+            <Card>
+              <CardHeader><CardTitle>Pusher Cloud</CardTitle></CardHeader>
+              <CardContent>
+                <CampoTexto
+                  id="chat-cluster"
+                  label="Cluster"
+                  value={form.cluster}
+                  onChange={update("cluster")}
+                  placeholder="Ex.: mt1, us2, eu ou sa1, conforme o painel Pusher"
+                />
+              </CardContent>
+            </Card>
           ) : (
-            <Box className="system-config-surface" sx={{ p: 2 }}>
-              <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Servidor Soketi</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Informe o endereço público do servidor Soketi. Não inclua caminhos como <code>/app</code> ou <code>/apps</code>.
-              </Typography>
-              <Stack spacing={2}>
-                <TextField label="Host do Soketi" value={form.host} onChange={update("host")} placeholder="Ex.: websocket.seudominio.com" />
-                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
-                  <TextField
+            <Card>
+              <CardHeader>
+                <CardTitle>Servidor Soketi</CardTitle>
+                <CardDescription>
+                  Informe o endereço público do servidor Soketi. Não inclua caminhos como <code>/app</code> ou <code>/apps</code>.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <CampoTexto id="chat-host" label="Host do Soketi" value={form.host} onChange={update("host")} placeholder="Ex.: websocket.seudominio.com" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <CampoTexto
+                    id="chat-port"
                     label="Porta"
                     type="number"
                     value={form.port}
                     onChange={update("port")}
                     placeholder="6001 sem proxy ou 443 com HTTPS"
-                    inputProps={{ min: 1, max: 65535 }}
+                    min={1}
+                    max={65535}
                   />
-                  <FormControl fullWidth>
-                    <InputLabel id="chat-scheme-label">Protocolo</InputLabel>
-                    <Select labelId="chat-scheme-label" label="Protocolo" value={form.scheme} onChange={update("scheme")}>
-                      <MenuItem value="https">HTTPS / WSS</MenuItem>
-                      <MenuItem value="http">HTTP / WS</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-                <FormControlLabel
-                  control={<Switch checked={form.use_tls} onChange={update("use_tls")} />}
-                  label="Usar conexão segura TLS (recomendado em produção)"
-                />
-              </Stack>
-            </Box>
+                  <CampoSelecao id="chat-scheme" label="Protocolo" value={form.scheme} onChange={update("scheme")}>
+                    <option value="https">HTTPS / WSS</option>
+                    <option value="http">HTTP / WS</option>
+                  </CampoSelecao>
+                </div>
+                <Interruptor id="chat-tls" marcado={form.use_tls} aoMudar={toggle("use_tls")}>
+                  Usar conexão segura TLS (recomendado em produção)
+                </Interruptor>
+              </CardContent>
+            </Card>
           )}
 
-          <Box className="system-config-surface" sx={{ p: 2 }}>
-            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Proteção contra excesso de uso</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite específico.
-            </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2 }}>
-              <TextField
-                label="Janela de bloqueio (minutos)"
-                type="number"
-                value={form.rate_limit_decay_minutes}
-                onChange={update("rate_limit_decay_minutes")}
-                inputProps={{ min: 1, max: 60 }}
-                helperText="Janela usada para contar as tentativas."
-              />
-              <TextField
-                label="Limite global do chat / minuto"
-                type="number"
-                value={form.rate_limit_global}
-                onChange={update("rate_limit_global")}
-                inputProps={{ min: 0, max: 5000 }}
-                helperText="Total de requisições do módulo por usuário."
-              />
-              <TextField
-                label="Sincronizações / minuto"
-                type="number"
-                value={form.rate_limit_sync}
-                onChange={update("rate_limit_sync")}
-                inputProps={{ min: 0, max: 5000 }}
-                helperText="Listagens, leitura, entrega e histórico."
-              />
-              <TextField
-                label="Mensagens enviadas / minuto"
-                type="number"
-                value={form.rate_limit_messages}
-                onChange={update("rate_limit_messages")}
-                inputProps={{ min: 0, max: 5000 }}
-                helperText="Envio real de mensagens e anexos."
-              />
-              <TextField
-                label="Eventos de digitação / minuto"
-                type="number"
-                value={form.rate_limit_typing}
-                onChange={update("rate_limit_typing")}
-                inputProps={{ min: 0, max: 5000 }}
-                helperText="Início e parada do indicador de digitação."
-              />
-              <TextField
-                label="Atualizações de presença / minuto"
-                type="number"
-                value={form.rate_limit_presence}
-                onChange={update("rate_limit_presence")}
-                inputProps={{ min: 0, max: 5000 }}
-                helperText="Heartbeat, online, ausente e offline."
-              />
-            </Box>
-          </Box>
+          <Card>
+            <CardHeader>
+              <CardTitle>Proteção contra excesso de uso</CardTitle>
+              <CardDescription>
+                Esses limites evitam spam, loops acidentais e consumo excessivo do chat. Use 0 para desativar um limite específico.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <CampoTexto id="chat-rl-decay" label="Janela de bloqueio (minutos)" type="number" value={form.rate_limit_decay_minutes} onChange={update("rate_limit_decay_minutes")} min={1} max={60} dica="Janela usada para contar as tentativas." />
+              <CampoTexto id="chat-rl-global" label="Limite global do chat / minuto" type="number" value={form.rate_limit_global} onChange={update("rate_limit_global")} min={0} max={5000} dica="Total de requisições do módulo por usuário." />
+              <CampoTexto id="chat-rl-sync" label="Sincronizações / minuto" type="number" value={form.rate_limit_sync} onChange={update("rate_limit_sync")} min={0} max={5000} dica="Listagens, leitura, entrega e histórico." />
+              <CampoTexto id="chat-rl-messages" label="Mensagens enviadas / minuto" type="number" value={form.rate_limit_messages} onChange={update("rate_limit_messages")} min={0} max={5000} dica="Envio real de mensagens e anexos." />
+              <CampoTexto id="chat-rl-typing" label="Eventos de digitação / minuto" type="number" value={form.rate_limit_typing} onChange={update("rate_limit_typing")} min={0} max={5000} dica="Início e parada do indicador de digitação." />
+              <CampoTexto id="chat-rl-presence" label="Atualizações de presença / minuto" type="number" value={form.rate_limit_presence} onChange={update("rate_limit_presence")} min={0} max={5000} dica="Heartbeat, online, ausente e offline." />
+            </CardContent>
+          </Card>
 
-          <Box className="system-config-surface" sx={{ p: 2 }}>
-            <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Comportamento de notificação</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Defina como o chat deve reagir quando uma nova mensagem chegar para o usuário.
-            </Typography>
-            <Stack spacing={1}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={Boolean(form.auto_open_on_message)}
-                    onChange={update("auto_open_on_message")}
-                  />
-                }
-                label="Abrir o painel do chat automaticamente ao receber mensagem"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={Boolean(form.play_sound_on_message)}
-                    onChange={update("play_sound_on_message")}
-                  />
-                }
-                label="Tocar som de alerta ao receber mensagem"
-              />
-            </Stack>
-          </Box>
+          <Card>
+            <CardHeader>
+              <CardTitle>Comportamento de notificação</CardTitle>
+              <CardDescription>
+                Defina como o chat deve reagir quando uma nova mensagem chegar para o usuário.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Interruptor id="chat-auto-open" marcado={form.auto_open_on_message} aoMudar={toggle("auto_open_on_message")}>
+                Abrir o painel do chat automaticamente ao receber mensagem
+              </Interruptor>
+              <Interruptor id="chat-sound" marcado={form.play_sound_on_message} aoMudar={toggle("play_sound_on_message")}>
+                Tocar som de alerta ao receber mensagem
+              </Interruptor>
+            </CardContent>
+          </Card>
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.2 }}>
+          <div className="flex flex-wrap justify-end gap-3">
             {config?.configured && (
               <Button
-                variant="outlined"
+                variant="outline"
                 onClick={() => {
                   applyConfig(config);
                   setEditing(false);
                 }}
                 disabled={saving}
-                sx={modalSecondaryButtonSx}
               >
                 Cancelar
               </Button>
             )}
-            <Button
-              variant="contained"
-              onClick={save}
-              disabled={saving || testing}
-              startIcon={<FeatherIcon icon="save" width="17" />}
-              sx={modalPrimaryButtonSx}
-            >
-              {saving ? "Salvando..." : "Salvar credenciais"}
+            <Button onClick={save} disabled={saving || testing}>
+              <Save /> {saving ? "Salvando..." : "Salvar credenciais"}
             </Button>
-          </Box>
-            </>
-          )}
+          </div>
+        </>
+      )}
 
-          {feedback && <Alert severity={feedback.type}>{feedback.message}</Alert>}
-        </Stack>
-      </BaseCard>
+      {feedback && <Banner tom={tomDoFeedback}>{feedback.message}</Banner>}
+
       <DestructiveConfirmDialog
         open={deleteDialogOpen}
         title="Apagar configurações do chat"
@@ -538,6 +443,6 @@ export default function ChatConfigPage() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={deleteCredentials}
       />
-    </Box>
+    </div>
   );
 }

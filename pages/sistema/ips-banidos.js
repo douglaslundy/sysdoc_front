@@ -1,25 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Collapse,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  styled,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { Trash2 } from "lucide-react";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent } from "../../src/components/ui/card";
+import { DataTable } from "../../src/components/ui/data-table";
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
+import { Paginacao } from "../../src/components/ui/paginacao";
+import { Pilula } from "../../src/components/ui/pilula";
 import { api } from "../../src/services/api";
 import { deviceDetails, deviceSummary } from "../../src/utils/deviceSummary";
 
@@ -29,23 +18,6 @@ const clip = (text, max) => (text && text.length > max ? `${text.slice(0, max - 
 
 const formatDate = (value) => (value ? new Date(value).toLocaleString("pt-BR") : "—");
 
-// Mesmo visual de linha das demais listagens (queue-page).
-const StyledTableRow = styled(TableRow)(() => ({
-  "& td": {
-    background: "var(--queue-row-bg)",
-    borderTop: "0.5px solid var(--lg-border)",
-    borderBottom: "0.5px solid var(--lg-border)",
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: "var(--queue-text-primary)",
-  },
-  "& td:first-of-type": { borderLeft: "0.5px solid var(--lg-border)", borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-  "& td:last-of-type": { borderRight: "0.5px solid var(--lg-border)", borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-  "&:hover td": { background: "var(--queue-row-hover)" },
-}));
-
-const toolbarSx = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1.5, mb: 2, mt: 1 };
-
 export default function IpsBanidosPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,12 +26,12 @@ export default function IpsBanidosPage() {
   const [reason, setReason] = useState("");
   const [limit, setLimit] = useState("5");
   const [saved, setSaved] = useState(false);
-  const [page, setPage] = useState(0); // base 0 (TablePagination); a API usa base 1
+  const [page, setPage] = useState(0); // base 0 (Paginacao); a API usa base 1
   const [perPage, setPerPage] = useState(10);
   const [total, setTotal] = useState(0);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [expanded, setExpanded] = useState({});
+  const [detalhe, setDetalhe] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,143 +96,119 @@ export default function IpsBanidosPage() {
     }
   };
 
+  const colunas = [
+    { chave: "ip", titulo: "IP", render: (item) => <span className="text-base font-semibold" title={item.ip}>{clip(item.ip, 15)}</span> },
+    {
+      chave: "origem",
+      titulo: "Origem do IP",
+      render: (item) => (
+        <>
+          <span className="block text-sm" title={item.origin || ""}>{clip(item.origin, 30) || "—"}</span>
+          {item.client_info ? <span className="block text-xs text-muted-foreground">{deviceSummary(item.client_info)}</span> : null}
+        </>
+      ),
+    },
+    { chave: "motivo", titulo: "Motivo", render: (item) => <span className="text-sm" title={item.reason || ""}>{clip(item.reason, 40) || "—"}</span> },
+    { chave: "tipo", titulo: "Tipo", render: (item) => <Pilula tom={item.source === "auto" ? "alerta" : "info"}>{item.source === "auto" ? "Automático" : "Manual"}</Pilula> },
+    { chave: "banido", titulo: "Banido em", render: (item) => <span className="text-sm">{formatDate(item.created_at)}</span> },
+    { chave: "expira", titulo: "Expira em", render: (item) => <span className="text-sm">{item.expires_at ? formatDate(item.expires_at) : "Permanente"}</span> },
+    {
+      chave: "acoes",
+      titulo: "Ações",
+      render: (item) => (
+        <span className="inline-flex gap-2">
+          <Button size="xs" variant="outline" title="Ver o log completo" onClick={() => setDetalhe(item)}>
+            ver
+          </Button>
+          <Button size="icon-xs" variant="destructive" title="Desbanir" aria-label={`Desbanir ${item.ip}`} onClick={() => unban(item)}>
+            <Trash2 />
+          </Button>
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page">
-      <BaseCard
-        title={`IPs banidos — ${total} ${total === 1 ? "registro" : "registros"}`}
-        subtitle="Robôs que varrem rotas inexistentes são banidos automaticamente. O limite conta 404 em rotas inexistentes em 10 minutos (padrão 5)."
-      >
-        {error ? <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert> : null}
+    <div className="ui-reset flex flex-col gap-4">
+      <CabecalhoDePagina
+        titulo={`IPs banidos — ${total} ${total === 1 ? "registro" : "registros"}`}
+        subtitulo="Robôs que varrem rotas inexistentes são banidos automaticamente. O limite conta 404 em rotas inexistentes em 10 minutos (padrão 5)."
+      />
 
-        <Box className="queue-page__toolbar" sx={toolbarSx}>
-          <TextField
-            className="lg-search-field"
-            type="number"
-            label="Tentativas até bloquear"
-            value={limit}
-            inputProps={{ min: 1, max: 1000 }}
-            sx={{ flex: "0 1 220px", minWidth: 180 }}
-            onChange={(e) => { setLimit(e.target.value); setSaved(false); }}
-          />
-          <Button variant="contained" disabled={!limit || Number(limit) < 1} onClick={saveLimit}>Salvar</Button>
-          {saved ? <Typography color="success.main" variant="body2">Salvo.</Typography> : null}
-        </Box>
+      {error ? <Banner tom="perigo">{error}</Banner> : null}
 
-        <Box className="queue-page__toolbar" sx={toolbarSx}>
-          <TextField
-            className="lg-search-field"
-            placeholder="IP a banir"
-            value={ip}
-            inputProps={{ autoComplete: "off" }}
-            sx={{ flex: "0 1 220px", minWidth: 180 }}
-            onChange={(e) => setIp(e.target.value)}
-          />
-          <TextField
-            className="lg-search-field"
-            placeholder="Motivo"
-            value={reason}
-            inputProps={{ autoComplete: "off" }}
-            sx={{ flex: "1 1 280px", minWidth: 220 }}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          <Button variant="contained" disabled={!ip.trim()} onClick={ban}>Banir IP</Button>
-        </Box>
+      <Card>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-[220px] max-w-full">
+              <CampoTexto
+                id="ip-limite"
+                type="number"
+                label="Tentativas até bloquear"
+                value={limit}
+                min={1}
+                max={1000}
+                onChange={(e) => { setLimit(e.target.value); setSaved(false); }}
+              />
+            </div>
+            <Button disabled={!limit || Number(limit) < 1} onClick={saveLimit}>Salvar</Button>
+            {saved ? <span className="pb-2 text-sm text-success-text">Salvo.</span> : null}
+          </div>
 
-        <Box className="queue-page__toolbar" sx={toolbarSx}>
-          <TextField
-            className="lg-search-field"
-            type="date"
-            label="Banido de"
-            InputLabelProps={{ shrink: true }}
-            value={dateFrom}
-            sx={{ flex: "0 1 200px", minWidth: 180 }}
-            onChange={(e) => { setDateFrom(e.target.value); setPage(0); }}
-          />
-          <TextField
-            className="lg-search-field"
-            type="date"
-            label="Banido até"
-            InputLabelProps={{ shrink: true }}
-            value={dateTo}
-            sx={{ flex: "0 1 200px", minWidth: 180 }}
-            onChange={(e) => { setDateTo(e.target.value); setPage(0); }}
-          />
-          {dateFrom || dateTo ? (
-            <Button variant="outlined" onClick={() => { setDateFrom(""); setDateTo(""); setPage(0); }}>Limpar período</Button>
-          ) : null}
-        </Box>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-[220px] max-w-full">
+              <CampoTexto id="ip-banir" label="IP a banir" placeholder="IP a banir" value={ip} autoComplete="off" onChange={(e) => setIp(e.target.value)} />
+            </div>
+            <div className="min-w-[220px] flex-[1_1_280px]">
+              <CampoTexto id="ip-motivo" label="Motivo" placeholder="Motivo" value={reason} autoComplete="off" onChange={(e) => setReason(e.target.value)} />
+            </div>
+            <Button disabled={!ip.trim()} onClick={ban}>Banir IP</Button>
+          </div>
 
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box>
-        ) : items.length === 0 ? (
-          <Typography color="text.secondary" py={3}>Nenhum IP banido.</Typography>
-        ) : (
-          <TableContainer className="queue-page__table-wrap">
-            <Table className="queue-page__table" sx={{ mt: 2, whiteSpace: "nowrap", borderCollapse: "separate", borderSpacing: "0 10px" }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">IP</Typography></TableCell>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Origem do IP</Typography></TableCell>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Motivo</Typography></TableCell>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Tipo</Typography></TableCell>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Banido em</Typography></TableCell>
-                  <TableCell className="queue-page__th"><Typography variant="h6" color="textSecondary">Expira em</Typography></TableCell>
-                  <TableCell align="center" className="queue-page__th"><Typography variant="h6" color="textSecondary">Ações</Typography></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((item) => (
-                  <React.Fragment key={item.id}>
-                  <StyledTableRow hover>
-                    <TableCell><Typography variant="h6" fontWeight={600} title={item.ip}>{clip(item.ip, 15)}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" title={item.origin || ""}>{clip(item.origin, 30) || "—"}</Typography>{item.client_info ? <Typography variant="caption" color="text.secondary" component="div">{deviceSummary(item.client_info)}</Typography> : null}</TableCell>
-                    <TableCell><Typography variant="body2" title={item.reason || ""}>{clip(item.reason, 40) || "—"}</Typography></TableCell>
-                    <TableCell>
-                      <Chip size="small" color={item.source === "auto" ? "warning" : "info"} label={item.source === "auto" ? "Automático" : "Manual"} />
-                    </TableCell>
-                    <TableCell><Typography variant="body2">{formatDate(item.created_at)}</Typography></TableCell>
-                    <TableCell><Typography variant="body2">{item.expires_at ? formatDate(item.expires_at) : "Permanente"}</Typography></TableCell>
-                    <TableCell align="center">
-                      <Box className="queue-page__actions">
-                        <Button size="small" onClick={() => setExpanded((prev) => ({ ...prev, [item.id]: !prev[item.id] }))} title="Ver o log completo"
-                          endIcon={<FeatherIcon icon={expanded[item.id] ? "chevron-up" : "chevron-down"} width="14" height="14" />}>
-                          ver
-                        </Button>
-                        <Button className="queue-page__action queue-page__action--danger" onClick={() => unban(item)} color="error" variant="contained" size="small" title="Desbanir">
-                          <FeatherIcon icon="trash" width="18" height="18" />
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </StyledTableRow>
-                  <TableRow key={`${item.id}-log`}>
-                    <TableCell colSpan={7} sx={{ p: 0, borderBottom: 0 }}>
-                      <Collapse in={!!expanded[item.id]} timeout="auto" unmountOnExit>
-                        <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 1, m: 1, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                          <Typography variant="body2" component="pre" sx={{ m: 0, fontFamily: "monospace", fontSize: 12 }}>
-                            {[`IP: ${item.ip}`, item.reason ? `Motivo: ${item.reason}` : "", deviceDetails(item.client_info, item.origin) || (item.origin ? `Localização do IP: ${item.origin}` : "")].filter(Boolean).join("\n")}
-                          </Typography>
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-[200px] max-w-full">
+              <CampoTexto id="ip-de" type="date" label="Banido de" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(0); }} />
+            </div>
+            <div className="w-[200px] max-w-full">
+              <CampoTexto id="ip-ate" type="date" label="Banido até" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(0); }} />
+            </div>
+            {dateFrom || dateTo ? (
+              <Button variant="outline" onClick={() => { setDateFrom(""); setDateTo(""); setPage(0); }}>Limpar período</Button>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
 
-        <TablePagination
-          className="queue-page__pagination"
-          component="div"
-          count={total}
-          page={page}
-          onPageChange={(_, p) => setPage(p)}
-          rowsPerPage={perPage}
-          rowsPerPageOptions={PER_PAGE_OPTIONS}
-          onRowsPerPageChange={(e) => { setPerPage(Number(e.target.value)); setPage(0); }}
-        />
-      </BaseCard>
-    </Box>
+      <DataTable
+        rotulo="IPs banidos"
+        colunas={colunas}
+        linhas={items}
+        chaveDaLinha={(item) => item.id}
+        carregando={loading}
+        vazio="Nenhum IP banido."
+      />
+      <Paginacao
+        total={total}
+        pagina={page}
+        porPagina={perPage}
+        opcoes={PER_PAGE_OPTIONS}
+        aoMudarPagina={setPage}
+        aoMudarPorPagina={(n) => { setPerPage(n); setPage(0); }}
+      />
+
+      <Dialogo aberto={Boolean(detalhe)} aoFechar={() => setDetalhe(null)} tamanho="lg">
+        <DialogoCabecalho>
+          <DialogoTitulo>Log do IP</DialogoTitulo>
+        </DialogoCabecalho>
+        {detalhe ? (
+          <pre className="rounded-lg bg-muted p-3 font-mono text-xs break-words whitespace-pre-wrap">
+            {[`IP: ${detalhe.ip}`, detalhe.reason ? `Motivo: ${detalhe.reason}` : "", deviceDetails(detalhe.client_info, detalhe.origin) || (detalhe.origin ? `Localização do IP: ${detalhe.origin}` : "")].filter(Boolean).join("\n")}
+          </pre>
+        ) : null}
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setDetalhe(null)}>Fechar</Button>
+        </DialogoRodape>
+      </Dialogo>
+    </div>
   );
 }

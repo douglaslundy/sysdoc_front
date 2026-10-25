@@ -1,46 +1,12 @@
-﻿import React, { useCallback, useEffect, useState } from "react";
-import { Box } from "@mui/material";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
-import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
+import React, { useCallback, useEffect, useState } from "react";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { CaixaDeMarcacao } from "../../src/components/ui/caixa-de-marcacao";
+import { Carregando } from "../../src/components/ui/carregando";
 import { api } from "../../src/services/api";
-
-const panelStyle = {
-  background: "var(--lg-glass-panel)",
-  border: "1px solid var(--lg-border)",
-  borderRadius: 14,
-  boxShadow: "var(--lg-shadow-panel)",
-};
-
-const fieldStyle = {
-  width: "100%",
-  minHeight: 48,
-  padding: "12px 14px",
-  borderRadius: 10,
-  fontSize: 14,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const labelStyle = {
-  display: "block",
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.07em",
-  textTransform: "uppercase",
-  color: "var(--lg-text-muted)",
-  marginBottom: 6,
-};
-
-const actionStyle = {
-  minHeight: 44,
-  padding: "10px 18px",
-  borderRadius: 10,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 700,
-  cursor: "pointer",
-};
 
 export default function EmailConfigPage() {
   const [loading, setLoading] = useState(true);
@@ -123,146 +89,66 @@ export default function EmailConfigPage() {
   };
 
   if (loading) {
-    return <div style={{ padding: 40, color: "var(--lg-text-muted)" }}>Carregando...</div>;
+    return <Carregando className="justify-center py-16">Carregando...</Carregando>;
   }
 
+  const campo = (nome) => ({ target: { value } }) => setForm((prev) => ({ ...prev, [nome]: value }));
+
   return (
-    <Box className="queue-page system-config-page email-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
-      <div className="system-config-container">
-      <div style={{ marginBottom: 24 }}>
-        <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
-          Configurações E-mail
-        </h1>
-        <p style={{ margin: "6px 0 0", color: "var(--lg-text-muted)", fontSize: 14 }}>
-          Configuração do motor de envio por e-mail usado pelos alertas do sistema.
-        </p>
-      </div>
+    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+      <CabecalhoDePagina
+        titulo="Configurações E-mail"
+        subtitulo="Configuração do motor de envio por e-mail usado pelos alertas do sistema."
+      />
 
-      {feedback ? (
-        <div
-          style={{
-            ...panelStyle,
-            marginBottom: 16,
-            padding: "12px 16px",
-            borderColor: feedback.type === "success" ? "rgba(22,163,74,.35)" : "rgba(220,38,38,.35)",
-            color: feedback.type === "success" ? "var(--success)" : "var(--danger)",
-          }}
-        >
-          {feedback.message}
-        </div>
-      ) : null}
+      {feedback ? <Banner tom={feedback.type === "success" ? "sucesso" : "perigo"}>{feedback.message}</Banner> : null}
 
-      <BaseCard title="Servidor SMTP" sx={{ mb: 2.25 }}>
-        <div className="system-config-section" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div>
-            <label className="system-config-label" style={labelStyle}>Host SMTP</label>
-            <input className="system-config-input" value={form.smtp_host} onChange={(e) => setForm((prev) => ({ ...prev, smtp_host: e.target.value }))} style={fieldStyle} placeholder="smtp.exemplo.com" />
+      <Card>
+        <CardHeader><CardTitle>Servidor SMTP</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <CampoTexto id="smtp-host" label="Host SMTP" value={form.smtp_host} onChange={campo("smtp_host")} placeholder="smtp.exemplo.com" />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CampoTexto id="smtp-port" label="Porta" value={form.smtp_port} onChange={campo("smtp_port")} placeholder="587" />
+            <CampoTexto id="smtp-encryption" label="Criptografia" value={form.smtp_encryption} onChange={campo("smtp_encryption")} placeholder="tls" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
-            <div>
-              <label className="system-config-label" style={labelStyle}>Porta</label>
-              <input className="system-config-input" value={form.smtp_port} onChange={(e) => setForm((prev) => ({ ...prev, smtp_port: e.target.value }))} style={fieldStyle} placeholder="587" />
-            </div>
-            <div>
-              <label className="system-config-label" style={labelStyle}>Criptografia</label>
-              <input className="system-config-input" value={form.smtp_encryption} onChange={(e) => setForm((prev) => ({ ...prev, smtp_encryption: e.target.value }))} style={fieldStyle} placeholder="tls" />
-            </div>
+          <CampoTexto id="smtp-username" label="Usuário" value={form.smtp_username} onChange={campo("smtp_username")} placeholder="usuario@exemplo.com" />
+          <CampoTexto id="smtp-password" label="Senha" type="password" value={form.smtp_password} onChange={campo("smtp_password")} placeholder="............" />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CampoTexto id="from-address" label="E-mail remetente" value={form.from_address} onChange={campo("from_address")} placeholder="noreply@exemplo.com" />
+            <CampoTexto id="from-name" label="Nome remetente" value={form.from_name} onChange={campo("from_name")} placeholder="Sysdoc" />
           </div>
 
-          <div>
-            <label className="system-config-label" style={labelStyle}>Usuário</label>
-            <input className="system-config-input" value={form.smtp_username} onChange={(e) => setForm((prev) => ({ ...prev, smtp_username: e.target.value }))} style={fieldStyle} placeholder="usuario@exemplo.com" />
-          </div>
+          <CaixaDeMarcacao id="email-ativo" marcado={form.email_ativo} aoMudar={(marcado) => setForm((prev) => ({ ...prev, email_ativo: marcado }))}>
+            <span className="font-semibold">Ativar integração de e-mail</span>
+          </CaixaDeMarcacao>
 
-          <div>
-            <label className="system-config-label" style={labelStyle}>Senha</label>
-            <input
-              className="system-config-input"
-              type="password"
-              value={form.smtp_password}
-              onChange={(e) => setForm((prev) => ({ ...prev, smtp_password: e.target.value }))}
-              style={fieldStyle}
-              placeholder="............"
-            />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
-            <div>
-              <label className="system-config-label" style={labelStyle}>E-mail remetente</label>
-              <input className="system-config-input" value={form.from_address} onChange={(e) => setForm((prev) => ({ ...prev, from_address: e.target.value }))} style={fieldStyle} placeholder="noreply@exemplo.com" />
-            </div>
-            <div>
-              <label className="system-config-label" style={labelStyle}>Nome remetente</label>
-              <input className="system-config-input" value={form.from_name} onChange={(e) => setForm((prev) => ({ ...prev, from_name: e.target.value }))} style={fieldStyle} placeholder="Sysdoc" />
-            </div>
-          </div>
-
-          <label className="system-config-checkbox-label">
-            <input
-              type="checkbox"
-              checked={form.email_ativo}
-              onChange={(e) => setForm((prev) => ({ ...prev, email_ativo: e.target.checked }))}
-              style={{ width: 16, height: 16, accentColor: "var(--lg-accent)" }}
-            />
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Ativar integração de e-mail</span>
-          </label>
-
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              className="system-config-action system-config-action--primary"
-              type="button"
-              onClick={salvar}
-              disabled={saving}
-              style={{
-                ...actionStyle,
-                background: saving ? "var(--lg-border)" : "var(--lg-accent)",
-                color: saving ? "var(--lg-text-muted)" : "#000",
-                cursor: saving ? "not-allowed" : "pointer",
-                minWidth: 150,
-              }}
-            >
+          <div className="flex justify-end">
+            <Button onClick={salvar} disabled={saving} className="min-w-[150px]">
               {saving ? "Salvando..." : "Salvar configuração"}
-            </button>
+            </Button>
           </div>
-        </div>
-      </BaseCard>
+        </CardContent>
+      </Card>
 
-      <BaseCard
-        title="Teste de envio"
-        subtitle="Informe um destinatário para validar o servidor SMTP."
-      >
-        <div className="system-config-section">
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 260px" }}>
-              <label className="system-config-label" style={labelStyle}>E-mail destinatário</label>
-              <input
-                className="system-config-input"
-                value={testRecipient}
-                onChange={(e) => setTestRecipient(e.target.value)}
-                placeholder="destino@exemplo.com"
-                style={fieldStyle}
-              />
+      <Card>
+        <CardHeader>
+          <CardTitle>Teste de envio</CardTitle>
+          <CardDescription>Informe um destinatário para validar o servidor SMTP.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[260px] flex-[1_1_260px]">
+              <CampoTexto id="email-teste" label="E-mail destinatário" value={testRecipient} onChange={(e) => setTestRecipient(e.target.value)} placeholder="destino@exemplo.com" />
             </div>
-            <button
-              className="system-config-action system-config-action--success"
-              type="button"
-              onClick={testar}
-              disabled={testing}
-              style={{
-                ...actionStyle,
-                background: testing ? "var(--lg-border)" : "var(--success)",
-                color: testing ? "var(--lg-text-muted)" : "#fff",
-                cursor: testing ? "not-allowed" : "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
+            <Button variant="success" onClick={testar} disabled={testing}>
               {testing ? "Enviando..." : "Enviar teste"}
-            </button>
+            </Button>
           </div>
-        </div>
-      </BaseCard>
-      </div>
-    </Box>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

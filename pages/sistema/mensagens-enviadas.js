@@ -1,22 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Box,
-  Chip,
-  CircularProgress,
-  Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import BaseCard from "../../src/components/baseCard/BaseCard";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoDeBusca } from "../../src/components/ui/campo-de-busca";
+import { CampoTexto } from "../../src/components/ui/campos";
+import { DataTable } from "../../src/components/ui/data-table";
+import { Pilula } from "../../src/components/ui/pilula";
 import { getMessageLogs } from "../../src/store/fetchActions/messageLogs";
 
 const CANAIS = [
@@ -50,114 +39,73 @@ export default function MensagensEnviadasPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canal, busca, de, ate]);
 
-  return (
-    <BaseCard title="Mensagens enviadas" subtitle="Histórico de mensagens enviadas pelo sistema por WhatsApp e e-mail">
-      <Box display="flex" gap={2} flexWrap="wrap" alignItems="center" mb={2}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={canal}
-          onChange={(_, value) => {
-            if (value !== null) setCanal(value);
-          }}
-        >
-          {CANAIS.map((c) => (
-            <ToggleButton key={c.value || "todos"} value={c.value}>
-              {c.label}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <TextField size="small" label="Buscar" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        <TextField
-          size="small"
-          type="date"
-          label="De"
-          InputLabelProps={{ shrink: true }}
-          value={de}
-          onChange={(e) => setDe(e.target.value)}
-        />
-        <TextField
-          size="small"
-          type="date"
-          label="Até"
-          InputLabelProps={{ shrink: true }}
-          value={ate}
-          onChange={(e) => setAte(e.target.value)}
-        />
-      </Box>
+  const colunas = [
+    { chave: "data", titulo: "Data", render: (item) => <span className="text-sm whitespace-nowrap">{formatDate(item.created_at)}</span> },
+    { chave: "canal", titulo: "Canal", render: (item) => <Pilula tom={item.canal === "whatsapp" ? "sucesso" : "info"} contorno>{item.canal === "whatsapp" ? "WhatsApp" : "E-mail"}</Pilula> },
+    {
+      chave: "destino",
+      titulo: "Destinatário",
+      render: (item) => (
+        <>
+          {item.user?.name ? <span className="block text-sm">{item.user.name}</span> : null}
+          <span className="block text-xs text-muted-foreground">{item.destino}</span>
+        </>
+      ),
+    },
+    {
+      chave: "mensagem",
+      titulo: "Mensagem",
+      render: (item) => (
+        <span className="block max-w-[360px] text-sm whitespace-normal" title={item.mensagem}>
+          {item.assunto ? <strong className="block">{item.assunto}</strong> : null}
+          {item.mensagem.length > 120 ? `${item.mensagem.slice(0, 120)}…` : item.mensagem}
+        </span>
+      ),
+    },
+    { chave: "origem", titulo: "Origem", render: (item) => item.origem || "—" },
+    { chave: "status", titulo: "Status", render: (item) => <span title={item.erro || ""}><Pilula tom={item.status === "enviado" ? "sucesso" : "perigo"}>{item.status === "enviado" ? "Enviado" : "Erro"}</Pilula></span> },
+  ];
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" py={4}>
-          <CircularProgress />
-        </Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary" py={3}>
-          Nenhuma mensagem encontrada.
-        </Typography>
-      ) : (
-        <Box sx={{ overflowX: "auto" }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Data</TableCell>
-                <TableCell>Canal</TableCell>
-                <TableCell>Destinatário</TableCell>
-                <TableCell>Mensagem</TableCell>
-                <TableCell>Origem</TableCell>
-                <TableCell>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id} hover>
-                  <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDate(item.created_at)}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      label={item.canal === "whatsapp" ? "WhatsApp" : "E-mail"}
-                      color={item.canal === "whatsapp" ? "success" : "info"}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {item.user?.name ? <div>{item.user.name}</div> : null}
-                    <Typography variant="caption" color="text.secondary">
-                      {item.destino}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 360 }}>
-                    {item.assunto ? (
-                      <strong>
-                        {item.assunto}
-                        <br />
-                      </strong>
-                    ) : null}
-                    <Tooltip title={item.mensagem}>
-                      <span>{item.mensagem.length > 120 ? `${item.mensagem.slice(0, 120)}…` : item.mensagem}</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>{item.origem || "—"}</TableCell>
-                  <TableCell>
-                    <Tooltip title={item.erro || ""}>
-                      <Chip
-                        size="small"
-                        label={item.status === "enviado" ? "Enviado" : "Erro"}
-                        color={item.status === "enviado" ? "success" : "error"}
-                      />
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
-      )}
+  return (
+    <div className="ui-reset flex flex-col gap-4">
+      <CabecalhoDePagina
+        titulo="Mensagens enviadas"
+        subtitulo="Histórico de mensagens enviadas pelo sistema por WhatsApp e e-mail"
+      />
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div role="group" aria-label="Canal" className="flex gap-1">
+          {CANAIS.map((c) => (
+            <Button key={c.value || "todos"} variant={canal === c.value ? "default" : "outline"} aria-pressed={canal === c.value} onClick={() => setCanal(c.value)}>
+              {c.label}
+            </Button>
+          ))}
+        </div>
+        <CampoDeBusca rotulo="Buscar" placeholder="Buscar" value={busca} onChange={(e) => setBusca(e.target.value)} className="min-w-[220px] flex-[1_1_240px]" />
+        <div className="w-[170px]">
+          <CampoTexto id="msg-de" type="date" label="De" value={de} onChange={(e) => setDe(e.target.value)} />
+        </div>
+        <div className="w-[170px]">
+          <CampoTexto id="msg-ate" type="date" label="Até" value={ate} onChange={(e) => setAte(e.target.value)} />
+        </div>
+      </div>
+
+      <DataTable
+        rotulo="mensagens enviadas"
+        colunas={colunas}
+        linhas={items}
+        chaveDaLinha={(item) => item.id}
+        carregando={loading}
+        vazio="Nenhuma mensagem encontrada."
+      />
 
       {lastPage > 1 ? (
-        <Box display="flex" justifyContent="center" mt={2}>
-          <Pagination count={lastPage} page={page} onChange={(_, value) => load(value)} />
-        </Box>
+        <nav aria-label="Paginação" className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => load(page - 1)}>Anterior</Button>
+          <span className="text-sm text-muted-foreground">Página {page} de {lastPage}</span>
+          <Button variant="outline" size="sm" disabled={page >= lastPage} onClick={() => load(page + 1)}>Próxima</Button>
+        </nav>
       ) : null}
-    </BaseCard>
+    </div>
   );
 }

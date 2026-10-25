@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Divider,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Loader2 } from "lucide-react";
+import { Banner } from "../src/components/ui/banner";
+import { Button } from "../src/components/ui/button";
+import { CampoSelecao, CampoTexto } from "../src/components/ui/campos";
+import { Card, CardContent } from "../src/components/ui/card";
 import { listarMotivos, registrarPeticao } from "../src/services/peticaoPublica";
 
 const MAX_FILES = 5;
@@ -115,38 +108,44 @@ export default function Petition() {
   };
 
   const shell = (children) => (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 4, px: 2, display: "flex", justifyContent: "center" }}>
-      <Box sx={{ width: "100%", maxWidth: 720 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>Petição à Vigilância Sanitária</Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
+    <div className="ui-reset flex min-h-screen justify-center bg-background px-4 py-8 text-foreground">
+      <div className="w-full max-w-[720px]">
+        <h1 className="mb-1 text-3xl font-extrabold">Petição à Vigilância Sanitária</h1>
+        <p className="mb-6 text-muted-foreground">
           Registre uma denúncia, solicite uma vistoria ou outra petição. Você não precisa se identificar.
-        </Typography>
+        </p>
         {children}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 
   if (recibo) {
     return shell(
       <Card>
-        <CardContent>
-          <Alert severity="success" sx={{ mb: 2 }}>Petição registrada com sucesso.</Alert>
-          <Typography variant="overline">Protocolo</Typography>
-          <Typography variant="h5" sx={{ fontWeight: 800 }}>{recibo.protocolo}</Typography>
-          <Typography variant="overline" sx={{ mt: 2, display: "block" }}>Senha de consulta</Typography>
-          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 3 }}>{recibo.senha}</Typography>
-          <Alert severity="warning" sx={{ my: 2 }}>
+        <CardContent className="flex flex-col gap-3">
+          <Banner tom="sucesso">Petição registrada com sucesso.</Banner>
+          <div>
+            <span className="block text-xs tracking-wide text-muted-foreground uppercase">Protocolo</span>
+            <p className="text-2xl font-extrabold">{recibo.protocolo}</p>
+          </div>
+          <div>
+            <span className="block text-xs tracking-wide text-muted-foreground uppercase">Senha de consulta</span>
+            <p className="text-2xl font-extrabold tracking-[3px]">{recibo.senha}</p>
+          </div>
+          <Banner tom="alerta">
             Guarde a senha agora: ela é mostrada só uma vez e não pode ser recuperada. Sem ela você não consegue acompanhar a petição.
-          </Alert>
-          <Typography variant="overline">Acompanhe em</Typography>
-          <Typography sx={{ wordBreak: "break-all" }}>{recibo.url_consulta}</Typography>
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
-            <Button variant="outlined" onClick={() => copiar("protocolo", recibo.protocolo)}>Copiar protocolo</Button>
-            <Button variant="outlined" onClick={() => copiar("senha", recibo.senha)}>Copiar senha</Button>
-            <Button variant="outlined" onClick={() => copiar("link", recibo.url_consulta)}>Copiar endereço</Button>
-            <Button variant="contained" onClick={() => window.print()}>Imprimir</Button>
-          </Stack>
-          {copiado ? <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>Copiado: {copiado}.</Typography> : null}
+          </Banner>
+          <div>
+            <span className="block text-xs tracking-wide text-muted-foreground uppercase">Acompanhe em</span>
+            <p className="break-all">{recibo.url_consulta}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => copiar("protocolo", recibo.protocolo)}>Copiar protocolo</Button>
+            <Button variant="outline" onClick={() => copiar("senha", recibo.senha)}>Copiar senha</Button>
+            <Button variant="outline" onClick={() => copiar("link", recibo.url_consulta)}>Copiar endereço</Button>
+            <Button onClick={() => window.print()}>Imprimir</Button>
+          </div>
+          {copiado ? <span className="text-xs text-muted-foreground">Copiado: {copiado}.</span> : null}
         </CardContent>
       </Card>
     );
@@ -155,91 +154,83 @@ export default function Petition() {
   return shell(
     <Card>
       <CardContent>
-        <Box component="form" onSubmit={handleSubmit} noValidate>
-          <Stack spacing={2}>
-            {errors.length > 0 && (
-              <Alert severity="error">
-                {errors.map((message) => (
-                  <div key={message}>{message}</div>
-                ))}
-              </Alert>
-            )}
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          {errors.length > 0 && (
+            <Banner tom="perigo">
+              {errors.map((message) => (
+                <div key={message}>{message}</div>
+              ))}
+            </Banner>
+          )}
 
-            {motivos.length > 0 && (
-              <TextField
-                select
-                required
-                label="Motivo da petição"
-                name="motivo_id"
-                value={form.motivo_id}
-                onChange={change}
-                SelectProps={{ native: true }}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              >
-                <option value="">Selecione...</option>
-                {motivos.map((motivo) => (
-                  <option key={motivo.id} value={String(motivo.id)}>{motivo.nome}</option>
-                ))}
-              </TextField>
-            )}
+          {motivos.length > 0 && (
+            <CampoSelecao id="pet-motivo" label="Motivo da petição" obrigatorio name="motivo_id" value={form.motivo_id} onChange={change}>
+              <option value="">Selecione...</option>
+              {motivos.map((motivo) => (
+                <option key={motivo.id} value={String(motivo.id)}>{motivo.nome}</option>
+              ))}
+            </CampoSelecao>
+          )}
 
-            <TextField label="Assunto *" name="assunto" value={form.assunto} onChange={change} inputProps={{ maxLength: 200 }} fullWidth />
-            <TextField
-              label="Descreva a petição *"
-              name="descricao_denuncia"
-              value={form.descricao_denuncia}
-              onChange={change}
-              multiline
-              minRows={4}
-              inputProps={{ maxLength: 4000 }}
-              fullWidth
+          <CampoTexto id="pet-assunto" label="Assunto" obrigatorio name="assunto" value={form.assunto} onChange={change} maxLength={200} />
+          <CampoTexto
+            id="pet-descricao"
+            label="Descreva a petição"
+            obrigatorio
+            name="descricao_denuncia"
+            value={form.descricao_denuncia}
+            onChange={change}
+            multiline
+            rows={4}
+            maxLength={4000}
+          />
+          <CampoTexto id="pet-local" label="Local/endereço" obrigatorio name="local_endereco" value={form.local_endereco} onChange={change} maxLength={255} />
+          <CampoTexto
+            id="pet-estabelecimento"
+            label="Nome do estabelecimento (se souber)"
+            name="estabelecimento_nome_informado"
+            value={form.estabelecimento_nome_informado}
+            onChange={change}
+            maxLength={200}
+          />
+
+          <div className="border-t border-border pt-4">
+            <h2 className="mb-3 text-sm font-semibold">Identificação (opcional)</h2>
+            <div className="flex flex-col gap-4">
+              <CampoTexto id="pet-nome" label="Seu nome (opcional)" name="denunciante_nome" value={form.denunciante_nome} onChange={change} maxLength={150} />
+              <CampoTexto id="pet-contato" label="Contato (opcional)" name="denunciante_contato" value={form.denunciante_contato} onChange={change} maxLength={150} />
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <h2 className="text-sm font-semibold">Fotos e arquivos (opcional)</h2>
+            <span className="text-xs text-muted-foreground">
+              Até {MAX_FILES} arquivos de {MAX_FILE_MB} MB (JPG, PNG, WEBP ou PDF).
+            </span>
+            <input
+              aria-label="Fotos e arquivos"
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={handleFiles}
+              className="mt-2 block text-sm"
             />
-            <TextField label="Local/endereço *" name="local_endereco" value={form.local_endereco} onChange={change} inputProps={{ maxLength: 255 }} fullWidth />
-            <TextField
-              label="Nome do estabelecimento (se souber)"
-              name="estabelecimento_nome_informado"
-              value={form.estabelecimento_nome_informado}
-              onChange={change}
-              inputProps={{ maxLength: 200 }}
-              fullWidth
-            />
+            {files.length > 0 && <span className="text-xs">{files.length} arquivo(s) selecionado(s).</span>}
+          </div>
 
-            <Divider />
-            <Typography variant="subtitle2">Identificação (opcional)</Typography>
-            <TextField label="Seu nome (opcional)" name="denunciante_nome" value={form.denunciante_nome} onChange={change} inputProps={{ maxLength: 150 }} fullWidth />
-            <TextField label="Contato (opcional)" name="denunciante_contato" value={form.denunciante_contato} onChange={change} inputProps={{ maxLength: 150 }} fullWidth />
+          {/* Campo isca: invisível para pessoas; robôs costumam preencher. */}
+          <div aria-hidden="true" className="absolute -left-[10000px] size-px overflow-hidden">
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={change} />
+          </div>
 
-            <Divider />
-            <Box>
-              <Typography variant="subtitle2">Fotos e arquivos (opcional)</Typography>
-              <Typography variant="caption" color="text.secondary">
-                Até {MAX_FILES} arquivos de {MAX_FILE_MB} MB (JPG, PNG, WEBP ou PDF).
-              </Typography>
-              <input
-                aria-label="Fotos e arquivos"
-                type="file"
-                multiple
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                onChange={handleFiles}
-                style={{ display: "block", marginTop: 8 }}
-              />
-              {files.length > 0 && <Typography variant="caption">{files.length} arquivo(s) selecionado(s).</Typography>}
-            </Box>
-
-            {/* Campo isca: invisível para pessoas; robôs costumam preencher. */}
-            <Box aria-hidden="true" sx={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
-              <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={change} />
-            </Box>
-
-            <Button type="submit" variant="contained" size="large" disabled={sending} startIcon={sending ? <CircularProgress size={18} /> : null}>
-              Enviar petição
-            </Button>
-            <Typography variant="caption" color="text.secondary">
-              Ao enviar, você receberá um protocolo e uma senha para acompanhar o andamento.
-            </Typography>
-          </Stack>
-        </Box>
+          <Button type="submit" size="lg" disabled={sending}>
+            {sending ? <Loader2 className="animate-spin" /> : null}
+            Enviar petição
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Ao enviar, você receberá um protocolo e uma senha para acompanhar o andamento.
+          </span>
+        </form>
       </CardContent>
     </Card>
   );

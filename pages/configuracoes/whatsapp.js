@@ -1,111 +1,72 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Box } from "@mui/material";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
-import { systemConfigPageSx } from "../../src/components/systemConfig/systemConfigPageStyles";
+import { Eye, EyeOff } from "lucide-react";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { Campo, CampoTexto, Input } from "../../src/components/ui/campos";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { CaixaDeMarcacao } from "../../src/components/ui/caixa-de-marcacao";
+import { Carregando } from "../../src/components/ui/carregando";
+import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
+import { Pilula } from "../../src/components/ui/pilula";
 import { api } from "../../src/services/api";
-
-const panelStyle = {
-  background: "var(--lg-glass-panel)",
-  border: "1px solid var(--lg-border)",
-  borderRadius: 14,
-  boxShadow: "var(--lg-shadow-panel)",
-};
-
-const fieldStyle = {
-  width: "100%",
-  minHeight: 48,
-  padding: "12px 14px",
-  borderRadius: 10,
-  fontSize: 14,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const labelStyle = {
-  display: "block",
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.07em",
-  textTransform: "uppercase",
-  color: "var(--lg-text-muted)",
-  marginBottom: 6,
-};
-
-const actionStyle = {
-  minHeight: 44,
-  padding: "10px 18px",
-  borderRadius: 10,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 700,
-  cursor: "pointer",
-};
+import { useUid } from "../../src/lib/useUid";
 
 function SecretInput({ label, value, onChange, placeholder, maskedValue = "" }) {
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState(false);
   const displayValue = !editing && !value && maskedValue ? maskedValue : value;
+  const uid = useUid("segredo");
 
   return (
-    <div>
-      <label className="system-config-label" style={labelStyle}>{label}</label>
-      <div style={{ position: "relative" }}>
-        <input
-          className="system-config-input"
-          type={visible ? "text" : "password"}
-          value={displayValue}
-          onFocus={() => {
-            if (!value && maskedValue) {
-              setEditing(true);
-            }
-          }}
-          onBlur={() => {
-            if (!value) {
-              setEditing(false);
-            }
-          }}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder || "••••••••••••"}
-          style={{ ...fieldStyle, paddingRight: 42 }}
-        />
-        <button
-          type="button"
-          onClick={() => setVisible((prev) => !prev)}
-          style={{
-            position: "absolute",
-            right: 8,
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--lg-text-muted)",
-            fontSize: 13,
-            padding: 4,
-          }}
-        >
-          {visible ? "🙈" : "👁"}
-        </button>
-      </div>
-    </div>
+    <Campo id={uid} label={label}>
+      {(p) => (
+        <div className="relative">
+          <Input
+            {...p}
+            type={visible ? "text" : "password"}
+            value={displayValue}
+            onFocus={() => {
+              if (!value && maskedValue) {
+                setEditing(true);
+              }
+            }}
+            onBlur={() => {
+              if (!value) {
+                setEditing(false);
+              }
+            }}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder || "••••••••••••"}
+            className="pr-11"
+          />
+          <button
+            type="button"
+            aria-label={visible ? "Ocultar valor" : "Mostrar valor"}
+            onClick={() => setVisible((prev) => !prev)}
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-muted-foreground outline-none hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25"
+          >
+            {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
+      )}
+    </Campo>
   );
 }
 
 function StatusChip({ status }) {
   const normalized = String(status || "").toLowerCase();
   const map = {
-    open: { label: "● Conectado", color: "var(--success)" },
-    connecting: { label: "◌ Conectando", color: "var(--accent)" },
-    close: { label: "● Desconectado", color: "var(--danger)" },
-    disconnected: { label: "● Desconectado", color: "var(--danger)" },
-    unknown: { label: "? Desconhecido", color: "var(--lg-text-muted)" },
+    open: { label: "Conectado", tom: "sucesso" },
+    connecting: { label: "Conectando", tom: "alerta" },
+    close: { label: "Desconectado", tom: "perigo" },
+    disconnected: { label: "Desconectado", tom: "perigo" },
+    unknown: { label: "Desconhecido", tom: "neutro" },
   };
   const item = map[normalized] || map.unknown;
 
-  return <span style={{ fontSize: 13, fontWeight: 700, color: item.color }}>{item.label}</span>;
+  return <Pilula tom={item.tom}>{item.label}</Pilula>;
 }
-
 export default function WhatsappConfigPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -265,235 +226,86 @@ export default function WhatsappConfigPage() {
     }
   };
 
+  const conectado = String(status.status || "").toLowerCase() === "open";
+  const fecharQr = () => {
+    setShowQr(false);
+    setQrCode(null);
+  };
+
   if (loading) {
-    return <div style={{ padding: 40, color: "var(--lg-text-muted)" }}>Carregando...</div>;
+    return <Carregando className="justify-center py-16">Carregando...</Carregando>;
   }
 
   return (
-    <Box className="queue-page system-config-page whatsapp-config-page" sx={{ ...modalFormRootSx, ...systemConfigPageSx }}>
-      <div className="system-config-container">
-      <div style={{ marginBottom: 24 }}>
-        <h1 className="font-display" style={{ fontSize: 30, fontWeight: 800, margin: 0 }}>
-          Configurações WhatsApp
-        </h1>
-        <p style={{ margin: "6px 0 0", color: "var(--lg-text-muted)", fontSize: 14 }}>
-          Configuração geral do sistema para a integração com a Evolution API.
-        </p>
-      </div>
+    <div className="ui-reset mx-auto flex max-w-3xl flex-col gap-4">
+      <CabecalhoDePagina
+        titulo="Configurações WhatsApp"
+        subtitulo="Configuração geral do sistema para a integração com a Evolution API."
+      />
 
-      {feedback ? (
-        <div
-          style={{
-            ...panelStyle,
-            marginBottom: 16,
-            padding: "12px 16px",
-            borderColor: feedback.type === "success" ? "rgba(22,163,74,.35)" : "rgba(220,38,38,.35)",
-            color: feedback.type === "success" ? "var(--success)" : "var(--danger)",
-          }}
-        >
-          {feedback.message}
-        </div>
-      ) : null}
+      {feedback ? <Banner tom={feedback.type === "success" ? "sucesso" : "perigo"}>{feedback.message}</Banner> : null}
 
-      <BaseCard
-        title="Status da instância"
-        sx={{ mb: 2.25 }}
-        action={
-          <div className="system-config-inline-actions">
-            {String(status.status || "").toLowerCase() !== "open" ? (
-              <button
-                className="system-config-action system-config-action--primary"
-                type="button"
-                onClick={verQrCode}
-                style={{ ...actionStyle, background: "var(--lg-accent)", color: "#000" }}
-              >
-                Escanear QR Code
-              </button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Status da instância</CardTitle>
+          <CardAction className="flex flex-wrap gap-2">
+            {!conectado ? (
+              <Button onClick={verQrCode}>Escanear QR Code</Button>
             ) : (
-              <button
-                className="system-config-action system-config-action--danger"
-                type="button"
-                onClick={desconectar}
-                disabled={disconnecting}
-                style={{
-                  ...actionStyle,
-                  background: "transparent",
-                  border: "1px solid var(--danger)",
-                  color: "var(--danger)",
-                  cursor: disconnecting ? "not-allowed" : "pointer",
-                }}
-              >
+              <Button variant="destructive" onClick={desconectar} disabled={disconnecting}>
                 {disconnecting ? "Desconectando..." : "Desconectar"}
-              </button>
+              </Button>
             )}
-            <button
-              className="system-config-action system-config-action--secondary"
-              type="button"
-              onClick={fetchStatus}
-              style={{
-                ...actionStyle,
-                background: "transparent",
-                border: "1px solid var(--lg-border)",
-                color: "var(--lg-text-muted)",
-              }}
-            >
-              Atualizar
-            </button>
-          </div>
-        }
-      >
-        <div className="system-config-section">
-          <div style={{ fontSize: 12, color: "var(--lg-text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Status da instância
-          </div>
+            <Button variant="outline" onClick={fetchStatus}>Atualizar</Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-1 text-xs tracking-wide text-muted-foreground uppercase">Status da instância</div>
           <StatusChip status={status.status} />
           {status.number ? (
-            <div style={{ marginTop: 4, fontSize: 12, color: "var(--lg-text-muted)" }}>
-              📱 {String(status.number).replace("@s.whatsapp.net", "")}
-            </div>
+            <div className="mt-1 text-xs text-muted-foreground">{String(status.number).replace("@s.whatsapp.net", "")}</div>
           ) : null}
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="system-config-inline-actions" style={{ display: "none" }}>
-          {String(status.status || "").toLowerCase() !== "open" ? (
-            <button
-              className="system-config-action system-config-action--primary"
-              type="button"
-              onClick={verQrCode}
-              style={{ ...actionStyle, background: "var(--lg-accent)", color: "#000" }}
-            >
-              📷 Escanear QR Code
-            </button>
-          ) : (
-            <button
-              className="system-config-action system-config-action--danger"
-              type="button"
-              onClick={desconectar}
-              disabled={disconnecting}
-              style={{
-                ...actionStyle,
-                background: "transparent",
-                border: "1px solid var(--danger)",
-                color: "var(--danger)",
-                cursor: disconnecting ? "not-allowed" : "pointer",
-              }}
-            >
-              {disconnecting ? "⟳ Desconectando..." : "⏻ Desconectar"}
-            </button>
-          )}
-          <button
-            className="system-config-action system-config-action--secondary"
-            type="button"
-            onClick={fetchStatus}
-            style={{
-              ...actionStyle,
-              background: "transparent",
-              border: "1px solid var(--lg-border)",
-              color: "var(--lg-text-muted)",
-            }}
-          >
-            ↻ Atualizar
-          </button>
-        </div>
-      </BaseCard>
-
-      {showQr ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "rgba(0,0,0,.72)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            style={{
-              ...panelStyle,
-              background: "var(--lg-glass-modal)",
-              padding: 28,
-              width: "100%",
-              maxWidth: 420,
-              textAlign: "center",
-            }}
-          >
-            <h3 className="font-display" style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800 }}>
-              Escanear QR Code
-            </h3>
-            <p style={{ margin: "0 0 18px", color: "var(--lg-text-muted)", fontSize: 13 }}>
-              Abra o WhatsApp, vá em Dispositivos vinculados e escaneie o código abaixo.
-            </p>
-
-            {qrCode ? (
-              <img
-                src={String(qrCode).startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
-                alt="QR Code WhatsApp"
-                style={{
-                  width: 240,
-                  height: 240,
-                  borderRadius: 12,
-                  background: "#fff",
-                  padding: 10,
-                  objectFit: "contain",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 240,
-                  height: 240,
-                  margin: "0 auto",
-                  borderRadius: 12,
-                  background: "var(--lg-glass-input)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "var(--lg-text-muted)",
-                }}
-              >
-                Carregando QR...
-              </div>
-            )}
-
-            <div style={{ marginTop: 14, color: "var(--lg-text-muted)", fontSize: 12 }}>
-              ◌ Aguardando conexão... a tela atualiza automaticamente.
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowQr(false);
-                setQrCode(null);
-              }}
-              style={{
-                ...actionStyle,
-                marginTop: 16,
-                background: "transparent",
-                border: "1px solid var(--lg-border)",
-                color: "var(--lg-text-muted)",
-              }}
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      <BaseCard title="Credenciais da integração" sx={{ mb: 2.25 }}>
-        <div className="system-config-section" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Dialogo aberto={showQr} aoFechar={fecharQr} tamanho="sm">
+        <DialogoCabecalho>
           <div>
-            <label className="system-config-label" style={labelStyle}>URL da Evolution API</label>
-            <input
-              className="system-config-input"
-              value={form.whatsapp_base_url}
-              onChange={(e) => updateField("whatsapp_base_url")(e.target.value)}
-              style={fieldStyle}
-              placeholder="http://192.168.0.115:8081"
-            />
+            <DialogoTitulo>Escanear QR Code</DialogoTitulo>
+            <DialogoDescricao>Abra o WhatsApp, vá em Dispositivos vinculados e escaneie o código abaixo.</DialogoDescricao>
           </div>
+        </DialogoCabecalho>
+
+        <div className="flex flex-col items-center gap-3 text-center">
+          {qrCode ? (
+            <img
+              src={String(qrCode).startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+              alt="QR Code WhatsApp"
+              className="size-60 rounded-xl bg-white object-contain p-2.5"
+            />
+          ) : (
+            <div className="flex size-60 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+              Carregando QR...
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">Aguardando conexão... a tela atualiza automaticamente.</p>
+        </div>
+
+        <DialogoRodape>
+          <Button variant="outline" onClick={fecharQr}>Fechar</Button>
+        </DialogoRodape>
+      </Dialogo>
+
+      <Card>
+        <CardHeader><CardTitle>Credenciais da integração</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <CampoTexto
+            id="wa-base-url"
+            label="URL da Evolution API"
+            value={form.whatsapp_base_url}
+            onChange={(e) => updateField("whatsapp_base_url")(e.target.value)}
+            placeholder="http://192.168.0.115:8081"
+          />
 
           <SecretInput
             label="API Key (apikey)"
@@ -503,16 +315,13 @@ export default function WhatsappConfigPage() {
             placeholder="620096bf1e66..."
           />
 
-          <div>
-            <label className="system-config-label" style={labelStyle}>Nome da instância</label>
-            <input
-              className="system-config-input"
-              value={form.whatsapp_instance_name}
-              onChange={(e) => updateField("whatsapp_instance_name")(e.target.value)}
-              style={fieldStyle}
-              placeholder="sysdoc"
-            />
-          </div>
+          <CampoTexto
+            id="wa-instance"
+            label="Nome da instância"
+            value={form.whatsapp_instance_name}
+            onChange={(e) => updateField("whatsapp_instance_name")(e.target.value)}
+            placeholder="sysdoc"
+          />
 
           <SecretInput
             label="Token da instância (opcional)"
@@ -520,119 +329,54 @@ export default function WhatsappConfigPage() {
             onChange={updateField("whatsapp_instance_token")}
           />
 
-          <label className="system-config-checkbox-label">
-            <input
-              type="checkbox"
-              checked={form.whatsapp_ativo}
-              onChange={(e) => updateField("whatsapp_ativo")(e.target.checked)}
-              style={{ width: 16, height: 16, accentColor: "var(--lg-accent)" }}
-            />
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Ativar integração WhatsApp</span>
-          </label>
+          <CaixaDeMarcacao id="wa-ativo" marcado={form.whatsapp_ativo} aoMudar={updateField("whatsapp_ativo")}>
+            <span className="font-semibold">Ativar integração WhatsApp</span>
+          </CaixaDeMarcacao>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, paddingTop: 8, borderTop: "1px solid var(--lg-border)" }}>
-            <button
-              className="system-config-action system-config-action--secondary"
-              type="button"
-              onClick={testar}
-              disabled={testing}
-              style={{
-                ...actionStyle,
-                background: "transparent",
-                border: "1px solid var(--lg-accent)",
-                color: "var(--lg-accent)",
-                cursor: testing ? "not-allowed" : "pointer",
-              }}
-            >
-              {testing ? "⟳ Testando..." : "🔌 Testar conexão"}
-            </button>
-            <button
-              className="system-config-action system-config-action--primary"
-              type="button"
-              onClick={salvar}
-              disabled={saving}
-              style={{
-                ...actionStyle,
-                background: saving ? "var(--lg-border)" : "var(--lg-accent)",
-                color: saving ? "var(--lg-text-muted)" : "#000",
-                cursor: saving ? "not-allowed" : "pointer",
-                minWidth: 140,
-              }}
-            >
-              {saving ? "⟳ Salvando..." : "Salvar configuração"}
-            </button>
+          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-3">
+            <Button variant="outline" onClick={testar} disabled={testing}>
+              {testing ? "Testando..." : "Testar conexão"}
+            </Button>
+            <Button onClick={salvar} disabled={saving} className="min-w-[140px]">
+              {saving ? "Salvando..." : "Salvar configuração"}
+            </Button>
           </div>
-        </div>
-      </BaseCard>
+        </CardContent>
+      </Card>
 
-      <BaseCard
-        title="Enviar mensagem de teste"
-        subtitle="Informe um número com DDD para confirmar o envio."
-      >
-        <div className="system-config-section">
-          {String(status.status || "").toLowerCase() !== "open" ? (
-            <div
-              style={{
-                marginBottom: 14,
-                padding: "10px 14px",
-                background: "rgba(245, 166, 35, .08)",
-                border: "1px solid rgba(245, 166, 35, .25)",
-                borderRadius: 10,
-                fontSize: 13,
-                color: "var(--lg-text-accent)",
-              }}
-            >
-              ⚠️ O WhatsApp precisa estar conectado para enviar mensagens. Escaneie o QR code primeiro.
+      <Card>
+        <CardHeader>
+          <CardTitle>Enviar mensagem de teste</CardTitle>
+          <CardDescription>Informe um número com DDD para confirmar o envio.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!conectado ? (
+            <div className="mb-4">
+              <Banner tom="alerta">O WhatsApp precisa estar conectado para enviar mensagens. Escaneie o QR code primeiro.</Banner>
             </div>
           ) : null}
 
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 260px" }}>
-              <label className="system-config-label" style={labelStyle}>Número do WhatsApp (com DDD)</label>
-              <input
-                className="system-config-input"
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[260px] flex-[1_1_260px]">
+              <CampoTexto
+                id="wa-teste"
+                label="Número do WhatsApp (com DDD)"
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") enviarTeste();
                 }}
                 placeholder="11999998888"
-                style={fieldStyle}
               />
             </div>
-            <button
-              className="system-config-action system-config-action--success"
-              type="button"
-              onClick={enviarTeste}
-              disabled={sendingTest || String(status.status || "").toLowerCase() !== "open"}
-              style={{
-                ...actionStyle,
-                background: sendingTest || String(status.status || "").toLowerCase() !== "open" ? "var(--lg-border)" : "var(--success)",
-                color: sendingTest || String(status.status || "").toLowerCase() !== "open" ? "var(--lg-text-muted)" : "#fff",
-                cursor: sendingTest || String(status.status || "").toLowerCase() !== "open" ? "not-allowed" : "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {sendingTest ? "⟳ Enviando..." : "📨 Enviar teste"}
-            </button>
+            <Button variant="success" onClick={enviarTeste} disabled={sendingTest || !conectado}>
+              {sendingTest ? "Enviando..." : "Enviar teste"}
+            </Button>
           </div>
-        </div>
-      </BaseCard>
+        </CardContent>
+      </Card>
 
-      <div
-        style={{
-          marginTop: 16,
-          padding: "12px 16px",
-          background: "rgba(30,136,229,.08)",
-          border: "1px solid rgba(30,136,229,.2)",
-          borderRadius: 10,
-          fontSize: 13,
-          color: "var(--lg-text-accent)",
-        }}
-      >
-        ℹ️ A integração usa a Evolution API configurada nesta tela. O QR code e o status dependem da instância salva.
-      </div>
-      </div>
-    </Box>
+      <Banner tom="info">A integração usa a Evolution API configurada nesta tela. O QR code e o status dependem da instância salva.</Banner>
+    </div>
   );
 }

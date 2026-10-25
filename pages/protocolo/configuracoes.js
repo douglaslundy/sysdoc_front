@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Box, Button, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
-import BaseCard from "../../src/components/baseCard/BaseCard";
-import { modalFormRootSx } from "../../src/components/modal/_shared/modalFormStyles";
+import { Banner } from "../../src/components/ui/banner";
+import { Button } from "../../src/components/ui/button";
+import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
+import { CampoSelecao, CampoTexto } from "../../src/components/ui/campos";
+import { Card, CardContent } from "../../src/components/ui/card";
+import { Carregando } from "../../src/components/ui/carregando";
 import { api } from "../../src/services/api";
 
 const initialForm = {
@@ -67,97 +70,75 @@ export default function ProtocoloConfiguracoesPage() {
   };
 
   if (loading) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Typography variant="body1">Carregando configurações do protocolo...</Typography>
-      </Box>
-    );
+    return <Carregando className="justify-center py-16">Carregando configurações do protocolo...</Carregando>;
   }
 
+  const alterna = (campo) => () => setForm((prev) => ({ ...prev, [campo]: !prev[campo] }));
+
   return (
-    <Box sx={{ ...modalFormRootSx, maxWidth: 1120, mx: "auto", p: { xs: 2, md: 3 } }} className="queue-page protocolo-page">
-      <BaseCard
-        title="Configurações do Protocolo"
-        subtitle="Apenas regras do fluxo de protocolo, sem integração de envio."
-      >
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {message ? <Alert severity={message.toLowerCase().includes("não foi possível") ? "error" : "success"}>{message}</Alert> : null}
-          <Alert severity="info">
-            A configuração de WhatsApp fica em /configuracoes/whatsapp e a de e-mail em /configuracoes/email.
-          </Alert>
+    <div className="ui-reset mx-auto max-w-[1120px]">
+      <CabecalhoDePagina
+        titulo="Configurações do Protocolo"
+        subtitulo="Apenas regras do fluxo de protocolo, sem integração de envio."
+      />
+      <Card>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {message ? <Banner tom={message.toLowerCase().includes("não foi possível") ? "perigo" : "sucesso"}>{message}</Banner> : null}
+            <Banner tom="info">
+              A configuração de WhatsApp fica em /configuracoes/whatsapp e a de e-mail em /configuracoes/email.
+            </Banner>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Prioridade padrão</InputLabel>
-                <Select
-                  value={form.default_priority}
-                  label="Prioridade padrão"
-                  onChange={(e) => setForm((prev) => ({ ...prev, default_priority: e.target.value }))}
-                >
-                  {priorityOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+            <div className="grid gap-4 md:grid-cols-3">
+              <CampoSelecao
+                id="proto-prioridade"
+                label="Prioridade padrão"
+                value={form.default_priority}
+                onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, default_priority: value }))}
+              >
+                {priorityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </CampoSelecao>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
+              <CampoTexto
+                id="proto-prazo"
                 type="number"
                 label="Prazo padrão em dias"
                 value={form.default_due_days}
-                onChange={(e) => setForm((prev) => ({ ...prev, default_due_days: e.target.value }))}
-                inputProps={{ min: 1, max: 365 }}
+                onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, default_due_days: value }))}
+                min={1}
+                max={365}
               />
-            </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
+              <CampoTexto
+                id="proto-obs"
                 label="Observações"
                 value={form.observacoes}
-                onChange={(e) => setForm((prev) => ({ ...prev, observacoes: e.target.value }))}
+                onChange={({ target: { value } }) => setForm((prev) => ({ ...prev, observacoes: value }))}
               />
-            </Grid>
+            </div>
 
-            <Grid item xs={12}>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <Button
-                  type="button"
-                  variant={form.allow_external_protocols ? "contained" : "outlined"}
-                  onClick={() => setForm((prev) => ({ ...prev, allow_external_protocols: !prev.allow_external_protocols }))}
-                >
-                  {form.allow_external_protocols ? "Protocolos externos permitidos" : "Protocolos externos desativados"}
-                </Button>
-                <Button
-                  type="button"
-                  variant={form.allow_reopen ? "contained" : "outlined"}
-                  onClick={() => setForm((prev) => ({ ...prev, allow_reopen: !prev.allow_reopen }))}
-                >
-                  {form.allow_reopen ? "Reabertura permitida" : "Reabertura desativada"}
-                </Button>
-                <Button
-                  type="button"
-                  variant={form.notify_whatsapp ? "contained" : "outlined"}
-                  onClick={() => setForm((prev) => ({ ...prev, notify_whatsapp: !prev.notify_whatsapp }))}
-                >
-                  {form.notify_whatsapp ? "Alertas WhatsApp ativados" : "Alertas WhatsApp desativados"}
-                </Button>
-              </Stack>
-            </Grid>
-          </Grid>
+            <div className="flex flex-wrap gap-3">
+              <Button type="button" variant={form.allow_external_protocols ? "default" : "outline"} aria-pressed={form.allow_external_protocols} onClick={alterna("allow_external_protocols")}>
+                {form.allow_external_protocols ? "Protocolos externos permitidos" : "Protocolos externos desativados"}
+              </Button>
+              <Button type="button" variant={form.allow_reopen ? "default" : "outline"} aria-pressed={form.allow_reopen} onClick={alterna("allow_reopen")}>
+                {form.allow_reopen ? "Reabertura permitida" : "Reabertura desativada"}
+              </Button>
+              <Button type="button" variant={form.notify_whatsapp ? "default" : "outline"} aria-pressed={form.notify_whatsapp} onClick={alterna("notify_whatsapp")}>
+                {form.notify_whatsapp ? "Alertas WhatsApp ativados" : "Alertas WhatsApp desativados"}
+              </Button>
+            </div>
 
-          <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar configurações"}
-            </Button>
-          </Stack>
-        </Box>
-      </BaseCard>
-    </Box>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={saving}>
+                {saving ? "Salvando..." : "Salvar configurações"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

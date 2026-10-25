@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    Box, Button, Card, CardContent, CircularProgress,
-    Divider, FormControlLabel, Grid, Switch, TextField, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../../src/components/baseCard/BaseCard';
+import { Save } from 'lucide-react';
 import AlertModal from '../../src/components/messagesModal';
-import { modalFormRootSx } from '../../src/components/modal/_shared/modalFormStyles';
 import { getLabConfig, updateLabConfig } from '../../src/store/fetchActions/labConfig';
+import { Button } from '../../src/components/ui/button';
+import { CampoTexto } from '../../src/components/ui/campos';
+import { Card, CardContent, CardHeader, CardTitle } from '../../src/components/ui/card';
+import { Carregando } from '../../src/components/ui/carregando';
+import { Interruptor } from '../../src/components/ui/interruptor';
 
 const emptyForm = {
     nome_estabelecimento: '',
@@ -25,6 +24,15 @@ const emptyForm = {
     email_habilitado: false,
     imprimir_rascunho_exame: false,
 };
+
+function Secao({ titulo, children }) {
+    return (
+        <section className="border-t border-border pt-5 first:border-t-0 first:pt-0">
+            <h2 className="mb-3 text-lg font-bold">{titulo}</h2>
+            {children}
+        </section>
+    );
+}
 
 export default function ConfiguracoesLaboratorio() {
     const dispatch = useDispatch();
@@ -85,211 +93,82 @@ export default function ConfiguracoesLaboratorio() {
     };
 
     if (loading && !config) {
-        return (
-            <Box display="flex" justifyContent="center" p={6}>
-                <CircularProgress />
-            </Box>
-        );
+        return <Carregando className="justify-center py-16" />;
     }
 
+    const campo = (name, label, extra = {}) => (
+        <CampoTexto id={`lab-${name}`} label={label} name={name} value={form[name]} onChange={handleChange} erro={errors[name] || undefined} {...extra} />
+    );
+
     return (
-        <Box sx={modalFormRootSx} className="queue-page lab-config-page">
+        <div className="ui-reset">
             <AlertModal />
-            <BaseCard title="Configurações do Laboratório">
+            <Card>
+                <CardHeader><CardTitle>Configurações do Laboratório</CardTitle></CardHeader>
+                <CardContent className="flex flex-col gap-5">
+                    <Secao titulo="Dados do Estabelecimento">
+                        <div className="grid gap-4 md:grid-cols-12">
+                            <div className="md:col-span-6">{campo('nome_estabelecimento', 'Nome do Estabelecimento')}</div>
+                            <div className="md:col-span-6">{campo('razao_social', 'Razão Social')}</div>
+                            <div className="md:col-span-5">{campo('endereco_rua', 'Rua')}</div>
+                            <div className="md:col-span-2">{campo('endereco_numero', 'Número')}</div>
+                            <div className="md:col-span-3">{campo('endereco_bairro', 'Bairro')}</div>
+                            <div className="md:col-span-2">{campo('endereco_cep', 'CEP', { maxLength: 9 })}</div>
+                            <div className="md:col-span-3">{campo('telefone', 'Telefone')}</div>
+                            <div className="md:col-span-4">{campo('cnpj', 'CNPJ', { maxLength: 18 })}</div>
+                            <div className="md:col-span-5">{campo('email_lab', 'E-mail do Laboratório')}</div>
+                        </div>
+                    </Secao>
 
-                {/* ── Dados do Estabelecimento ── */}
-                <Typography variant="h6" gutterBottom mt={1}>
-                    Dados do Estabelecimento
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Nome do Estabelecimento"
-                            name="nome_estabelecimento"
-                            value={form.nome_estabelecimento}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Razão Social"
-                            name="razao_social"
-                            value={form.razao_social}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={5}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Rua"
-                            name="endereco_rua"
-                            value={form.endereco_rua}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Número"
-                            name="endereco_numero"
-                            value={form.endereco_numero}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Bairro"
-                            name="endereco_bairro"
-                            value={form.endereco_bairro}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="CEP"
-                            name="endereco_cep"
-                            value={form.endereco_cep}
-                            onChange={handleChange}
-                            error={!!errors.endereco_cep}
-                            helperText={errors.endereco_cep}
-                            inputProps={{ maxLength: 9 }}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="Telefone"
-                            name="telefone"
-                            value={form.telefone}
-                            onChange={handleChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="CNPJ"
-                            name="cnpj"
-                            value={form.cnpj}
-                            onChange={handleChange}
-                            error={!!errors.cnpj}
-                            helperText={errors.cnpj}
-                            inputProps={{ maxLength: 18 }}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={5}>
-                        <TextField className="lg-search-field"
-                            fullWidth label="E-mail do Laboratório"
-                            name="email_lab"
-                            value={form.email_lab}
-                            onChange={handleChange}
-                            error={!!errors.email_lab}
-                            helperText={errors.email_lab}
-                        />
-                    </Grid>
-                </Grid>
+                    <Secao titulo="Rodapé do Laudo">
+                        <div className="grid gap-4">
+                            {campo('rodape1', 'Rodapé 1', { multiline: true, rows: 2, placeholder: 'Ex: Laboratório Participante do Programa Nacional de Controle de Qualidade - PNCQ/SBAC' })}
+                            {campo('rodape2', 'Rodapé 2', { multiline: true, rows: 3, placeholder: 'Ex: *Os exames sofrem influência fisiopatológica...' })}
+                        </div>
+                    </Secao>
 
-                <Divider sx={{ my: 3 }} />
+                    <Secao titulo="Notificações">
+                        <div className="flex max-w-[480px] flex-col gap-3">
+                            <div className="rounded-xl border border-border p-4">
+                                <Interruptor
+                                    id="lab-email-habilitado"
+                                    marcado={form.email_habilitado}
+                                    aoMudar={(marcado) => setForm((prev) => ({ ...prev, email_habilitado: marcado }))}
+                                >
+                                    <span>
+                                        <span className="block">{form.email_habilitado ? 'E-mail habilitado' : 'E-mail desabilitado'}</span>
+                                        <span className="block text-xs text-muted-foreground">
+                                            Quando habilitado, envia e-mail ao paciente ao liberar resultado.
+                                            Requer e-mail do paciente cadastrado.
+                                        </span>
+                                    </span>
+                                </Interruptor>
+                            </div>
 
-                {/* ── Rodapé do Laudo ── */}
-                <Typography variant="h6" gutterBottom>
-                    Rodapé do Laudo
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                        <TextField className="lg-search-field"
-                            fullWidth multiline minRows={2}
-                            label="Rodapé 1"
-                            name="rodape1"
-                            value={form.rodape1}
-                            onChange={handleChange}
-                            placeholder="Ex: Laboratório Participante do Programa Nacional de Controle de Qualidade - PNCQ/SBAC"
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField className="lg-search-field"
-                            fullWidth multiline minRows={3}
-                            label="Rodapé 2"
-                            name="rodape2"
-                            value={form.rodape2}
-                            onChange={handleChange}
-                            placeholder="Ex: *Os exames sofrem influência fisiopatológica..."
-                        />
-                    </Grid>
-                </Grid>
+                            <div className="rounded-xl border border-border p-4">
+                                <Interruptor
+                                    id="lab-rascunho"
+                                    marcado={form.imprimir_rascunho_exame}
+                                    aoMudar={(marcado) => setForm((prev) => ({ ...prev, imprimir_rascunho_exame: marcado }))}
+                                >
+                                    <span>
+                                        <span className="block">{form.imprimir_rascunho_exame ? 'Imprimir rascunho habilitado' : 'Imprimir rascunho desabilitado'}</span>
+                                        <span className="block text-xs text-muted-foreground">
+                                            Permite baixar o rascunho do laudo antes da liberação final do resultado.
+                                        </span>
+                                    </span>
+                                </Interruptor>
+                            </div>
+                        </div>
+                    </Secao>
 
-                <Divider sx={{ my: 3 }} />
-
-                {/* ── Notificações ── */}
-                <Typography variant="h6" gutterBottom>
-                    Notificações
-                </Typography>
-                <Card variant="outlined" sx={{ maxWidth: 480 }}>
-                    <CardContent>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={form.email_habilitado}
-                                    onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, email_habilitado: e.target.checked }))
-                                    }
-                                    disabled={loading}
-                                    color="primary"
-                                />
-                            }
-                            label={
-                                <Box>
-                                    <Typography variant="body1">
-                                        {form.email_habilitado ? 'E-mail habilitado' : 'E-mail desabilitado'}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Quando habilitado, envia e-mail ao paciente ao liberar resultado.
-                                        Requer e-mail do paciente cadastrado.
-                                    </Typography>
-                                </Box>
-                            }
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card variant="outlined" sx={{ maxWidth: 480, mt: 2 }}>
-                    <CardContent>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={form.imprimir_rascunho_exame}
-                                    onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, imprimir_rascunho_exame: e.target.checked }))
-                                    }
-                                    disabled={loading}
-                                    color="primary"
-                                />
-                            }
-                            label={
-                                <Box>
-                                    <Typography variant="body1">
-                                        {form.imprimir_rascunho_exame ? 'Imprimir rascunho habilitado' : 'Imprimir rascunho desabilitado'}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Permite baixar o rascunho do laudo antes da liberação final do resultado.
-                                    </Typography>
-                                </Box>
-                            }
-                        />
-                    </CardContent>
-                </Card>
-
-                <Divider sx={{ my: 3 }} />
-
-                <Box display="flex" justifyContent="flex-end">
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        disabled={loading}
-                        onClick={handleSave}
-                        startIcon={<FeatherIcon icon="save" width="18" height="18" />}
-                    >
-                        {loading ? 'Salvando...' : 'Salvar Configurações'}
-                    </Button>
-                </Box>
-
-            </BaseCard>
-        </Box>
+                    <div className="flex justify-end border-t border-border pt-5">
+                        <Button disabled={loading} onClick={handleSave}>
+                            <Save /> {loading ? 'Salvando...' : 'Salvar Configurações'}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
