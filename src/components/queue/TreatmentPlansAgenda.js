@@ -1,22 +1,12 @@
 import { useEffect, useState } from 'react';
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Typography,
-} from '@mui/material';
 import { useRouter } from 'next/router';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { ArrowLeft } from 'lucide-react';
 import TreatmentPlanPanel from './TreatmentPlanPanel';
 import { api } from '../../services/api';
+import { Button } from '../ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoCabecalho } from '../ui/dialogo';
 
 const formatDate = (isoDate) => {
     if (!isoDate) return '—';
@@ -44,63 +34,45 @@ export default function TreatmentPlansAgenda() {
 
     const doneCount = (plan) => plan.sessions.filter((s) => s.status === 'done').length;
 
-    return (
-        <BaseCard
-            title="Agenda de Tratamentos"
-            action={(
-                <Button
-                    size="small"
-                    startIcon={<FeatherIcon icon="arrow-left" width="20" height="20" />}
-                    onClick={() => router.push('/queue')}
-                >
-                    Voltar
-                </Button>
-            )}
-        >
-            {loading ? (
-                <Typography>Carregando…</Typography>
-            ) : (
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Paciente</TableCell>
-                            <TableCell>Especialidade</TableCell>
-                            <TableCell>Progresso</TableCell>
-                            <TableCell>Previsão de término</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {plans.map((plan) => (
-                            <TableRow key={plan.id} hover onClick={() => setSelected(plan)} sx={{ cursor: 'pointer' }}>
-                                <TableCell>{plan.client_name}</TableCell>
-                                <TableCell>{plan.speciality_name}</TableCell>
-                                <TableCell>{doneCount(plan)} de {plan.total_sessions} sessões concluídas</TableCell>
-                                <TableCell>{formatDate(plan.expected_end_at)}</TableCell>
-                            </TableRow>
-                        ))}
-                        {plans.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={4}>Nenhum tratamento ativo no momento.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            )}
+    const colunas = [
+        { chave: 'paciente', titulo: 'Paciente', render: (p) => p.client_name },
+        { chave: 'especialidade', titulo: 'Especialidade', render: (p) => p.speciality_name },
+        { chave: 'progresso', titulo: 'Progresso', render: (p) => `${doneCount(p)} de ${p.total_sessions} sessões concluídas` },
+        { chave: 'previsao', titulo: 'Previsão de término', render: (p) => formatDate(p.expected_end_at) },
+    ];
 
-            <Dialog open={Boolean(selected)} onClose={() => setSelected(null)} maxWidth="sm" fullWidth>
-                <DialogTitle>{selected?.client_name} — {selected?.speciality_name}</DialogTitle>
-                <DialogContent dividers>
-                    {selected && (
-                        <Box>
-                            <TreatmentPlanPanel
-                                queueId={selected.queue_id}
-                                speciality={{ id: selected.speciality_id, name: selected.speciality_name, allows_session_scheduling: true }}
-                                onChanged={load}
-                            />
-                        </Box>
-                    )}
-                </DialogContent>
-            </Dialog>
-        </BaseCard>
+    return (
+        <Card className="ui-reset">
+            <CardHeader>
+                <CardTitle>Agenda de Tratamentos</CardTitle>
+                <CardAction>
+                    <Button variant="ghost" size="sm" onClick={() => router.push('/queue')}>
+                        <ArrowLeft /> Voltar
+                    </Button>
+                </CardAction>
+            </CardHeader>
+            <CardContent>
+                <DataTable
+                    rotulo="Tratamentos ativos"
+                    colunas={colunas}
+                    linhas={plans}
+                    chaveDaLinha={(p) => p.id}
+                    carregando={loading}
+                    vazio="Nenhum tratamento ativo no momento."
+                    aoAbrir={setSelected}
+                />
+            </CardContent>
+
+            <Dialogo aberto={Boolean(selected)} aoFechar={() => setSelected(null)} tamanho="lg">
+                <DialogoCabecalho>{selected?.client_name} — {selected?.speciality_name}</DialogoCabecalho>
+                {selected && (
+                    <TreatmentPlanPanel
+                        queueId={selected.queue_id}
+                        speciality={{ id: selected.speciality_id, name: selected.speciality_name, allows_session_scheduling: true }}
+                        onChanged={load}
+                    />
+                )}
+            </Dialogo>
+        </Card>
     );
 }
