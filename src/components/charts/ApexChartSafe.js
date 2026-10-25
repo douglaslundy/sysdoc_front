@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { Box, Typography } from '@mui/material';
 
 const ReactApexChart = dynamic(() => import('react-apexcharts'), {
     ssr: false,
@@ -9,20 +8,12 @@ const ReactApexChart = dynamic(() => import('react-apexcharts'), {
 
 export default function ApexChartSafe(props) {
     if (!ReactApexChart) {
-        return (
-            <Box p={2} textAlign="center">
-                <Typography color="textSecondary">Falha ao carregar biblioteca de graficos.</Typography>
-            </Box>
-        );
+        return <p className="p-4 text-center text-muted-foreground">Falha ao carregar biblioteca de graficos.</p>;
     }
 
     try {
         return <ReactApexChart {...props} />;
     } catch (_) {
-        return (
-            <Box p={2} textAlign="center">
-                <Typography color="textSecondary">Falha ao renderizar grafico.</Typography>
-            </Box>
-        );
+        return <p className="p-4 text-center text-muted-foreground">Falha ao renderizar grafico.</p>;
     }
 }

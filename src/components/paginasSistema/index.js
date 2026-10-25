@@ -1,28 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Chip,
-  Fab,
-  FormControlLabel,
-  MenuItem,
-  Modal,
-  Select,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  FormControl,
-  InputLabel,
-  styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { normalizeIconName, resolveIconForPath } from '../../utils/iconResolver';
@@ -34,19 +10,14 @@ import {
   getAllPageCategories,
 } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
-import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import {
-  modalFormRootSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from '../modal/_shared/modalFormStyles';
-
-const modalStyle = {
-  ...modalShellSx,
-  ...modalFormRootSx,
-};
+import { ActionCreateFab } from '../actions';
+import { AcoesDeLinha } from '../ui/acoes-de-linha';
+import { CampoSelecao } from '../ui/campos';
+import { FormularioModal } from '../ui/formulario-modal';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula } from '../ui/pilula';
+import { usePaginacaoLocal } from '../../lib/usePaginacaoLocal';
 
 const FORM_INICIAL = {
   titulo: '',
@@ -66,30 +37,6 @@ const ICONES = [
   'alert-triangle', 'maximize', 'settings', 'lock', 'key', 'log-in', 'package', 'check-square',
 ];
 
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': {
-    borderLeft: '0.5px solid var(--lg-border)',
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
-  },
-  '& td:last-of-type': {
-    borderRight: '0.5px solid var(--lg-border)',
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
-  },
-  '&:hover td': {
-    background: 'var(--queue-row-hover)',
-  },
-}));
-
 export default function PaginasSistema() {
   const dispatch = useDispatch();
   const { pages, pageCategories } = useSelector((state) => state.accessProfiles);
@@ -99,8 +46,6 @@ export default function PaginasSistema() {
   const [form, setForm] = useState(FORM_INICIAL);
   const [busca, setBusca] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(15);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: 'Deseja realmente excluir?',
@@ -136,6 +81,7 @@ export default function PaginasSistema() {
       if (orderCmp !== 0) return orderCmp;
       return (a.titulo || '').localeCompare(b.titulo || '');
     });
+  const { fatia, propsDaPaginacao } = usePaginacaoLocal(filtradas, 15);
 
   const categoriasAtivas = pageCategories
     .filter((c) => c.ativo)
@@ -185,8 +131,7 @@ export default function PaginasSistema() {
     }
   };
 
-  const handleChange = ({ target }) => {
-    const { name, value } = target;
+  const handleChange = ({ target: { name, value } }) => {
     setForm((f) => {
       const next = { ...f, [name]: value };
       if (name === 'category_id') {
@@ -231,209 +176,86 @@ export default function PaginasSistema() {
     });
   };
 
+  const campos = [
+    { name: 'titulo', label: 'Titulo da Pagina', required: true, max: 80 },
+    { name: 'path', label: 'Path (rota)', required: true, max: 120, dica: 'Caminho da pagina, ex: /laboratorio/exames' },
+    { name: 'category_id', label: 'Categoria', options: categoriasAtivas.map((c) => ({ value: c.id, label: c.nome })), vazio: 'Sem categoria' },
+    { name: 'ordem', label: 'Ordem dentro da categoria', type: 'number', dica: previewReorder() },
+    { name: 'icone', label: 'icone', options: ICONES.map((ic) => ({ value: ic, label: ic })), vazio: 'Sem icone' },
+    { name: 'ativo', label: 'Pagina ativa', interruptor: true },
+  ];
+
+  const colunas = [
+    {
+      chave: 'titulo',
+      titulo: 'Titulo',
+      render: (pg) => (
+        <span className="flex items-center gap-2 font-semibold">
+          {pg.icone && <FeatherIcon icon={resolveIconForPath(pg.path, pg.icone, 'circle')} width="16" height="16" />}
+          {pg.titulo}
+        </span>
+      ),
+    },
+    { chave: 'path', titulo: 'Path', render: (pg) => <code className="rounded bg-hover px-2 py-0.5 text-sm">{pg.path}</code> },
+    { chave: 'icone', titulo: 'icone', render: (pg) => <span className="text-xs text-muted-foreground">{pg.icone || '-'}</span> },
+    {
+      chave: 'categoria',
+      titulo: 'Categoria',
+      render: (pg) => (resolveCategory(pg) ? <Pilula tom="neutro" contorno>{resolveCategory(pg)}</Pilula> : <span className="text-xs text-muted-foreground">-</span>),
+    },
+    { chave: 'ordem', titulo: 'Ordem', render: (pg) => Number(pg.ordem ?? 999) },
+    { chave: 'status', titulo: 'Status', render: (pg) => <Pilula tom={pg.ativo ? 'sucesso' : 'perigo'}>{pg.ativo ? 'Ativa' : 'Inativa'}</Pilula> },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (pg) => (
+        <AcoesDeLinha rotuloEditar="Editar pagina" rotuloExcluir="Remover pagina" aoEditar={() => handleEditar(pg)} aoExcluir={() => handleRemove(pg)} />
+      ),
+    },
+  ];
+
+  const barra = (
+    <>
+      <CampoSelecao id="paginas-filtro-categoria" label="Filtrar categoria" value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)} className="min-w-[220px]">
+        <option value="">Todas</option>
+        {categoriasAtivas.map((c) => (
+          <option key={c.id} value={c.id}>{c.nome}</option>
+        ))}
+      </CampoSelecao>
+      <ActionCreateFab title="Nova Pagina" onClick={handleNova} />
+    </>
+  );
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page paginas-sistema-page">
-      <BaseCard title={`Voce possui ${pages.length} Paginas Cadastradas no Sistema`}>
-        <AlertModal />
-        <Box className="queue-page__toolbar" display="flex" alignItems="center" justifyContent="space-between" flexWrap="nowrap" gap={1} mb={2} sx={{ overflowX: 'auto' }}>
-          <Box display="flex" gap={1} flexWrap="nowrap" sx={{ minWidth: 0, flex: 1 }}>
-            <TextField
-              className="lg-search-field"
-              size="small"
-              placeholder="Buscar por titulo, path ou categoria..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              inputProps={{ maxLength: 80 }}
-              sx={{ minWidth: 260, flex: 1 }}
-            />
-            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 220, width: 220, flexShrink: 0 }}>
-              <InputLabel>Filtrar categoria</InputLabel>
-              <Select
-                value={filtroCategoria}
-                label="Filtrar categoria"
-                onChange={(e) => setFiltroCategoria(e.target.value)}
-              >
-                <MenuItem value="">
-                  <em>Todas</em>
-                </MenuItem>
-                {categoriasAtivas.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <Fab color="primary" title="Nova Pagina" onClick={handleNova} className="queue-page__fab queue-page__fab--add">
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table aria-label="paginas" className="queue-page__table" sx={{ mt: 1, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Titulo</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Path</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">icone</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Categoria</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Ordem</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography color="textSecondary" variant="h6">Ações</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtradas.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((pg) => (
-                <StyledTableRow key={pg.id} hover>
-                  <TableCell>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      {pg.icone && <FeatherIcon icon={resolveIconForPath(pg.path, pg.icone, 'circle')} width="16" height="16" />}
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>{pg.titulo}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 1, py: 0.3, borderRadius: 1, display: 'inline-block' }}>
-                      {pg.path}
-                    </Typography>
-                  </TableCell>
-                  <TableCell><Typography color="textSecondary" sx={{ fontSize: '12px' }}>{pg.icone || '-'}</Typography></TableCell>
-                  <TableCell>{resolveCategory(pg) ? <Chip label={resolveCategory(pg)} size="small" variant="outlined" /> : <Typography color="textSecondary" sx={{ fontSize: '12px' }}>-</Typography>}</TableCell>
-                  <TableCell><Typography>{Number(pg.ordem ?? 999)}</Typography></TableCell>
-                  <TableCell align="center"><Chip label={pg.ativo ? 'Ativa' : 'Inativa'} color={pg.ativo ? 'success' : 'error'} size="small" /></TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
-                      <Button className="queue-page__action queue-page__action--success" title="Editar pagina" onClick={() => handleEditar(pg)} color="success" size="medium" variant="contained">
-                        <FeatherIcon icon="edit" width="20" height="20" />
-                      </Button>
-                      <Button className="queue-page__action queue-page__action--danger" title="Remover pagina" onClick={() => handleRemove(pg)} color="error" size="medium" variant="contained">
-                        <FeatherIcon icon="trash" width="20" height="20" />
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-              {filtradas.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center"><Typography color="text.secondary">Nenhuma pagina encontrada</Typography></TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={filtradas.length}
-            page={page}
-            onPageChange={(_, p) => setPage(p)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-            rowsPerPageOptions={[10, 15, 25]}
-            labelRowsPerPage="Por pagina:"
-          />
-        </TableContainer>
-      </BaseCard>
-
-      <Modal keepMounted open={openModal} onClose={() => setOpenModal(false)}>
-        <Box sx={modalStyle} className="paginas-sistema-modal-shell">
-          <AlertModal />
-          <BaseCard title={editId ? 'Editar Pagina do Sistema' : 'Nova Pagina do Sistema'}>
-            <Stack spacing={3}>
-              <TextField
-                className="lg-search-field"
-                fullWidth
-                label="Titulo da Pagina"
-                name="titulo"
-                value={form.titulo}
-                onChange={handleChange}
-                required
-                inputProps={{ maxLength: 80 }}
-              />
-
-              <TextField
-                className="lg-search-field"
-                fullWidth
-                label="Path (rota)"
-                name="path"
-                value={form.path}
-                onChange={handleChange}
-                required
-                inputProps={{ maxLength: 120 }}
-                helperText="Caminho da pagina, ex: /laboratorio/exames"
-              />
-
-              <FormControl fullWidth>
-                <InputLabel>Categoria</InputLabel>
-                <Select name="category_id" value={form.category_id} label="Categoria" onChange={handleChange}>
-                  <MenuItem value=""><em>Sem categoria</em></MenuItem>
-                  {categoriasAtivas.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>{c.nome}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <TextField
-                className="lg-search-field"
-                fullWidth
-                label="Ordem dentro da categoria"
-                name="ordem"
-                type="number"
-                value={form.ordem}
-                onChange={handleChange}
-                inputProps={{ min: 1 }}
-                helperText={previewReorder()}
-              />
-
-              <FormControl fullWidth>
-                <InputLabel>icone</InputLabel>
-                <Select
-                  name="icone"
-                  value={form.icone}
-                  label="icone"
-                  onChange={handleChange}
-                  renderValue={(val) =>
-                    val ? (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={resolveIconForPath(form.path, val, 'circle')} width="16" height="16" />
-                        <span>{val}</span>
-                      </Box>
-                    ) : (
-                      <em>Sem icone</em>
-                    )
-                  }
-                >
-                  <MenuItem value=""><em>Sem icone</em></MenuItem>
-                  {ICONES.map((ic) => (
-                    <MenuItem key={ic} value={ic}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={normalizeIconName(ic, 'circle')} width="16" height="16" />
-                        <span>{ic}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControlLabel
-                control={<Switch checked={form.ativo} onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))} />}
-                label="Pagina ativa"
-              />
-            </Stack>
-            <br />
-            <Box sx={{ '& button': { mx: 1 } }}>
-              <Button variant="contained" sx={modalPrimaryButtonSx} onClick={handleSave}>Gravar</Button>
-              <Button variant="outlined" sx={modalSecondaryButtonSx} onClick={() => setOpenModal(false)}>Cancelar</Button>
-            </Box>
-          </BaseCard>
-        </Box>
-      </Modal>
-
+    <PaginaDeLista
+      titulo={`Voce possui ${pages.length} Paginas Cadastradas no Sistema`}
+      busca={{ rotulo: 'Buscar pagina', placeholder: 'Buscar por titulo, path ou categoria...', value: busca, onChange: (e) => setBusca(e.target.value), maxLength: 80 }}
+      barra={barra}
+      colunas={colunas}
+      linhas={fatia}
+      chaveDaLinha={(pg) => pg.id}
+      vazio="Nenhuma pagina encontrada"
+      rotuloDaTabela="paginas"
+      paginacao={{ ...propsDaPaginacao, opcoes: [10, 15, 25] }}
+    >
+      <AlertModal />
+      <FormularioModal
+        aberto={openModal}
+        titulo={editId ? 'Editar Pagina do Sistema' : 'Nova Pagina do Sistema'}
+        aoFechar={() => setOpenModal(false)}
+        aoGravar={handleSave}
+        campos={campos}
+        valores={form}
+        aoMudar={handleChange}
+        tamanho="md"
+        antes={<AlertModal />}
+        depois={form.icone && form.icone !== '-' ? (
+          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <FeatherIcon icon={resolveIconForPath(form.path, form.icone, 'circle')} width="16" height="16" /> {form.icone}
+          </p>
+        ) : null}
+      />
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-    </Box>
+    </PaginaDeLista>
   );
 }
-
-
-

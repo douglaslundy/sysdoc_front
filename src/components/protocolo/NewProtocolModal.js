@@ -1,20 +1,8 @@
 import React, { useEffect, useMemo, useState, useContext } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
+import { Banner } from "../ui/banner";
+import { Button, buttonVariants } from "../ui/button";
+import { CampoSelecao, CampoTexto } from "../ui/campos";
+import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
 
@@ -194,180 +182,142 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     }
   };
 
+  const mudar = ({ target: { name, value } }) => setProtocolForm((prev) => ({ ...prev, [name]: value }));
+  const opcaoDeUnidade = (unit) => (
+    <option key={unit.id} value={String(unit.id)}>{`${"— ".repeat(unit.level)}${unit.nome}`}</option>
+  );
+
   return (
-    <Dialog open={open} onClose={resetAndClose} maxWidth="md" fullWidth>
-      <DialogTitle>Novo protocolo</DialogTitle>
-      <Box component="form" onSubmit={handleSubmit}>
-        <DialogContent>
-          {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={8}>
-              <TextField fullWidth label="Assunto" value={protocolForm.assunto} onChange={(e) => setProtocolForm((prev) => ({ ...prev, assunto: e.target.value }))} required />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Tipo"
-                value={protocolForm.tipo}
-                onChange={(e) => setProtocolForm((prev) => ({ ...prev, tipo: e.target.value }))}
-                required
-              >
-                {protocolTypeOptions.map((option) => (
-                  <MenuItem key={option.codigo} value={option.codigo}>
-                    {option.nome}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Prioridade"
-                value={protocolForm.prioridade}
-                onChange={(e) => setProtocolForm((prev) => ({ ...prev, prioridade: e.target.value }))}
-              >
-                {protocolPriorityOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Solicitante"
-                value={creationContext?.requester?.name || username || "Usuário logado"}
-                InputProps={{ readOnly: true }}
+    <Dialogo aberto={Boolean(open)} aoFechar={resetAndClose} tamanho="lg">
+      <DialogoCabecalho>Novo protocolo</DialogoCabecalho>
+      <form onSubmit={handleSubmit}>
+        {error ? <div className="mb-4"><Banner tom="perigo">{error}</Banner></div> : null}
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-8">
+            <CampoTexto id="protocolo-assunto" label="Assunto" name="assunto" value={protocolForm.assunto} onChange={mudar} required obrigatorio />
+          </div>
+          <div className="md:col-span-4">
+            <CampoSelecao id="protocolo-tipo" label="Tipo" name="tipo" value={protocolForm.tipo} onChange={mudar} required obrigatorio>
+              {protocolTypeOptions.map((option) => (
+                <option key={option.codigo} value={option.codigo}>{option.nome}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <div className="md:col-span-4">
+            <CampoSelecao id="protocolo-prioridade" label="Prioridade" name="prioridade" value={protocolForm.prioridade} onChange={mudar}>
+              {protocolPriorityOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <div className="md:col-span-4">
+            <CampoTexto id="protocolo-solicitante" label="Solicitante" value={creationContext?.requester?.name || username || "Usuário logado"} readOnly />
+          </div>
+          <div className="md:col-span-4">
+            <CampoTexto
+              id="protocolo-prazo"
+              label="Prazo de atendimento (dias)"
+              type="number"
+              min={1}
+              step={1}
+              value={protocolForm.prazo_dias}
+              onChange={(e) => {
+                const prazo = e.target.value.replace(/[^0-9]/g, "");
+                setProtocolForm((prev) => ({ ...prev, prazo_dias: prazo }));
+              }}
+              onBlur={() => setProtocolForm((prev) => ({ ...prev, prazo_dias: Math.max(1, parseInt(prev.prazo_dias, 10) || 10) }))}
+            />
+          </div>
+          <div className="md:col-span-4">
+            {creationContext?.origin_locked ? (
+              <CampoTexto id="protocolo-origem-fixa" label="Origem" value={creationContext?.origin?.nome || "Unidade vinculada"} readOnly />
+            ) : (
+              <CampoSelecao id="protocolo-origem" label="Origem" name="origem_unit_id" value={protocolForm.origem_unit_id} onChange={mudar} required obrigatorio>
+                <option value="">Selecione a origem</option>
+                {secretariatOptions.map(opcaoDeUnidade)}
+              </CampoSelecao>
+            )}
+          </div>
+          <div className="md:col-span-4">
+            <CampoSelecao id="protocolo-destino" label="Destino" name="destino_unit_id" value={protocolForm.destino_unit_id} onChange={mudar} required obrigatorio>
+              <option value="">Selecione o destino</option>
+              {secretariatOptions.map(opcaoDeUnidade)}
+            </CampoSelecao>
+          </div>
+          <div className="md:col-span-4">
+            <CampoSelecao
+              id="protocolo-usuario-destino"
+              label="Usuário de destino"
+              name="destino_user_id"
+              value={protocolForm.destino_user_id}
+              onChange={mudar}
+              disabled={!protocolForm.destino_unit_id}
+              dica={protocolForm.destino_unit_id && destinationUsers.length === 0
+                ? "Nenhum usuário lotado nesta unidade (ou nas subunidades) com acesso ao Protocolo. Cadastre a lotação em /protocolo/estrutura. Sem usuário, o protocolo fica endereçado à unidade inteira."
+                : undefined}
+            >
+              <option value="">Todos da unidade</option>
+              {destinationUsers.map((user) => (
+                <option key={user.id} value={String(user.id)}>{user.name}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <div className="md:col-span-12">
+            <CampoTexto id="protocolo-descricao" label="Descrição" name="descricao" multiline rows={4} value={protocolForm.descricao} onChange={mudar} />
+          </div>
+          <div className="md:col-span-12">
+            <label className={`${buttonVariants({ variant: "outline" })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>
+              {attachmentFiles.length > 0
+                ? `${attachmentFiles.length} arquivo(s) selecionado(s)`
+                : `Anexar arquivos (opcional, até ${MAX_ATTACHMENTS})`}
+              <input
+                className="sr-only"
+                type="file"
+                multiple
+                onChange={(e) => {
+                  // Acumula na lista (permite anexar de um em um); ignora duplicados.
+                  const selected = Array.from(e.target.files || []);
+                  const sameFile = (x, y) =>
+                    x.name === y.name && x.size === y.size && x.lastModified === y.lastModified;
+                  const merged = [...attachmentFiles];
+                  selected.forEach((file) => {
+                    if (!merged.some((item) => sameFile(item, file))) merged.push(file);
+                  });
+                  if (merged.length > MAX_ATTACHMENTS) {
+                    setError(`Selecione no máximo ${MAX_ATTACHMENTS} arquivos.`);
+                  } else {
+                    setError("");
+                  }
+                  setAttachmentFiles(merged.slice(0, MAX_ATTACHMENTS));
+                  // Permite escolher o mesmo arquivo de novo após removê-lo.
+                  e.target.value = "";
+                }}
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth type="number" label="Prazo de atendimento (dias)" InputLabelProps={{ shrink: true }} inputProps={{ min: 1, step: 1 }} value={protocolForm.prazo_dias} onChange={(e) => setProtocolForm((prev) => ({ ...prev, prazo_dias: e.target.value.replace(/[^0-9]/g, "") }))} onBlur={() => setProtocolForm((prev) => ({ ...prev, prazo_dias: Math.max(1, parseInt(prev.prazo_dias, 10) || 10) }))} />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              {creationContext?.origin_locked ? (
-                <TextField
-                  fullWidth
-                  label="Origem"
-                  value={creationContext?.origin?.nome || "Unidade vinculada"}
-                  InputProps={{ readOnly: true }}
-                />
-              ) : (
-                <FormControl fullWidth required>
-                  <InputLabel>Origem</InputLabel>
-                  <Select
-                    value={protocolForm.origem_unit_id}
-                    label="Origem"
-                    onChange={(e) => setProtocolForm((prev) => ({ ...prev, origem_unit_id: e.target.value }))}
-                  >
-                    <MenuItem value="">Selecione a origem</MenuItem>
-                    {secretariatOptions.map((unit) => (
-                      <MenuItem key={unit.id} value={String(unit.id)} sx={{ pl: 2 + unit.level * 2 }}>
-                        {unit.nome}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Destino</InputLabel>
-                <Select
-                  value={protocolForm.destino_unit_id}
-                  label="Destino"
-                  onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_unit_id: e.target.value }))}
-                  required
-                >
-                  <MenuItem value="">Selecione o destino</MenuItem>
-                  {secretariatOptions.map((unit) => (
-                    <MenuItem key={unit.id} value={String(unit.id)} sx={{ pl: 2 + unit.level * 2 }}>
-                      {unit.nome}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth disabled={!protocolForm.destino_unit_id}>
-                <InputLabel>Usuário de destino</InputLabel>
-                <Select
-                  value={protocolForm.destino_user_id}
-                  label="Usuário de destino"
-                  onChange={(e) => setProtocolForm((prev) => ({ ...prev, destino_user_id: e.target.value }))}
-                >
-                  <MenuItem value="">Todos da unidade</MenuItem>
-                  {destinationUsers.map((user) => (
-                    <MenuItem key={user.id} value={String(user.id)}>
-                      {user.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {protocolForm.destino_unit_id && destinationUsers.length === 0 && (
-                  <FormHelperText>
-                    Nenhum usuário lotado nesta unidade (ou nas subunidades) com acesso ao Protocolo. Cadastre a lotação em /protocolo/estrutura. Sem usuário, o protocolo fica endereçado à unidade inteira.
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField fullWidth multiline minRows={4} label="Descrição" value={protocolForm.descricao} onChange={(e) => setProtocolForm((prev) => ({ ...prev, descricao: e.target.value }))} />
-            </Grid>
-            <Grid item xs={12}>
-              <Button variant="outlined" component="label">
-                {attachmentFiles.length > 0
-                  ? `${attachmentFiles.length} arquivo(s) selecionado(s)`
-                  : `Anexar arquivos (opcional, até ${MAX_ATTACHMENTS})`}
-                <input
-                  hidden
-                  type="file"
-                  multiple
-                  onChange={(e) => {
-                    // Acumula na lista (permite anexar de um em um); ignora duplicados.
-                    const selected = Array.from(e.target.files || []);
-                    const sameFile = (x, y) =>
-                      x.name === y.name && x.size === y.size && x.lastModified === y.lastModified;
-                    const merged = [...attachmentFiles];
-                    selected.forEach((file) => {
-                      if (!merged.some((item) => sameFile(item, file))) merged.push(file);
-                    });
-                    if (merged.length > MAX_ATTACHMENTS) {
-                      setError(`Selecione no máximo ${MAX_ATTACHMENTS} arquivos.`);
-                    } else {
-                      setError("");
-                    }
-                    setAttachmentFiles(merged.slice(0, MAX_ATTACHMENTS));
-                    // Permite escolher o mesmo arquivo de novo após removê-lo.
-                    e.target.value = "";
-                  }}
-                />
-              </Button>
-              {attachmentFiles.length > 0 && (
-                <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-                  {attachmentFiles.map((file, index) => (
-                    <Box key={`${file.name}-${index}`} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.85rem" }}>
-                      <span>{file.name}</span>
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={() => setAttachmentFiles((prev) => prev.filter((_, i) => i !== index))}
-                      >
-                        Remover
-                      </Button>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={resetAndClose}>Cancelar</Button>
-          <Button type="submit" variant="contained" disabled={saving}>{saving ? "Salvando..." : "Gravar"}</Button>
-        </DialogActions>
-      </Box>
-    </Dialog>
+            </label>
+            {attachmentFiles.length > 0 && (
+              <ul className="mt-2 grid gap-1 text-sm">
+                {attachmentFiles.map((file, index) => (
+                  <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 truncate">{file.name}</span>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant="destructive"
+                      onClick={() => setAttachmentFiles((prev) => prev.filter((_, i) => i !== index))}
+                    >
+                      Remover
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+        <DialogoRodape>
+          <Button type="button" variant="outline" onClick={resetAndClose}>Cancelar</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Gravar"}</Button>
+        </DialogoRodape>
+      </form>
+    </Dialogo>
   );
 }

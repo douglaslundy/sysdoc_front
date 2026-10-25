@@ -1,28 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Chip,
-  Fab,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Modal,
-  Select,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  styled,
-} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import FeatherIcon from 'feather-icons-react';
 import { normalizeIconName } from '../../utils/iconResolver';
@@ -33,15 +9,13 @@ import {
   removePageCategoryFetch,
 } from '../../store/fetchActions/accessProfiles';
 import AlertModal from '../messagesModal';
-import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import {
-  modalBackdropSx,
-  modalFormRootSx,
-  modalPrimaryButtonSx,
-  modalSecondaryButtonSx,
-  modalShellSx,
-} from '../modal/_shared/modalFormStyles';
+import { ActionCreateFab } from '../actions';
+import { AcoesDeLinha } from '../ui/acoes-de-linha';
+import { FormularioModal } from '../ui/formulario-modal';
+import { PaginaDeLista } from '../ui/pagina-de-lista';
+import { Pilula } from '../ui/pilula';
+import { usePaginacaoLocal } from '../../lib/usePaginacaoLocal';
 
 const FORM_INICIAL = { nome: '', icone: '', ordem: 999, ativo: true };
 const ICONES = [
@@ -52,32 +26,14 @@ const ICONES = [
   'alert-triangle', 'maximize', 'settings', 'lock', 'key', 'log-in', 'package', 'check-square',
 ];
 
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': {
-    borderLeft: '0.5px solid var(--lg-border)',
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
-  },
-  '& td:last-of-type': {
-    borderRight: '0.5px solid var(--lg-border)',
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
-  },
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
-  '&:hover td': {
-    background: 'var(--queue-row-hover)',
-  },
-}));
+const OPCOES_ICONE = ICONES.map((ic) => ({ value: ic, label: ic }));
+
+const CAMPOS = [
+  { name: 'nome', label: 'Nome da Categoria', required: true, max: 80, upper: true },
+  { name: 'icone', label: 'Icone', options: OPCOES_ICONE, vazio: 'Sem icone' },
+  { name: 'ordem', label: 'Ordem', type: 'number' },
+  { name: 'ativo', label: 'Categoria ativa', interruptor: true },
+];
 
 export default function PaginasCategorias() {
   const dispatch = useDispatch();
@@ -87,8 +43,6 @@ export default function PaginasCategorias() {
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(FORM_INICIAL);
   const [busca, setBusca] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: 'Deseja realmente remover?',
@@ -106,6 +60,7 @@ export default function PaginasCategorias() {
         (cat.icone || '').toLowerCase().includes(busca.toLowerCase())
     )
     .sort((a, b) => (a.ordem ?? 999) - (b.ordem ?? 999));
+  const { fatia, propsDaPaginacao } = usePaginacaoLocal(categoriasFiltradas, 10);
 
   const handleNova = () => {
     setEditId(null);
@@ -160,225 +115,63 @@ export default function PaginasCategorias() {
     });
   };
 
+  const colunas = [
+    { chave: 'nome', titulo: 'Nome', render: (cat) => <span className="font-semibold">{(cat.nome || '').toUpperCase()}</span> },
+    {
+      chave: 'icone',
+      titulo: 'Icone',
+      render: (cat) => (cat.icone ? (
+        <span className="flex items-center gap-2 text-xs text-muted-foreground">
+          <FeatherIcon icon={normalizeIconName(cat.icone, 'circle')} width="16" height="16" />
+          {cat.icone}
+        </span>
+      ) : <span className="text-xs text-muted-foreground">-</span>),
+    },
+    { chave: 'ordem', titulo: 'Ordem', render: (cat) => cat.ordem ?? 999 },
+    {
+      chave: 'status',
+      titulo: 'Status',
+      render: (cat) => <Pilula tom={cat.ativo ? 'sucesso' : 'perigo'}>{cat.ativo ? 'Ativa' : 'Inativa'}</Pilula>,
+    },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (cat) => (
+        <AcoesDeLinha rotuloEditar="Editar categoria" rotuloExcluir="Remover categoria" aoEditar={() => handleEditar(cat)} aoExcluir={() => handleRemove(cat)} />
+      ),
+    },
+  ];
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page categorias-page">
-      <BaseCard title={`Voce possui ${pageCategories.length} Categorias de Paginas Cadastradas`}>
-        <AlertModal />
-
-        <Box
-          className="queue-page__toolbar"
-          sx={{
-            '& > :not(style)': { m: 2 },
-            display: 'flex',
-            justifyContent: 'stretch',
-          }}
-        >
-          <TextField
-            className="lg-search-field"
-            sx={{ width: '100%' }}
-            placeholder="Pesquisar categoria: Nome ou Icone"
-            autoComplete="off"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-
-          <Fab color="primary" title="Nova Categoria" onClick={handleNova} className="queue-page__fab queue-page__fab--add">
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table aria-label="categorias de paginas" className="queue-page__table" sx={{ mt: 3, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Nome</Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Icone</Typography>
-                </TableCell>
-                <TableCell className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Ordem</Typography>
-                </TableCell>
-                <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Status</Typography>
-                </TableCell>
-                <TableCell align="center" className="queue-page__th">
-                  <Typography color="textSecondary" variant="h6">Ações</Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {categoriasFiltradas
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((cat) => (
-                  <StyledTableRow key={cat.id} hover>
-                    <TableCell>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {(cat.nome || '').toUpperCase()}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {cat.icone ? (
-                          <>
-                            <FeatherIcon icon={normalizeIconName(cat.icone, 'circle')} width="16" height="16" />
-                            <Typography color="textSecondary" sx={{ fontSize: '12px' }}>{cat.icone}</Typography>
-                          </>
-                        ) : (
-                          <Typography color="textSecondary" sx={{ fontSize: '12px' }}>-</Typography>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography>{cat.ordem ?? 999}</Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip size="small" label={cat.ativo ? 'Ativa' : 'Inativa'} color={cat.ativo ? 'success' : 'error'} />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ '& button': { mx: 1 } }} className="queue-page__actions">
-                        <Button
-                          title="Editar categoria"
-                          onClick={() => handleEditar(cat)}
-                          color="success"
-                          size="medium"
-                          variant="contained"
-                          className="queue-page__action queue-page__action--success"
-                        >
-                          <FeatherIcon icon="edit" width="20" height="20" />
-                        </Button>
-
-                        <Button
-                          title="Remover categoria"
-                          onClick={() => handleRemove(cat)}
-                          color="error"
-                          size="medium"
-                          variant="contained"
-                          className="queue-page__action queue-page__action--danger"
-                        >
-                          <FeatherIcon icon="trash" width="20" height="20" />
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </StyledTableRow>
-                ))}
-              {categoriasFiltradas.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    Nenhum registro encontrado!
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={categoriasFiltradas.length}
-            page={page}
-            onPageChange={(_, p) => setPage(p)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-          />
-        </TableContainer>
-      </BaseCard>
-
-      <Modal
-        keepMounted
-        open={openModal}
-        onClose={handleCloseModal}
-        slotProps={{ backdrop: { sx: modalBackdropSx } }}
-      >
-        <Box
-          className="paginas-categorias-modal-shell"
-          sx={{ ...modalShellSx, ...modalFormRootSx }}
-        >
-          <AlertModal />
-          <BaseCard title={editId ? 'Editar Categoria de Pagina' : 'Nova Categoria de Pagina'}>
-            <Stack spacing={2.2}>
-              <TextField
-                label="Nome da Categoria"
-                value={form.nome}
-                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-                inputProps={{
-                  style: { textTransform: 'uppercase' },
-                  maxLength: 80,
-                }}
-                required
-              />
-
-              <FormControl fullWidth>
-                <InputLabel>Icone</InputLabel>
-                <Select
-                  value={form.icone}
-                  label="Icone"
-                  onChange={(e) => setForm((f) => ({ ...f, icone: e.target.value }))}
-                  renderValue={(val) =>
-                    val ? (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={normalizeIconName(val, 'circle')} width="16" height="16" />
-                        <span>{val}</span>
-                      </Box>
-                    ) : (
-                      <em>Sem icone</em>
-                    )
-                  }
-                >
-                  <MenuItem value=""><em>Sem icone</em></MenuItem>
-                  {ICONES.map((ic) => (
-                    <MenuItem key={ic} value={ic}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <FeatherIcon icon={normalizeIconName(ic, 'circle')} width="16" height="16" />
-                        <span>{ic}</span>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <TextField
-                label="Ordem"
-                type="number"
-                value={form.ordem}
-                onChange={(e) => setForm((f) => ({ ...f, ordem: e.target.value }))}
-                inputProps={{ min: 1 }}
-              />
-
-              <FormControlLabel
-                control={<Switch checked={form.ativo} onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))} />}
-                label="Categoria ativa"
-              />
-            </Stack>
-
-            <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-              <Button
-                onClick={handleSave}
-                variant="contained"
-                sx={modalPrimaryButtonSx}
-              >
-                Gravar
-              </Button>
-
-              <Button
-                onClick={handleCloseModal}
-                variant="outlined"
-                sx={modalSecondaryButtonSx}
-              >
-                Cancelar
-              </Button>
-            </Box>
-          </BaseCard>
-        </Box>
-      </Modal>
-
-      <ConfirmDialog
-        confirmDialog={confirmDialog}
-        setConfirmDialog={setConfirmDialog}
+    <PaginaDeLista
+      titulo={`Voce possui ${pageCategories.length} Categorias de Paginas Cadastradas`}
+      busca={{ rotulo: 'Pesquisar categoria', placeholder: 'Pesquisar categoria: Nome ou Icone', value: busca, onChange: (e) => setBusca(e.target.value) }}
+      barra={<ActionCreateFab title="Nova Categoria" onClick={handleNova} />}
+      colunas={colunas}
+      linhas={fatia}
+      chaveDaLinha={(cat) => cat.id}
+      vazio="Nenhum registro encontrado!"
+      rotuloDaTabela="categorias de paginas"
+      paginacao={propsDaPaginacao}
+    >
+      <AlertModal />
+      <FormularioModal
+        aberto={openModal}
+        titulo={editId ? 'Editar Categoria de Pagina' : 'Nova Categoria de Pagina'}
+        aoFechar={handleCloseModal}
+        aoGravar={handleSave}
+        campos={CAMPOS}
+        valores={form}
+        aoMudar={({ target: { name, value } }) => setForm((f) => ({ ...f, [name]: value }))}
+        tamanho="md"
+        antes={<AlertModal />}
+        depois={form.icone ? (
+          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <FeatherIcon icon={normalizeIconName(form.icone, 'circle')} width="16" height="16" /> {form.icone}
+          </p>
+        ) : null}
       />
-    </Box>
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+    </PaginaDeLista>
   );
 }

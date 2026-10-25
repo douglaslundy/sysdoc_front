@@ -1,22 +1,22 @@
 import React from 'react';
-import FeatherIcon from 'feather-icons-react';
+import { Archive, BarChart2, Clipboard, Grid3x3, Layers, Maximize, MapPin, RefreshCw, Settings, Tag, Truck, Users } from 'lucide-react';
 import { BotaoLink } from '../ui/botao-link';
 import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 const AREAS = [
-  { title: 'Produtos', href: '/almoxarifado/produtos', icon: 'archive', text: 'Cadastro e consulta de materiais.' },
-  { title: 'Categorias', href: '/almoxarifado/categorias', icon: 'tag', text: 'Categorias dos produtos.' },
-  { title: 'Espécies', href: '/almoxarifado/especies', icon: 'grid', text: 'Espécies e tipos de item.' },
-  { title: 'Unidades', href: '/almoxarifado/unidades-medida', icon: 'maximize', text: 'Unidades de medida.' },
-  { title: 'Fornecedores', href: '/almoxarifado/fornecedores', icon: 'truck', text: 'Cadastro de fornecedores.' },
-  { title: 'Localizações', href: '/almoxarifado/localizacoes', icon: 'map-pin', text: 'Endereçamento físico.' },
-  { title: 'Secretarias', href: '/almoxarifado/secretarias', icon: 'users', text: 'Unidades atendidas pelo estoque.' },
-  { title: 'Estoque', href: '/almoxarifado/estoque', icon: 'layers', text: 'Saldo por produto e secretaria.' },
-  { title: 'Requisições', href: '/almoxarifado/requisicoes', icon: 'clipboard', text: 'Solicitações, aprovações e entrega.' },
-  { title: 'Movimentações', href: '/almoxarifado/movimentacoes', icon: 'refresh-cw', text: 'Entradas, saídas e transferências.' },
-  { title: 'Relatórios', href: '/almoxarifado/relatorios', icon: 'bar-chart-2', text: 'Saldos, consumo e rastreabilidade.' },
-  { title: 'Configurações', href: '/almoxarifado/configuracoes', icon: 'settings', text: 'Parâmetros do módulo.' },
+  { title: 'Produtos', href: '/almoxarifado/produtos', Icone: Archive, text: 'Cadastro e consulta de materiais.' },
+  { title: 'Categorias', href: '/almoxarifado/categorias', Icone: Tag, text: 'Categorias dos produtos.' },
+  { title: 'Espécies', href: '/almoxarifado/especies', Icone: Grid3x3, text: 'Espécies e tipos de item.' },
+  { title: 'Unidades', href: '/almoxarifado/unidades-medida', Icone: Maximize, text: 'Unidades de medida.' },
+  { title: 'Fornecedores', href: '/almoxarifado/fornecedores', Icone: Truck, text: 'Cadastro de fornecedores.' },
+  { title: 'Localizações', href: '/almoxarifado/localizacoes', Icone: MapPin, text: 'Endereçamento físico.' },
+  { title: 'Secretarias', href: '/almoxarifado/secretarias', Icone: Users, text: 'Unidades atendidas pelo estoque.' },
+  { title: 'Estoque', href: '/almoxarifado/estoque', Icone: Layers, text: 'Saldo por produto e secretaria.' },
+  { title: 'Requisições', href: '/almoxarifado/requisicoes', Icone: Clipboard, text: 'Solicitações, aprovações e entrega.' },
+  { title: 'Movimentações', href: '/almoxarifado/movimentacoes', Icone: RefreshCw, text: 'Entradas, saídas e transferências.' },
+  { title: 'Relatórios', href: '/almoxarifado/relatorios', Icone: BarChart2, text: 'Saldos, consumo e rastreabilidade.' },
+  { title: 'Configurações', href: '/almoxarifado/configuracoes', Icone: Settings, text: 'Parâmetros do módulo.' },
 ];
 
 export default function AlmoxarifadoHome() {
@@ -31,7 +31,7 @@ export default function AlmoxarifadoHome() {
           <Card key={area.href} size="sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FeatherIcon icon={area.icon} width="18" height="18" />
+                <area.Icone className="size-[18px]" aria-hidden />
                 {area.title}
               </CardTitle>
               <CardDescription>{area.text}</CardDescription>

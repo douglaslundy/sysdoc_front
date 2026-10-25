@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Chip, Stack } from "@mui/material";
+import { Button } from "../ui/button";
+import { Pilula } from "../ui/pilula";
 
 // Identificação de um card gerado por petição pública: unidade responsável, protocolo e atalho
 // para a fiscalização. Cards comuns (sem fiscalização) não mostram nada.
@@ -8,12 +9,12 @@ export default function PeticaoChips({ item, onOpen }) {
   if (!protocolo) return null;
 
   return (
-    <Stack direction="row" spacing={1} sx={{ mt: 1, minWidth: 0 }} flexWrap="wrap" useFlexGap alignItems="center">
-      {item.unit?.nome ? <Chip size="small" color="info" label={item.unit.nome} /> : null}
-      <Chip size="small" variant="outlined" label={protocolo} />
+    <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+      {item.unit?.nome ? <Pilula tom="info">{item.unit.nome}</Pilula> : null}
+      <Pilula tom="neutro" contorno>{protocolo}</Pilula>
       <Button
-        size="small"
-        variant="text"
+        variant="link"
+        size="sm"
         onClick={(event) => {
           event.stopPropagation();
           onOpen(protocolo);
@@ -21,6 +22,6 @@ export default function PeticaoChips({ item, onOpen }) {
       >
         Abrir fiscalização
       </Button>
-    </Stack>
+    </div>
   );
 }
