@@ -614,11 +614,11 @@ export default function KanbanPage() {
             <CampoDeBusca
               rotulo="Pesquisar item"
               placeholder="Pesquisar item"
-              className="kanban-page__search w-full flex-none sm:w-60 md:w-64"
+              className="kanban-page__search w-full flex-none sm:w-56"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-            <div className="w-full sm:w-44">
+            <div className="w-full sm:w-40">
               <CampoSelecao id="kb-filtro-status" label="Status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                 <option value="">Todos os status</option>
                 {BOARD_COLUMNS.map((status) => (
@@ -626,7 +626,7 @@ export default function KanbanPage() {
                 ))}
               </CampoSelecao>
             </div>
-            <div className="w-full sm:w-44">
+            <div className="w-full sm:w-40">
               <CampoSelecao id="kb-filtro-prioridade" label="Prioridade" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}>
                 {PRIORITY_OPTIONS.map((priority) => (
                   <option key={priority.value || "all"} value={priority.value}>{priority.label}</option>
