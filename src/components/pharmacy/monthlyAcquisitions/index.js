@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import InputMask from 'react-input-mask';
-import { Box, Fab, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import MedicineMonthlyAcquisitionDialog from '../../modal/medicineMonthlyAcquisition';
-import TableLoadingRows from '../../tableLoadingRows';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 import { getMonthlyAcquisitions } from '../../../store/fetchActions/medicineMonthlyAcquisitions';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
 import { clearMonthlyAcquisitionsState } from '../../../store/ducks/medicineMonthlyAcquisitions';
 import { clearAlertMessages, clearMessages } from '../../../store/ducks/Layout';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+import { ActionCreateFab } from '../../actions';
+import { Campo, Input } from '../../ui/campos';
+import { PaginaDeLista } from '../../ui/pagina-de-lista';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -24,20 +22,6 @@ const formatUnit = (value) => {
 };
 
 export default function MonthlyAcquisitionsManager() {
-  const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-      background: 'var(--queue-row-bg)',
-      borderTop: '0.5px solid var(--lg-border)',
-      borderBottom: '0.5px solid var(--lg-border)',
-      paddingTop: 12,
-      paddingBottom: 12,
-      color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-  }));
-
   const dispatch = useDispatch();
   const { monthlyAcquisitions, pagination } = useSelector((state) => state.medicineMonthlyAcquisitions);
   const { isOpenLoading } = useSelector((state) => state.layout);
@@ -105,14 +89,13 @@ export default function MonthlyAcquisitionsManager() {
     setPage(0);
   };
 
-  const handlePerPage = (event) => {
-    const value = Number(event.target.value);
+  const handlePerPage = (value) => {
     setPerPage(value);
     setPage(0);
     dispatch(getMonthlyAcquisitions(buildParams({ per_page: value, page: 1 })));
   };
 
-  const handlePage = (_, newPage) => {
+  const handlePage = (newPage) => {
     setPage(newPage);
     dispatch(getMonthlyAcquisitions(buildParams({ page: newPage + 1 })));
   };
@@ -124,105 +107,43 @@ export default function MonthlyAcquisitionsManager() {
     dispatch(getMonthlyAcquisitions(buildParams({ reference_month: apiMonth })));
   };
 
+  const colunas = [
+    { chave: 'medicamento', titulo: 'Medicamento', render: (s) => `${s.medicine_item?.active_ingredient ?? ''} ${s.medicine_item?.concentration ?? ''}`.trim() },
+    { chave: 'quantidade', titulo: 'Qtd.', render: (s) => s.acquired_quantity },
+    { chave: 'unidade', titulo: 'Unidade', render: (s) => formatUnit(s.unit_measure) },
+    { chave: 'origem', titulo: 'Origem', render: (s) => s.source_document || '-' },
+    { chave: 'obs', titulo: 'Observação', render: (s) => s.note || '-' },
+  ];
+
+  const barra = (
+    <>
+      <div className="min-w-[160px]">
+        <Campo id="aquisicoes-mes" label="Mês de referência">
+          {(p) => (
+            <InputMask mask="99/9999" value={referenceMonth} onChange={handleReferenceMonth}>
+              {(inputProps) => <Input {...p} {...inputProps} placeholder="MM/AAAA" inputMode="numeric" />}
+            </InputMask>
+          )}
+        </Campo>
+      </div>
+      <ActionCreateFab title="Novo" className="ml-auto" onClick={() => setDialogOpen(true)} />
+    </>
+  );
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-monthly-page">
-      <BaseCard title="Aquisições Mensais de Medicamentos">
-        <AlertModal />
-        <Box className="queue-page__toolbar"
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr auto', md: 'minmax(240px, 1fr) auto' },
-            alignItems: 'start',
-            gap: 1.5,
-            mb: 2,
-            mt: 1,
-          }}
-        >
-          <InputMask
-            mask="99/9999"
-            value={referenceMonth}
-            onChange={handleReferenceMonth}
-          >
-            {(inputProps) => (
-              <TextField
-                {...inputProps}
-                className="lg-search-field"
-                placeholder="MM/AAAA"
-                inputProps={{ ...inputProps.inputProps, inputMode: 'numeric' }}
-                sx={{ minWidth: 0, width: '100%' }}
-              />
-            )}
-          </InputMask>
-          <Fab className="queue-page__fab queue-page__fab--add"
-            color="primary"
-            size="medium"
-            onClick={() => setDialogOpen(true)}
-            sx={{ justifySelf: { xs: 'flex-end', sm: 'center' }, mt: '2px' }}
-          >
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Qtd.</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Unidade</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Origem</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            {isOpenLoading ? (
-              <TableLoadingRows columns={5} rows={5} />
-            ) : (
-              <TableBody>
-                {monthlyAcquisitions.map((s) => (
-                  <StyledTableRow key={s.id} hover>
-                    <TableCell>{s.medicine_item?.active_ingredient} {s.medicine_item?.concentration}</TableCell>
-                    <TableCell>{s.acquired_quantity}</TableCell>
-                    <TableCell>{formatUnit(s.unit_measure)}</TableCell>
-                    <TableCell>{s.source_document || '-'}</TableCell>
-                    <TableCell>{s.note || '-'}</TableCell>
-                  </StyledTableRow>
-                ))}
-                {!monthlyAcquisitions.length && (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      Nenhum registro encontrado!
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handlePage}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={handlePerPage}
-            rowsPerPageOptions={PER_PAGE_OPTIONS}
-            labelRowsPerPage="Por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
-            sx={{
-              '& .MuiTablePagination-toolbar': {
-                flexWrap: 'wrap',
-                rowGap: 0.5,
-                justifyContent: { xs: 'center', md: 'space-between' },
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                margin: 0,
-              },
-            }}
-          />
-        </TableContainer>
-
-        <MedicineMonthlyAcquisitionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSuccess={onSuccess} />
-      </BaseCard>
-    </Box>
+    <PaginaDeLista
+      titulo="Aquisições Mensais de Medicamentos"
+      barra={barra}
+      colunas={colunas}
+      linhas={monthlyAcquisitions}
+      chaveDaLinha={(s) => s.id}
+      carregando={Boolean(isOpenLoading)}
+      vazio="Nenhum registro encontrado!"
+      rotuloDaTabela="aquisições mensais"
+      paginacao={{ total: totalCount, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+    >
+      <AlertModal />
+      <MedicineMonthlyAcquisitionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSuccess={onSuccess} />
+    </PaginaDeLista>
   );
 }

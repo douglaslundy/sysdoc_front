@@ -1,6 +1,4 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Box, Grid, Paper, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
 import PublicThemeToggle from '../PublicThemeToggle';
 
@@ -12,7 +10,7 @@ const SCROLL_DURATION_SECONDS = 240;
 const getColumnAnimation = (itemsCount) => {
   if (itemsCount <= 8) return 'none';
   const duration = Math.max(60, Math.round((SCROLL_DURATION_SECONDS * itemsCount) / 40));
-  return `medicinesPanelColumnScroll ${duration}s linear infinite`;
+  return `rolagem-coluna ${duration}s linear infinite`;
 };
 
 const formatDate = (value) => {
@@ -36,7 +34,6 @@ const formatDateTime = (value) => {
 };
 
 export default function MedicinesPanel() {
-  const theme = useTheme();
   const [data, setData] = useState({ items: [], reference_date: '', last_update_at: null });
 
   const loadData = () => {
@@ -60,139 +57,73 @@ export default function MedicinesPanel() {
   const availableItems = sortedItems.filter((item) => item.availability_status === 'available');
   const unavailableItems = sortedItems.filter((item) => item.availability_status !== 'available');
   const columns = [
-    { title: 'Medicamentos disponíveis', items: availableItems, color: theme.palette.success.main },
-    { title: 'Medicamentos indisponíveis', items: unavailableItems, color: theme.palette.error.main },
+    { title: 'Medicamentos disponíveis', items: availableItems, texto: 'text-success', borda: 'border-l-success' },
+    { title: 'Medicamentos indisponíveis', items: unavailableItems, texto: 'text-danger', borda: 'border-l-danger' },
   ];
 
-  const renderMedicineCard = (item, color) => (
-    <Paper
-      sx={{
-        px: 1.25,
-        py: 0.75,
-        background: 'var(--lg-glass-panel)',
-        color: 'var(--lg-text-primary)',
-        border: '0.5px solid var(--lg-border)',
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 700, lineHeight: 1.15 }}>
+  const renderMedicineCard = (item, borda) => (
+    <div className={`rounded-lg border border-l-4 border-border bg-card px-3 py-2 ${borda}`}>
+      <p className="text-base leading-tight font-bold">
         {item.active_ingredient} {item.concentration}
-      </Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
+      </p>
+      <p className="text-xs leading-tight text-muted-foreground">
         {item.pharmaceutical_form} - {item.presentation}
-      </Typography>
-    </Paper>
+      </p>
+    </div>
   );
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        overflow: 'hidden',
-        color: 'var(--lg-text-primary)',
-        '@keyframes medicinesPanelColumnScroll': {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(-50%)' },
-        },
-      }}
-    >
+    <div className="ui-reset h-screen overflow-hidden">
       <PublicThemeToggle />
-      <Box
-        component="header"
-        sx={{
-          height: `${HEADER_HEIGHT}px`,
-          px: 3,
-          pt: 3,
-          pb: '5px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          position: 'relative',
-          zIndex: 2,
-          background: 'var(--lg-glass-modal)',
-          backdropFilter: 'var(--lg-blur-modal)',
-          WebkitBackdropFilter: 'var(--lg-blur-modal)',
-          borderBottom: '0.5px solid var(--lg-border)',
-        }}
+      <header
+        className="relative z-[2] flex flex-col justify-end border-b border-border bg-surface px-6 pt-6 pb-[5px]"
+        style={{ height: `${HEADER_HEIGHT}px` }}
       >
-        <Typography variant="h2" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>
+        <h1 className="mb-2 pr-12 font-display text-3xl leading-tight font-extrabold">
           Painel de Disponibilidade de Medicamentos
-        </Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary', m: 0, lineHeight: 1.2 }}>
+        </h1>
+        <p className="text-base leading-tight text-muted-foreground">
           Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
-        </Typography>
-      </Box>
+        </p>
+      </header>
 
-      <Box
-        sx={{
-          height: `calc(100vh - ${HEADER_HEIGHT}px)`,
-          overflow: 'hidden',
-          px: 3,
-          pt: '5px',
-          pb: 3,
-        }}
-      >
-        <Grid
-          container
-          columnSpacing={2}
-          rowSpacing={0}
-          sx={{
-            height: `${COLUMN_HEADER_HEIGHT}px`,
-            position: 'relative',
-            zIndex: 2,
-            background: 'var(--lg-glass-bg)',
-          }}
-        >
+      <div className="overflow-hidden px-6 pt-[5px] pb-6" style={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
+        <div className="relative z-[2] grid grid-cols-1 items-center gap-4 bg-background md:grid-cols-2" style={{ height: `${COLUMN_HEADER_HEIGHT}px` }}>
           {columns.map((column) => (
-            <Grid item xs={12} md={6} key={column.title}>
-              <Typography variant="h4" sx={{ color: column.color, fontWeight: 700 }}>
-                {column.title} ({column.items.length})
-              </Typography>
-            </Grid>
+            <h2 key={column.title} className={`font-display text-2xl font-bold ${column.texto}`}>
+              {column.title} ({column.items.length})
+            </h2>
           ))}
-        </Grid>
+        </div>
 
-        <Box
-          sx={{
-            height: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)`,
-            overflow: 'hidden',
-          }}
-        >
-          <Grid container spacing={2} sx={{ height: '100%' }}>
+        <div className="overflow-hidden" style={{ height: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)` }}>
+          <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-2">
             {columns.map((column) => {
               const shouldLoop = column.items.length > 8;
               const loopItems = shouldLoop ? [...column.items, ...column.items] : column.items;
 
               return (
-                <Grid item xs={12} md={6} key={column.title} sx={{ height: '100%' }}>
-                  <Box sx={{ height: '100%', overflow: 'hidden' }}>
-                    {column.items.length === 0 ? (
-                      <Paper sx={{ p: 1.25, background: 'var(--lg-glass-panel)', color: 'var(--lg-text-secondary)', border: '0.5px solid var(--lg-border)' }}>
-                        Nenhum registro.
-                      </Paper>
-                    ) : (
-                      <Box
-                        sx={{
-                          display: 'grid',
-                          gap: 1,
-                          animation: getColumnAnimation(column.items.length),
-                          willChange: shouldLoop ? 'transform' : 'auto',
-                        }}
-                      >
-                        {loopItems.map((item, index) => (
-                          <Box key={`${item.medicine_id}-${index}`}>
-                            {renderMedicineCard(item, column.color)}
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                  </Box>
-                </Grid>
+                <div key={column.title} className="h-full overflow-hidden">
+                  {column.items.length === 0 ? (
+                    <div className="rounded-lg border border-border bg-card p-3 text-muted-foreground">Nenhum registro.</div>
+                  ) : (
+                    <div
+                      className="grid gap-2"
+                      style={{ animation: getColumnAnimation(column.items.length), willChange: shouldLoop ? 'transform' : 'auto' }}
+                    >
+                      {loopItems.map((item, index) => (
+                        <div key={`${item.medicine_id}-${index}`}>
+                          {renderMedicineCard(item, column.borda)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
-          </Grid>
-        </Box>
-      </Box>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,15 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Button, Chip, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
 import { api } from '../../../services/api';
 import { addAlertMessage, addMessage, turnAlert, turnLoading } from '../../../store/ducks/Layout';
-
-const summaryChip = (label, value, color = 'default') => (
-  <Chip label={`${label}: ${value}`} color={color} variant="outlined" sx={{ mr: 1, mb: 1 }} />
-);
+import { Button, buttonVariants } from '../../ui/button';
+import { CabecalhoDePagina } from '../../ui/cabecalho-de-pagina';
+import { DataTable } from '../../ui/data-table';
+import { Pilula } from '../../ui/pilula';
 
 export default function PharmacyStockImportManager() {
   const dispatch = useDispatch();
@@ -275,137 +272,85 @@ export default function PharmacyStockImportManager() {
     }
   };
 
+  const colunasImportados = [
+    { chave: 'id', titulo: 'ID Medicamento', render: (item) => item.medicine_item_id ?? '-' },
+    { chave: 'csv', titulo: 'Medicamento CSV', render: (item) => formatMedicineWithConcentration(item.csv_name, item.concentration) },
+    { chave: 'farmaco', titulo: 'Fármaco', render: (item) => item.farmaco || '-' },
+    { chave: 'qtd', titulo: 'Quantidade', numerica: true, render: (item) => item.quantity ?? 0 },
+    { chave: 'status', titulo: 'Status Aplicado', render: (item) => item.availability_status || '-' },
+  ];
+
+  const colunasNaoConciliados = [
+    { chave: 'csv', titulo: 'Medicamento CSV', render: (item) => formatMedicineWithConcentration(item.csv_name, item.concentration) },
+    { chave: 'farmaco', titulo: 'Fármaco', render: (item) => item.farmaco || '-' },
+    { chave: 'qtd', titulo: 'Quantidade', numerica: true, render: (item) => item.quantity ?? 0 },
+    { chave: 'idlido', titulo: 'medicine_item_id lido', render: (item) => item.medicine_item_id_lido ?? '-' },
+    { chave: 'codlido', titulo: 'internal_code lido', render: (item) => item.internal_code_lido || '-' },
+    { chave: 'motivo', titulo: 'Motivo', render: (item) => item.reason || '-' },
+  ];
+
+  const colunasAmbiguos = [
+    { chave: 'csv', titulo: 'Medicamento CSV', render: (item) => formatMedicineWithConcentration(item.csv_name, item.concentration) },
+    { chave: 'farmaco', titulo: 'Fármaco', render: (item) => item.farmaco || '-' },
+    { chave: 'candidatos', titulo: 'Candidatos', render: (item) => (item.candidates || []).map((candidate) => candidate.label).join(' | ') || '-' },
+    { chave: 'motivo', titulo: 'Motivo', render: (item) => item.reason || '-' },
+  ];
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-stockimport-page">
-      <BaseCard title="Importação de Estoque (CSV)">
-        <AlertModal />
-        <Box className="queue-page__toolbar" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <Button className="queue-page__action queue-page__action--info" variant="outlined" onClick={handleDownloadCurrentStockBackup}>
-            Baixar Backup do Estoque Atual (CSV)
-          </Button>
-          <Button className="queue-page__action queue-page__action--primary" variant="outlined" component="label">
-            Selecionar CSV
-            <input hidden type="file" accept=".csv,text/csv" onChange={(event) => setFile(event.target.files?.[0] || null)} />
-          </Button>
-          <Typography variant="body2" color="text.secondary">
-            {file ? file.name : 'Nenhum arquivo selecionado'}
-          </Typography>
-          <Button className="queue-page__action queue-page__action--success" variant="contained" onClick={handleImport} disabled={!canImport}>
-            Importar Estoque
-          </Button>
-        </Box>
+    <div className="ui-reset pharmacy-stockimport-page">
+      <CabecalhoDePagina titulo="Importação de Estoque (CSV)" />
+      <AlertModal />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <Button variant="secondary" onClick={handleDownloadCurrentStockBackup}>
+          Baixar Backup do Estoque Atual (CSV)
+        </Button>
+        <label className={`${buttonVariants({ variant: 'outline' })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>
+          Selecionar CSV
+          <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+        </label>
+        <p className="text-sm text-muted-foreground">{file ? file.name : 'Nenhum arquivo selecionado'}</p>
+        <Button variant="success" onClick={handleImport} disabled={!canImport}>
+          Importar Estoque
+        </Button>
+      </div>
 
-        {report && (
-          <Box>
-            <Box sx={{ mb: 2 }}>
-              {summaryChip('Data de referência', report.reference_date || '-')}
-              {summaryChip('Linhas CSV', report.total_rows || 0)}
-              {summaryChip('Itens agrupados', report.grouped_items || 0)}
-              {summaryChip('Atualizados', report.updated_items || 0, 'success')}
-              {summaryChip('Importados no relatório', report.imported_items?.length || 0, 'success')}
-              {summaryChip('Não conciliados', report.unmatched_items?.length || 0, (report.unmatched_items?.length || 0) > 0 ? 'warning' : 'default')}
-              {summaryChip('Ambíguos', report.ambiguous_items?.length || 0, (report.ambiguous_items?.length || 0) > 0 ? 'warning' : 'default')}
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Button className="queue-page__action queue-page__action--success" variant="contained" sx={{ mr: 1 }} onClick={handleDownloadImportReportPdf}>
-                Baixar Relatório de Importação (PDF)
-              </Button>
-              <Button className="queue-page__action queue-page__action--info" variant="outlined" onClick={handleDownloadPendingPdf} disabled={!hasPendingItems}>
-                Baixar Relatório de Pendências (PDF)
-              </Button>
-            </Box>
+      {report && (
+        <div className="grid gap-5">
+          <div className="flex flex-wrap gap-2">
+            <Pilula tom="neutro" contorno>{`Data de referência: ${report.reference_date || '-'}`}</Pilula>
+            <Pilula tom="neutro" contorno>{`Linhas CSV: ${report.total_rows || 0}`}</Pilula>
+            <Pilula tom="neutro" contorno>{`Itens agrupados: ${report.grouped_items || 0}`}</Pilula>
+            <Pilula tom="sucesso" contorno>{`Atualizados: ${report.updated_items || 0}`}</Pilula>
+            <Pilula tom="sucesso" contorno>{`Importados no relatório: ${report.imported_items?.length || 0}`}</Pilula>
+            <Pilula tom={(report.unmatched_items?.length || 0) > 0 ? 'alerta' : 'neutro'} contorno>{`Não conciliados: ${report.unmatched_items?.length || 0}`}</Pilula>
+            <Pilula tom={(report.ambiguous_items?.length || 0) > 0 ? 'alerta' : 'neutro'} contorno>{`Ambíguos: ${report.ambiguous_items?.length || 0}`}</Pilula>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="success" onClick={handleDownloadImportReportPdf}>
+              Baixar Relatório de Importação (PDF)
+            </Button>
+            <Button variant="secondary" onClick={handleDownloadPendingPdf} disabled={!hasPendingItems}>
+              Baixar Relatório de Pendências (PDF)
+            </Button>
+          </div>
 
-            <Typography variant="h6" sx={{ mb: 1 }}>Itens Não Conciliados</Typography>
-            <Typography variant="h6" sx={{ mb: 1 }}>Itens Importados</Typography>
-            <TableContainer className="queue-page__table-wrap" component={Paper} sx={{ mb: 2 }}>
-              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>ID Medicamento</TableCell>
-                    <TableCell>Medicamento CSV</TableCell>
-                    <TableCell>Fármaco</TableCell>
-                    <TableCell align="right">Quantidade</TableCell>
-                    <TableCell>Status Aplicado</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(report.imported_items || []).map((item, idx) => (
-                    <TableRow key={`imported-${idx}`}>
-                      <TableCell>{item.medicine_item_id ?? '-'}</TableCell>
-                      <TableCell>{formatMedicineWithConcentration(item.csv_name, item.concentration)}</TableCell>
-                      <TableCell>{item.farmaco || '-'}</TableCell>
-                      <TableCell align="right">{item.quantity ?? 0}</TableCell>
-                      <TableCell>{item.availability_status || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {(report.imported_items || []).length === 0 && (
-                    <TableRow><TableCell colSpan={5}>Nenhum item.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          <section>
+            <h3 className="mb-2 font-display text-base font-bold">Itens Importados</h3>
+            <DataTable rotulo="itens importados" colunas={colunasImportados} linhas={report.imported_items || []} chaveDaLinha={(item) => `imported-${item.medicine_item_id}-${item.csv_name}`} vazio="Nenhum item." />
+          </section>
 
-            <Typography variant="h6" sx={{ mb: 1 }}>Itens Não Conciliados</Typography>
-            <TableContainer className="queue-page__table-wrap" component={Paper} sx={{ mb: 2 }}>
-              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Medicamento CSV</TableCell>
-                    <TableCell>Fármaco</TableCell>
-                    <TableCell align="right">Quantidade</TableCell>
-                    <TableCell>medicine_item_id lido</TableCell>
-                    <TableCell>internal_code lido</TableCell>
-                    <TableCell>Motivo</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(report.unmatched_items || []).map((item, idx) => (
-                    <TableRow key={`unmatched-${idx}`}>
-                      <TableCell>{formatMedicineWithConcentration(item.csv_name, item.concentration)}</TableCell>
-                      <TableCell>{item.farmaco || '-'}</TableCell>
-                      <TableCell align="right">{item.quantity ?? 0}</TableCell>
-                      <TableCell>{item.medicine_item_id_lido ?? '-'}</TableCell>
-                      <TableCell>{item.internal_code_lido || '-'}</TableCell>
-                      <TableCell>{item.reason || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {(report.unmatched_items || []).length === 0 && (
-                    <TableRow><TableCell colSpan={6}>Nenhum item.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          <section>
+            <h3 className="mb-2 font-display text-base font-bold">Itens Não Conciliados</h3>
+            <DataTable rotulo="itens não conciliados" colunas={colunasNaoConciliados} linhas={report.unmatched_items || []} chaveDaLinha={(item) => `unmatched-${item.csv_name}-${item.concentration}`} vazio="Nenhum item." />
+          </section>
 
-            <Typography variant="h6" sx={{ mb: 1 }}>Itens Ambíguos</Typography>
-            <TableContainer className="queue-page__table-wrap" component={Paper}>
-              <Table className="queue-page__table" size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Medicamento CSV</TableCell>
-                    <TableCell>Fármaco</TableCell>
-                    <TableCell>Candidatos</TableCell>
-                    <TableCell>Motivo</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(report.ambiguous_items || []).map((item, idx) => (
-                    <TableRow key={`ambiguous-${idx}`}>
-                      <TableCell>{formatMedicineWithConcentration(item.csv_name, item.concentration)}</TableCell>
-                      <TableCell>{item.farmaco || '-'}</TableCell>
-                      <TableCell>{(item.candidates || []).map((candidate) => candidate.label).join(' | ') || '-'}</TableCell>
-                      <TableCell>{item.reason || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {(report.ambiguous_items || []).length === 0 && (
-                    <TableRow><TableCell colSpan={4}>Nenhum item.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        )}
-      </BaseCard>
-    </Box>
+          <section>
+            <h3 className="mb-2 font-display text-base font-bold">Itens Ambíguos</h3>
+            <DataTable rotulo="itens ambíguos" colunas={colunasAmbiguos} linhas={report.ambiguous_items || []} chaveDaLinha={(item) => `ambiguous-${item.csv_name}-${item.concentration}`} vazio="Nenhum item." />
+          </section>
+        </div>
+      )}
+    </div>
   );
 }
 const formatMedicineWithConcentration = (medicineName, concentration) => {

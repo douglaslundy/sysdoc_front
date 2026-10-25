@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
 import PublicThemeToggle from '../PublicThemeToggle';
+import { DataTable } from '../../ui/data-table';
 
 const formatMonth = (value) => {
     if (!value || !/^\d{4}-\d{2}$/.test(value)) return value || '-';
@@ -30,8 +29,15 @@ const formatUnit = (value) => {
     return value;
 };
 
+const colunas = [
+    { chave: 'medicamento', titulo: 'Medicamento', render: (item) => `${item.active_ingredient ?? ''} ${item.concentration ?? ''}`.trim() },
+    { chave: 'quantidade', titulo: 'Quantidade', render: (item) => item.acquired_quantity },
+    { chave: 'unidade', titulo: 'Unidade', render: (item) => formatUnit(item.unit_measure) },
+    { chave: 'origem', titulo: 'Origem', render: (item) => item.source_document || '-' },
+    { chave: 'obs', titulo: 'Observação', render: (item) => item.note || '-' },
+];
+
 export default function MedicinesMonthlyPublicList() {
-    const theme = useTheme();
     const [data, setData] = useState({ items: [], reference_month: '', last_update_at: null });
 
     useEffect(() => {
@@ -41,41 +47,19 @@ export default function MedicinesMonthlyPublicList() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
+        <main className="ui-reset min-h-screen p-4 sm:p-6">
             <PublicThemeToggle />
-            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Aquisições Mensais</Typography>
-            <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            <h1 className="mb-1 pr-12 font-display text-2xl leading-tight font-extrabold sm:text-3xl">Transparência da Farmácia - Aquisições Mensais</h1>
+            <p className="mb-4 text-sm text-muted-foreground">
                 Mês de referência: {formatMonth(data.reference_month)} | Última atualização: {formatDateTime(data.last_update_at)}
-            </Typography>
-            <TableContainer sx={{ background: 'var(--lg-glass-panel)', border: '0.5px solid var(--lg-border)', borderRadius: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Medicamento</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Quantidade</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Unidade</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Origem</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Observação</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {data.items.length === 0 && (
-                            <TableRow>
-                                <TableCell sx={{ color: 'text.secondary' }} colSpan={5}>Nenhum registro disponível.</TableCell>
-                            </TableRow>
-                        )}
-                        {data.items.map((item, idx) => (
-                            <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: alpha(theme.palette.primary.main, 0.04) } }}>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} {item.concentration}</TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.acquired_quantity}</TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{formatUnit(item.unit_measure)}</TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.source_document || '-'}</TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.note || '-'}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
+            </p>
+            <DataTable
+                rotulo="aquisições mensais"
+                colunas={colunas}
+                linhas={data.items}
+                chaveDaLinha={(item) => `${item.medicine_id}-${item.active_ingredient}-${item.source_document}`}
+                vazio="Nenhum registro disponível."
+            />
+        </main>
     );
 }

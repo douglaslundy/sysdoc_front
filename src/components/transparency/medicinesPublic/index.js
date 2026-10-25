@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
 import { api } from '../../../services/api';
 import PublicThemeToggle from '../PublicThemeToggle';
+import { DataTable } from '../../ui/data-table';
+import { Pilula } from '../../ui/pilula';
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -24,8 +24,22 @@ const formatDateTime = (value) => {
     }).format(date);
 };
 
+const colunas = [
+    { chave: 'medicamento', titulo: 'Medicamento', render: (item) => `${item.active_ingredient ?? ''} ${item.concentration ?? ''}`.trim() },
+    {
+        chave: 'status',
+        titulo: 'Status',
+        render: (item) => (
+            <Pilula tom={item.availability_status === 'available' ? 'sucesso' : 'perigo'}>
+                {item.availability_status === 'available' ? 'Disponível' : 'Indisponível'}
+            </Pilula>
+        ),
+    },
+    { chave: 'gratuita', titulo: 'Distribuição Gratuita', render: (item) => (item.is_free_distribution ? 'Sim' : 'Não') },
+    { chave: 'obs', titulo: 'Observação', render: (item) => item.public_note || '-' },
+];
+
 export default function MedicinesPublicList() {
-    const theme = useTheme();
     const [data, setData] = useState({ items: [], reference_date: '', last_update_at: null });
 
     useEffect(() => {
@@ -35,45 +49,19 @@ export default function MedicinesPublicList() {
     }, []);
 
     return (
-        <Box sx={{ p: 3, minHeight: '100vh', color: 'var(--lg-text-primary)' }}>
+        <main className="ui-reset min-h-screen p-4 sm:p-6">
             <PublicThemeToggle />
-            <Typography variant="h3" sx={{ mb: 1, color: 'text.primary', fontWeight: 700 }}>Transparência da Farmácia - Medicamentos Diários</Typography>
-            <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            <h1 className="mb-1 pr-12 font-display text-2xl leading-tight font-extrabold sm:text-3xl">Transparência da Farmácia - Medicamentos Diários</h1>
+            <p className="mb-4 text-sm text-muted-foreground">
                 Data de referência: {formatDate(data.reference_date)} | Última atualização: {formatDateTime(data.last_update_at)}
-            </Typography>
-            <TableContainer sx={{ background: 'var(--lg-glass-panel)', border: '0.5px solid var(--lg-border)', borderRadius: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Medicamento</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Status</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Distribuição Gratuita</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Observação</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {data.items.length === 0 && (
-                            <TableRow>
-                                <TableCell sx={{ color: 'text.secondary' }} colSpan={4}>Nenhum registro disponível.</TableCell>
-                            </TableRow>
-                        )}
-                        {data.items.map((item, idx) => (
-                            <TableRow key={`${item.medicine_id}-${idx}`} sx={{ '&:nth-of-type(odd)': { bgcolor: alpha(theme.palette.primary.main, 0.04) } }}>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.active_ingredient} {item.concentration}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={item.availability_status === 'available' ? 'Disponível' : 'Indisponível'}
-                                        color={item.availability_status === 'available' ? 'success' : 'error'}
-                                        size="small"
-                                    />
-                                </TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.is_free_distribution ? 'Sim' : 'Não'}</TableCell>
-                                <TableCell sx={{ color: 'text.primary' }}>{item.public_note || '-'}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
+            </p>
+            <DataTable
+                rotulo="medicamentos diários"
+                colunas={colunas}
+                linhas={data.items}
+                chaveDaLinha={(item) => `${item.medicine_id}-${item.active_ingredient}-${item.concentration}`}
+                vazio="Nenhum registro disponível."
+            />
+        </main>
     );
 }

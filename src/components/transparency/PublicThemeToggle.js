@@ -1,23 +1,23 @@
 import React, { useContext } from "react";
-import { IconButton, Tooltip } from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { Moon, Sun } from "lucide-react";
 import { ColorModeContext } from "../../contexts/ThemeContext";
+import { Button } from "../ui/button";
 
 // Botão de tema (claro/escuro) das páginas públicas de transparência, que não têm o cabeçalho do sistema.
 export default function PublicThemeToggle() {
   const { toggleColorMode, mode } = useContext(ColorModeContext);
+  const rotulo = mode === "dark" ? "Modo claro" : "Modo escuro";
 
   return (
-    <Tooltip title={mode === "dark" ? "Modo claro" : "Modo escuro"}>
-      <IconButton
-        onClick={toggleColorMode}
-        aria-label="Alternar tema"
-        size="small"
-        className="theme-toggle-btn"
-        sx={{ position: "fixed", top: 12, right: 12, zIndex: 1300 }}
-      >
-        <FeatherIcon icon={mode === "dark" ? "sun" : "moon"} width="18" height="18" />
-      </IconButton>
-    </Tooltip>
+    <Button
+      variant="outline"
+      size="icon-sm"
+      onClick={toggleColorMode}
+      aria-label="Alternar tema"
+      title={rotulo}
+      className="ui-reset fixed top-3 right-3 z-50 bg-card"
+    >
+      {mode === "dark" ? <Sun /> : <Moon />}
+    </Button>
   );
 }

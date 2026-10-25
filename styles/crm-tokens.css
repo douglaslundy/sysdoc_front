@@ -200,6 +200,11 @@
   50% { opacity: 0.5; }
 }
 
+@keyframes rolagem-coluna {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
 @keyframes entrar-pela-direita {
   from { transform: translateX(16px); opacity: 0; }
   to { transform: none; opacity: 1; }

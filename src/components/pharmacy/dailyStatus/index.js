@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Fab, FormControl, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography, styled } from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { List } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import MedicineDailyStatusDialog from '../../modal/medicineDailyStatus';
-import TableLoadingRows from '../../tableLoadingRows';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
 import { getDailyStatuses } from '../../../store/fetchActions/medicineDailyStatuses';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
 import { clearDailyStatusesState } from '../../../store/ducks/medicineDailyStatuses';
 import { clearAlertMessages, clearMessages } from '../../../store/ducks/Layout';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+import { ActionCreateFab } from '../../actions';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { PaginaDeLista } from '../../ui/pagina-de-lista';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -41,20 +41,6 @@ const localDate = () => {
 };
 
 export default function DailyStatusManager() {
-  const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-      background: 'var(--queue-row-bg)',
-      borderTop: '0.5px solid var(--lg-border)',
-      borderBottom: '0.5px solid var(--lg-border)',
-      paddingTop: 12,
-      paddingBottom: 12,
-      color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-  }));
-
   const dispatch = useDispatch();
   const { dailyStatuses, pagination } = useSelector((state) => state.medicineDailyStatuses);
   const { isOpenLoading } = useSelector((state) => state.layout);
@@ -138,14 +124,13 @@ export default function DailyStatusManager() {
     setPage(0);
   };
 
-  const handlePerPage = (event) => {
-    const value = Number(event.target.value);
+  const handlePerPage = (value) => {
     setPerPage(value);
     setPage(0);
     dispatch(getDailyStatuses(buildParams({ per_page: value, page: 1 })));
   };
 
-  const handlePage = (_, newPage) => {
+  const handlePage = (newPage) => {
     setPage(newPage);
     dispatch(getDailyStatuses(buildParams({ page: newPage + 1 })));
   };
@@ -155,129 +140,56 @@ export default function DailyStatusManager() {
     dispatch(getDailyStatuses(buildParams()));
   };
 
+  const colunas = [
+    {
+      chave: 'medicamento',
+      titulo: 'Medicamento',
+      render: (s) => <span title={s.medicine_item?.active_ingredient || ''}>{truncate(s.medicine_item?.active_ingredient, 40)}</span>,
+    },
+    {
+      chave: 'concentracao',
+      titulo: 'Concentração',
+      render: (s) => <span title={s.medicine_item?.concentration || ''}>{truncate(s.medicine_item?.concentration, 30) || '-'}</span>,
+    },
+    { chave: 'status', titulo: 'Status', render: (s) => statusLabel(s.availability_status) },
+    { chave: 'quantidade', titulo: 'Quantidade', render: (s) => s.available_quantity ?? '-' },
+    { chave: 'reposicao', titulo: 'Reposição', render: (s) => formatDate(s.restock_forecast_date) },
+    { chave: 'obs', titulo: 'Observação', render: (s) => s.public_note || '-' },
+  ];
+
+  const barra = (
+    <>
+      <CampoTexto id="status-diario-data" label="Data de referência" type="date" value={referenceDate} onChange={handleReferenceDate} />
+      {includeAll && (
+        <CampoSelecao id="status-diario-status" label="Status" value={statusFilter} onChange={handleStatusFilter} className="min-w-[150px]">
+          <option value="">Todos</option>
+          <option value="available">Disponível</option>
+          <option value="unavailable">Indisponível</option>
+          <option value="no_record">Sem lançamento</option>
+        </CampoSelecao>
+      )}
+      <Button variant={includeAll ? 'default' : 'outline'} onClick={handleToggleIncludeAll}>
+        <List /> Exibir todos
+      </Button>
+      <ActionCreateFab title="Novo" onClick={() => setDialogOpen(true)} />
+    </>
+  );
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-dailystatus-page">
-      <BaseCard title={`Status Diário de Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
-        <AlertModal />
-        <Box className="queue-page__toolbar"
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: includeAll
-              ? { xs: '1fr', sm: '1fr 1fr', md: 'minmax(160px, 190px) minmax(220px, 1fr) minmax(150px, 170px) auto auto' }
-              : { xs: '1fr', sm: '1fr 1fr', md: 'minmax(160px, 190px) minmax(240px, 1fr) auto auto' },
-            alignItems: 'center',
-            gap: 1.5,
-            mb: 2,
-            mt: 1,
-          }}
-        >
-          <TextField
-            className="lg-search-field"
-            placeholder="Data de referência"
-            type="date"
-            value={referenceDate}
-            onChange={handleReferenceDate}
-            InputLabelProps={{ shrink: true }}
-            sx={{ minWidth: 0, width: '100%' }}
-          />
-          <TextField
-            className="lg-search-field"
-            placeholder="Pesquisar medicamento"
-            value={search}
-            onChange={handleSearch}
-            inputProps={{ autoComplete: 'off' }}
-            sx={{ minWidth: 0, width: '100%' }}
-          />
-          {includeAll && (
-            <FormControl className="lg-search-field" size="small" sx={{ minWidth: 0, width: '100%' }}>
-              <InputLabel>Status</InputLabel>
-              <Select value={statusFilter} label="Status" onChange={handleStatusFilter}>
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="available">Disponível</MenuItem>
-                <MenuItem value="unavailable">Indisponível</MenuItem>
-                <MenuItem value="no_record">Sem lançamento</MenuItem>
-              </Select>
-            </FormControl>
-          )}
-          <Button
-            variant={includeAll ? 'contained' : 'outlined'}
-            onClick={handleToggleIncludeAll}
-            startIcon={<FeatherIcon icon="list" width="16" height="16" />}
-            sx={{
-              whiteSpace: 'nowrap',
-              justifySelf: { xs: 'stretch', md: 'center' },
-              height: 48,
-              minHeight: 48,
-            }}
-          >
-            Exibir todos
-          </Button>
-          <Fab className="queue-page__fab queue-page__fab--add"
-            color="primary"
-            size="small"
-            onClick={() => setDialogOpen(true)}
-            sx={{ justifySelf: { xs: 'flex-end', sm: 'center' }, width: 48, height: 48, minHeight: 48 }}
-          >
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Concentração</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Status</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Quantidade</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Reposição</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Observação</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            {isOpenLoading ? (
-              <TableLoadingRows columns={6} rows={5} />
-            ) : (
-              <TableBody>
-                {dailyStatuses.map((s) => (
-                  <StyledTableRow key={s.id || `medicine-${s.medicine_item_id}`} hover>
-                    <TableCell title={s.medicine_item?.active_ingredient || ''}>
-                      {truncate(s.medicine_item?.active_ingredient, 40)}
-                    </TableCell>
-                    <TableCell title={s.medicine_item?.concentration || ''}>
-                      {truncate(s.medicine_item?.concentration, 30) || '-'}
-                    </TableCell>
-                    <TableCell>{statusLabel(s.availability_status)}</TableCell>
-                    <TableCell>{s.available_quantity ?? '-'}</TableCell>
-                    <TableCell>{formatDate(s.restock_forecast_date)}</TableCell>
-                    <TableCell>{s.public_note || '-'}</TableCell>
-                  </StyledTableRow>
-                ))}
-                {!dailyStatuses.length && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      Nenhum registro encontrado!
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handlePage}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={handlePerPage}
-            rowsPerPageOptions={PER_PAGE_OPTIONS}
-            labelRowsPerPage="Por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
-          />
-        </TableContainer>
-
-        <MedicineDailyStatusDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSuccess={onSuccess} />
-      </BaseCard>
-    </Box>
+    <PaginaDeLista
+      titulo={`Status Diário de Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}
+      busca={{ rotulo: 'Pesquisar medicamento', placeholder: 'Pesquisar medicamento', value: search, onChange: handleSearch }}
+      barra={barra}
+      colunas={colunas}
+      linhas={dailyStatuses}
+      chaveDaLinha={(s) => s.id || `medicine-${s.medicine_item_id}`}
+      carregando={Boolean(isOpenLoading)}
+      vazio="Nenhum registro encontrado!"
+      rotuloDaTabela="status diário de medicamentos"
+      paginacao={{ total: totalCount, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+    >
+      <AlertModal />
+      <MedicineDailyStatusDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSuccess={onSuccess} />
+    </PaginaDeLista>
   );
 }

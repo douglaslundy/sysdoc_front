@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Checkbox, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { api } from '../../../services/api';
 import { addAlertMessage, addMessage, turnAlert, turnLoading } from '../../../store/ducks/Layout';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+import { Button } from '../../ui/button';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 
 const EMPTY = {
   filter_is_free_distribution: false,
@@ -23,6 +23,14 @@ const ALL_FILTERS_ENABLED = {
   filter_is_high_cost: true,
   filter_active: true,
 };
+
+const OPCOES = [
+  ['filter_is_free_distribution', 'Distribuição Gratuita'],
+  ['filter_is_controlled', 'Medicamento Controlado'],
+  ['filter_is_judicial_order', 'Ordem Judicial'],
+  ['filter_is_high_cost', 'Alto Custo'],
+  ['filter_active', 'Ativo'],
+];
 
 const normalizeForm = (data) => {
   const next = { ...EMPTY, ...data };
@@ -51,17 +59,17 @@ export default function MedicinesPanelSettings() {
       });
   }, [dispatch]);
 
-  const change = ({ target }) => {
-    if (target.name === 'filter_show_all') {
+  const change = (name, checked) => {
+    if (name === 'filter_show_all') {
       setForm((prev) => ({
         ...prev,
-        ...(target.checked ? ALL_FILTERS_ENABLED : {}),
-        filter_show_all: target.checked,
+        ...(checked ? ALL_FILTERS_ENABLED : {}),
+        filter_show_all: checked,
       }));
       return;
     }
 
-    setForm((prev) => ({ ...prev, [target.name]: target.checked }));
+    setForm((prev) => ({ ...prev, [name]: checked }));
   };
 
   const save = () => {
@@ -79,24 +87,29 @@ export default function MedicinesPanelSettings() {
   };
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-panelsettings-page">
-      <BaseCard title="Configuração do Painel de Medicamentos">
+    <Card className="ui-reset pharmacy-panelsettings-page">
+      <CardHeader>
+        <CardTitle>Configuração do Painel de Medicamentos</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
         <AlertModal />
-        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+        <p className="text-sm text-muted-foreground">
           Selecione quais tipos de medicamentos devem aparecer no painel público de disponibilidade.
-        </Typography>
+        </p>
 
-        <Stack spacing={1.2} sx={{ mb: 2 }}>
-          <FormControlLabel control={<Checkbox name="filter_show_all" checked={!!form.filter_show_all} onChange={change} />} label="Todos" />
-          <FormControlLabel control={<Checkbox name="filter_is_free_distribution" checked={!!form.filter_is_free_distribution} disabled={!!form.filter_show_all} onChange={change} />} label="Distribuição Gratuita" />
-          <FormControlLabel control={<Checkbox name="filter_is_controlled" checked={!!form.filter_is_controlled} disabled={!!form.filter_show_all} onChange={change} />} label="Medicamento Controlado" />
-          <FormControlLabel control={<Checkbox name="filter_is_judicial_order" checked={!!form.filter_is_judicial_order} disabled={!!form.filter_show_all} onChange={change} />} label="Ordem Judicial" />
-          <FormControlLabel control={<Checkbox name="filter_is_high_cost" checked={!!form.filter_is_high_cost} disabled={!!form.filter_show_all} onChange={change} />} label="Alto Custo" />
-          <FormControlLabel control={<Checkbox name="filter_active" checked={!!form.filter_active} disabled={!!form.filter_show_all} onChange={change} />} label="Ativo" />
-        </Stack>
+        <div className="grid gap-3">
+          <CaixaDeMarcacao id="painel-filter_show_all" name="filter_show_all" marcado={!!form.filter_show_all} aoMudar={(v) => change('filter_show_all', v)}>Todos</CaixaDeMarcacao>
+          {OPCOES.map(([name, rotulo]) => (
+            <CaixaDeMarcacao key={name} id={`painel-${name}`} name={name} marcado={!!form[name]} disabled={!!form.filter_show_all} aoMudar={(v) => change(name, v)}>
+              {rotulo}
+            </CaixaDeMarcacao>
+          ))}
+        </div>
 
-        <Button className="queue-page__action queue-page__action--success" variant="contained" onClick={save}>Salvar Configurações</Button>
-      </BaseCard>
-    </Box>
+        <div>
+          <Button onClick={save}>Salvar Configurações</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

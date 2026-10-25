@@ -1,27 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  styled,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../../baseCard/BaseCard';
-import TableLoadingRows from '../../tableLoadingRows';
+import { Eye } from 'lucide-react';
 import { api } from '../../../services/api';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+import { CabecalhoDePagina } from '../../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../../ui/campo-de-busca';
+import { CampoSelecao } from '../../ui/campos';
+import { DataTable } from '../../ui/data-table';
+import { Paginacao } from '../../ui/paginacao';
+import { Pilula } from '../../ui/pilula';
 
 const PER_PAGE_OPTIONS = [15, 50, 100];
 
@@ -38,9 +23,9 @@ const truncate = (value, max = 30) => {
 };
 
 const availabilityMeta = (item) => {
-  if (item?.is_available) return { label: 'Disponível', color: 'success' };
-  if (item?.availability_status === 'available') return { label: 'Disponível', color: 'success' };
-  return { label: 'Indisponível', color: 'error' };
+  if (item?.is_available) return { label: 'Disponível', tom: 'sucesso' };
+  if (item?.availability_status === 'available') return { label: 'Disponível', tom: 'sucesso' };
+  return { label: 'Indisponível', tom: 'perigo' };
 };
 
 const formatDateTime = (value) => {
@@ -58,20 +43,6 @@ const formatDateTime = (value) => {
 };
 
 export default function ConsultaMedicamentos() {
-  const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-      background: 'var(--queue-row-bg)',
-      borderTop: '0.5px solid var(--lg-border)',
-      borderBottom: '0.5px solid var(--lg-border)',
-      paddingTop: 12,
-      paddingBottom: 12,
-      color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-  }));
-
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -150,147 +121,98 @@ export default function ConsultaMedicamentos() {
     });
   };
 
-  const handlePerPage = (event) => {
-    const value = Number(event.target.value);
+  const handlePerPage = (value) => {
     setPerPage(value);
     setPage(0);
     fetchMedicines({ per_page: value, page: 1 });
   };
 
-  const handlePage = (_, newPage) => {
+  const handlePage = (newPage) => {
     setPage(newPage);
     fetchMedicines({ page: newPage + 1 });
   };
 
-  const isEmpty = !loading && items.length === 0;
+  const colunas = [
+    {
+      chave: 'medicamento',
+      titulo: 'Medicamento',
+      render: (medicine) => (
+        <span title={`${medicine.active_ingredient || ''} ${medicine.concentration || ''}`.trim()}>
+          <span className="block font-semibold">{truncate(medicine.active_ingredient, 30)}</span>
+          <span className="block text-xs text-muted-foreground">{medicine.concentration || '-'}</span>
+        </span>
+      ),
+    },
+    {
+      chave: 'estoque',
+      titulo: 'Estoque',
+      render: (medicine) => (
+        <>
+          <span className="block font-semibold">{medicine.available_quantity ?? '-'}</span>
+          <span className="block text-xs text-muted-foreground">Estoque disponível</span>
+        </>
+      ),
+    },
+    {
+      chave: 'disponibilidade',
+      titulo: 'Disponibilidade',
+      render: (medicine) => {
+        const metaStatus = availabilityMeta(medicine);
+        return <Pilula tom={metaStatus.tom}>{metaStatus.label}</Pilula>;
+      },
+    },
+    {
+      chave: 'classificacoes',
+      titulo: 'Classificações',
+      render: (medicine) => {
+        const tags = [];
+        if (medicine.is_free_distribution) tags.push('Distribuição gratuita');
+        if (medicine.is_controlled) tags.push('Controlado');
+        if (medicine.is_judicial_order) tags.push('Ordem judicial');
+        if (medicine.is_high_cost) tags.push('Alto custo');
+        if (medicine.active) tags.push('Ativo');
+        return <span title={tags.join(' | ') || '-'}>{tags.length ? truncate(tags.join(' | '), 36) : '-'}</span>;
+      },
+    },
+    { chave: 'atualizacao', titulo: 'Atualização', render: (medicine) => formatDateTime(medicine.last_status_updated_at) },
+  ];
 
   return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-consulta-medicamentos-page pharmacy-medicines-page">
-      <BaseCard title="Consulta de Medicamentos">
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 1.5,
-            mb: 2,
-            mt: 1,
-          }}
-        >
-          <TextField
-            className="lg-search-field"
-            placeholder="Pesquisar medicamento pelo nome, código ou princípio ativo"
-            value={search}
-            onChange={handleSearch}
-            sx={{ flex: '1 1 320px', minWidth: 240 }}
-          />
-          <FormControl className="lg-search-field" size="small" sx={{ flex: '0 1 190px', minWidth: 175 }}>
-            <InputLabel>Disponibilidade</InputLabel>
-            <Select value={availability} label="Disponibilidade" onChange={handleAvailabilityChange}>
-              {availabilityOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Box sx={{ ml: { xs: 0, md: 'auto' }, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FeatherIcon icon="eye" width="18" height="18" />
-            <Typography variant="body2" color="text.secondary">
-              Consulta somente leitura
-            </Typography>
-          </Box>
-        </Box>
+    <div className="ui-reset pharmacy-consulta-medicamentos-page pharmacy-medicines-page">
+      <CabecalhoDePagina titulo="Consulta de Medicamentos" />
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <CampoDeBusca
+          className="min-w-[240px] flex-[1_1_320px]"
+          rotulo="Pesquisar medicamento"
+          placeholder="Pesquisar medicamento pelo nome, código ou princípio ativo"
+          value={search}
+          onChange={handleSearch}
+        />
+        <CampoSelecao id="consulta-disponibilidade" label="Disponibilidade" value={availability} onChange={handleAvailabilityChange} className="min-w-[175px]">
+          {availabilityOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </CampoSelecao>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground md:ml-auto">
+          <Eye className="size-4" aria-hidden /> Consulta somente leitura
+        </p>
+      </div>
 
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-          <Chip size="small" color="success" variant="outlined" label={`Filtro: ${filteredLabel}`} />
-          <Chip size="small" variant="outlined" label={`Página ${page + 1}`} />
-          <Chip size="small" variant="outlined" label={`${perPage} por página`} />
-        </Box>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Pilula tom="sucesso" contorno>{`Filtro: ${filteredLabel}`}</Pilula>
+        <Pilula tom="neutro" contorno>{`Página ${page + 1}`}</Pilula>
+        <Pilula tom="neutro" contorno>{`${perPage} por página`}</Pilula>
+      </div>
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Estoque</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Disponibilidade</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Classificações</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Atualização</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-
-            {loading ? (
-              <TableLoadingRows columns={5} rows={5} />
-            ) : (
-              <TableBody>
-                {items.map((medicine) => {
-                  const metaStatus = availabilityMeta(medicine);
-                  const tags = [];
-                  if (medicine.is_free_distribution) tags.push('Distribuição gratuita');
-                  if (medicine.is_controlled) tags.push('Controlado');
-                  if (medicine.is_judicial_order) tags.push('Ordem judicial');
-                  if (medicine.is_high_cost) tags.push('Alto custo');
-                  if (medicine.active) tags.push('Ativo');
-
-                  return (
-                    <StyledTableRow key={medicine.id} hover>
-                      <TableCell title={`${medicine.active_ingredient || ''} ${medicine.concentration || ''}`.trim()}>
-                        <Typography variant="h6" sx={{ fontSize: 14 }}>
-                          {truncate(medicine.active_ingredient, 30)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {medicine.concentration || '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontSize: 14 }}>
-                          {medicine.available_quantity ?? '-'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Estoque disponível
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip size="small" color={metaStatus.color} label={metaStatus.label} />
-                      </TableCell>
-                      <TableCell title={tags.join(' | ') || '-'}>
-                        {tags.length ? truncate(tags.join(' | '), 36) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {formatDateTime(medicine.last_status_updated_at)}
-                        </Typography>
-                      </TableCell>
-                    </StyledTableRow>
-                  );
-                })}
-
-                {isEmpty && (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      Nenhum medicamento encontrado para os filtros selecionados.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handlePage}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={handlePerPage}
-            rowsPerPageOptions={PER_PAGE_OPTIONS}
-            labelRowsPerPage="Por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
-          />
-        </TableContainer>
-      </BaseCard>
-    </Box>
+      <DataTable
+        rotulo="medicamentos"
+        colunas={colunas}
+        linhas={items}
+        chaveDaLinha={(medicine) => medicine.id}
+        carregando={loading}
+        vazio="Nenhum medicamento encontrado para os filtros selecionados."
+      />
+      <Paginacao total={totalCount} pagina={page} porPagina={perPage} opcoes={PER_PAGE_OPTIONS} aoMudarPagina={handlePage} aoMudarPorPagina={handlePerPage} />
+    </div>
   );
 }

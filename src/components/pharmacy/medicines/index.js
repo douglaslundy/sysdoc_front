@@ -1,35 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Chip,
-  Fab,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  styled,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import ConfirmDialog from '../../confirmDialog';
 import MedicineDialog from '../../modal/medicine';
-import TableLoadingRows from '../../tableLoadingRows';
 import { getAllMedicines, removeMedicineFetch } from '../../../store/fetchActions/medicines';
 import { clearMedicinesState } from '../../../store/ducks/medicines';
 import { clearAlertMessages, clearMessages } from '../../../store/ducks/Layout';
-import { modalFormRootSx } from '../../modal/_shared/modalFormStyles';
+import { ActionCreateFab } from '../../actions';
+import { AcoesDeLinha } from '../../ui/acoes-de-linha';
+import { CampoSelecao } from '../../ui/campos';
+import { PaginaDeLista } from '../../ui/pagina-de-lista';
+import { Pilula } from '../../ui/pilula';
 
 const PER_PAGE_OPTIONS = [15, 50, 100];
 
@@ -46,10 +27,10 @@ const truncate = (value, max = 30) => {
 
 const availabilityMeta = (value) => {
   if (value === 'available') {
-    return { label: 'Disponível', color: 'success' };
+    return { label: 'Disponível', tom: 'sucesso' };
   }
 
-  return { label: 'Indisponível', color: 'error' };
+  return { label: 'Indisponível', tom: 'perigo' };
 };
 
 const renderTags = (medicine) => {
@@ -63,20 +44,6 @@ const renderTags = (medicine) => {
 };
 
 export default function MedicinesManager() {
-  const StyledTableRow = styled(TableRow)(() => ({
-    '& td': {
-      background: 'var(--queue-row-bg)',
-      borderTop: '0.5px solid var(--lg-border)',
-      borderBottom: '0.5px solid var(--lg-border)',
-      paddingTop: 12,
-      paddingBottom: 12,
-      color: 'var(--queue-text-primary)',
-    },
-    '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
-    '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderTopRightRadius: 14, borderBottomRightRadius: 14 },
-    '&:hover td': { background: 'var(--queue-row-hover)' },
-  }));
-
   const dispatch = useDispatch();
   const { medicines, pagination } = useSelector((state) => state.medicines);
   const { isOpenLoading } = useSelector((state) => state.layout);
@@ -132,8 +99,7 @@ export default function MedicinesManager() {
     }, 400);
   };
 
-  const handlePerPage = (event) => {
-    const value = Number(event.target.value);
+  const handlePerPage = (value) => {
     setPerPage(value);
     setPage(0);
     dispatch(getAllMedicines(buildParams(filters, { per_page: value, page: 1 })));
@@ -146,7 +112,7 @@ export default function MedicinesManager() {
     dispatch(getAllMedicines(buildParams(next, { page: 1 })));
   };
 
-  const handlePage = (_, newPage) => {
+  const handlePage = (newPage) => {
     setPage(newPage);
     dispatch(getAllMedicines(buildParams(filters, { page: newPage + 1 })));
   };
@@ -156,168 +122,96 @@ export default function MedicinesManager() {
     dispatch(getAllMedicines(buildParams(filters)));
   };
 
-  return (
-    <Box sx={modalFormRootSx} className="queue-page pharmacy-medicines-page">
-      <BaseCard title={`Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}>
-        <AlertModal />
-        <Box
-          className="queue-page__toolbar"
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 1.5,
-            mb: 2,
-            mt: 1,
+  const colunas = [
+    {
+      chave: 'medicamento',
+      titulo: 'Medicamento',
+      render: (medicine) => (
+        <>
+          <span className="block font-semibold" title={medicine.active_ingredient || ''}>{truncate(medicine.active_ingredient, 30)}</span>
+          <span className="block text-xs text-muted-foreground">{medicine.concentration || '-'}</span>
+        </>
+      ),
+    },
+    {
+      chave: 'estoque',
+      titulo: 'Estoque',
+      render: (medicine) => (
+        <>
+          <span className="block font-semibold">{medicine.available_quantity ?? '-'}</span>
+          <span className="block text-xs text-muted-foreground">
+            {medicine.last_status_updated_at ? `Atualizado em ${medicine.last_status_updated_at}` : 'Sem lançamento'}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: 'disponibilidade',
+      titulo: 'Disponibilidade',
+      render: (medicine) => {
+        const meta = availabilityMeta(medicine.availability_status);
+        return <Pilula tom={meta.tom}>{meta.label}</Pilula>;
+      },
+    },
+    {
+      chave: 'classificacoes',
+      titulo: 'Classificações',
+      render: (medicine) => <span title={renderTags(medicine)}>{truncate(renderTags(medicine), 60)}</span>,
+    },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (medicine) => (
+        <AcoesDeLinha
+          aoEditar={() => {
+            setEditing(medicine);
+            setDialogOpen(true);
           }}
-        >
-          <TextField
-            className="lg-search-field"
-            placeholder="Pesquisar medicamento pelo nome"
-            value={search}
-            onChange={handleSearch}
-            sx={{ flex: '1 1 280px', minWidth: 220 }}
-          />
-          <FormControl
-            className="lg-search-field"
-            size="small"
-            sx={{ flex: '0 1 185px', minWidth: 175 }}
-          >
-            <InputLabel>Disponibilidade</InputLabel>
-            <Select value={filters.availability_status} label="Disponibilidade" onChange={handleAvailabilityChange}>
-              {availabilityOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Fab
-            className="queue-page__fab queue-page__fab--add"
-            color="primary"
-            size="medium"
-            onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-            sx={{ ml: 'auto', flexShrink: 0 }}
-          >
-            <FeatherIcon icon="plus" />
-          </Fab>
-        </Box>
+          aoExcluir={() => setConfirmDialog({
+            isOpen: true,
+            title: `Remover ${medicine.active_ingredient}?`,
+            subTitle: 'Esta ação não pode ser desfeita.',
+            confirm: removeMedicineFetch(medicine.id),
+          })}
+        />
+      ),
+    },
+  ];
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Medicamento</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Estoque</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Disponibilidade</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Classificações</Typography></TableCell>
-                <TableCell align="center" className="queue-page__th"><Typography variant="h6">Ações</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            {isOpenLoading ? (
-              <TableLoadingRows columns={5} rows={5} />
-            ) : (
-              <TableBody>
-                {medicines.map((medicine) => {
-                  const meta = availabilityMeta(medicine.availability_status);
+  const barra = (
+    <>
+      <CampoSelecao id="medicamentos-disponibilidade" label="Disponibilidade" value={filters.availability_status} onChange={handleAvailabilityChange} className="min-w-[175px]">
+        {availabilityOptions.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </CampoSelecao>
+      <ActionCreateFab
+        title="Novo"
+        className="ml-auto"
+        onClick={() => {
+          setEditing(null);
+          setDialogOpen(true);
+        }}
+      />
+    </>
+  );
 
-                  return (
-                    <StyledTableRow key={medicine.id} hover>
-                      <TableCell>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontSize: 14 }}
-                          title={medicine.active_ingredient || ''}
-                        >
-                          {truncate(medicine.active_ingredient, 30)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {medicine.concentration || '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="h6" sx={{ fontSize: 14 }}>
-                          {medicine.available_quantity ?? '-'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {medicine.last_status_updated_at ? `Atualizado em ${medicine.last_status_updated_at}` : 'Sem lançamento'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip size="small" color={meta.color} label={meta.label} />
-                      </TableCell>
-                      <TableCell title={renderTags(medicine)}>{truncate(renderTags(medicine), 60)}</TableCell>
-                      <TableCell align="center">
-                        <Button
-                          className="queue-page__action queue-page__action--success"
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            setEditing(medicine);
-                            setDialogOpen(true);
-                          }}
-                          sx={{ mr: 1 }}
-                        >
-                          <FeatherIcon icon="edit" width="16" height="16" />
-                        </Button>
-                        <Button
-                          className="queue-page__action queue-page__action--danger"
-                          size="small"
-                          color="error"
-                          variant="contained"
-                          onClick={() => setConfirmDialog({
-                            isOpen: true,
-                            title: `Remover ${medicine.active_ingredient}?`,
-                            subTitle: 'Esta ação não pode ser desfeita.',
-                            confirm: removeMedicineFetch(medicine.id),
-                          })}
-                        >
-                          <FeatherIcon icon="trash" width="16" height="16" />
-                        </Button>
-                      </TableCell>
-                    </StyledTableRow>
-                  );
-                })}
-                {!medicines.length && (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      Nenhum medicamento encontrado com esse filtro.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            )}
-          </Table>
-          <TablePagination
-            className="queue-page__pagination"
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handlePage}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={handlePerPage}
-            rowsPerPageOptions={PER_PAGE_OPTIONS}
-            labelRowsPerPage="Por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
-            sx={{
-              '& .MuiTablePagination-toolbar': {
-                flexWrap: 'wrap',
-                rowGap: 0.5,
-                justifyContent: { xs: 'center', md: 'space-between' },
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                margin: 0,
-              },
-            }}
-          />
-        </TableContainer>
-
-        <MedicineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} medicine={editing} onSuccess={onSuccess} />
-        <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-      </BaseCard>
-    </Box>
+  return (
+    <PaginaDeLista
+      titulo={`Medicamentos${pagination ? ` - ${pagination.total} registros` : ''}`}
+      busca={{ rotulo: 'Pesquisar medicamento', placeholder: 'Pesquisar medicamento pelo nome', value: search, onChange: handleSearch }}
+      barra={barra}
+      colunas={colunas}
+      linhas={medicines}
+      chaveDaLinha={(medicine) => medicine.id}
+      carregando={Boolean(isOpenLoading)}
+      vazio="Nenhum medicamento encontrado com esse filtro."
+      rotuloDaTabela="medicamentos"
+      paginacao={{ total: totalCount, pagina: page, porPagina: perPage, opcoes: PER_PAGE_OPTIONS, aoMudarPagina: handlePage, aoMudarPorPagina: handlePerPage }}
+    >
+      <AlertModal />
+      <MedicineDialog open={dialogOpen} onClose={() => setDialogOpen(false)} medicine={editing} onSuccess={onSuccess} />
+      <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+    </PaginaDeLista>
   );
 }
