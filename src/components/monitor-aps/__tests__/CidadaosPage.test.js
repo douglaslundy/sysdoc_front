@@ -16,7 +16,7 @@ import CidadaosPage from '../CidadaosPage';
 describe('CidadaosPage', () => {
     it('renders the page title', () => {
         render(<CidadaosPage />);
-        expect(screen.getByText('Cidadãos')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /^Cidadãos/ })).toBeInTheDocument();
     });
 
     it('renders Nome and Condições column headers', () => {

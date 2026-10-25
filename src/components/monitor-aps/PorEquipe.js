@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
-import {
-    Alert, Box, Card, CardContent, Chip, CircularProgress, FormControl, Grid,
-    InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableHead,
-    TableRow, Typography,
-} from '@mui/material';
+import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
 import { monitorApsApi, isMonitorApsCanceled } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoSelecao } from '../ui/campos';
+import { Card, CardContent } from '../ui/card';
+import { Carregando } from '../ui/carregando';
+import { DataTable } from '../ui/data-table';
+import { Grade } from '../ui/grade';
+import { SeloAps } from './pecas';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
@@ -17,20 +21,17 @@ const FONT = { fontFamily: "'DM Sans', sans-serif", toolbar: { show: false } };
 function ClassCard({ titulo, classificacao, repasse }) {
     const cor = COR[classificacao] ?? '#888';
     return (
-        <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
+        <Card size="sm" className="h-full">
             <CardContent>
-                <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 1 }}>{titulo}</Typography>
-                <Chip label={LABEL[classificacao] ?? '—'} sx={{ bgcolor: cor + '22', color: cor, fontWeight: 700, mb: 1 }} />
+                <p className="mb-2 text-sm font-semibold text-muted-foreground">{titulo}</p>
+                <SeloAps cor={cor}>{LABEL[classificacao] ?? '—'}</SeloAps>
                 {repasse !== undefined && (
-                    <Typography variant="caption" display="block" sx={{ color: 'var(--lg-text-secondary)' }}>
-                        + R$ {(repasse ?? 0).toLocaleString('pt-BR')}/mês
-                    </Typography>
+                    <p className="mt-2 text-xs text-muted-foreground">+ R$ {(repasse ?? 0).toLocaleString('pt-BR')}/mês</p>
                 )}
             </CardContent>
         </Card>
     );
 }
-
 export default function PorEquipe() {
     const anoAtual  = new Date().getFullYear();
     const quadAtual = Math.ceil((new Date().getMonth() + 1) / 4);
@@ -119,176 +120,135 @@ export default function PorEquipe() {
         return ordem[media] ?? 'regular';
     }, [indicadores]);
 
-    return (
-        <Box className="dashboard-neon-page monitor-aps-page">
-            <Box className="dashboard-neon-home monitor-aps-surface">
-            {/* Seletores */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Desempenho por Equipe</Typography>
-                <Box display="flex" gap={1.5} flexWrap="wrap">
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}
-                            renderValue={(val) => {
-                                if (!val) return '';
-                                const eq = equipes.find(e => e.nu_ine === val);
-                                return eq ? equipeLabel(eq.no_equipe) : val;
-                            }}>
-                            <MenuItem value="">
-                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                            </MenuItem>
-                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    {isRestrito && !loadingPerms && equipes.length === 0 && (
-                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                            <Typography variant="body2" color="warning.dark">
-                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                            </Typography>
-                        </Box>
-                    )}
-                    <FormControl size="small" sx={{ minWidth: 100 }}>
-                        <InputLabel>Ano</InputLabel>
-                        <Select label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))}>
-                            {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 130 }}>
-                        <InputLabel>Quadrimestre</InputLabel>
-                        <Select label="Quadrimestre" value={quad} onChange={e => setQuad(Number(e.target.value))}>
-                            {[1, 2, 3].map(q => <MenuItem key={q} value={q}>{q}° Quad.</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                </Box>
-            </Box>
+    const colunasInd = [
+        { chave: 'ind', titulo: 'IND', render: (i) => <span className="font-bold">{i.indicador?.id}</span> },
+        { chave: 'nome', titulo: 'Nome', render: (i) => i.indicador?.nome },
+        { chave: 'num', titulo: 'Num.', numerica: true, render: (i) => i.indicador?.resultado?.numerador },
+        { chave: 'den', titulo: 'Den.', numerica: true, render: (i) => i.indicador?.resultado?.denominador },
+        {
+            chave: 'pct',
+            titulo: '%',
+            numerica: true,
+            render: (i) => {
+                const r = i.indicador?.resultado ?? {};
+                return <span className="font-bold" style={{ color: COR[r.classificacao] ?? '#888' }}>{r.percentual}%</span>;
+            },
+        },
+        {
+            chave: 'classificacao',
+            titulo: 'Classificação',
+            render: (i) => {
+                const r = i.indicador?.resultado ?? {};
+                return <SeloAps cor={COR[r.classificacao] ?? '#888'}>{LABEL[r.classificacao] ?? '—'}</SeloAps>;
+            },
+        },
+    ];
 
-            {erro && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {erro}
-                </Alert>
+    const filtros = (
+        <>
+            <CampoSelecao id="eq-equipe" label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1} className="min-w-[200px]">
+                <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                {equipes.map(eq => <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="eq-ano" label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))} className="min-w-[100px]">
+                {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <option key={a} value={a}>{a}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="eq-quad" label="Quadrimestre" value={quad} onChange={e => setQuad(Number(e.target.value))} className="min-w-[130px]">
+                {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}
+            </CampoSelecao>
+        </>
+    );
+
+    return (
+        <div className="ui-reset monitor-aps-page">
+            <CabecalhoDePagina titulo="Desempenho por Equipe" acoes={filtros} />
+            {isRestrito && !loadingPerms && equipes.length === 0 && (
+                <div className="mb-4">
+                    <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
+                </div>
             )}
+
+            {erro && <div className="mb-4"><Banner tom="perigo">{erro}</Banner></div>}
             {loading ? (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}><CircularProgress /></Box>
+                <Carregando className="min-h-[300px] justify-center">Carregando dados da equipe...</Carregando>
             ) : (
                 <>
                     {/* Cards de classificação */}
-                    <Grid container spacing={2} mb={3}>
-                        <Grid item xs={12} sm={4}>
+                    <Grade container spacing={2} mb={3}>
+                        <Grade item xs={12} sm={4}>
                             <ClassCard titulo="Vínculo Territorial" classificacao={vinculo?.classificacao} repasse={repasse?.componente_vinculo} />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
+                        </Grade>
+                        <Grade item xs={12} sm={4}>
                             <ClassCard titulo="Qualidade dos Indicadores" classificacao={classQ} repasse={repasse?.componente_qualidade} />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <Card className="monitor-aps-kpi" sx={{ height: '100%' }}>
+                        </Grade>
+                        <Grade item xs={12} sm={4}>
+                            <Card size="sm" className="h-full">
                                 <CardContent>
-                                    <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 1 }}>Repasse Estimado</Typography>
-                                    <Typography variant="h3" fontWeight={700} sx={{ color: '#168821' }}>
-                                        R$ {(repasse?.total_estimado ?? 0).toLocaleString('pt-BR')}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>/mês</Typography>
+                                    <p className="mb-2 text-sm font-semibold text-muted-foreground">Repasse Estimado</p>
+                                    <p className="font-mono text-3xl font-bold text-success">R$ {(repasse?.total_estimado ?? 0).toLocaleString('pt-BR')}</p>
+                                    <p className="text-xs text-muted-foreground">/mês</p>
                                 </CardContent>
                             </Card>
-                        </Grid>
-                    </Grid>
+                        </Grade>
+                    </Grade>
 
-                    <Grid container spacing={3}>
+                    <Grade container spacing={3}>
                         {/* Radar */}
-                        <Grid item xs={12} md={6}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="subtitle1" fontWeight={700} mb={1}>Radar dos Indicadores</Typography>
-                                    {radar ? (
-                                        <Chart type="radar" height={300}
-                                            options={{
-                                                chart: { ...FONT },
-                                                xaxis: { categories: radar.categories },
-                                                yaxis: { show: false, min: 0, max: 100 },
-                                                plotOptions: { radar: { size: 120, polygons: { strokeColors: 'var(--lg-border)', fill: { colors: ['transparent'] } } } },
-                                                stroke: { width: 2 },
-                                                fill: { opacity: 0.15 },
-                                                markers: { size: 3 },
-                                                legend: { position: 'bottom', labels: { colors: 'var(--lg-text-secondary)' } },
-                                                colors: ['#1351B4', '#168821'],
-                                                tooltip: { theme: 'dark' },
-                                            }}
-                                            series={[
-                                                { name: 'Resultado', data: radar.resultados },
-                                                { name: 'Meta Bom', data: radar.metas },
-                                            ]}
-                                        />
-                                    ) : <Typography color="textSecondary" textAlign="center" py={4}>Sem dados</Typography>}
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                        <Grade item xs={12} md={6}>
+                            <BaseCard title="Radar dos Indicadores">
+                                {radar ? (
+                                    <Chart type="radar" height={300}
+                                        options={{
+                                            chart: { ...FONT },
+                                            xaxis: { categories: radar.categories },
+                                            yaxis: { show: false, min: 0, max: 100 },
+                                            plotOptions: { radar: { size: 120, polygons: { strokeColors: 'var(--lg-border)', fill: { colors: ['transparent'] } } } },
+                                            stroke: { width: 2 },
+                                            fill: { opacity: 0.15 },
+                                            markers: { size: 3 },
+                                            legend: { position: 'bottom', labels: { colors: 'var(--lg-text-secondary)' } },
+                                            colors: ['#1351B4', '#168821'],
+                                            tooltip: { theme: 'dark' },
+                                        }}
+                                        series={[
+                                            { name: 'Resultado', data: radar.resultados },
+                                            { name: 'Meta Bom', data: radar.metas },
+                                        ]}
+                                    />
+                                ) : <p className="py-8 text-center text-muted-foreground">Sem dados</p>}
+                            </BaseCard>
+                        </Grade>
 
                         {/* Histórico */}
-                        <Grid item xs={12} md={6}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="subtitle1" fontWeight={700} mb={1}>Histórico — IND 8 (Visita ACS)</Typography>
-                                    {linha.valores.length > 0 ? (
-                                        <Chart type="line" height={300}
-                                            options={{
-                                                chart: { ...FONT },
-                                                stroke: { curve: 'smooth', width: 2 },
-                                                xaxis: { categories: linha.labels, labels: { style: { colors: 'var(--lg-text-muted)' } } },
-                                                yaxis: { min: 0, max: 100, labels: { formatter: v => `${v}%`, style: { colors: 'var(--lg-text-muted)' } } },
-                                                markers: { size: 4 },
-                                                colors: ['#1351B4'],
-                                                tooltip: { theme: 'dark', y: { formatter: v => `${v}%` } },
-                                                grid: { borderColor: 'var(--lg-border)' },
-                                            }}
-                                            series={[{ name: 'IND 8', data: linha.valores }]}
-                                        />
-                                    ) : <Typography color="textSecondary" textAlign="center" py={4}>Histórico sem dados disponíveis</Typography>}
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                        <Grade item xs={12} md={6}>
+                            <BaseCard title="Histórico — IND 8 (Visita ACS)">
+                                {linha.valores.length > 0 ? (
+                                    <Chart type="line" height={300}
+                                        options={{
+                                            chart: { ...FONT },
+                                            stroke: { curve: 'smooth', width: 2 },
+                                            xaxis: { categories: linha.labels, labels: { style: { colors: 'var(--lg-text-muted)' } } },
+                                            yaxis: { min: 0, max: 100, labels: { formatter: v => `${v}%`, style: { colors: 'var(--lg-text-muted)' } } },
+                                            markers: { size: 4 },
+                                            colors: ['#1351B4'],
+                                            tooltip: { theme: 'dark', y: { formatter: v => `${v}%` } },
+                                            grid: { borderColor: 'var(--lg-border)' },
+                                        }}
+                                        series={[{ name: 'IND 8', data: linha.valores }]}
+                                    />
+                                ) : <p className="py-8 text-center text-muted-foreground">Histórico sem dados disponíveis</p>}
+                            </BaseCard>
+                        </Grade>
 
                         {/* Tabela de todos os indicadores */}
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="subtitle1" fontWeight={700} mb={2}>Todos os Indicadores</Typography>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{ '& th': { fontWeight: 700, fontSize: 11, color: 'var(--lg-text-muted)', textTransform: 'uppercase', borderBottom: '2px solid var(--lg-border)' } }}>
-                                                <TableCell>IND</TableCell>
-                                                <TableCell>Nome</TableCell>
-                                                <TableCell align="right">Num.</TableCell>
-                                                <TableCell align="right">Den.</TableCell>
-                                                <TableCell align="right">%</TableCell>
-                                                <TableCell align="center">Classificação</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {indicadores.map(i => {
-                                                const r = i.indicador?.resultado ?? {};
-                                                const cor = COR[r.classificacao] ?? '#888';
-                                                return (
-                                                    <TableRow key={i.indicador?.id} hover>
-                                                        <TableCell sx={{ fontWeight: 700 }}>{i.indicador?.id}</TableCell>
-                                                        <TableCell>{i.indicador?.nome}</TableCell>
-                                                        <TableCell align="right">{r.numerador}</TableCell>
-                                                        <TableCell align="right">{r.denominador}</TableCell>
-                                                        <TableCell align="right" sx={{ fontWeight: 700, color: cor }}>{r.percentual}%</TableCell>
-                                                        <TableCell align="center">
-                                                            <Chip label={LABEL[r.classificacao] ?? '—'} size="small"
-                                                                sx={{ bgcolor: cor + '22', color: cor, fontWeight: 700 }} />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    </Grid>
+                        <Grade item xs={12}>
+                            <BaseCard title="Todos os Indicadores">
+                                <DataTable rotulo="todos os indicadores" colunas={colunasInd} linhas={indicadores} chaveDaLinha={(i) => i.indicador?.id} vazio="Selecione uma equipe." />
+                            </BaseCard>
+                        </Grade>
+                    </Grade>
                 </>
             )}
-            </Box>
-        </Box>
+        </div>
     );
 }

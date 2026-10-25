@@ -1,18 +1,22 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CircleCheck, CircleX, Home, List, Loader2, Map, MapPin, Printer, User, UserX } from 'lucide-react';
 import { equipeLabel } from '../../utils/equipeLabel';
-import {
-    Alert, Box, Button, Card, CardContent, Chip, CircularProgress, LinearProgress,
-    FormControl, Grid, InputLabel, MenuItem,
-    Select, Table, TableBody, TableCell, TableHead, TableRow,
-    TablePagination, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 import generateVisitasAcsPDF from '../../reports/visitasAcs';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoSelecao } from '../ui/campos';
+import { Card, CardContent } from '../ui/card';
+import { Carregando } from '../ui/carregando';
+import { DataTable } from '../ui/data-table';
+import { Paginacao } from '../ui/paginacao';
+import { Pilula } from '../ui/pilula';
+import { SeloAps } from './pecas';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
 
@@ -22,93 +26,50 @@ const MESES_LABEL    = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                         'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const hexToRgb = (hex) => {
-    const s = (hex || '').replace('#', '');
-    if (s.length !== 6) return '79,142,247';
-    const n = Number.parseInt(s, 16);
-    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
-};
 
-function MetricCard({ icon, titulo, valor, cor, sub, subFamily, subDestacado = false, glowSide = 'left' }) {
+const ABAS = [
+    { chave: 'tabela', rotulo: 'Visitas', Icone: List },
+    { chave: 'agentes', rotulo: 'Por Agente', Icone: User },
+    { chave: 'mapa', rotulo: 'Mapa', Icone: Map },
+];
+
+function MetricCard({ Icone, titulo, valor, cor, sub, subFamily, subDestacado = false }) {
     return (
-        <Card
-            className="monitor-visitas-metric-card"
-            sx={{
-                height: '100%',
-                borderRadius: 2.2,
-                '--mv-accent': cor,
-                '--mv-rgb': hexToRgb(cor),
-                '--mv-glow-side': glowSide === 'left' ? '0%' : '100%',
-                '--mv-glow-far': glowSide === 'left' ? '-22%' : '122%',
-                '--mv-glow-opp': glowSide === 'left' ? '100%' : '0%',
-            }}
-        >
-            <CardContent sx={{ px: '12px', py: 2 }}>
-                <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
-                    <Box sx={{
-                        minWidth: 52, width: 52, height: 52, borderRadius: '50%',
-                        bgcolor: cor + '22', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center',
-                    }}>
-                        <FeatherIcon icon={icon} color={cor} width="24" height="24" />
-                    </Box>
-                    <Box sx={{ minWidth: 0, width: '100%', textAlign: 'center' }}>
-                        <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600 }}>
-                            {titulo}
-                        </Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5} sx={{ color: cor }}>
-                            {valor ?? '—'}
-                        </Typography>
-                        {sub && (
-                            <Typography
-                                display="block"
-                                sx={{
-                                    fontSize: subDestacado ? 14 : 12,
-                                    fontWeight: subDestacado ? 700 : 400,
-                                    color: subDestacado ? '#42A5F5' : 'var(--lg-text-muted)',
-                                    borderBottom: '1px solid var(--lg-border)',
-                                    pb: 0.5,
-                                    mb: 0.5,
-                                }}
-                            >
-                                {sub}
-                            </Typography>
-                        )}
-                        {subFamily && (
-                            <Typography
-                                variant="caption"
-                                display="block"
-                                sx={{
-                                    color: 'var(--lg-text-muted)',
-                                    borderBottom: '1px solid var(--lg-border)',
-                                    pb: 0.5,
-                                }}
-                            >
-                                {subFamily}
-                            </Typography>
-                        )}
-                    </Box>
-                </Box>
+        <Card size="sm" className="h-full">
+            <CardContent className="flex flex-col items-center gap-2 text-center">
+                <span className="flex size-[52px] shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${cor}22`, color: cor }}>
+                    <Icone className="size-6" aria-hidden />
+                </span>
+                <div className="w-full min-w-0">
+                    <p className="text-sm font-semibold text-muted-foreground">{titulo}</p>
+                    <p className="mt-1 font-mono text-2xl font-bold" style={{ color: cor }}>{valor ?? '—'}</p>
+                    {sub && (
+                        <p className={`mt-1 border-b border-border pb-1 ${subDestacado ? 'text-sm font-bold text-info-text' : 'text-xs text-muted-foreground'}`}>
+                            {sub}
+                        </p>
+                    )}
+                    {subFamily && (
+                        <p className="mt-1 border-b border-border pb-1 text-xs text-muted-foreground">{subFamily}</p>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
 }
 
-function AbaBtn({ label, aba, atual, icon, onClick }) {
+function AbaBtn({ label, aba, atual, Icone, onClick }) {
     const ativo = aba === atual;
     return (
-        <Box onClick={onClick} className={`monitor-visitas-tab${ativo ? ' is-active' : ''}`} sx={{
-            px: 2, py: 0.8, cursor: 'pointer', borderRadius: 1,
-            display: 'flex', alignItems: 'center', gap: 0.8,
-            bgcolor: ativo ? 'rgba(var(--lg-accent-rgb),0.18)' : 'transparent',
-            color:   ativo ? 'var(--lg-text-accent)' : 'var(--lg-text-secondary)',
-            fontWeight: ativo ? 700 : 400, fontSize: 14,
-            borderBottom: ativo ? '2px solid var(--lg-accent)' : '2px solid transparent',
-            '&:hover': { bgcolor: 'rgba(var(--lg-accent-rgb),0.08)' },
-        }}>
-            <FeatherIcon icon={icon} width="16" height="16" />
+        <button
+            type="button"
+            role="tab"
+            aria-selected={ativo}
+            onClick={onClick}
+            className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 text-sm whitespace-nowrap outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-primary/25 ${ativo ? 'border-primary font-semibold text-primary-text' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+        >
+            <Icone className="size-4" aria-hidden />
             {label}
-        </Box>
+        </button>
     );
 }
 
@@ -453,448 +414,240 @@ export default function VisitasAcs() {
         () => Array.from({ length: anoAtual - 2020 + 1 }, (_, i) => anoAtual - i),
         [anoAtual]
     );
-    const selSx = {
-        minWidth: 130,
-        '& .MuiOutlinedInput-root': {
-            color: 'var(--lg-text-primary)',
-            background: 'var(--lg-glass-input)',
-            borderRadius: 1.5,
-            '& fieldset': { borderColor: 'var(--lg-border-input)' },
-            '&:hover fieldset': { borderColor: 'var(--lg-border-input-focus)' },
-            '&.Mui-focused fieldset': { borderColor: 'var(--lg-border-input-focus)', boxShadow: 'var(--lg-focus-ring)' },
+    const dataHora = (v) => {
+        if (!v.data) return '—';
+        const d = new Date(v.data.length === 10 ? v.data + 'T12:00:00' : v.data).toLocaleDateString('pt-BR');
+        const h = v.hora != null ? ` ${String(v.hora).padStart(2, '0')}:00` : '';
+        return d + h;
+    };
+    const numero = (n) => (n != null ? n.toLocaleString('pt-BR') : '—');
+
+    const colunasVisitas = [
+        { chave: 'data', titulo: 'Data / Hora', render: (v) => <span className="text-xs whitespace-nowrap">{dataHora(v)}</span> },
+        { chave: 'cidadao', titulo: 'Cidadão', render: (v) => <span className="block max-w-[200px] truncate text-sm" title={v.cidadao ?? ''}>{v.cidadao ?? '—'}</span> },
+        {
+            chave: 'agente',
+            titulo: 'Agente',
+            render: (v) => (
+                <>
+                    <span className="block max-w-[200px] truncate text-sm font-semibold">{v.agente}</span>
+                    <span className="block text-xs text-muted-foreground">{v.cbo}</span>
+                </>
+            ),
         },
-        '& .MuiInputLabel-root': { color: 'var(--lg-text-secondary)' },
-        '& .MuiSvgIcon-root': { color: 'var(--lg-text-secondary)' },
+        { chave: 'equipe', titulo: 'Equipe', render: (v) => <span className="block max-w-[200px] truncate text-sm">{v.equipe?.nome}</span> },
+        { chave: 'instrumento', titulo: 'Instrumento', render: (v) => <span className="block max-w-[160px] truncate text-xs">{v.instrumento}</span> },
+        { chave: 'geo', titulo: 'Geolocalização', render: (v) => <Pilula tom={v.has_geo ? 'sucesso' : 'neutro'}>{v.has_geo ? 'Sim' : 'Não'}</Pilula> },
+        { chave: 'desfecho', titulo: 'Desfecho', render: (v) => <SeloAps cor={COR_DESFECHO[v.desfecho_id] ?? '#888'}>{LABEL_DESFECHO[v.desfecho_id] ?? '—'}</SeloAps> },
+        {
+            chave: 'acao',
+            titulo: 'Ação',
+            render: (v) => <Button variant="outline" size="xs" onClick={() => abrirDetalhe(v.id)} aria-label={`Ver visita de ${v.cidadao ?? 'cidadão'}`}>Ver</Button>,
+        },
+    ];
+
+    const nomeEquipeCurto = (a) => {
+        const equipeNome = equipeLabel(a.equipe?.nome) ?? '';
+        const equipeVisivel = equipeNome.includes(' - ') ? equipeNome.split(' - ').slice(1).join(' - ') : equipeNome;
+        return equipeVisivel.length > 20 ? equipeVisivel.slice(0, 20) + '…' : equipeVisivel;
     };
 
+    const colunasAgentes = [
+        {
+            chave: 'agente',
+            titulo: 'Agente',
+            render: (a) => (
+                <>
+                    <span className="block max-w-[170px] truncate text-sm font-semibold" title={a.agente}>
+                        {(a.agente ?? '').length > 30 ? (a.agente ?? '').slice(0, 30) + '…' : a.agente}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">{a.cbo_nome}</span>
+                </>
+            ),
+        },
+        { chave: 'equipe', titulo: 'Equipe', render: (a) => <span className="block text-sm whitespace-nowrap" title={equipeLabel(a.equipe?.nome)}>{nomeEquipeCurto(a)}</span> },
+        { chave: 'cadastrados', titulo: 'Cadastrados', numerica: true, render: (a) => numero(cadastradosPorAgente(a)) },
+        { chave: 'cidadaos', titulo: 'Cidadãos', numerica: true, render: (a) => a.cidadaos.toLocaleString('pt-BR') },
+        { chave: 'realizadas', titulo: 'Realizadas', numerica: true, render: (a) => <span style={{ color: COR_DESFECHO[1] }}>{a.realizadas.toLocaleString('pt-BR')}</span> },
+        { chave: 'recusadas', titulo: 'Recusadas', numerica: true, render: (a) => <span style={{ color: COR_DESFECHO[2] }}>{a.recusadas.toLocaleString('pt-BR')}</span> },
+        { chave: 'ausentes', titulo: 'Ausentes', numerica: true, render: (a) => <span style={{ color: COR_DESFECHO[3] }}>{a.ausentes.toLocaleString('pt-BR')}</span> },
+        { chave: 'total', titulo: 'Total', numerica: true, render: (a) => <strong>{a.total.toLocaleString('pt-BR')}</strong> },
+        { chave: 'dom', titulo: 'Domicílios', numerica: true, render: (a) => numero(a.domicilios_total) },
+        { chave: 'domMor', titulo: 'Com moradores', numerica: true, render: (a) => numero(a.domicilios_com_moradores) },
+        { chave: 'domVaz', titulo: 'Casa vazia', numerica: true, render: (a) => numero(a.domicilios_casa_vazia) },
+        { chave: 'domVis', titulo: 'Dom. Visitados', numerica: true, render: (a) => numero(a.domicilios_visitados) },
+        { chave: 'domAus', titulo: 'Dom. Ausentes', numerica: true, render: (a) => <span style={{ color: COR_DESFECHO[3] }}>{numero(a.domicilios_ausentes_visita)}</span> },
+        { chave: 'domRec', titulo: 'Dom. Recusados', numerica: true, render: (a) => <span style={{ color: COR_DESFECHO[2] }}>{numero(a.domicilios_recusados_visita)}</span> },
+        {
+            chave: 'domAcomp',
+            titulo: '% Domicílios Acomp.',
+            numerica: true,
+            render: (a) => (a.domicilios_acompanhados != null ? (
+                <span className="inline-flex flex-wrap items-center justify-end gap-1">
+                    <strong>{a.domicilios_acompanhados.toLocaleString('pt-BR')}</strong>
+                    {a.pct_dom_acompanhados != null && (
+                        <SeloAps cor={a.pct_dom_acompanhados >= 70 ? '#168821' : '#FF8C00'}>{`${a.pct_dom_acompanhados}%`}</SeloAps>
+                    )}
+                </span>
+            ) : '—'),
+        },
+    ];
+
     return (
-        <Box className="dashboard-neon-page monitor-visitas-page">
-        <Box className="dashboard-neon-home monitor-visitas-surface">
-            {/* Header + Filtros */}
-            <Box display="flex" justifyContent="space-between" alignItems="center"
-                mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Box display="flex" alignItems="center" gap={1.5}>
-                    <Typography variant="h5" fontWeight={700}>Visitas ACS / TACS</Typography>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        disabled={printLoading || !resumo}
-                        onClick={handlePrint}
-                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
-                        sx={{
-                            textTransform: 'none',
-                            borderRadius: 1.5,
-                            whiteSpace: 'nowrap',
-                            borderColor: 'var(--lg-border-input-focus)',
-                            color: 'var(--lg-text-accent)',
-                            background: 'var(--lg-glass-input)',
-                            '&:hover': { borderColor: 'var(--lg-accent)', background: 'var(--lg-glass-input-focus)' },
-                        }}
-                    >
+        <div className="ui-reset monitor-visitas-page">
+            <CabecalhoDePagina
+                titulo="Visitas ACS / TACS"
+                acoes={(
+                    <Button variant="outline" size="sm" disabled={printLoading || !resumo} onClick={handlePrint}>
+                        {printLoading ? <Loader2 className="animate-spin" /> : <Printer />}
                         {printLoading ? 'Gerando...' : `PDF — ${aba === 'tabela' ? 'Visitas' : aba === 'agentes' ? 'Por Agente' : 'Mapa'}`}
                     </Button>
-                </Box>
-                <Box display="flex" gap={1.5} flexWrap="wrap">
-                    <FormControl size="small" sx={{ ...selSx, minWidth: 200 }}>
-                        <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine}
-                            onChange={handleEquipeChange}
-                            disabled={isRestrito && equipes.length === 1}
-                            renderValue={(val) => {
-                                if (!val) return '';
-                                const eq = equipes.find(e => e.nu_ine === val);
-                                return eq ? equipeLabel(eq.no_equipe) : val;
-                            }}>
-                            <MenuItem value="">
-                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                            </MenuItem>
-                            {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    {isRestrito && !loadingPerms && equipes.length === 0 && (
-                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                            <Typography variant="body2" color="warning.dark">
-                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                            </Typography>
-                        </Box>
-                    )}
-                    <FormControl size="small" sx={selSx}>
-                        <InputLabel>Ano</InputLabel>
-                        <Select label="Ano" value={ano}
-                            onChange={handleAnoChange}>
-                            {anosDisponiveis.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
-                        <InputLabel>Mês</InputLabel>
-                        <Select label="Mês" value={mes}
-                            onChange={handleMesChange}>
-                            {MESES_COMPLETO.slice(1).map((m, i) => (
-                                <MenuItem key={i + 1} value={i + 1}>{m}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ ...selSx, minWidth: 160 }}>
-                        <InputLabel>Agente</InputLabel>
-                        <Select label="Agente" value={filtroAgente}
-                            onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todos os agentes</MenuItem>
-                            {agenteOpcoes.map((a, i) => (
-                                <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ ...selSx, minWidth: 140 }}>
-                        <InputLabel>Desfecho</InputLabel>
-                        <Select label="Desfecho" value={filtroDesfecho}
-                            className="monitor-visitas-select-desfecho"
-                            onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todos</MenuItem>
-                            <MenuItem value="1">Realizada</MenuItem>
-                            <MenuItem value="2">Recusada</MenuItem>
-                            <MenuItem value="3">Ausente</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ ...selSx, minWidth: 170 }}>
-                        <InputLabel>Geolocalização</InputLabel>
-                        <Select label="Geolocalização" value={filtroGeo}
-                            onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todas</MenuItem>
-                            <MenuItem value="sim">Com geolocalização</MenuItem>
-                            <MenuItem value="nao">Sem geolocalização</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-            </Box>
+                )}
+            />
+
+            <div className="mb-4 flex flex-wrap items-end gap-3">
+                <CampoSelecao id="va-equipe" label="Equipe" value={ine}
+                    onChange={handleEquipeChange}
+                    disabled={isRestrito && equipes.length === 1}
+                    className="min-w-[200px]">
+                    <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                    {equipes.map(eq => (
+                        <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
+                    ))}
+                </CampoSelecao>
+                <CampoSelecao id="va-ano" label="Ano" value={ano} onChange={handleAnoChange} className="min-w-[110px]">
+                    {anosDisponiveis.map(a => <option key={a} value={a}>{a}</option>)}
+                </CampoSelecao>
+                <CampoSelecao id="va-mes" label="Mês" value={mes} onChange={handleMesChange} className="min-w-[140px]">
+                    {MESES_COMPLETO.slice(1).map((m, i) => (
+                        <option key={i + 1} value={i + 1}>{m}</option>
+                    ))}
+                </CampoSelecao>
+                <CampoSelecao id="va-agente" label="Agente" value={filtroAgente}
+                    onChange={e => { setFiltroAgente(e.target.value); setPage(0); }}
+                    className="min-w-[160px]">
+                    <option value="">Todos os agentes</option>
+                    {agenteOpcoes.map((a, i) => (
+                        <option key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</option>
+                    ))}
+                </CampoSelecao>
+                <CampoSelecao id="va-desfecho" label="Desfecho" value={filtroDesfecho}
+                    className="monitor-visitas-select-desfecho min-w-[140px]"
+                    onChange={e => { setFiltroDesfecho(e.target.value); setPage(0); }}>
+                    <option value="">Todos</option>
+                    <option value="1">Realizada</option>
+                    <option value="2">Recusada</option>
+                    <option value="3">Ausente</option>
+                </CampoSelecao>
+                <CampoSelecao id="va-geo" label="Geolocalização" value={filtroGeo}
+                    onChange={e => { setFiltroGeo(e.target.value); setPage(0); }}
+                    className="min-w-[170px]">
+                    <option value="">Todas</option>
+                    <option value="sim">Com geolocalização</option>
+                    <option value="nao">Sem geolocalização</option>
+                </CampoSelecao>
+            </div>
+            {isRestrito && !loadingPerms && equipes.length === 0 && (
+                <div className="mb-4">
+                    <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
+                </div>
+            )}
 
             {anySectionLoading ? (
-                <LinearProgress sx={{ mb: 2, borderRadius: 999 }} />
+                <div role="progressbar" aria-label="Carregando dados" className="mb-4 h-1 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full w-1/3 animate-[pulse-suave_1.5s_ease-in-out_infinite] rounded-full bg-primary" />
+                </div>
             ) : null}
 
             {/* Cards de métricas */}
-            <Grid container columnSpacing={0.0625} rowSpacing={1} mb={3}>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="map-pin" titulo="Total de Visitas"
-                        valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4" glowSide="left"
-                        sub={temDomicilios && totais.domicilios_visitados != null
-                            ? `${totais.domicilios_visitados.toLocaleString('pt-BR')} domicílios visitados`
-                            : null} />
-                </Grid>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="check-circle" titulo="Realizadas"
-                        valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821" glowSide="right"
-                        sub={temDomicilios && totais.domicilios_acompanhados != null
-                            ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} (${pctDomAcomp}%) - domicílios acompanhados`
-                            : null}
-                        subDestacado
-                        subFamily={temDomiciliosComMoradores
-                            ? `${domiciliosPendentes.toLocaleString('pt-BR')} (${pctDomPendentes}%) - domicílios pendentes`
-                            : null} />
-                </Grid>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="x-circle" titulo="Recusadas"
-                        valor={`${totais.recusadas.toLocaleString('pt-BR')} (${pctRecusadas}%)`} cor="#E52207" glowSide="left"
-                        subFamily={temDomicilios && totais.domicilios_recusados != null
-                            ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} (${pctDomRecus}%) - domicílios`
-                            : null} />
-                </Grid>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="user-x" titulo="Ausentes"
-                        valor={`${totais.ausentes.toLocaleString('pt-BR')} (${pctAusentes}%)`} cor="#FF8C00" glowSide="left"
-                        subFamily={temDomicilios && totais.domicilios_ausentes != null
-                            ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} (${pctDomAusent}%) - domicílios`
-                            : null} />
-                </Grid>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="home" titulo="Domicílios Cadastrados"
-                        valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B" glowSide="left"
-                        sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} (${pctDomMoradores}%) - com moradores` : null}
-                        subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} (${pctDomCasaVazia}%) - casa vazia` : null} />
-                </Grid>
-                <Grid item xs={6} sm={4} md={3} lg={2}>
-                    <MetricCard icon="home" titulo="Domicílios FA"
-                        valor={(totais.domicilios_fa ?? 0).toLocaleString('pt-BR')} cor="#555" glowSide="right"
-                        sub="Fora de Área" />
-                </Grid>
-            </Grid>
+            <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                <MetricCard Icone={MapPin} titulo="Total de Visitas"
+                    valor={totais.total.toLocaleString('pt-BR')} cor="#1351B4"
+                    sub={temDomicilios && totais.domicilios_visitados != null
+                        ? `${totais.domicilios_visitados.toLocaleString('pt-BR')} domicílios visitados`
+                        : null} />
+                <MetricCard Icone={CircleCheck} titulo="Realizadas"
+                    valor={`${totais.realizadas.toLocaleString('pt-BR')} (${pctReal}%)`} cor="#168821"
+                    sub={temDomicilios && totais.domicilios_acompanhados != null
+                        ? `${totais.domicilios_acompanhados.toLocaleString('pt-BR')} (${pctDomAcomp}%) - domicílios acompanhados`
+                        : null}
+                    subDestacado
+                    subFamily={temDomiciliosComMoradores
+                        ? `${domiciliosPendentes.toLocaleString('pt-BR')} (${pctDomPendentes}%) - domicílios pendentes`
+                        : null} />
+                <MetricCard Icone={CircleX} titulo="Recusadas"
+                    valor={`${totais.recusadas.toLocaleString('pt-BR')} (${pctRecusadas}%)`} cor="#E52207"
+                    subFamily={temDomicilios && totais.domicilios_recusados != null
+                        ? `${totais.domicilios_recusados.toLocaleString('pt-BR')} (${pctDomRecus}%) - domicílios`
+                        : null} />
+                <MetricCard Icone={UserX} titulo="Ausentes"
+                    valor={`${totais.ausentes.toLocaleString('pt-BR')} (${pctAusentes}%)`} cor="#FF8C00"
+                    subFamily={temDomicilios && totais.domicilios_ausentes != null
+                        ? `${totais.domicilios_ausentes.toLocaleString('pt-BR')} (${pctDomAusent}%) - domicílios`
+                        : null} />
+                <MetricCard Icone={Home} titulo="Domicílios Cadastrados"
+                    valor={(totais.domicilios_total ?? 0).toLocaleString('pt-BR')} cor="#7B2D8B"
+                    sub={temDomicilios ? `${(totais.domicilios_com_moradores ?? 0).toLocaleString('pt-BR')} (${pctDomMoradores}%) - com moradores` : null}
+                    subFamily={temDomicilios ? `${(totais.domicilios_casa_vazia ?? 0).toLocaleString('pt-BR')} (${pctDomCasaVazia}%) - casa vazia` : null} />
+                <MetricCard Icone={Home} titulo="Domicílios FA"
+                    valor={(totais.domicilios_fa ?? 0).toLocaleString('pt-BR')} cor="#555"
+                    sub="Fora de Área" />
+            </div>
 
             {/* Abas */}
-            <Box display="flex" gap={0.5} mb={2}
-                sx={{ borderBottom: '1px solid var(--lg-border)', pb: 0.5 }}>
-                <AbaBtn label="Visitas"    aba="tabela"  atual={aba} icon="list"  onClick={() => setAba('tabela')} />
-                <AbaBtn label="Por Agente" aba="agentes" atual={aba} icon="user"  onClick={() => setAba('agentes')} />
-                <AbaBtn label="Mapa"       aba="mapa"    atual={aba} icon="map"   onClick={() => setAba('mapa')} />
-            </Box>
+            <div role="tablist" aria-label="Visões de visitas" className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
+                {ABAS.map(({ chave, rotulo, Icone }) => (
+                    <AbaBtn key={chave} label={rotulo} aba={chave} atual={aba} Icone={Icone} onClick={() => setAba(chave)} />
+                ))}
+            </div>
 
-            {erroAtivo && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {erroAtivo}
-                </Alert>
-            )}
+            {erroAtivo && <div className="mb-4"><Banner tom="perigo">{erroAtivo}</Banner></div>}
             {loading && aba !== 'mapa' ? (
-                <Box display="flex" justifyContent="center" py={6}><CircularProgress /></Box>
+                <Carregando className="justify-center py-12" />
             ) : (
                 <>
                     {/* ── ABA: Tabela de visitas ── */}
                     {aba === 'tabela' && (
-                        <Card className="monitor-visitas-panel">
-                            <CardContent>
-                                <Box sx={{ overflowX: 'auto' }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow sx={{
-                                                '& th': {
-                                                    fontWeight: 700, fontSize: 11,
-                                                    color: 'var(--lg-text-muted)',
-                                                    textTransform: 'uppercase',
-                                                    borderBottom: '2px solid var(--lg-border)',
-                                                },
-                                            }}>
-                                                <TableCell>Data / Hora</TableCell>
-                                                <TableCell>Cidadão</TableCell>
-                                                <TableCell>Agente</TableCell>
-                                                <TableCell>Equipe</TableCell>
-                                                <TableCell>Instrumento</TableCell>
-                                                <TableCell align="center">Geolocalização</TableCell>
-                                                <TableCell align="center">Desfecho</TableCell>
-                                                <TableCell align="center">Ação</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {visitas.map(v => (
-                                                <TableRow key={v.id} hover>
-                                                    <TableCell sx={{ whiteSpace: 'nowrap', fontSize: 12 }}>
-                                                        {v.data ? (() => {
-                                                            const d = new Date(v.data.length === 10 ? v.data + 'T12:00:00' : v.data).toLocaleDateString('pt-BR');
-                                                            const h = v.hora != null ? ` ${String(v.hora).padStart(2, '0')}:00` : '';
-                                                            return d + h;
-                                                        })() : '—'}
-                                                    </TableCell>
-                                                    <TableCell sx={{ maxWidth: 200 }}>
-                                                        <Typography variant="body2" noWrap title={v.cidadao ?? ''}>
-                                                            {v.cidadao ?? '—'}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Typography variant="body2" fontWeight={600} noWrap>
-                                                            {v.agente}
-                                                        </Typography>
-                                                        <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                                            {v.cbo}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Typography variant="body2" noWrap>
-                                                            {v.equipe?.nome}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell sx={{ fontSize: 12, maxWidth: 160 }}>
-                                                        <Typography variant="caption" noWrap display="block">
-                                                            {v.instrumento}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Chip
-                                                            label={v.has_geo ? 'Sim' : 'Não'}
-                                                            size="small"
-                                                            color={v.has_geo ? 'success' : 'default'}
-                                                            icon={<FeatherIcon icon={v.has_geo ? 'map-pin' : 'map-pin'} width="12" height="12" />}
-                                                            className={`monitor-visitas-chip-geo ${v.has_geo ? 'is-yes' : 'is-no'}`}
-                                                            sx={{ fontSize: 10 }}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Chip
-                                                            label={LABEL_DESFECHO[v.desfecho_id] ?? '—'}
-                                                            size="small"
-                                                            className="monitor-visitas-chip-status"
-                                                            sx={{
-                                                                bgcolor: (COR_DESFECHO[v.desfecho_id] ?? '#888') + '22',
-                                                                color:   COR_DESFECHO[v.desfecho_id] ?? '#888',
-                                                                fontWeight: 700, fontSize: 11,
-                                                            }}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell align="center">
-                                                        <Button
-                                                            size="small"
-                                                            variant="outlined"
-                                                            onClick={() => abrirDetalhe(v.id)}
-                                                            sx={{ minWidth: 48, fontSize: 11 }}
-                                                        >
-                                                            Ver
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                            {!erros.visitas && visitas.length === 0 && (
-                                                <TableRow>
-                                                    <TableCell colSpan={8} align="center"
-                                                        sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                        Nenhuma visita encontrada para os filtros selecionados.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
-
-                                <TablePagination
-                                    component="div"
-                                    count={totalVisitas}
-                                    page={page}
-                                    rowsPerPage={perPage}
-                                    rowsPerPageOptions={[perPage]}
-                                    onPageChange={(_, p) => setPage(p)}
-                                    labelDisplayedRows={({ from, to, count }) =>
-                                        `${from}–${to} de ${count.toLocaleString('pt-BR')}`}
-                                />
-                            </CardContent>
-                        </Card>
+                        <>
+                            <DataTable
+                                rotulo="visitas"
+                                colunas={colunasVisitas}
+                                linhas={visitas}
+                                chaveDaLinha={(v) => v.id}
+                                vazio={erros.visitas ? '' : 'Nenhuma visita encontrada para os filtros selecionados.'}
+                            />
+                            <Paginacao
+                                total={totalVisitas}
+                                pagina={page}
+                                porPagina={perPage}
+                                aoMudarPagina={setPage}
+                            />
+                        </>
                     )}
 
                     {/* ── ABA: Por agente ── */}
                     {aba === 'agentes' && (
-                        <Card className="monitor-visitas-panel">
-                            <CardContent>
-                                {/* Tabela compacta (cabeçalho quebra linha, padding reduzido); rolagem horizontal só como último recurso */}
-                                <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                                <Table size="small" sx={{
-                                    '& th, & td': { px: 0.75, fontSize: 'clamp(11px, 0.85vw, 13px)' },
-                                    '& td .MuiTypography-root': { fontSize: 'inherit' },
-                                }}>
-                                    <TableHead>
-                                        <TableRow sx={{
-                                            '& th': {
-                                                fontWeight: 700, fontSize: 11,
-                                                lineHeight: 1.2,
-                                                whiteSpace: 'normal',
-                                                verticalAlign: 'bottom',
-                                                color: 'var(--lg-text-muted)',
-                                                textTransform: 'uppercase',
-                                                borderBottom: '2px solid var(--lg-border)',
-                                            },
-                                        }}>
-                                            <TableCell>Agente</TableCell>
-                                            <TableCell>Equipe</TableCell>
-                                            <TableCell align="right">Cadastrados</TableCell>
-                                            <TableCell align="right">Cidadãos</TableCell>
-                                            <TableCell align="right">Realizadas</TableCell>
-                                            <TableCell align="right">Recusadas</TableCell>
-                                            <TableCell align="right">Ausentes</TableCell>
-                                            <TableCell align="right">Total</TableCell>
-                                            <TableCell align="right">Domicílios</TableCell>
-                                            <TableCell align="right">Com moradores</TableCell>
-                                            <TableCell align="right">Casa vazia</TableCell>
-                                            <TableCell align="right">Dom. Visitados</TableCell>
-                                            <TableCell align="right">Dom. Ausentes</TableCell>
-                                            <TableCell align="right">Dom. Recusados</TableCell>
-                                            <TableCell align="right">% Domicílios Acomp.</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {agentes.map((a, i) => (
-                                            <TableRow key={i} hover>
-                                                <TableCell sx={{ maxWidth: 170 }}>
-                                                    <Typography variant="body2" fontWeight={600} noWrap
-                                                        title={a.agente}
-                                                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
-                                                        {(a.agente ?? '').length > 30 ? (a.agente ?? '').slice(0, 30) + '…' : a.agente}
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                                        {a.cbo_nome}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2" noWrap title={equipeLabel(a.equipe?.nome)}>{(() => { const equipeNome = equipeLabel(a.equipe?.nome) ?? ''; const equipeVisivel = equipeNome.includes(' - ') ? equipeNome.split(' - ').slice(1).join(' - ') : equipeNome; return equipeVisivel.length > 20 ? equipeVisivel.slice(0, 20) + '…' : equipeVisivel; })()}</Typography>
-                                                </TableCell>
-                                                <TableCell align="right">{(() => { const c = cadastradosPorAgente(a); return c != null ? c.toLocaleString('pt-BR') : '—'; })()}</TableCell>
-                                                <TableCell align="right">{a.cidadaos.toLocaleString('pt-BR')}</TableCell>
-                                                <TableCell align="right" sx={{ color: '#168821' }}>
-                                                    {a.realizadas.toLocaleString('pt-BR')}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ color: '#E52207' }}>
-                                                    {a.recusadas.toLocaleString('pt-BR')}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ color: '#FF8C00' }}>
-                                                    {a.ausentes.toLocaleString('pt-BR')}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 700 }}>
-                                                    {a.total.toLocaleString('pt-BR')}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_total != null ? a.domicilios_total.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_com_moradores != null ? a.domicilios_com_moradores.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_casa_vazia != null ? a.domicilios_casa_vazia.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_visitados != null ? a.domicilios_visitados.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ color: '#FF8C00' }}>
-                                                    {a.domicilios_ausentes_visita != null ? a.domicilios_ausentes_visita.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right" sx={{ color: '#E52207' }}>
-                                                    {a.domicilios_recusados_visita != null ? a.domicilios_recusados_visita.toLocaleString('pt-BR') : '—'}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {a.domicilios_acompanhados != null ? (
-                                                        <Box display="inline-flex" alignItems="center" gap={0.5} justifyContent="flex-end" flexWrap="wrap">
-                                                            <Typography variant="body2" fontWeight={700}>
-                                                                {a.domicilios_acompanhados.toLocaleString('pt-BR')}
-                                                            </Typography>
-                                                            {a.pct_dom_acompanhados != null && (
-                                                                <Chip
-                                                                    label={`${a.pct_dom_acompanhados}%`}
-                                                                    size="small"
-                                                                    sx={{
-                                                                        bgcolor: a.pct_dom_acompanhados >= 70 ? '#16882122' : '#FF8C0022',
-                                                                        color:   a.pct_dom_acompanhados >= 70 ? '#168821'   : '#FF8C00',
-                                                                        fontWeight: 700,
-                                                                    }}
-                                                                />
-                                                            )}
-                                                        </Box>
-                                                    ) : '—'}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        {!erros.agentes && agentes.length === 0 && (
-                                            <TableRow>
-                                                <TableCell colSpan={15} align="center"
-                                                    sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                    Nenhum agente encontrado para o período.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                                </Box>
-                            </CardContent>
-                        </Card>
+                        <DataTable
+                            rotulo="visitas por agente"
+                            colunas={colunasAgentes}
+                            linhas={agentes}
+                            chaveDaLinha={(a) => `${a.agente_cns ?? a.agente}-${a.equipe?.nome ?? ''}`}
+                            vazio={erros.agentes ? '' : 'Nenhum agente encontrado para o período.'}
+                        />
                     )}
 
                     {/* ── ABA: Mapa ── */}
                     {aba === 'mapa' && (
-                        <Card className="monitor-visitas-panel">
+                        <Card>
                             <CardContent>
-                                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-                                    <Typography variant="subtitle1" fontWeight={700}>
-                                        Mapa de Visitas{pontosMapa.length > 0
-                                            ? ` — ${pontosMapa.length.toLocaleString('pt-BR')} pontos`
-                                            : ''}
-                                    </Typography>
-                                </Box>
+                                <h2 className="mb-3 text-base font-bold">
+                                    Mapa de Visitas{pontosMapa.length > 0
+                                        ? ` — ${pontosMapa.length.toLocaleString('pt-BR')} pontos`
+                                        : ''}
+                                </h2>
 
                                 {loadingMapa ? (
-                                    <Box display="flex" justifyContent="center" py={6}>
-                                        <CircularProgress />
-                                    </Box>
+                                    <Carregando className="justify-center py-12" />
                                 ) : (
                                     <MapaVisitas
                                         pontos={pontosMapa}
@@ -905,11 +658,10 @@ export default function VisitasAcs() {
                                     />
                                 )}
 
-                                <Typography variant="caption"
-                                    sx={{ color: 'var(--lg-text-muted)', display: 'block', mt: 1 }}>
+                                <p className="mt-2 text-xs text-muted-foreground">
                                     Exibindo todos os pontos georreferenciados dos filtros selecionados.
                                     Visitas sem coordenadas não aparecem no mapa.
-                                </Typography>
+                                </p>
                             </CardContent>
                         </Card>
                     )}
@@ -922,7 +674,6 @@ export default function VisitasAcs() {
                 onClose={fecharModal}
                 visita={loadingDetalhe ? null : detalhe}
             />
-            </Box>
-        </Box>
+        </div>
     );
 }

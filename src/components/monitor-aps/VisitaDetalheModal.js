@@ -1,10 +1,10 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import {
-    Box, Button, Chip, CircularProgress, Dialog, DialogActions,
-    DialogContent, DialogTitle, Divider, Grid, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { CameraOff, MapPin } from 'lucide-react';
+import { Button, buttonVariants } from '../ui/button';
+import { Carregando } from '../ui/carregando';
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
+import { Pilula, tomDaCor } from '../ui/pilula';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
@@ -73,17 +73,13 @@ function StreetViewPanel({ lat, lng }) {
     }, [lat, lng, mapillaryToken]);
 
     if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                <CircularProgress size={28} />
-            </Box>
-        );
+        return <Carregando className="h-full justify-center py-0" />;
     }
 
     if (imgUrl) {
         return (
-            <a href={GOOGLE_SV_URL(lat, lng)} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%' }}>
-                <img src={imgUrl} alt="Street view" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <a href={GOOGLE_SV_URL(lat, lng)} target="_blank" rel="noopener noreferrer" className="block size-full">
+                <img src={imgUrl} alt="Street view" className="size-full object-cover" />
             </a>
         );
     }
@@ -94,7 +90,7 @@ function StreetViewPanel({ lat, lng }) {
                 title="Street View"
                 width="100%"
                 height="100%"
-                style={{ border: 0, display: 'block' }}
+                className="block border-0"
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
@@ -104,23 +100,20 @@ function StreetViewPanel({ lat, lng }) {
     }
 
     return (
-        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" gap={1.5} sx={{ color: 'var(--lg-text-muted)' }}>
-            <FeatherIcon icon="camera-off" width="24" height="24" />
-            <Typography variant="caption" align="center" sx={{ px: 2 }}>
+        <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
+            <CameraOff aria-hidden className="size-6" />
+            <p className="px-4 text-center text-xs">
                 {apiError ? 'Erro ao acessar o serviço de imagens.' : 'Sem cobertura de imagens nesta área.'}
-            </Typography>
-            <Button
-                size="small"
-                variant="outlined"
+            </p>
+            <a
                 href={GOOGLE_SV_URL(lat, lng)}
                 target="_blank"
                 rel="noopener noreferrer"
-                startIcon={<FeatherIcon icon="map-pin" width="14" height="14" />}
-                sx={{ fontSize: 11, textTransform: 'none' }}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
             >
-                Ver no Google Maps
-            </Button>
-        </Box>
+                <MapPin /> Ver no Google Maps
+            </a>
+        </div>
     );
 }
 
@@ -144,155 +137,103 @@ export default function VisitaDetalheModal({ open, onClose, visita }) {
         cleanAddressPart(visita?.cep),
     ].filter(Boolean).join(', ');
     const dataVisita = (() => {
-        if (!visita?.visited_date) return '\u2014';
+        if (!visita?.visited_date) return '—';
         const d = new Date(visita.visited_date.length === 10 ? `${visita.visited_date}T12:00:00` : visita.visited_date).toLocaleDateString('pt-BR');
         const h = visita.hora != null ? ` ${String(visita.hora).padStart(2, '0')}:00` : '';
         return d + h;
     })();
-    const agente = visita?.agent_name ? `${visita.agent_name}${visita?.cbo_label ? ` (${visita.cbo_label})` : ''}` : '\u2014';
+    const agente = visita?.agent_name ? `${visita.agent_name}${visita?.cbo_label ? ` (${visita.cbo_label})` : ''}` : '—';
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            maxWidth={false}
-            fullWidth
-            sx={{
-                '& .MuiDialog-paper': {
-                    margin: '0 !important',
-                    width: '98vw !important',
-                    maxWidth: '98vw !important',
-                },
-            }}
-            PaperProps={{
-                sx: {
-                    width: '98vw !important',
-                    maxWidth: '98vw !important',
-                    margin: '0 !important',
-                    background: 'var(--lg-glass-modal, #1e2027f0)',
-                    backdropFilter: 'var(--lg-blur-modal, blur(20px))',
-                    border: '0.5px solid var(--lg-border, #ffffff22)',
-                    borderRadius: '16px',
-                },
-            }}
-        >
-            <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pt: 2, pb: 0 }}>
-                Detalhe da Visita
-            </DialogTitle>
+        <Dialogo aberto={!!open} aoFechar={onClose} tamanho="xl" className="max-h-[96vh] overflow-y-auto">
+            <DialogoCabecalho>
+                <DialogoTitulo>Detalhe da Visita</DialogoTitulo>
+            </DialogoCabecalho>
 
-            <DialogContent dividers>
-                {!visita ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" py={8}>
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <Grid container spacing={1}>
-                        <Grid item xs={12}>
-                            <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1, bgcolor: 'action.selected', borderLeft: '3px solid var(--lg-primary, #1976d2)' }}>
-                                <Typography variant="subtitle1" fontWeight={700}>
-                                    Cidadão visitado: {visita.citizen_name || '\u2014'}
-                                </Typography>
-                            </Box>
-                        </Grid>
+            {!visita ? (
+                <Carregando className="justify-center py-16">Carregando visita...</Carregando>
+            ) : (
+                <div className="grid gap-3 md:grid-cols-12">
+                    <div className="rounded-md border-l-[3px] border-primary bg-muted px-3 py-2 md:col-span-12">
+                        <p className="font-semibold">Cidadão visitado: {visita.citizen_name || '—'}</p>
+                    </div>
 
-                        <Grid item xs={12} sx={{ py: '2px !important' }}>
-                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block', lineHeight: 1.1 }}>
-                                Endereço
-                            </Typography>
-                            <Typography variant="body2" sx={{ lineHeight: 1.25 }}>
-                                {endereco || '\u2014'}
-                            </Typography>
-                        </Grid>
+                    <div className="md:col-span-12">
+                        <span className="block text-xs text-muted-foreground">Endereço</span>
+                        <p className="text-sm">{endereco || '—'}</p>
+                    </div>
 
-                        <Grid item xs={12} md={7} sx={{ py: '4px !important' }}>
-                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.25, lineHeight: 1.2 }}>
-                                Informações
-                            </Typography>
-                            <Box display="flex" alignItems="center" gap={1.25} flexWrap="wrap">
-                                <Typography variant="body2"><strong>Agente:</strong> {agente}</Typography>
-                                <Typography variant="body2"><strong>Equipe:</strong> {visita.team_name || '\u2014'}</Typography>
-                            </Box>
-                            <Box display="flex" alignItems="center" gap={1.25} flexWrap="wrap" mt={0.25}>
-                                <Typography variant="body2"><strong>Data:</strong> {dataVisita}</Typography>
-                                <Typography variant="body2"><strong>Instrumento:</strong> {visita.instrument_label || '\u2014'}</Typography>
-                                <Box display="flex" alignItems="center" gap={0.6}>
-                                    <Typography variant="body2"><strong>Desfecho:</strong></Typography>
-                                    <Chip label={visita.outcome_label || '\u2014'} color={COR_DESFECHO[visita.outcome_code] ?? 'default'} size="small" />
-                                </Box>
-                                <Box display="flex" alignItems="center" gap={0.6} flexWrap="wrap">
-                                    <Typography variant="body2"><strong>Motivos:</strong></Typography>
-                                    {visita.motives?.length > 0 ? (
-                                        visita.motives.map((m, i) => (
-                                            <Chip key={i} label={m} size="small" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
-                                        ))
-                                    ) : (
-                                        <Typography variant="body2">{'\u2014'}</Typography>
-                                    )}
-                                </Box>
-                            </Box>
+                    <div className="md:col-span-7">
+                        <h3 className="mb-1 text-sm font-bold text-muted-foreground">Informações</h3>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                            <span><strong>Agente:</strong> {agente}</span>
+                            <span><strong>Equipe:</strong> {visita.team_name || '—'}</span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                            <span><strong>Data:</strong> {dataVisita}</span>
+                            <span><strong>Instrumento:</strong> {visita.instrument_label || '—'}</span>
+                            <span className="flex items-center gap-2">
+                                <strong>Desfecho:</strong>
+                                <Pilula tom={tomDaCor(COR_DESFECHO[visita.outcome_code] ?? 'default')}>{visita.outcome_label || '—'}</Pilula>
+                            </span>
+                            <span className="flex flex-wrap items-center gap-2">
+                                <strong>Motivos:</strong>
+                                {visita.motives?.length > 0 ? (
+                                    visita.motives.map((m, i) => <Pilula key={i} tom="neutro" contorno>{m}</Pilula>)
+                                ) : (
+                                    <span>{'—'}</span>
+                                )}
+                            </span>
+                        </div>
 
-                            {visita.accompaniments?.length > 0 && (
-                                <Box mt={0.35}>
-                                    <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', display: 'block' }}>
-                                        Acompanhamentos
-                                    </Typography>
-                                    <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.3}>
-                                        {visita.accompaniments.map((a, i) => (
-                                            <Chip key={i} label={a} size="small" color="info" variant="outlined" sx={{ fontSize: 10, height: 20 }} />
-                                        ))}
-                                    </Box>
-                                </Box>
-                            )}
-                        </Grid>
-
-                        <Grid item xs={12} md={5} sx={{ mt: '-35px', mb: '23px', py: '4px !important' }}>
-                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)', mb: 0.25, lineHeight: 1.2 }}>
-                                Relato / Anotação
-                            </Typography>
-                            <Box sx={{ p: 1, borderRadius: 1, bgcolor: 'action.hover', minHeight: 44, whiteSpace: 'pre-wrap', height: '100%' }}>
-                                <Typography variant="body2" sx={{ color: visita.notes ? 'text.primary' : 'var(--lg-text-muted)' }}>
-                                    {visita.notes || 'Nenhum relato registrado.'}
-                                </Typography>
-                            </Box>
-                        </Grid>
-
-                        {temGeo && (
-                            <>
-                                <Grid item xs={12}><Divider /></Grid>
-                                <Grid item xs={12}>
-                                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'var(--lg-text-secondary)' }} gutterBottom>
-                                        Localização
-                                    </Typography>
-                                </Grid>
-
-                                <Grid item xs={12} md={6}>
-                                    <Box sx={{ height: 520, borderRadius: 2, overflow: 'hidden' }}>
-                                        {typeof window !== 'undefined' && (
-                                            <MapContainer center={[visita.lat, visita.lng]} zoom={17} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-                                                <TileLayer
-                                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                                />
-                                                <Marker position={[visita.lat, visita.lng]} />
-                                            </MapContainer>
-                                        )}
-                                    </Box>
-                                </Grid>
-
-                                <Grid item xs={12} md={6}>
-                                    <Box sx={{ height: 520, borderRadius: 2, overflow: 'hidden', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <StreetViewPanel lat={visita.lat} lng={visita.lng} />
-                                    </Box>
-                                </Grid>
-                            </>
+                        {visita.accompaniments?.length > 0 && (
+                            <div className="mt-2">
+                                <span className="block text-xs text-muted-foreground">Acompanhamentos</span>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                    {visita.accompaniments.map((a, i) => <Pilula key={i} tom="info" contorno>{a}</Pilula>)}
+                                </div>
+                            </div>
                         )}
-                    </Grid>
-                )}
-            </DialogContent>
+                    </div>
 
-            <DialogActions>
-                <Button onClick={onClose} size="small">Fechar</Button>
-            </DialogActions>
-        </Dialog>
+                    <div className="md:col-span-5">
+                        <h3 className="mb-1 text-sm font-bold text-muted-foreground">Relato / Anotação</h3>
+                        <div className="min-h-11 rounded-md bg-muted p-2 text-sm whitespace-pre-wrap">
+                            <span className={visita.notes ? '' : 'text-muted-foreground'}>
+                                {visita.notes || 'Nenhum relato registrado.'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {temGeo && (
+                        <>
+                            <div className="border-t border-border pt-3 md:col-span-12">
+                                <h3 className="text-sm font-bold text-muted-foreground">Localização</h3>
+                            </div>
+
+                            <div className="h-[360px] overflow-hidden rounded-lg md:col-span-6 md:h-[520px]">
+                                {typeof window !== 'undefined' && (
+                                    <MapContainer center={[visita.lat, visita.lng]} zoom={17} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                                        <TileLayer
+                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                        />
+                                        <Marker position={[visita.lat, visita.lng]} />
+                                    </MapContainer>
+                                )}
+                            </div>
+
+                            <div className="h-[360px] overflow-hidden rounded-lg bg-muted md:col-span-6 md:h-[520px]">
+                                <StreetViewPanel lat={visita.lat} lng={visita.lng} />
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            <DialogoRodape>
+                <Button variant="outline" onClick={onClose}>Fechar</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }

@@ -1,25 +1,15 @@
 import { useEffect, useState } from 'react';
-import {
-    Box,
-    Button,
-    Chip,
-    CircularProgress,
-    Grid,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-    FormControl,
-    InputLabel,
-} from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { AlertCircle, Check, CheckCircle, Circle, Copy, Database, Loader2, Save, Search, Table, Zap } from 'lucide-react';
 import AlertModal from '../messagesModal';
 import { useDispatch } from 'react-redux';
 import { addMessage, addAlertMessage, turnAlert } from '../../store/ducks/Layout';
 import { monitorApsApi } from '../../services/monitorApsApi';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Pilula } from '../ui/pilula';
 
 const SQL_SETUP = `-- Execute como superusuário (postgres) antes de usar em produção
 DO $$ BEGIN
@@ -50,7 +40,6 @@ const emptyMunicipio = {
 };
 
 export default function ConfiguracoesAPS() {
-    const theme = useTheme();
     const dispatch = useDispatch();
     const [config, setConfig] = useState(emptyConfig);
     const [status, setStatus] = useState(null);
@@ -63,9 +52,6 @@ export default function ConfiguracoesAPS() {
     const [testando, setTestando] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [sqlCopiado, setSqlCopiado] = useState(false);
-
-    const isLightMode = theme.palette.mode === 'light';
-    const inputChipBorder = alpha(theme.palette.primary.main, isLightMode ? 0.24 : 0.28);
 
     useEffect(() => {
         monitorApsApi.get('/config/status').then(setStatus).catch(() => {});
@@ -149,11 +135,8 @@ export default function ConfiguracoesAPS() {
         });
     }
 
-    const statusTone = status?.connected
-        ? theme.palette.success.main
-        : status?.configured
-            ? theme.palette.warning.main
-            : theme.palette.text.secondary;
+    const statusTom = status?.connected ? 'sucesso' : status?.configured ? 'alerta' : 'neutro';
+    const statusClasse = status?.connected ? 'text-success-text' : status?.configured ? 'text-warning' : 'text-muted-foreground';
 
     const statusLabel = status?.connected
         ? 'Conectado'
@@ -161,127 +144,48 @@ export default function ConfiguracoesAPS() {
             ? 'Desconectado'
             : 'Não configurado';
 
-    const statusIcon = status?.connected
-        ? 'check-circle'
+    const StatusIcone = status?.connected
+        ? CheckCircle
         : status?.configured
-            ? 'alert-circle'
-            : 'circle';
-
-    const panelSx = {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2.5,
-        position: 'relative',
-        zIndex: 1,
-    };
-
-    const statusBoxSx = {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.5,
-        flexWrap: 'wrap',
-        p: 2,
-        borderRadius: 2,
-        border: `1px solid ${alpha(theme.palette.primary.main, isLightMode ? 0.18 : 0.24)}`,
-        background: isLightMode
-            ? `linear-gradient(135deg, ${alpha('#ffffff', 0.76)}, ${alpha('#eef5ff', 0.72)})`
-            : `linear-gradient(135deg, ${alpha('#08122f', 0.8)}, ${alpha('#071024', 0.86)})`,
-        boxShadow: isLightMode
-            ? `0 14px 30px ${alpha(theme.palette.primary.main, 0.12)}`
-            : `0 18px 36px ${alpha('#020817', 0.38)}`,
-        backdropFilter: 'var(--lg-blur-input)',
-        WebkitBackdropFilter: 'var(--lg-blur-input)',
-    };
-
-    const resultBoxSx = (success) => ({
-        p: 1.5,
-        borderRadius: 1.5,
-        border: `1px solid ${alpha(success ? theme.palette.success.main : theme.palette.error.main, isLightMode ? 0.3 : 0.42)}`,
-        background: success
-            ? alpha(theme.palette.success.main, isLightMode ? 0.08 : 0.14)
-            : alpha(theme.palette.error.main, isLightMode ? 0.08 : 0.14),
-    });
-
-    const inlineChipSx = (color) => ({
-        height: 20,
-        borderColor: alpha(color, 0.35),
-        background: alpha(color, isLightMode ? 0.08 : 0.18),
-        color: isLightMode ? theme.palette.text.primary : theme.palette.common.white,
-        fontWeight: 700,
-    });
+            ? AlertCircle
+            : Circle;
 
     return (
-        <Box className="dashboard-neon-page monitor-aps-page queue-page" sx={modalFormRootSx}>
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-config-page queue-page" sx={panelSx}>
-                <AlertModal />
+        <div className="ui-reset monitor-aps-page monitor-aps-config-page flex flex-col gap-5">
+            <AlertModal />
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-                    <Typography variant="h5" fontWeight={700} mt="20px">
-                        Configurações do Monitor APS
-                    </Typography>
+            <div className="flex flex-col gap-3">
+                <CabecalhoDePagina titulo="Configurações do Monitor APS" />
 
-                    <Box sx={statusBoxSx}>
-                        <FeatherIcon icon={statusIcon} color={statusTone} width="20" height="20" />
-                        <Chip
-                            label={statusLabel}
-                            size="small"
-                            sx={{
-                                bgcolor: alpha(statusTone, isLightMode ? 0.12 : 0.18),
-                                color: statusTone,
-                                border: `1px solid ${alpha(statusTone, 0.25)}`,
-                                fontWeight: 700,
-                            }}
-                        />
-                        {status?.database && (
-                            <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                - {status.host} / {status.database}
-                            </Typography>
-                        )}
-                    </Box>
-                </Box>
+                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4">
+                    <StatusIcone aria-hidden className={`size-5 ${statusClasse}`} />
+                    <Pilula tom={statusTom}>{statusLabel}</Pilula>
+                    {status?.database && (
+                        <span className="text-xs text-muted-foreground">- {status.host} / {status.database}</span>
+                    )}
+                </div>
+            </div>
 
-                <BaseCard title="1. Conexão com o Banco de Dados eSUS PEC">
-                    <Grid container spacing={2} mt={0.5}>
-                        <Grid item xs={12} md={6}>
-                            <TextField className="lg-search-field" fullWidth label="Host / IP" name="host" value={config.host} onChange={change} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField className="lg-search-field" fullWidth label="Porta" name="port" type="number" value={config.port} onChange={change} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField className="lg-search-field" fullWidth label="Nome do banco" name="database" value={config.database} onChange={change} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField className="lg-search-field" fullWidth label="Usuário" name="user" value={config.user} onChange={change} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                className="lg-search-field"
-                                fullWidth
-                                label="Senha"
-                                name="password"
-                                type="password"
-                                value={config.password}
-                                onChange={change}
-                            />
-                        </Grid>
-                    </Grid>
+            <Card>
+                <CardHeader><CardTitle>1. Conexão com o Banco de Dados eSUS PEC</CardTitle></CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <CampoTexto id="cfg-host" label="Host / IP" name="host" value={config.host} onChange={change} />
+                        <CampoTexto id="cfg-port" label="Porta" name="port" type="number" value={config.port} onChange={change} />
+                        <CampoTexto id="cfg-database" label="Nome do banco" name="database" value={config.database} onChange={change} />
+                        <CampoTexto id="cfg-user" label="Usuário" name="user" value={config.user} onChange={change} />
+                        <div className="md:col-span-2">
+                            <CampoTexto id="cfg-password" label="Senha" name="password" type="password" value={config.password} onChange={change} />
+                        </div>
+                    </div>
 
                     {testResult && (
-                        <Box mt={2}>
-                            <Box sx={resultBoxSx(testResult.success)}>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        color: testResult.success ? theme.palette.success.dark : theme.palette.error.dark,
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    {testResult.success
-                                        ? `✅ ${testResult.mensagem}`
-                                        : `❌ ${testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor'}`}
-                                </Typography>
-                            </Box>
+                        <div className="mt-4">
+                            <Banner tom={testResult.success ? 'sucesso' : 'perigo'}>
+                                {testResult.success
+                                    ? testResult.mensagem
+                                    : (testResult.mensagem || testResult.error || 'Não foi possível conectar ao servidor')}
+                            </Banner>
 
                             {tabelas.length > 0 && (() => {
                                 const porSchema = tabelas.reduce((acc, t) => {
@@ -291,263 +195,153 @@ export default function ConfiguracoesAPS() {
                                 }, {});
 
                                 return (
-                                    <Box
-                                        mt={1.5}
-                                        p={1.5}
-                                        borderRadius={1.5}
-                                        sx={{
-                                            bgcolor: 'var(--lg-glass-input)',
-                                            border: '0.5px solid var(--lg-border-input)',
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="caption"
-                                            sx={{
-                                                fontWeight: 700,
-                                                textTransform: 'uppercase',
-                                                color: 'var(--lg-text-muted)',
-                                                letterSpacing: 0.5,
-                                            }}
-                                        >
+                                    <div className="mt-3 rounded-lg border border-border bg-muted p-3">
+                                        <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
                                             {tabelas.length} tabela(s) em {Object.keys(porSchema).length} schema(s)
-                                        </Typography>
-                                        <Box mt={1} sx={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                        </span>
+                                        <div className="mt-2 flex max-h-80 flex-col gap-3 overflow-y-auto">
                                             {Object.entries(porSchema).map(([schema, itens]) => (
-                                                <Box key={schema}>
-                                                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                                                        <FeatherIcon icon="database" width="13" height="13" color="var(--lg-text-muted)" />
-                                                        <Typography
-                                                            variant="caption"
-                                                            sx={{
-                                                                fontWeight: 700,
-                                                                color: 'var(--lg-text-muted)',
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: 0.5,
-                                                            }}
-                                                        >
+                                                <div key={schema}>
+                                                    <div className="mb-1 flex items-center gap-2">
+                                                        <Database aria-hidden className="size-3.5 text-muted-foreground" />
+                                                        <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
                                                             {schema} ({itens.length})
-                                                        </Typography>
-                                                        {testResult?.schema_dw === schema && (
-                                                            <Chip
-                                                                label="DW eSUS"
-                                                                size="small"
-                                                                color="primary"
-                                                                sx={inlineChipSx(theme.palette.primary.main)}
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                    <Box display="flex" flexDirection="column" gap={0.2} pl={2}>
+                                                        </span>
+                                                        {testResult?.schema_dw === schema && <Pilula tom="info">DW eSUS</Pilula>}
+                                                    </div>
+                                                    <div className="flex flex-col gap-0.5 pl-4">
                                                         {itens.map((t, i) => (
-                                                            <Box key={i} display="flex" alignItems="center" gap={0.8}>
-                                                                <Typography
-                                                                    variant="caption"
-                                                                    sx={{ fontFamily: 'monospace', color: 'var(--lg-text-primary)', fontSize: 11 }}
-                                                                >
-                                                                    {t.tabela}
-                                                                </Typography>
-                                                                {t.tipo === 'VIEW' && (
-                                                                    <Chip label="view" size="small" sx={inlineChipSx(theme.palette.info.main)} />
-                                                                )}
-                                                            </Box>
+                                                            <div key={i} className="flex items-center gap-2">
+                                                                <span className="font-mono text-[11px]">{t.tabela}</span>
+                                                                {t.tipo === 'VIEW' && <Pilula tom="info" contorno>view</Pilula>}
+                                                            </div>
                                                         ))}
-                                                    </Box>
-                                                </Box>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </Box>
-                                    </Box>
+                                        </div>
+                                    </div>
                                 );
                             })()}
-                        </Box>
+                        </div>
                     )}
 
-                    <Box display="flex" gap={1.5} mt={2} flexWrap="wrap">
-                        <Button
-                            variant="contained"
-                            disabled={testando}
-                            onClick={testar}
-                            startIcon={testando ? <CircularProgress size={16} /> : <FeatherIcon icon="zap" width="16" height="16" />}
-                        >
+                    <div className="mt-4 flex flex-wrap gap-3">
+                        <Button disabled={testando} onClick={testar}>
+                            {testando ? <Loader2 className="animate-spin" /> : <Zap />}
                             {testando ? 'Testando...' : 'Testar Conexão'}
                         </Button>
-                        <Button
-                            variant="outlined"
-                            disabled={salvando}
-                            onClick={salvar}
-                            startIcon={salvando ? <CircularProgress size={16} /> : <FeatherIcon icon="save" width="16" height="16" />}
-                        >
+                        <Button variant="outline" disabled={salvando} onClick={salvar}>
+                            {salvando ? <Loader2 className="animate-spin" /> : <Save />}
                             {salvando ? 'Salvando...' : 'Salvar Configuração'}
                         </Button>
-                    </Box>
-                </BaseCard>
+                    </div>
+                </CardContent>
+            </Card>
 
-                <BaseCard title="2. Configurações do Município">
-                    <Grid container spacing={2} mt={0.5}>
-                        <Grid item xs={12} md={4}>
-                            <TextField
-                                className="lg-search-field"
-                                fullWidth
-                                label="Código IBGE"
-                                value={municipio.ibge}
-                                onChange={(e) => setMunicipio((m) => ({ ...m, ibge: e.target.value }))}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                            <TextField
-                                className="lg-search-field"
-                                fullWidth
-                                label="Nome do Município"
-                                value={municipio.nome}
-                                onChange={(e) => setMunicipio((m) => ({ ...m, nome: e.target.value }))}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel>Estrato IED (1-4)</InputLabel>
-                                <Select
-                                    label="Estrato IED (1-4)"
-                                    value={municipio.estrato}
-                                    onChange={(e) => setMunicipio((m) => ({ ...m, estrato: Number(e.target.value) }))}
-                                >
-                                    {[1, 2, 3, 4].map((n) => <MenuItem key={n} value={n}>{n}</MenuItem>)}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
+            <Card>
+                <CardHeader><CardTitle>2. Configurações do Município</CardTitle></CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <CampoTexto
+                            id="cfg-ibge"
+                            label="Código IBGE"
+                            value={municipio.ibge}
+                            onChange={(e) => setMunicipio((m) => ({ ...m, ibge: e.target.value }))}
+                        />
+                        <CampoTexto
+                            id="cfg-municipio"
+                            label="Nome do Município"
+                            value={municipio.nome}
+                            onChange={(e) => setMunicipio((m) => ({ ...m, nome: e.target.value }))}
+                        />
+                        <CampoSelecao
+                            id="cfg-estrato"
+                            label="Estrato IED (1-4)"
+                            value={municipio.estrato}
+                            onChange={(e) => setMunicipio((m) => ({ ...m, estrato: Number(e.target.value) }))}
+                        >
+                            {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
+                        </CampoSelecao>
+                    </div>
 
                     {equipes.length > 0 && (
-                        <Box mt={2}>
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    color: 'var(--lg-text-muted)',
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                }}
-                            >
+                        <div className="mt-4">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase">
                                 Equipes ativas no banco ({equipes.length})
-                            </Typography>
-                            <Box display="flex" flexWrap="wrap" gap={0.8} mt={0.8}>
+                            </span>
+                            <div className="mt-2 flex flex-wrap gap-2">
                                 {equipes.map((eq) => (
-                                    <Chip
-                                        key={eq.nu_ine}
-                                        label={`${eq.no_equipe} (${eq.tipo})`}
-                                        size="small"
-                                        variant="outlined"
-                                        sx={{
-                                            borderColor: inputChipBorder,
-                                            bgcolor: alpha(theme.palette.primary.main, isLightMode ? 0.08 : 0.14),
-                                            color: theme.palette.text.primary,
-                                        }}
-                                    />
+                                    <Pilula key={eq.nu_ine} tom="info" contorno>{`${eq.no_equipe} (${eq.tipo})`}</Pilula>
                                 ))}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     )}
-                </BaseCard>
+                </CardContent>
+            </Card>
 
-                <BaseCard title="3. Explorar Banco Operacional eSUS PEC">
-                    <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)', mb: 1.5 }}>
+            <Card>
+                <CardHeader><CardTitle>3. Explorar Banco Operacional eSUS PEC</CardTitle></CardHeader>
+                <CardContent>
+                    <p className="mb-3 text-sm text-muted-foreground">
                         Mapeia todas as tabelas <code>tb_*</code> disponíveis com suas colunas e quantidade de registros - somente leitura, sem alterar nada no servidor.
-                    </Typography>
-                    <Button
-                        variant="outlined"
-                        disabled={explorando}
-                        onClick={explorar}
-                        startIcon={explorando ? <CircularProgress size={16} /> : <FeatherIcon icon="search" width="16" height="16" />}
-                    >
+                    </p>
+                    <Button variant="outline" disabled={explorando} onClick={explorar}>
+                        {explorando ? <Loader2 className="animate-spin" /> : <Search />}
                         {explorando ? 'Explorando...' : 'Explorar Tabelas'}
                     </Button>
 
                     {exploracaoResult && (
-                        <Box mt={2}>
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    fontWeight: 700,
-                                    textTransform: 'uppercase',
-                                    color: 'var(--lg-text-muted)',
-                                    letterSpacing: 0.5,
-                                }}
-                            >
+                        <div className="mt-4">
+                            <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
                                 {exploracaoResult.total} tabelas operacionais encontradas
-                            </Typography>
-                            <Box mt={1} sx={{ maxHeight: 480, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                            </span>
+                            <div className="mt-2 flex max-h-[480px] flex-col gap-3 overflow-y-auto">
                                 {exploracaoResult.tabelas?.map((t, i) => (
-                                    <Box
-                                        key={i}
-                                        p={1.5}
-                                        borderRadius={1.5}
-                                        sx={{
-                                            bgcolor: 'var(--lg-glass-input)',
-                                            border: '0.5px solid var(--lg-border-input)',
-                                        }}
-                                    >
-                                        <Box display="flex" alignItems="center" gap={1} mb={0.8}>
-                                            <FeatherIcon icon="table" width="14" height="14" color="var(--lg-text-muted)" />
-                                            <Typography
-                                                variant="caption"
-                                                sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--lg-text-primary)' }}
-                                            >
-                                                {t.tabela}
-                                            </Typography>
+                                    <div key={i} className="rounded-lg border border-border bg-muted p-3">
+                                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                                            <Table aria-hidden className="size-3.5 text-muted-foreground" />
+                                            <span className="font-mono text-xs font-bold">{t.tabela}</span>
                                             {t.total !== null && (
-                                                <Chip
-                                                    label={`${t.total.toLocaleString('pt-BR')} registros`}
-                                                    size="small"
-                                                    sx={inlineChipSx(theme.palette.success.main)}
-                                                />
+                                                <Pilula tom="sucesso">{`${t.total.toLocaleString('pt-BR')} registros`}</Pilula>
                                             )}
-                                        </Box>
-                                        <Box display="flex" flexWrap="wrap" gap={0.5}>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
                                             {t.colunas?.map((c, j) => (
-                                                <Chip
-                                                    key={j}
-                                                    label={`${c.coluna} · ${c.tipo}`}
-                                                    size="small"
-                                                    variant="outlined"
-                                                    sx={{
-                                                        height: 20,
-                                                        fontSize: 10,
-                                                        fontFamily: 'monospace',
-                                                        borderColor: inputChipBorder,
-                                                        bgcolor: alpha(theme.palette.primary.main, isLightMode ? 0.06 : 0.12),
-                                                        color: theme.palette.text.primary,
-                                                    }}
-                                                />
+                                                <span key={j} className="rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px]">
+                                                    {`${c.coluna} · ${c.tipo}`}
+                                                </span>
                                             ))}
-                                        </Box>
-                                    </Box>
+                                        </div>
+                                    </div>
                                 ))}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     )}
-                </BaseCard>
+                </CardContent>
+            </Card>
 
-                <BaseCard title="4. Script SQL - Criar usuário somente-leitura">
-                    <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)', mb: 1.5 }}>
+            <Card>
+                <CardHeader><CardTitle>4. Script SQL - Criar usuário somente-leitura</CardTitle></CardHeader>
+                <CardContent>
+                    <p className="mb-3 text-sm text-muted-foreground">
                         Execute este script <strong>uma vez</strong> no banco do eSUS PEC como superusuário (postgres) antes de usar em produção.
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        multiline
-                        minRows={3}
-                        maxRows={8}
+                    </p>
+                    <textarea
+                        readOnly
+                        aria-label="Script SQL de criação do usuário somente-leitura"
+                        rows={8}
                         value={SQL_SETUP}
-                        InputProps={{ readOnly: true, sx: { fontFamily: 'monospace', fontSize: 12 } }}
-                        className="lg-search-field"
+                        className="w-full resize-y rounded-lg border border-input bg-background p-3 font-mono text-xs outline-none focus-visible:ring-[3px] focus-visible:ring-primary/25"
                     />
-                    <Box mt={1.5}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={copiarSQL}
-                            startIcon={<FeatherIcon icon={sqlCopiado ? 'check' : 'copy'} width="16" height="16" />}
-                        >
+                    <div className="mt-3">
+                        <Button variant="outline" size="sm" onClick={copiarSQL}>
+                            {sqlCopiado ? <Check /> : <Copy />}
                             {sqlCopiado ? 'Copiado!' : 'Copiar SQL'}
                         </Button>
-                    </Box>
-                </BaseCard>
-            </Box>
-        </Box>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

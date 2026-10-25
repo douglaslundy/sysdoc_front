@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
-import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Abas } from '../ui/abas';
 
 const COR_DESFECHO = { 1: '#168821', 2: '#E52207', 3: '#FF8C00', 4: '#888' };
 const LABEL_DESFECHO = { 1: 'Realizada', 2: 'Recusada', 3: 'Ausente', 4: 'Não informado' };
 const PALETTE = [
     '#2196F3', '#9C27B0', '#FF5722', '#009688', '#FFC107',
     '#E91E63', '#00BCD4', '#8BC34A', '#FF9800', '#3F51B5',
+];
+const MODOS = [
+    { chave: 'todos', rotulo: 'Todos' },
+    { chave: 'equipe', rotulo: 'Equipe' },
+    { chave: 'agente', rotulo: 'Agente' },
 ];
 
 function buildColorMap(values) {
@@ -41,51 +46,15 @@ function Legend({ modo, colorMap }) {
     const titulo = modo === 'todos' ? 'Equipe' : modo === 'equipe' ? 'Agente' : 'Desfecho';
 
     return (
-        <Box
-            sx={{
-                position: 'absolute',
-                bottom: 16,
-                left: 16,
-                zIndex: 1500,
-                bgcolor: 'var(--lg-glass-modal)',
-                color: 'var(--lg-text-primary)',
-                border: '1px solid var(--lg-border)',
-                borderRadius: 2,
-                p: 1.5,
-                boxShadow: 'var(--lg-shadow-modal)',
-                maxHeight: 240,
-                overflowY: 'auto',
-                maxWidth: 260,
-                backdropFilter: 'var(--lg-blur-modal)',
-                WebkitBackdropFilter: 'var(--lg-blur-modal)',
-            }}
-        >
-            <Typography
-                variant="caption"
-                fontWeight={700}
-                sx={{
-                    color: 'var(--lg-text-secondary)',
-                    display: 'block',
-                    mb: 0.5,
-                    textTransform: 'uppercase',
-                    fontSize: 10,
-                }}
-            >
-                {titulo}
-            </Typography>
+        <div className="absolute bottom-4 left-4 z-[1500] max-h-60 max-w-[260px] overflow-y-auto rounded-lg border border-border bg-card p-3 text-foreground shadow-lg">
+            <span className="mb-1 block text-[10px] font-bold uppercase text-muted-foreground">{titulo}</span>
             {items.map(({ label, color }, idx) => (
-                <Box key={`${label}-${color}-${idx}`} display="flex" alignItems="center" gap={1} mb={0.5}>
-                    <Box sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
-                    <Typography
-                        variant="caption"
-                        sx={{ color: 'var(--lg-text-primary)', lineHeight: 1.3, fontWeight: 600 }}
-                        noWrap
-                    >
-                        {label}
-                    </Typography>
-                </Box>
+                <div key={`${label}-${color}-${idx}`} className="mb-1 flex items-center gap-2">
+                    <span className="size-[11px] shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                    <span className="truncate text-xs leading-snug font-semibold">{label}</span>
+                </div>
             ))}
-        </Box>
+        </div>
     );
 }
 
@@ -114,15 +83,9 @@ export default function MapaVisitas({
 
     if (pontos.length === 0) {
         return (
-            <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                height={588}
-                sx={{ bgcolor: 'var(--lg-glass)', borderRadius: 2, border: '1px dashed var(--lg-border)' }}
-            >
-                <Typography color="textSecondary">Nenhuma visita georreferenciada no período</Typography>
-            </Box>
+            <div className="flex h-[588px] items-center justify-center rounded-lg border border-dashed border-border bg-card">
+                <p className="text-sm text-muted-foreground">Nenhuma visita georreferenciada no período</p>
+            </div>
         );
     }
 
@@ -134,32 +97,14 @@ export default function MapaVisitas({
     ];
 
     return (
-        <Box>
+        <div>
             {showToggle && (
-                <Box display="flex" justifyContent="flex-end" mb={1}>
-                    <ToggleButtonGroup
-                        size="small"
-                        exclusive
-                        value={modoInterno}
-                        onChange={(_, v) => v && setModoInterno(v)}
-                        sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: 12 } }}
-                    >
-                        <ToggleButton value="todos">Todos</ToggleButton>
-                        <ToggleButton value="equipe">Equipe</ToggleButton>
-                        <ToggleButton value="agente">Agente</ToggleButton>
-                    </ToggleButtonGroup>
-                </Box>
+                <div className="mb-2 flex justify-end">
+                    <Abas rotulo="Agrupar cores do mapa" itens={MODOS} valor={modoInterno} aoMudar={setModoInterno} />
+                </div>
             )}
 
-            <Box
-                sx={{
-                    height: 672,
-                    width: '100%',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    position: 'relative',
-                }}
-            >
+            <div className="relative h-[672px] w-full overflow-hidden rounded-lg">
                 <MapContainer
                     center={centroCalc}
                     zoom={zoom}
@@ -184,24 +129,24 @@ export default function MapaVisitas({
                             eventHandlers={onPinClick ? { click: () => onPinClick(p.id) } : undefined}
                         >
                             <Tooltip>
-                                <div style={{ lineHeight: 1.7, minWidth: 160 }}>
+                                <div className="min-w-[160px] leading-[1.7]">
                                     {p.cidadao && <div><strong>{p.cidadao}</strong></div>}
                                     {p.logradouro && (
-                                        <div style={{ fontSize: 11, color: '#555' }}>
+                                        <div className="text-[11px] text-neutral-600">
                                             {[p.logradouro, p.num_endereco, p.complemento].filter(Boolean).join(', ')}
                                         </div>
                                     )}
-                                    {p.bairro && <div style={{ fontSize: 11, color: '#555' }}>{p.bairro}</div>}
-                                    {p.micro_area && <div style={{ fontSize: 11 }}>Microárea: {p.micro_area}</div>}
-                                    <div style={{ marginTop: 3 }}>
+                                    {p.bairro && <div className="text-[11px] text-neutral-600">{p.bairro}</div>}
+                                    {p.micro_area && <div className="text-[11px]">Microárea: {p.micro_area}</div>}
+                                    <div className="mt-[3px]">
                                         <strong style={{ color: p.desfecho === 1 ? '#168821' : p.desfecho === 2 ? '#E52207' : '#FF8C00' }}>
                                             {LABEL_DESFECHO[p.desfecho] ?? '—'}
                                         </strong>
                                     </div>
                                     <div>{p.agente}</div>
-                                    {p.equipe && <div style={{ fontSize: 11, color: '#555' }}>Equipe: {p.equipe}</div>}
+                                    {p.equipe && <div className="text-[11px] text-neutral-600">Equipe: {p.equipe}</div>}
                                     {p.data && (
-                                        <div style={{ fontSize: 11 }}>
+                                        <div className="text-[11px]">
                                             {(() => {
                                                 const d = new Date(p.data.length === 10 ? `${p.data}T12:00:00` : p.data).toLocaleDateString('pt-BR');
                                                 const h = p.hora != null ? ` ${String(p.hora).padStart(2, '0')}:00` : '';
@@ -216,7 +161,7 @@ export default function MapaVisitas({
                 </MapContainer>
 
                 <Legend modo={modo} colorMap={colorMap} />
-            </Box>
-        </Box>
+            </div>
+        </div>
     );
 }

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { BarChart2, GitCompare, Loader2, Printer } from 'lucide-react';
 import { equipeLabel } from '../../utils/equipeLabel';
-import {
-    Box, Button, CircularProgress, FormControl, InputLabel,
-    MenuItem, Select, Typography,
-} from '@mui/material';
 import VetorPanel from './VetorPanel';
-import BaseCard from '../baseCard/BaseCard';
 import Chart from '../charts/ApexChartSafe';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
-import FeatherIcon from 'feather-icons-react';
 import generateVisitasEvolucaoPDF from '../../reports/visitasEvolucao';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoSelecao } from '../ui/campos';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Carregando } from '../ui/carregando';
 
 const MESES  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES  = ['#1351B4', '#168821', '#FF8C00'];
@@ -44,8 +44,6 @@ export function buildChartSeries(series, cores) {
 }
 
 export default function VisitasEvolucao() {
-    const theme = useTheme();
-    const isDarkMode = theme.palette.mode === 'dark';
     const anoAtual = new Date().getFullYear();
     const mesAtual = new Date().getMonth() + 1;
 
@@ -202,8 +200,9 @@ export default function VisitasEvolucao() {
 
     const chartSeries = useMemo(() => buildChartSeries(series, CORES), [series]);
 
-    const labelColor = isDarkMode ? '#ffffff' : '#b0bec5';
-    const legendColor = isDarkMode ? '#ffffff' : '#546e7a';
+    // cor neutra que lê bem nos dois temas (opções do Apex não aceitam token CSS)
+    const labelColor = '#8a94a6';
+    const legendColor = '#8a94a6';
 
     const chartOptions = useMemo(() => ({
         chart:       { ...FONT, id: 'visitas-evolucao-chart', toolbar: { show: false }, zoom: { enabled: false } },
@@ -220,7 +219,7 @@ export default function VisitasEvolucao() {
         },
         legend:      { position: 'bottom', fontFamily: FONT.fontFamily, labels: { colors: legendColor } },
         tooltip:     { theme: 'dark', y: { formatter: v => v.toLocaleString('pt-BR') } },
-        grid:        { borderColor: 'var(--lg-border)' },
+        grid:        { borderColor: '#8a94a633' },
         colors:      series.map((_, i) => CORES[i] ?? '#888'),
     }), [series, labelColor, legendColor]);
 
@@ -240,129 +239,95 @@ export default function VisitasEvolucao() {
         }
     };
 
-    const selSx = { minWidth: 140 };
-
     return (
-        <Box className="dashboard-neon-page monitor-aps-page">
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-evolucao-page">
-            <Box display="flex" justifyContent="space-between" alignItems="center"
-                mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Box display="flex" alignItems="center" gap={1.5}>
-                    <Typography variant="h5" fontWeight={700}>Evolução de Visitas ACS/TACS</Typography>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        disabled={printLoading || loading || !series.length}
-                        onClick={handlePrint}
-                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
-                        sx={{ textTransform: 'none', borderRadius: 1.5, whiteSpace: 'nowrap' }}
-                    >
-                        {printLoading ? 'Gerando...' : 'Imprimir PDF'}
-                    </Button>
-                    <Button
-                        variant={modoComparacao ? 'contained' : 'outlined'}
-                        size="small"
-                        color="primary"
-                        onClick={modoComparacao ? desativarComparacao : ativarComparacao}
-                        startIcon={<FeatherIcon icon="git-compare" width={15} height={15} />}
-                        sx={{ textTransform: 'none', borderRadius: 1.5, whiteSpace: 'nowrap' }}
-                    >
-                        {modoComparacao ? 'Sair da comparação' : 'Comparar'}
-                    </Button>
-                </Box>
-                {!modoComparacao && (
-                    <Box display="flex" gap={1.5} flexWrap="wrap">
-                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <InputLabel>Equipe</InputLabel>
-                            <Select label="Equipe" value={ine}
-                                onChange={e => setIne(e.target.value)}
-                                disabled={isRestrito && equipes.length === 1}
-                                renderValue={(val) => {
-                                    if (!val) return '';
-                                    const eq = equipes.find(e => e.nu_ine === val);
-                                    return eq ? equipeLabel(eq.no_equipe) : val;
-                                }}>
-                                <MenuItem value="">
-                                    {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                                </MenuItem>
-                                {equipes.map(eq => (
-                                    <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        {isRestrito && !loadingPerms && equipes.length === 0 && (
-                            <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                                <Typography variant="body2" color="warning.dark">
-                                    Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {ine && (
-                            <FormControl size="small" sx={{ minWidth: 200 }}>
-                                <InputLabel>Agente</InputLabel>
-                                <Select label="Agente" value={agenteCns}
-                                    onChange={e => setAgenteCns(e.target.value)}>
-                                    <MenuItem value="">Todos os agentes</MenuItem>
-                                    {agenteOpcoes.map((a, i) => (
-                                    <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        )}
-
-                        <FormControl size="small" sx={selSx}>
-                            <InputLabel>Desfecho</InputLabel>
-                            <Select label="Desfecho" value={desfecho}
-                                onChange={e => setDesfecho(e.target.value)}>
-                                <MenuItem value="">Todos</MenuItem>
-                                <MenuItem value="1">Realizada</MenuItem>
-                                <MenuItem value="2">Recusada</MenuItem>
-                                <MenuItem value="3">Ausente</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl size="small" sx={{ minWidth: 170 }}>
-                            <InputLabel>Geolocalização</InputLabel>
-                            <Select label="Geolocalização" value={geo}
-                                onChange={e => setGeo(e.target.value)}>
-                                <MenuItem value="">Todas</MenuItem>
-                                <MenuItem value="sim">Com geolocalização</MenuItem>
-                                <MenuItem value="nao">Sem geolocalização</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
+        <div className="ui-reset monitor-aps-page monitor-aps-evolucao-page">
+            <CabecalhoDePagina
+                titulo="Evolução de Visitas ACS/TACS"
+                acoes={(
+                    <>
+                        <Button variant="outline" size="sm" disabled={printLoading || loading || !series.length} onClick={handlePrint}>
+                            {printLoading ? <Loader2 className="animate-spin" /> : <Printer />}
+                            {printLoading ? 'Gerando...' : 'Imprimir PDF'}
+                        </Button>
+                        <Button
+                            variant={modoComparacao ? 'default' : 'outline'}
+                            size="sm"
+                            aria-pressed={modoComparacao}
+                            onClick={modoComparacao ? desativarComparacao : ativarComparacao}
+                        >
+                            <GitCompare /> {modoComparacao ? 'Sair da comparação' : 'Comparar'}
+                        </Button>
+                    </>
                 )}
-            </Box>
+            />
+
+            {!modoComparacao && (
+                <div className="mb-4 flex flex-wrap items-end gap-3">
+                    <CampoSelecao id="ev-equipe" label="Equipe" value={ine}
+                        onChange={e => setIne(e.target.value)}
+                        disabled={isRestrito && equipes.length === 1}
+                        className="min-w-[200px]">
+                        <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                        {equipes.map(eq => (
+                            <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
+                        ))}
+                    </CampoSelecao>
+                    {isRestrito && !loadingPerms && equipes.length === 0 && (
+                        <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
+                    )}
+
+                    {ine && (
+                        <CampoSelecao id="ev-agente" label="Agente" value={agenteCns}
+                            onChange={e => setAgenteCns(e.target.value)}
+                            className="min-w-[200px]">
+                            <option value="">Todos os agentes</option>
+                            {agenteOpcoes.map((a, i) => (
+                                <option key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</option>
+                            ))}
+                        </CampoSelecao>
+                    )}
+
+                    <CampoSelecao id="ev-desfecho" label="Desfecho" value={desfecho}
+                        onChange={e => setDesfecho(e.target.value)}
+                        className="min-w-[140px]">
+                        <option value="">Todos</option>
+                        <option value="1">Realizada</option>
+                        <option value="2">Recusada</option>
+                        <option value="3">Ausente</option>
+                    </CampoSelecao>
+
+                    <CampoSelecao id="ev-geo" label="Geolocalização" value={geo}
+                        onChange={e => setGeo(e.target.value)}
+                        className="min-w-[170px]">
+                        <option value="">Todas</option>
+                        <option value="sim">Com geolocalização</option>
+                        <option value="nao">Sem geolocalização</option>
+                    </CampoSelecao>
+                </div>
+            )}
 
             {modoComparacao && (
-                <Box mt={2}>
+                <div className="mb-4">
                     {/* Seletor de Ano */}
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <FormControl size="small" sx={{ minWidth: 140 }}>
-                            <InputLabel>Ano</InputLabel>
-                            <Select label="Ano" value={anoComparacao}
-                                onChange={e => setAnoComparacao(e.target.value)}>
-                                <MenuItem value="">Selecione o ano</MenuItem>
-                                {anosDisponiveis.map(a => (
-                                    <MenuItem key={a} value={String(a)}>{a}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                    <div className="mb-4 flex flex-wrap items-end gap-4">
+                        <CampoSelecao id="ev-ano" label="Ano" value={anoComparacao}
+                            onChange={e => setAnoComparacao(e.target.value)}
+                            className="min-w-[140px]">
+                            <option value="">Selecione o ano</option>
+                            {anosDisponiveis.map(a => (
+                                <option key={a} value={String(a)}>{a}</option>
+                            ))}
+                        </CampoSelecao>
                         {loadingAnos && (
-                            <Typography variant="caption" color="textSecondary">
-                                Carregando anos disponíveis...
-                            </Typography>
+                            <span className="pb-2 text-xs text-muted-foreground">Carregando anos disponíveis...</span>
                         )}
                         {!loadingAnos && anosDisponiveis.length === 0 && (
-                            <Typography variant="caption" color="error">
-                                Nenhum ano com dados encontrado.
-                            </Typography>
+                            <span className="pb-2 text-xs text-danger-text">Nenhum ano com dados encontrado.</span>
                         )}
-                    </Box>
+                    </div>
 
                     {/* Dois vetores lado a lado */}
-                    <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
+                    <div className="mb-4 flex flex-wrap gap-4">
                         <VetorPanel
                             label="Vetor 1"
                             equipes={equipes}
@@ -375,20 +340,16 @@ export default function VisitasEvolucao() {
                             vetor={vetor2}
                             onChange={(v, ne) => { setVetor2(v); setNomeEquipe2(ne); }}
                         />
-                    </Box>
+                    </div>
 
                     {/* Botão Comparar */}
                     {vetorConfigurado(vetor1) && vetorConfigurado(vetor2) && JSON.stringify(vetor1) === JSON.stringify(vetor2) && (
-                        <Box display="flex" justifyContent="center" mb={1}>
-                            <Typography variant="caption" color="warning.main">
-                                Os dois vetores estão com os mesmos filtros — configure filtros diferentes para comparar.
-                            </Typography>
-                        </Box>
+                        <p className="mb-2 text-center text-xs text-warning">
+                            Os dois vetores estão com os mesmos filtros — configure filtros diferentes para comparar.
+                        </p>
                     )}
-                    <Box display="flex" justifyContent="center">
+                    <div className="flex justify-center">
                         <Button
-                            variant="contained"
-                            size="medium"
                             disabled={
                                 !anoComparacao ||
                                 !vetorConfigurado(vetor1) ||
@@ -397,69 +358,58 @@ export default function VisitasEvolucao() {
                                 (vetorConfigurado(vetor1) && JSON.stringify(vetor1) === JSON.stringify(vetor2))
                             }
                             onClick={handleComparar}
-                            startIcon={
-                                loadingComp
-                                    ? <CircularProgress size={14} color="inherit" />
-                                    : <FeatherIcon icon="bar-chart-2" width={15} height={15} />
-                            }
-                            sx={{ textTransform: 'none', borderRadius: 1.5, px: 4 }}
+                            className="px-8"
                         >
+                            {loadingComp ? <Loader2 className="animate-spin" /> : <BarChart2 />}
                             {loadingComp ? 'Comparando...' : 'Comparar'}
                         </Button>
-                    </Box>
-                </Box>
+                    </div>
+                </div>
             )}
 
             {modoComparacao ? (
-                <BaseCard title={`Comparação de Vetores — ${anoComparacao || '...'}`}>
-                    {loadingComp ? (
-                        <Box display="flex" justifyContent="center" py={8}>
-                            <CircularProgress />
-                        </Box>
-                    ) : erroComp ? (
-                        <Box p={3}>
-                            <Typography color="error">Erro: {erroComp}</Typography>
-                        </Box>
-                    ) : seriesComp.length === 0 ? (
-                        <Box p={3} textAlign="center">
-                            <Typography color="textSecondary">
+                <Card>
+                    <CardHeader><CardTitle>{`Comparação de Vetores — ${anoComparacao || '...'}`}</CardTitle></CardHeader>
+                    <CardContent>
+                        {loadingComp ? (
+                            <Carregando className="justify-center py-12" />
+                        ) : erroComp ? (
+                            <Banner tom="perigo">Erro: {erroComp}</Banner>
+                        ) : seriesComp.length === 0 ? (
+                            <p className="p-6 text-center text-sm text-muted-foreground">
                                 Configure os dois vetores e clique em Comparar.
-                            </Typography>
-                        </Box>
-                    ) : (
-                        <Chart type="line" height={420}
-                            options={{
-                                ...chartOptions,
-                                colors: [CORES[0], CORES[1]],
-                                chart: { ...chartOptions.chart, id: 'visitas-comparacao-chart' },
-                            }}
-                            series={seriesComp}
-                        />
-                    )}
-                </BaseCard>
+                            </p>
+                        ) : (
+                            <Chart type="line" height={420}
+                                options={{
+                                    ...chartOptions,
+                                    colors: [CORES[0], CORES[1]],
+                                    chart: { ...chartOptions.chart, id: 'visitas-comparacao-chart' },
+                                }}
+                                series={seriesComp}
+                            />
+                        )}
+                    </CardContent>
+                </Card>
             ) : (
-                <BaseCard title={`Visitas por Mês — ${anoAtual - 2} a ${anoAtual}`}>
-                    {loading ? (
-                        <Box display="flex" justifyContent="center" py={8}>
-                            <CircularProgress />
-                        </Box>
-                    ) : erro ? (
-                        <Box p={3}>
-                            <Typography color="error">Erro: {erro}</Typography>
-                        </Box>
-                    ) : chartSeries.length === 0 ? (
-                        <Box p={3} textAlign="center">
-                            <Typography color="textSecondary">Sem dados para exibir.</Typography>
-                        </Box>
-                    ) : (
-                        <Chart type="line" height={420}
-                            options={chartOptions}
-                            series={chartSeries}
-                        />
-                    )}
-                </BaseCard>
+                <Card>
+                    <CardHeader><CardTitle>{`Visitas por Mês — ${anoAtual - 2} a ${anoAtual}`}</CardTitle></CardHeader>
+                    <CardContent>
+                        {loading ? (
+                            <Carregando className="justify-center py-12" />
+                        ) : erro ? (
+                            <Banner tom="perigo">Erro: {erro}</Banner>
+                        ) : chartSeries.length === 0 ? (
+                            <p className="p-6 text-center text-sm text-muted-foreground">Sem dados para exibir.</p>
+                        ) : (
+                            <Chart type="line" height={420}
+                                options={chartOptions}
+                                series={chartSeries}
+                            />
+                        )}
+                    </CardContent>
+                </Card>
             )}
-            </Box>
-        </Box>
+        </div>
     );
 }

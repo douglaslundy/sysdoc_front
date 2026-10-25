@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Typography } from '@mui/material';
 import { equipeLabel } from '../../utils/equipeLabel';
 import { monitorApsApi } from '../../services/monitorApsApi';
+import { CampoSelecao } from '../ui/campos';
+import { useUid } from '../../lib/useUid';
 
 /**
  * Props:
@@ -14,6 +15,7 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
     const [agentesOpcoes, setAgentesOpcoes] = useState([]);
     const anoAtual = useMemo(() => new Date().getFullYear(), []);
     const mesAtual = useMemo(() => new Date().getMonth() + 1, []);
+    const uid = useUid('vetor');
 
     useEffect(() => {
         if (!vetor.ine) { setAgentesOpcoes([]); return; }
@@ -41,56 +43,38 @@ export default function VetorPanel({ label, equipes, vetor, onChange }) {
     }
 
     return (
-        <Paper variant="outlined" sx={{ p: 2, flex: 1, minWidth: 260 }}>
-            <Typography variant="subtitle2" fontWeight={700} mb={1.5}>{label}</Typography>
-            <Box display="flex" flexDirection="column" gap={1.5}>
-                <FormControl size="small" fullWidth>
-                    <InputLabel>Equipe</InputLabel>
-                    <Select label="Equipe" value={vetor.ine}
-                        onChange={e => update('ine', e.target.value)}>
-                        <MenuItem value="">Todas as equipes</MenuItem>
-                        {equipes.map(eq => (
-                            <MenuItem key={eq.nu_ine} value={eq.nu_ine}>
-                                {equipeLabel(eq.no_equipe)}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+        <div className="min-w-[260px] flex-1 rounded-xl border border-border p-4">
+            <p className="mb-3 text-sm font-bold">{label}</p>
+            <div className="grid gap-3">
+                <CampoSelecao id={`${uid}-equipe`} label="Equipe" value={vetor.ine} onChange={e => update('ine', e.target.value)}>
+                    <option value="">Todas as equipes</option>
+                    {equipes.map(eq => (
+                        <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
+                    ))}
+                </CampoSelecao>
 
                 {vetor.ine && (
-                    <FormControl size="small" fullWidth>
-                        <InputLabel>Agente</InputLabel>
-                        <Select label="Agente" value={vetor.agente_cns}
-                            onChange={e => update('agente_cns', e.target.value)}>
-                            <MenuItem value="">Todos os agentes</MenuItem>
-                            {agentesOpcoes.map(a => (
-                                <MenuItem key={a.agente_cns ?? a.agente} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <CampoSelecao id={`${uid}-agente`} label="Agente" value={vetor.agente_cns} onChange={e => update('agente_cns', e.target.value)}>
+                        <option value="">Todos os agentes</option>
+                        {agentesOpcoes.map(a => (
+                            <option key={a.agente_cns ?? a.agente} value={a.agente_cns ?? ''}>{a.agente}</option>
+                        ))}
+                    </CampoSelecao>
                 )}
 
-                <FormControl size="small" fullWidth>
-                    <InputLabel>Desfecho</InputLabel>
-                    <Select label="Desfecho" value={vetor.desfecho}
-                        onChange={e => update('desfecho', e.target.value)}>
-                        <MenuItem value="">Todos</MenuItem>
-                        <MenuItem value="1">Realizada</MenuItem>
-                        <MenuItem value="2">Recusada</MenuItem>
-                        <MenuItem value="3">Ausente</MenuItem>
-                    </Select>
-                </FormControl>
+                <CampoSelecao id={`${uid}-desfecho`} label="Desfecho" value={vetor.desfecho} onChange={e => update('desfecho', e.target.value)}>
+                    <option value="">Todos</option>
+                    <option value="1">Realizada</option>
+                    <option value="2">Recusada</option>
+                    <option value="3">Ausente</option>
+                </CampoSelecao>
 
-                <FormControl size="small" fullWidth>
-                    <InputLabel>Geolocalização</InputLabel>
-                    <Select label="Geolocalização" value={vetor.geo}
-                        onChange={e => update('geo', e.target.value)}>
-                        <MenuItem value="">Todas</MenuItem>
-                        <MenuItem value="sim">Com geolocalização</MenuItem>
-                        <MenuItem value="nao">Sem geolocalização</MenuItem>
-                    </Select>
-                </FormControl>
-            </Box>
-        </Paper>
+                <CampoSelecao id={`${uid}-geo`} label="Geolocalização" value={vetor.geo} onChange={e => update('geo', e.target.value)}>
+                    <option value="">Todas</option>
+                    <option value="sim">Com geolocalização</option>
+                    <option value="nao">Sem geolocalização</option>
+                </CampoSelecao>
+            </div>
+        </div>
     );
 }

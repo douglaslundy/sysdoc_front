@@ -1,26 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
-import {
-    Alert, Box, Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
-    Grid, IconButton, MenuItem, Select, Table, TableBody, TableCell,
-    TableHead, TableRow, Typography, Card, CardContent, LinearProgress,
-    FormControl, InputLabel,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
 import Chart from '../charts/ApexChartSafe';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoSelecao } from '../ui/campos';
+import { Carregando } from '../ui/carregando';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoTitulo } from '../ui/dialogo';
+import { EstadoVazio } from '../ui/estado-vazio';
+import { Grade } from '../ui/grade';
+import { SeloAps } from './pecas';
 
 const COR = { otimo: '#168821', bom: '#1351B4', suficiente: '#FF8C00', regular: '#E52207' };
 const LABEL = { otimo: 'Ótimo', bom: 'Bom', suficiente: 'Suficiente', regular: 'Regular' };
 
-function ClassChip({ c, size = 'small' }) {
-    return (
-        <Chip label={LABEL[c] ?? '—'} size={size}
-            sx={{ bgcolor: (COR[c] || '#888') + '22', color: COR[c] || '#888', fontWeight: 700 }} />
-    );
+function ClassChip({ c }) {
+    return <SeloAps cor={COR[c] || '#888'}>{LABEL[c] ?? '—'}</SeloAps>;
 }
+
+const COLUNAS_SUB = [
+    { chave: 'nome', titulo: 'Subindicador', render: (s) => s.nome },
+    { chave: 'valor', titulo: 'Valor', numerica: true, render: (s) => s.valor },
+    { chave: 'total', titulo: 'Total', numerica: true, render: (s) => s.total },
+];
 
 function IndicadorCard({ indicador, onDetalhes }) {
     const { id, nome, bloco, resultado } = indicador;
@@ -45,38 +50,43 @@ function IndicadorCard({ indicador, onDetalhes }) {
     }), [cor]);
 
     return (
-        <Card className="monitor-aps-indicador-card" sx={{ height: '100%', cursor: 'pointer', transition: 'box-shadow .2s', '&:hover': { boxShadow: 4 } }}
-            onClick={() => onDetalhes(indicador)}>
-            <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                    <Box>
-                        <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)', fontWeight: 600 }}>IND {id} · {bloco}</Typography>
-                        <Typography variant="body2" fontWeight={700} mt={0.3}>{nome}</Typography>
-                    </Box>
-                    <ClassChip c={classificacao} />
-                </Box>
+        <button
+            type="button"
+            onClick={() => onDetalhes(indicador)}
+            className="monitor-aps-indicador-card block h-full w-full rounded-xl border border-border bg-card p-5 text-left transition-colors hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
+        >
+            <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                    <p className="text-xs font-semibold text-muted-foreground">IND {id} · {bloco}</p>
+                    <p className="mt-1 text-sm font-bold">{nome}</p>
+                </div>
+                <ClassChip c={classificacao} />
+            </div>
 
-                <Box display="flex" justifyContent="center">
-                    <Chart type="radialBar" height={120} options={gaugeOptions} series={[percentual ?? 0]} />
-                </Box>
+            <div className="flex justify-center">
+                <Chart type="radialBar" height={120} options={gaugeOptions} series={[percentual ?? 0]} />
+            </div>
 
-                <Typography variant="caption" display="block" textAlign="center" sx={{ color: 'var(--lg-text-muted)', mb: 1 }}>
-                    {numerador} / {denominador}
-                </Typography>
+            <p className="mb-2 text-center text-xs text-muted-foreground">{numerador} / {denominador}</p>
 
-                {/* Barra de progresso com marcadores */}
-                <Box position="relative">
-                    <LinearProgress variant="determinate" value={Math.min(percentual, 100)}
-                        sx={{ height: 8, borderRadius: 4, bgcolor: '#e0e0e0', '& .MuiLinearProgress-bar': { bgcolor: cor, borderRadius: 4 } }} />
-                    {[meta_suficiente, meta_bom, meta_otimo].filter(Boolean).map((meta, i) => (
-                        <Box key={i} sx={{ position: 'absolute', top: 0, left: `${meta}%`, width: 2, height: 8, bgcolor: '#555', opacity: 0.5 }} title={`${['Suf.', 'Bom', 'Ótimo'][i]}: ${meta}%`} />
-                    ))}
-                </Box>
-                <Box display="flex" justifyContent="flex-end" mt={0.5}>
-                    <Typography variant="caption" sx={{ color: '#1351B4', fontWeight: 600 }}>Ver detalhes →</Typography>
-                </Box>
-            </CardContent>
-        </Card>
+            {/* Barra de progresso com marcadores */}
+            <div className="relative">
+                <div
+                    role="progressbar"
+                    aria-label={`Indicador ${id}`}
+                    aria-valuenow={Math.min(percentual, 100)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    className="h-2 overflow-hidden rounded-full bg-border"
+                >
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(percentual, 100)}%`, backgroundColor: cor }} />
+                </div>
+                {[meta_suficiente, meta_bom, meta_otimo].filter(Boolean).map((meta, i) => (
+                    <span key={i} className="absolute top-0 h-2 w-0.5 bg-foreground opacity-50" style={{ left: `${meta}%` }} title={`${['Suf.', 'Bom', 'Ótimo'][i]}: ${meta}%`} />
+                ))}
+            </div>
+            <p className="mt-1 text-right text-xs font-semibold text-info">Ver detalhes →</p>
+        </button>
     );
 }
 
@@ -143,132 +153,74 @@ export default function IndicadoresQualidade() {
         return Object.values(seen).sort((a, b) => a.indicador.id - b.indicador.id);
     }, [data]);
 
-    const selSx = { minWidth: 120 };
+    const filtros = (
+        <>
+            <CampoSelecao id="qual-ano" label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))} className="min-w-[120px]">
+                {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <option key={a} value={a}>{a}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="qual-quad" label="Quadrimestre" value={quad} onChange={e => setQuad(Number(e.target.value))} className="min-w-[120px]">
+                {[1, 2, 3].map(q => <option key={q} value={q}>{q}° Quad.</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="qual-equipe" label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1} className="min-w-[180px]">
+                <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                {equipes.map(eq => <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>)}
+            </CampoSelecao>
+            <CampoSelecao id="qual-bloco" label="Bloco" value={bloco} onChange={e => setBloco(e.target.value)} className="min-w-[120px]">
+                <option value="">Todos</option>
+                <option value="esf">eSF / eAP</option>
+                <option value="esb">eSB</option>
+            </CampoSelecao>
+        </>
+    );
 
     return (
-        <Box className="dashboard-neon-page monitor-aps-page">
-            <Box className="dashboard-neon-home monitor-aps-surface">
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Indicadores de Qualidade</Typography>
-                <Box display="flex" gap={1.5} flexWrap="wrap">
-                    <FormControl size="small" sx={selSx}>
-                        <InputLabel>Ano</InputLabel>
-                        <Select label="Ano" value={ano} onChange={e => setAno(Number(e.target.value))}>
-                            {Array.from({ length: anoAtual - 2020 }, (_, i) => 2021 + i).map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={selSx}>
-                        <InputLabel>Quadrimestre</InputLabel>
-                        <Select label="Quadrimestre" value={quad} onChange={e => setQuad(Number(e.target.value))}>
-                            {[1, 2, 3].map(q => <MenuItem key={q} value={q}>{q}° Quad.</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 180 }}>
-                        <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine} onChange={e => setIne(e.target.value)} disabled={isRestrito && equipes.length === 1}
-                            renderValue={(val) => {
-                                if (!val) return '';
-                                const eq = equipes.find(e => e.nu_ine === val);
-                                return eq ? equipeLabel(eq.no_equipe) : val;
-                            }}>
-                            <MenuItem value="">
-                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                            </MenuItem>
-                            {equipes.map(eq => <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>)}
-                        </Select>
-                    </FormControl>
-                    {isRestrito && !loadingPerms && equipes.length === 0 && (
-                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                            <Typography variant="body2" color="warning.dark">
-                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                            </Typography>
-                        </Box>
-                    )}
-                    <FormControl size="small" sx={selSx}>
-                        <InputLabel>Bloco</InputLabel>
-                        <Select label="Bloco" value={bloco} onChange={e => setBloco(e.target.value)}>
-                            <MenuItem value="">Todos</MenuItem>
-                            <MenuItem value="esf">eSF / eAP</MenuItem>
-                            <MenuItem value="esb">eSB</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-            </Box>
-
-            {erro && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {erro}
-                </Alert>
+        <div className="ui-reset monitor-aps-page">
+            <CabecalhoDePagina titulo="Indicadores de Qualidade" acoes={filtros} />
+            {isRestrito && !loadingPerms && equipes.length === 0 && (
+                <div className="mb-4">
+                    <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
+                </div>
             )}
+
+            {erro && <div className="mb-4"><Banner tom="perigo">{erro}</Banner></div>}
             {loading ? (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}><CircularProgress /></Box>
+                <Carregando className="min-h-[300px] justify-center">Carregando indicadores...</Carregando>
             ) : (
-                <>
-                    <Grid container spacing={2}>
-                        {lista.map(i => (
-                            <Grid key={i.indicador.id} item xs={12} sm={6} md={4} lg={3}>
-                                <IndicadorCard indicador={i.indicador} onDetalhes={setDetalhe} />
-                            </Grid>
-                        ))}
-                        {!erro && lista.length === 0 && (
-                            <Grid item xs={12}>
-                                <Typography color="textSecondary" textAlign="center" py={6}>
-                                    Nenhum indicador encontrado para os filtros selecionados.
-                                </Typography>
-                            </Grid>
-                        )}
-                    </Grid>
-                </>
+                <Grade container spacing={2}>
+                    {lista.map(i => (
+                        <Grade key={i.indicador.id} item xs={12} sm={6} md={4} lg={3}>
+                            <IndicadorCard indicador={i.indicador} onDetalhes={setDetalhe} />
+                        </Grade>
+                    ))}
+                    {!erro && lista.length === 0 && (
+                        <Grade item xs={12}>
+                            <EstadoVazio titulo="Nenhum indicador encontrado para os filtros selecionados." />
+                        </Grade>
+                    )}
+                </Grade>
             )}
 
             {/* Modal de detalhes */}
-            <Dialog open={!!detalhe} onClose={() => setDetalhe(null)} maxWidth="sm" fullWidth PaperProps={{ className: 'monitor-aps-dialog' }}>
+            <Dialogo aberto={!!detalhe} aoFechar={() => setDetalhe(null)} tamanho="md">
                 {detalhe && (
                     <>
-                        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h6">IND {detalhe.id} — {detalhe.nome}</Typography>
-                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>{detalhe.bloco}</Typography>
-                            </Box>
-                            <Box display="flex" gap={1} alignItems="center">
-                                <ClassChip c={detalhe.resultado?.classificacao} />
-                                <IconButton size="small" onClick={() => setDetalhe(null)}>
-                                    <FeatherIcon icon="x" width="18" height="18" />
-                                </IconButton>
-                            </Box>
-                        </DialogTitle>
-                        <DialogContent dividers>
-                            <Typography variant="body2" mb={2} sx={{ color: 'var(--lg-text-secondary)' }}>
-                                {detalhe.resultado?.numerador} / {detalhe.resultado?.denominador} — {detalhe.resultado?.percentual}%
-                            </Typography>
-                            {detalhe.subindicadores?.length > 0 && (
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow sx={{ '& th': { fontWeight: 700, fontSize: 11, color: 'var(--lg-text-muted)', textTransform: 'uppercase' } }}>
-                                            <TableCell>Subindicador</TableCell>
-                                            <TableCell align="right">Valor</TableCell>
-                                            <TableCell align="right">Total</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {detalhe.subindicadores.map((s, i) => (
-                                            <TableRow key={i} hover>
-                                                <TableCell>{s.nome}</TableCell>
-                                                <TableCell align="right">{s.valor}</TableCell>
-                                                <TableCell align="right">{s.total}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                            <Typography variant="caption" display="block" mt={2} sx={{ color: 'var(--lg-text-muted)' }}>
-                                Fonte: Fichas Técnicas MS — Portaria GM/MS nº 6.907/2025
-                            </Typography>
-                        </DialogContent>
+                        <div className="mb-4 flex items-start justify-between gap-3 pr-8">
+                            <div>
+                                <DialogoTitulo>IND {detalhe.id} — {detalhe.nome}</DialogoTitulo>
+                                <p className="text-xs text-muted-foreground">{detalhe.bloco}</p>
+                            </div>
+                            <ClassChip c={detalhe.resultado?.classificacao} />
+                        </div>
+                        <p className="mb-4 text-sm text-muted-foreground">
+                            {detalhe.resultado?.numerador} / {detalhe.resultado?.denominador} — {detalhe.resultado?.percentual}%
+                        </p>
+                        {detalhe.subindicadores?.length > 0 && (
+                            <DataTable rotulo="subindicadores" colunas={COLUNAS_SUB} linhas={detalhe.subindicadores} chaveDaLinha={(s) => s.nome} />
+                        )}
+                        <p className="mt-4 text-xs text-muted-foreground">Fonte: Fichas Técnicas MS — Portaria GM/MS nº 6.907/2025</p>
                     </>
                 )}
-            </Dialog>
-            </Box>
-        </Box>
+            </Dialogo>
+        </div>
     );
 }

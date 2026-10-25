@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import generateCidadaosAcsPDF from '../../reports/cidadaosAcs';
-import {
-    Alert, Box, Button, Card, CardContent, Chip, CircularProgress,
-    FormControl, InputLabel, MenuItem, Select, Table,
-    TableBody, TableCell, TableHead, TablePagination, TableRow, Tooltip, Typography, IconButton, TextField,
-} from '@mui/material';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { DataTable } from '../ui/data-table';
+import { Paginacao } from '../ui/paginacao';
+import { SeloAps } from './pecas';
 
 const CHIP_CONDICOES = [
     { key: 'st_gestante', label: 'Gestante', cor: '#1351B4' },
@@ -116,41 +119,7 @@ const isObitoCondition = (cidadao) => (
 );
 
 export default function CidadaosPage() {
-    const controlHeight = 48;
-    const controlSx = {
-        '& .MuiOutlinedInput-root': {
-            height: controlHeight,
-            minHeight: controlHeight,
-            background: 'var(--lg-glass-input)',
-        },
-        '& .MuiInputBase-input': {
-            height: controlHeight,
-            boxSizing: 'border-box',
-            backgroundColor: 'transparent !important',
-            color: 'var(--lg-text-primary) !important',
-            WebkitTextFillColor: 'var(--lg-text-primary) !important',
-            caretColor: 'var(--lg-text-primary) !important',
-        },
-        '& input': {
-            backgroundColor: 'transparent !important',
-        },
-        '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
-            WebkitBoxShadow: '0 0 0 1000px var(--lg-glass-input) inset !important',
-            WebkitTextFillColor: 'var(--lg-text-primary) !important',
-            caretColor: 'var(--lg-text-primary) !important',
-            transition: 'background-color 9999s ease-out 0s',
-        },
-    };
-    const selectControlSx = {
-        ...controlSx,
-        '& .MuiSelect-select': {
-            display: 'flex',
-            alignItems: 'center',
-            minHeight: 'unset',
-            height: controlHeight,
-            boxSizing: 'border-box',
-        },
-    };
+
     const [equipes,        setEquipes]        = useState([]);
     const [agentes,        setAgentes]        = useState([]);
     const [ine,            setIne]            = useState('');
@@ -366,289 +335,193 @@ export default function CidadaosPage() {
         });
     }, [cidadaos, sortConfig]);
 
-    return (
-        <Box className="dashboard-neon-page monitor-aps-page queue-page">
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-cidadaos-page queue-page">
-            <Box mb={3} mt="20px">
-                <Box display="flex" alignItems="baseline" gap={1}>
-                    <Typography variant="h5" fontWeight={700}>
-                        Cidadãos
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'var(--lg-text-muted)', fontWeight: 600 }}>
-                        ({meta.total.toLocaleString('pt-BR')})
-                    </Typography>
-                </Box>
-                <Box className="queue-page__toolbar" display="flex" gap={1.5} flexWrap="wrap" mt={2}>
-                    <TextField
-                        size="small"
-                        className="lg-search-field"
-                        placeholder="Buscar: Nome, CPF ou CNS"
-                        autoComplete="off"
-                        name="search"
-                        value={busca}
-                        onChange={e => setBusca(e.target.value)}
-                        sx={{
-                            width: 430,
-                            minWidth: 430,
-                            flexShrink: 0,
-                            '& .MuiInputBase-input': { fontSize: '25px !important' },
-                        }}
-                    />
-                    <FormControl size="small" sx={{ minWidth: 220, ...selectControlSx }}>
-                        <InputLabel>Equipe</InputLabel>
-                        <Select label="Equipe" value={ine}
-                            onChange={e => { setIne(e.target.value); setPage(0); }}
-                            disabled={isRestrito && equipes.length === 1}
-                            renderValue={(val) => {
-                                if (!val) return '';
-                                const eq = equipes.find(e => e.nu_ine === val);
-                                return eq ? equipeLabel(eq.no_equipe) : val;
-                            }}>
-                            <MenuItem value="">
-                                {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                            </MenuItem>
-                            {equipes.map(eq => (
-                                <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    {isRestrito && !loadingPerms && equipes.length === 0 && (
-                        <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                            <Typography variant="body2" color="warning.dark">
-                                Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                            </Typography>
-                        </Box>
+    const indicadorDeOrdem = (campo) => (sortConfig.field === campo && sortConfig.dir === 'desc' ? '↓' : '↑');
+    const rotuloDeOrdem = (campo, nome) => `Ordenar ${nome} ${sortConfig.field === campo && sortConfig.dir === 'asc' ? 'decrescente' : 'crescente'}`;
+    const comObito = condicao === 'obito';
+
+    const colunas = [
+        { chave: 'n', titulo: '#', render: (c, i) => <span className="text-[11px] text-muted-foreground">{(page * rowsPerPage) + i + 1}</span> },
+        {
+            chave: 'nome',
+            titulo: 'Nome',
+            render: (c) => (
+                <>
+                    <span className="block text-sm font-semibold" title={c.nome ?? '--'}>{truncateText(c.nome, 30)}</span>
+                    <span className="block text-xs text-muted-foreground">{c.data_atualizacao ?? '--'}</span>
+                </>
+            ),
+        },
+        {
+            chave: 'doc',
+            titulo: 'CPF / CNS',
+            render: (c) => (
+                <span className="font-mono text-xs">
+                    <span className="block">{formatCpf(c.cpf)}</span>
+                    <span className="mt-0.5 block text-muted-foreground">{formatCns(c.cns)}</span>
+                </span>
+            ),
+        },
+        {
+            chave: 'idade',
+            titulo: (
+                <span className="flex items-center gap-1">
+                    Idade
+                    <button type="button" aria-label={rotuloDeOrdem('idade', 'idade')} onClick={() => toggleSort('idade')} className="rounded px-1 text-xs font-bold hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none">
+                        {indicadorDeOrdem('idade')}
+                    </button>
+                </span>
+            ),
+            render: (c) => <span className="text-xs">{formatIdade(c.idade)}</span>,
+        },
+        { chave: 'equipe', titulo: 'Equipe', render: (c) => <span className="text-sm" title={c.no_equipe ?? '--'}>{truncateText(formatEquipe(c.no_equipe), 15)}</span> },
+        {
+            chave: 'agente',
+            titulo: multiDomicilio ? 'Domicílios' : 'Agente',
+            render: (c) => (multiDomicilio ? (
+                <span className="block max-w-[260px] text-[11px] leading-relaxed whitespace-pre-wrap" title={c.domicilios ?? '--'}>
+                    {c.domicilios
+                        ? c.domicilios.split(' | ').map((d, i) => <span key={i} className="block">- {d}</span>)
+                        : '--'}
+                </span>
+            ) : (
+                <span className="text-sm" title={c.agente ?? '--'}>{truncateText(c.agente, 25)}</span>
+            )),
+        },
+        {
+            chave: 'condicoes',
+            titulo: 'Condições',
+            render: (c) => (
+                <span className="flex flex-wrap gap-1">
+                    {CHIP_CONDICOES.map(({ key, label, cor }) =>
+                        (key === 'st_obito' ? isObitoCondition(c) : isTruthyCondition(c[key])) ? (
+                            <SeloAps key={key} cor={cor}>{label}</SeloAps>
+                        ) : null
                     )}
-                    <FormControl size="small" sx={{ minWidth: 200, ...selectControlSx }}>
-                        <InputLabel>Agente</InputLabel>
-                        <Select label="Agente" value={agenteCns}
-                            onChange={e => { setAgenteCns(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todos os agentes</MenuItem>
-                            {agentes.map(a => (
-                                <MenuItem key={a.agente_cns ?? a.id ?? a.nome} value={a.agente_cns ?? ''}>{a.nome}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 180, ...selectControlSx }}>
-                        <InputLabel>Condição</InputLabel>
-                        <Select label="Condição" value={condicao}
-                            onChange={e => { setCondicao(e.target.value); setPage(0); }}>
-                            <MenuItem value="">Todas</MenuItem>
-                            {FILTROS_CONDICOES.map(item => (
-                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        size="small"
+                </span>
+            ),
+        },
+        ...(comObito ? [
+            {
+                chave: 'dataObito',
+                titulo: (
+                    <span className="flex items-center gap-1">
+                        Data óbito
+                        <button type="button" aria-label={rotuloDeOrdem('obito', 'data de obito')} onClick={() => toggleSort('obito')} className="rounded px-1 text-xs font-bold hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none">
+                            {indicadorDeOrdem('obito')}
+                        </button>
+                    </span>
+                ),
+                render: (c) => <span className="text-xs">{isObitoCondition(c) ? (c.data_obito ?? c.dt_obito ?? '--') : '--'}</span>,
+            },
+            { chave: 'fonteObito', titulo: 'Fonte óbito', render: (c) => <span className="text-xs text-muted-foreground">{isObitoCondition(c) ? (c.fonte_obito ?? '--') : '--'}</span> },
+        ] : []),
+    ];
+
+    return (
+        <div className="ui-reset monitor-aps-cidadaos-page">
+            <CabecalhoDePagina
+                titulo={`Cidadãos (${meta.total.toLocaleString('pt-BR')})`}
+            />
+
+            <div className="mb-4 flex flex-wrap items-end gap-3">
+                <CampoDeBusca
+                    className="min-w-[260px] flex-[1_1_320px]"
+                    rotulo="Buscar cidadão"
+                    placeholder="Buscar: Nome, CPF ou CNS"
+                    autoComplete="off"
+                    name="search"
+                    value={busca}
+                    onChange={e => setBusca(e.target.value)}
+                />
+                <CampoSelecao id="cid-equipe" label="Equipe" value={ine}
+                    onChange={e => { setIne(e.target.value); setPage(0); }}
+                    disabled={isRestrito && equipes.length === 1}
+                    className="min-w-[220px]">
+                    <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                    {equipes.map(eq => (
+                        <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
+                    ))}
+                </CampoSelecao>
+                <CampoSelecao id="cid-agente" label="Agente" value={agenteCns}
+                    onChange={e => { setAgenteCns(e.target.value); setPage(0); }}
+                    className="min-w-[200px]">
+                    <option value="">Todos os agentes</option>
+                    {agentes.map(a => (
+                        <option key={a.agente_cns ?? a.id ?? a.nome} value={a.agente_cns ?? ''}>{a.nome}</option>
+                    ))}
+                </CampoSelecao>
+                <CampoSelecao id="cid-condicao" label="Condição" value={condicao}
+                    onChange={e => { setCondicao(e.target.value); setPage(0); }}
+                    className="min-w-[180px]">
+                    <option value="">Todas</option>
+                    {FILTROS_CONDICOES.map(item => (
+                        <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                </CampoSelecao>
+                <div className="w-[110px]">
+                    <CampoTexto
+                        id="cid-idade-de"
                         type="number"
                         label="Idade de"
                         value={idadeMinTxt}
-                        error={faixaInvalida}
+                        erro={faixaInvalida ? ' ' : undefined}
                         onKeyDown={e => { if (e.key === 'Enter') aplicarIdade(); }}
                         onChange={e => setIdadeMinTxt(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                        inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
-                        sx={{ width: 110, ...controlSx }}
+                        min={0}
+                        max={130}
+                        inputMode="numeric"
                     />
-                    <TextField
-                        size="small"
+                </div>
+                <div className="w-[110px]">
+                    <CampoTexto
+                        id="cid-idade-ate"
                         type="number"
                         label="até"
                         value={idadeMaxTxt}
-                        error={faixaInvalida}
-                        helperText={faixaInvalida ? 'Inicial maior que final' : undefined}
+                        erro={faixaInvalida ? 'Inicial maior que final' : undefined}
                         onKeyDown={e => { if (e.key === 'Enter') aplicarIdade(); }}
                         onChange={e => setIdadeMaxTxt(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                        inputProps={{ min: 0, max: 130, inputMode: 'numeric' }}
-                        sx={{ width: 110, ...controlSx }}
+                        min={0}
+                        max={130}
+                        inputMode="numeric"
                     />
-                    <Button variant="contained" onClick={aplicarIdade} disabled={faixaInvalida}
-                        sx={{ height: controlHeight, fontWeight: 700 }}>
-                        Filtrar
-                    </Button>
-                    <Button variant="outlined" onClick={gerarPdf} disabled={gerandoPdf || loading || meta.total === 0}
-                        sx={{ height: controlHeight, fontWeight: 700 }}>
-                        {gerandoPdf ? 'Gerando PDF...' : 'Gerar PDF'}
-                    </Button>
+                </div>
+                <Button onClick={aplicarIdade} disabled={faixaInvalida}>Filtrar</Button>
+                <Button variant="outline" onClick={gerarPdf} disabled={gerandoPdf || loading || meta.total === 0}>
+                    {gerandoPdf ? 'Gerando PDF...' : 'Gerar PDF'}
+                </Button>
+                <Button
+                    variant={multiDomicilio ? 'default' : 'outline'}
+                    aria-pressed={multiDomicilio}
+                    title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios"
+                    onClick={() => { setMultiDomicilio(v => !v); setPage(0); }}
+                >
+                    Múltiplos domicílios
+                </Button>
+            </div>
+            {isRestrito && !loadingPerms && equipes.length === 0 && (
+                <div className="mb-4">
+                    <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
+                </div>
+            )}
 
-                    <Tooltip title="Exibe apenas cidadãos vinculados a mais de um domicílio e substitui a coluna Agente pelos domicílios">
-                        <Chip
-                            label="Múltiplos domicílios"
-                            clickable
-                            onClick={() => { setMultiDomicilio(v => !v); setPage(0); }}
-                            color={multiDomicilio ? 'primary' : 'default'}
-                            variant={multiDomicilio ? 'filled' : 'outlined'}
-                            sx={{
-                                alignSelf: 'center',
-                                fontWeight: 600,
-                                height: controlHeight,
-                                borderRadius: 1.2,
-                                px: 1,
-                            }}
-                        />
-                    </Tooltip>
-                </Box>
-            </Box>
-
-            <Card className="monitor-aps-panel queue-page__table-wrap">
-                <CardContent>
-                    {erro && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {erro}
-                        </Alert>
-                    )}
-                    {loading ? (
-                        <Box display="flex" justifyContent="center" py={6}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <Box sx={{ overflowX: 'auto' }}>
-                            <Table className="queue-page__table" size="small">
-                                <TableHead>
-                                    <TableRow sx={{
-                                        '& th': {
-                                            fontWeight: 700, fontSize: 11,
-                                            color: 'var(--lg-text-muted)',
-                                            textTransform: 'uppercase',
-                                            borderBottom: '2px solid var(--lg-border)',
-                                        },
-                                    }}>
-                                        <TableCell className="queue-page__th">#</TableCell>
-                                        <TableCell>Nome</TableCell>
-                                        <TableCell>CPF / CNS</TableCell>
-                                        <TableCell>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                Idade
-                                                <IconButton
-                                                    size="small"
-                                                    aria-label={`Ordenar idade ${sortConfig.field === 'idade' && sortConfig.dir === 'asc' ? 'decrescente' : 'crescente'}`}
-                                                    onClick={() => toggleSort('idade')}
-                                                >
-                                                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                                                        {sortConfig.field === 'idade' && sortConfig.dir === 'desc' ? '↓' : '↑'}
-                                                    </Typography>
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell>Equipe</TableCell>
-                                        <TableCell>{multiDomicilio ? 'Domicílios' : 'Agente'}</TableCell>
-                                        <TableCell>Condições</TableCell>
-                                        {condicao === 'obito' && (
-                                            <TableCell>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    Data óbito
-                                                    <IconButton
-                                                        size="small"
-                                                        aria-label={`Ordenar data de obito ${sortConfig.field === 'obito' && sortConfig.dir === 'asc' ? 'decrescente' : 'crescente'}`}
-                                                        onClick={() => toggleSort('obito')}
-                                                    >
-                                                        <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                                                            {sortConfig.field === 'obito' && sortConfig.dir === 'desc' ? '↓' : '↑'}
-                                                        </Typography>
-                                                    </IconButton>
-                                                </Box>
-                                            </TableCell>
-                                        )}
-                                        {condicao === 'obito' && <TableCell>Fonte óbito</TableCell>}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {cidadaosSorted.map((c, i) => (
-                                        <TableRow key={c.co_fat_cidadao_pec ?? i} hover sx={{ "& td": { background: "var(--queue-row-bg)", borderTop: "0.5px solid var(--lg-border)", borderBottom: "0.5px solid var(--lg-border)" }, "& td + td": { borderLeft: "0.5px solid rgba(114, 147, 222, 0.24)" }, "& td:first-of-type": { borderLeft: "0.5px solid var(--lg-border)", borderTopLeftRadius: 14, borderBottomLeftRadius: 14 }, "& td:last-of-type": { borderRight: "0.5px solid var(--lg-border)", borderTopRightRadius: 14, borderBottomRightRadius: 14 }, "&:hover td": { background: "var(--queue-row-hover)" } }}>
-                                            <TableCell sx={{ fontSize: 11, color: 'var(--lg-text-muted)' }}>
-                                                {(page * rowsPerPage) + i + 1}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Typography variant="body2" fontWeight={600} noWrap title={c.nome ?? '--'}>
-                                                    {truncateText(c.nome, 30)}
-                                                </Typography>
-                                                <Typography variant="caption" sx={{ color: 'var(--lg-text-muted)' }}>
-                                                    {c.data_atualizacao ?? '--'}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: 12, fontFamily: 'monospace' }}>
-                                                <Box>{formatCpf(c.cpf)}</Box>
-                                                <Box sx={{ color: 'var(--lg-text-muted)', mt: 0.25 }}>{formatCns(c.cns)}</Box>
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: 12 }}>
-                                                {formatIdade(c.idade)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Typography variant="body2" noWrap title={c.no_equipe ?? '--'}>
-                                                    {truncateText(formatEquipe(c.no_equipe), 15)}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell>
-                                                {multiDomicilio ? (
-                                                    <Tooltip title={c.domicilios ?? '--'} placement="top">
-                                                        <Typography variant="body2" sx={{ fontSize: 11, maxWidth: 260, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                                                            {c.domicilios
-                                                                ? c.domicilios.split(' | ').map((d, i) => (
-                                                                    <Box key={i} component="span" display="block">- {d}</Box>
-                                                                ))
-                                                                : '--'}
-                                                        </Typography>
-                                                    </Tooltip>
-                                                ) : (
-                                                    <Typography variant="body2" noWrap title={c.agente ?? '--'}>
-                                                        {truncateText(c.agente, 25)}
-                                                    </Typography>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Box display="flex" gap={0.5} flexWrap="wrap">
-                                                    {CHIP_CONDICOES.map(({ key, label, cor }) =>
-                                                        (key === 'st_obito' ? isObitoCondition(c) : isTruthyCondition(c[key])) ? (
-                                                            <Chip key={key} label={label} size="small"
-                                                                sx={{
-                                                                    bgcolor: cor + '22',
-                                                                    color: cor,
-                                                                    fontWeight: 700,
-                                                                    fontSize: 10,
-                                                                }} />
-                                                        ) : null
-                                                    )}
-                                                </Box>
-                                            </TableCell>
-                                            {condicao === 'obito' && (
-                                                <TableCell sx={{ fontSize: 12 }}>
-                                                    {isObitoCondition(c) ? (c.data_obito ?? c.dt_obito ?? '--') : '--'}
-                                                </TableCell>
-                                            )}
-                                            {condicao === 'obito' && (
-                                                <TableCell sx={{ fontSize: 12, color: 'var(--lg-text-muted)' }}>
-                                                    {isObitoCondition(c) ? (c.fonte_obito ?? '--') : '--'}
-                                                </TableCell>
-                                            )}
-                                        </TableRow>
-                                    ))}
-                                    {!erro && cidadaos.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={condicao === 'obito' ? 9 : 7} align="center"
-                                                sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                Nenhum cidadão encontrado com os filtros aplicados.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </Box>
-                    )}
-
-                    <TablePagination className="queue-page__pagination"
-                        component="div"
-                        count={meta.total}
-                        page={page}
-                        rowsPerPage={rowsPerPage}
-                        rowsPerPageOptions={[10, 25, 50, 100]}
-                        onPageChange={handlePageChange}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        labelDisplayedRows={({ from, to, count }) =>
-                            `${from}-${to} de ${count.toLocaleString('pt-BR')}`}
-                    />
-                </CardContent>
-            </Card>
-            </Box>
-        </Box>
+            {erro && <div className="mb-4"><Banner tom="perigo">{erro}</Banner></div>}
+            <DataTable
+                rotulo="cidadãos"
+                colunas={colunas}
+                linhas={cidadaosSorted}
+                chaveDaLinha={(c) => c.co_fat_cidadao_pec ?? `${c.cpf}-${c.cns}-${c.nome}`}
+                carregando={loading}
+                vazio={erro ? '' : 'Nenhum cidadão encontrado com os filtros aplicados.'}
+            />
+            <Paginacao
+                total={meta.total}
+                pagina={page}
+                porPagina={rowsPerPage}
+                opcoes={[10, 25, 50, 100]}
+                aoMudarPagina={(newPage) => handlePageChange(null, newPage)}
+                aoMudarPorPagina={(n) => handleChangeRowsPerPage({ target: { value: String(n) } })}
+            />
+        </div>
     );
 }

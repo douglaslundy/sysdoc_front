@@ -1,16 +1,18 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Printer, X } from 'lucide-react';
 import { equipeLabel } from '../../utils/equipeLabel';
-import {
-    Alert, Box, Button, Card, CardContent, CircularProgress, FormControl, IconButton,
-    InputAdornment, InputLabel, MenuItem, Select, TextField,
-    ToggleButton, ToggleButtonGroup, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
 import VisitaDetalheModal from './VisitaDetalheModal';
 import { useEquipesPermitidas } from '../../hooks/useEquipesPermitidas';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { CampoSelecao } from '../ui/campos';
+import { Card, CardContent } from '../ui/card';
+import { Carregando } from '../ui/carregando';
 
 const MapaVisitas = dynamic(() => import('./MapaVisitas'), { ssr: false });
 
@@ -165,7 +167,7 @@ export default function MapaVisitasPage() {
         [anoAtual]
     );
 
-    function handleFiltroModo(_, valor) {
+    function handleFiltroModo(valor) {
         if (!valor) return;
         setFiltroModo(valor);
         if (valor === 'todos') {
@@ -178,37 +180,30 @@ export default function MapaVisitasPage() {
     }
 
     return (
-        <Box className="dashboard-neon-page monitor-aps-page queue-page">
-            <Box className="dashboard-neon-home monitor-aps-surface monitor-aps-mapa-page queue-page">
+        <div className="ui-reset monitor-aps-page monitor-aps-mapa-page">
             {/* Cabeçalho — oculto na impressão (substituído pelo print-header abaixo) */}
-            <Box className="no-print" display="flex" justifyContent="space-between" alignItems="center"
-                mb={3} mt="20px" flexWrap="wrap" gap={2}>
-                <Typography variant="h5" fontWeight={700}>Mapa de Visitas ACS/TACS</Typography>
-                <Box display="flex" alignItems="center" gap={2}>
-                    {!loading && pontos.length > 0 && (
-                        <Typography variant="body2" sx={{ color: 'var(--lg-text-secondary)' }}>
-                            {pontos.length.toLocaleString('pt-BR')} ponto{pontos.length !== 1 ? 's' : ''} no mapa
-                        </Typography>
+            <div className="no-print">
+                <CabecalhoDePagina
+                    titulo="Mapa de Visitas ACS/TACS"
+                    acoes={(
+                        <>
+                            {!loading && pontos.length > 0 && (
+                                <span className="text-sm text-muted-foreground">
+                                    {pontos.length.toLocaleString('pt-BR')} ponto{pontos.length !== 1 ? 's' : ''} no mapa
+                                </span>
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => window.print()} disabled={loading || pontos.length === 0}>
+                                <Printer /> PDF
+                            </Button>
+                        </>
                     )}
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<FeatherIcon icon="printer" width={14} height={14} />}
-                        onClick={() => window.print()}
-                        disabled={loading || pontos.length === 0}
-                        sx={{ textTransform: 'none', borderRadius: '10px', minWidth: 90 }}
-                    >
-                        PDF
-                    </Button>
-                </Box>
-            </Box>
+                />
+            </div>
 
             {/* Cabeçalho visível apenas na impressão */}
-            <Box className="print-only" sx={{ display: 'none', mb: 2, pb: 1.5, borderBottom: '1px solid #ccc' }}>
-                <Typography variant="h5" fontWeight={700} sx={{ color: 'var(--lg-text-primary)', mb: 0.5 }}>
-                    Mapa de Visitas ACS/TACS
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#333' }}>
+            <div className="print-only mb-4 hidden border-b border-border pb-3">
+                <h1 className="mb-1 text-xl font-bold">Mapa de Visitas ACS/TACS</h1>
+                <p className="text-sm">
                     Período: {MESES_COMPLETO[mes]} / {ano}
                     {filtroModo === 'equipe' && equipeIne && equipes.find(e => e.nu_ine === equipeIne)
                         ? ` • Equipe: ${equipes.find(e => e.nu_ine === equipeIne).no_equipe}`
@@ -218,134 +213,102 @@ export default function MapaVisitasPage() {
                     {pontos.length > 0
                         ? ` • ${pontos.length.toLocaleString('pt-BR')} ponto${pontos.length !== 1 ? 's' : ''} georreferenciado${pontos.length !== 1 ? 's' : ''}`
                         : ''}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#666' }}>
-                    Gerado em: {new Date().toLocaleString('pt-BR')}
-                </Typography>
-            </Box>
+                </p>
+                <span className="text-xs text-muted-foreground">Gerado em: {new Date().toLocaleString('pt-BR')}</span>
+            </div>
 
             {/* Painel de filtros — oculto na impressão */}
-            <Card className="no-print monitor-aps-panel" sx={{ mb: 2 }}>
-                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                    <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
-
+            <Card className="no-print mb-4">
+                <CardContent>
+                    <div className="flex flex-wrap items-end gap-3">
                         {/* Todos / Por Equipe */}
-                        <ToggleButtonGroup
-                            size="small" exclusive
-                            value={filtroModo}
-                            onChange={handleFiltroModo}
-                            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 2 } }}
-                        >
-                            {!isRestrito && <ToggleButton value="todos">Todos</ToggleButton>}
-                            <ToggleButton value="equipe">Por Equipe</ToggleButton>
-                        </ToggleButtonGroup>
+                        <div role="group" aria-label="Modo de filtro" className="flex gap-1">
+                            {!isRestrito && (
+                                <Button variant={filtroModo === 'todos' ? 'default' : 'outline'} aria-pressed={filtroModo === 'todos'} onClick={() => handleFiltroModo('todos')}>
+                                    Todos
+                                </Button>
+                            )}
+                            <Button variant={filtroModo === 'equipe' ? 'default' : 'outline'} aria-pressed={filtroModo === 'equipe'} onClick={() => handleFiltroModo('equipe')}>
+                                Por Equipe
+                            </Button>
+                        </div>
 
                         {/* Busca por cidadão — só no modo Todos */}
                         {filtroModo === 'todos' && (
-                            <TextField
-                                className="monitor-aps-mapa-search"
-                                size="small"
-                                placeholder="CPF, CNS ou nome (mín. 3 letras)"
-                                value={filtroSearch}
-                                onChange={e => handleSearchChange(e.target.value)}
-                                sx={{ minWidth: 280 }}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <FeatherIcon icon="search" width={14} height={14} />
-                                        </InputAdornment>
-                                    ),
-                                    endAdornment: filtroSearch ? (
-                                        <InputAdornment position="end">
-                                            <IconButton size="small" onClick={limparSearch} edge="end">
-                                                <FeatherIcon icon="x" width={14} height={14} />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ) : null,
-                                }}
-                            />
+                            <div className="monitor-aps-mapa-search relative min-w-[280px] flex-[1_1_280px]">
+                                <CampoDeBusca
+                                    rotulo="Buscar visita por cidadão"
+                                    placeholder="CPF, CNS ou nome (mín. 3 letras)"
+                                    value={filtroSearch}
+                                    onChange={e => handleSearchChange(e.target.value)}
+                                    className="pr-0"
+                                />
+                                {filtroSearch && (
+                                    <button
+                                        type="button"
+                                        aria-label="Limpar busca"
+                                        onClick={limparSearch}
+                                        className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
+                                    >
+                                        <X className="size-4" />
+                                    </button>
+                                )}
+                            </div>
                         )}
 
                         {/* Equipe — habilitado apenas quando modo equipe */}
                         {filtroModo === 'equipe' && (
-                            <FormControl size="small" sx={{ minWidth: 220 }}>
-                                <InputLabel>Equipe</InputLabel>
-                                <Select label="Equipe" value={equipeIne}
-                                    onChange={e => { setEquipeIne(e.target.value); setAgenteCns(''); }}
-                                    disabled={isRestrito && equipes.length === 1}
-                                    renderValue={(val) => {
-                                        if (!val) return '';
-                                        const eq = equipes.find(e => e.nu_ine === val);
-                                        return eq ? equipeLabel(eq.no_equipe) : val;
-                                    }}>
-                                    <MenuItem value="">
-                                        {isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}
-                                    </MenuItem>
-                                    {equipes.map(eq => (
-                                        <MenuItem key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            <CampoSelecao id="mapa-equipe" label="Equipe" value={equipeIne}
+                                onChange={e => { setEquipeIne(e.target.value); setAgenteCns(''); }}
+                                disabled={isRestrito && equipes.length === 1}
+                                className="min-w-[220px]">
+                                <option value="">{isRestrito && equipes.length > 1 ? 'Todas as minhas equipes' : 'Todas as equipes'}</option>
+                                {equipes.map(eq => (
+                                    <option key={eq.nu_ine} value={eq.nu_ine}>{equipeLabel(eq.no_equipe)}</option>
+                                ))}
+                            </CampoSelecao>
                         )}
                         {isRestrito && !loadingPerms && equipes.length === 0 && (
-                            <Box sx={{ p: 2, border: '1px solid #FF8C00', borderRadius: 2, bgcolor: '#FF8C0011' }}>
-                                <Typography variant="body2" color="warning.dark">
-                                    Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.
-                                </Typography>
-                            </Box>
+                            <Banner tom="alerta">Nenhuma equipe autorizada para o seu usuário. Entre em contato com o administrador.</Banner>
                         )}
 
                         {/* Agente — habilitado apenas quando equipe selecionada */}
                         {filtroModo === 'equipe' && equipeIne && (
-                            <FormControl size="small" sx={{ minWidth: 220 }}>
-                                <InputLabel>Agente</InputLabel>
-                                <Select label="Agente" value={agenteCns}
-                                    onChange={e => setAgenteCns(e.target.value)}>
-                                    <MenuItem value="">Todos os agentes</MenuItem>
-                                    {agentes.map((a, i) => (
-                                        <MenuItem key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            <CampoSelecao id="mapa-agente" label="Agente" value={agenteCns}
+                                onChange={e => setAgenteCns(e.target.value)}
+                                className="min-w-[220px]">
+                                <option value="">Todos os agentes</option>
+                                {agentes.map((a, i) => (
+                                    <option key={a.agente_cns ?? i} value={a.agente_cns ?? ''}>{a.agente}</option>
+                                ))}
+                            </CampoSelecao>
                         )}
 
-                        {/* Ano */}
-                        <FormControl size="small" sx={{ minWidth: 100 }}>
-                            <InputLabel>Ano</InputLabel>
-                            <Select label="Ano" value={ano}
-                                onChange={e => setAno(Number(e.target.value))}>
-                                {anosDisponiveis.map(a => (
-                                    <MenuItem key={a} value={a}>{a}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <CampoSelecao id="mapa-ano" label="Ano" value={ano}
+                            onChange={e => setAno(Number(e.target.value))}
+                            className="min-w-[100px]">
+                            {anosDisponiveis.map(a => (
+                                <option key={a} value={a}>{a}</option>
+                            ))}
+                        </CampoSelecao>
 
-                        {/* Mês */}
-                        <FormControl size="small" sx={{ minWidth: 150 }}>
-                            <InputLabel>Mês</InputLabel>
-                            <Select label="Mês" value={mes}
-                                onChange={e => setMes(Number(e.target.value))}>
-                                {MESES_COMPLETO.slice(1).map((m, i) => (
-                                    <MenuItem key={i + 1} value={i + 1}>{m}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Box>
+                        <CampoSelecao id="mapa-mes" label="Mês" value={mes}
+                            onChange={e => setMes(Number(e.target.value))}
+                            className="min-w-[150px]">
+                            {MESES_COMPLETO.slice(1).map((m, i) => (
+                                <option key={i + 1} value={i + 1}>{m}</option>
+                            ))}
+                        </CampoSelecao>
+                    </div>
                 </CardContent>
             </Card>
 
             {/* Mapa */}
-            <Card className="monitor-aps-panel">
+            <Card>
                 <CardContent>
-                    {erro && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {erro}
-                        </Alert>
-                    )}
+                    {erro && <div className="mb-4"><Banner tom="perigo">{erro}</Banner></div>}
                     {loading ? (
-                        <Box display="flex" justifyContent="center" py={8}>
-                            <CircularProgress />
-                        </Box>
+                        <Carregando className="justify-center py-16">Carregando mapa...</Carregando>
                     ) : (
                         <MapaVisitas
                             pontos={pontos}
@@ -355,11 +318,10 @@ export default function MapaVisitasPage() {
                             showToggle={false}
                         />
                     )}
-                    <Typography variant="caption"
-                        sx={{ color: 'var(--lg-text-muted)', display: 'block', mt: 1 }}>
+                    <p className="mt-2 text-xs text-muted-foreground">
                         Exibindo todos os pontos georreferenciados dos filtros selecionados.
                         Visitas sem coordenadas não aparecem no mapa.
-                    </Typography>
+                    </p>
                 </CardContent>
             </Card>
 
@@ -368,7 +330,6 @@ export default function MapaVisitasPage() {
                 onClose={fecharModal}
                 visita={loadingDetalhe ? null : detalhe}
             />
-            </Box>
-        </Box>
+        </div>
     );
 }
