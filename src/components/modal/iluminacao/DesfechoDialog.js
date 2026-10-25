@@ -59,7 +59,7 @@ export default function DesfechoDialog({ open, onClose, posteId, onSuccess }) {
           <p id="desfecho-resultado" className="text-[13px] text-muted-foreground">Resultado<span aria-hidden className="ml-0.5 text-danger">*</span></p>
           {OPCOES.map((o) => (
             <label key={o.valor} className={`flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25 ${resultado === o.valor ? "border-primary bg-primary/10" : "border-border"}`}>
-              <input type="radio" name="resultado" aria-labelledby={`desfecho-${o.valor}-t`} aria-describedby={`desfecho-${o.valor}-d`} value={o.valor} checked={resultado === o.valor} disabled={salvando} onChange={() => setResultado(o.valor)} className="mt-1 size-4 accent-primary" />
+              <input type="radio" name="resultado" aria-labelledby={`desfecho-${o.valor}-t`} aria-describedby={`desfecho-${o.valor}-d`} value={o.valor} checked={resultado === o.valor} disabled={salvando} onChange={() => setResultado(o.valor)} className="mt-1 size-4 shrink-0 accent-primary" />
               <span>
                 <span id={`desfecho-${o.valor}-t`} className="block text-sm font-semibold">{o.rotulo}</span>
                 <span id={`desfecho-${o.valor}-d`} className="block text-xs text-muted-foreground">{o.dica}</span>
