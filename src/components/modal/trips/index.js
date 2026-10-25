@@ -1,26 +1,6 @@
-﻿import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
-import Modal from '@mui/material/Modal';
-import BaseCard from '../../baseCard/BaseCard';
-import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogActions,
-    Typography,
-} from "@mui/material";
+import { format } from 'date-fns';
 import { showTrip } from '../../../store/ducks/trips';
 import { closeTripModal, changeTitleAlert } from '../../../store/ducks/Layout';
 import { getAllVehicles } from '../../../store/fetchActions/vehicles';
@@ -30,12 +10,13 @@ import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
 import DateTime from '../../inputs/dateTime';
 import BasicDatePicker from '../../inputs/datePicker';
-import { format } from 'date-fns';
 import ReplicateTripModal from '../trips/replicate';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape } from '../../ui/dialogo';
 
 export default function TripModal(props) {
-
-
     const [form, setForm] = useState({
         vehicle_id: "",
         route_id: "",
@@ -53,7 +34,6 @@ export default function TripModal(props) {
 
     const { routes } = useSelector(state => state.routes);
     const { trip, drivers } = useSelector(state => state.trips);
-    // const [driv, setDriver] = useState([]);
     const [texto, setTexto] = useState();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [createdTrip, setCreatedTrip] = useState(null);
@@ -84,7 +64,6 @@ export default function TripModal(props) {
         dispatch(closeTripModal());
         dispatch(showTrip({}));
     }
-
 
     const handleSaveData = async () => {
         if (trip && trip.id) {
@@ -135,7 +114,6 @@ export default function TripModal(props) {
             name
         }));
 
-
     useEffect(() => {
         if (trip && trip.id)
             setForm(trip);
@@ -153,173 +131,96 @@ export default function TripModal(props) {
     return (
         <div>
             {props.children}
-            <Modal
-                open={isOpenTripModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-                slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            >
-                <Box className="lab-trip-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
+            <Dialogo aberto={Boolean(isOpenTripModal)} aoFechar={handleClose} tamanho="lg">
+                <DialogoCabecalho>{trip && trip.id ? "Editar Viagem" : "Cadastrar Viagem"}</DialogoCabecalho>
+                <AlertModal />
+                {texto && <div className="mb-4"><Banner tom="alerta">{texto}</Banner></div>}
 
-                    <AlertModal />
+                <div className="grid gap-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <BasicDatePicker
+                            id="departure_date"
+                            label="Data da Viagem"
+                            name="departure_date"
+                            value={departure_date}
+                            setValue={handleSetDepartureDate}
+                            required
+                        />
+                        <DateTime
+                            id="departure_time"
+                            label="Horário de saída"
+                            name="departure_time"
+                            value={departure_time}
+                            onChange={changeItem}
+                        />
+                    </div>
 
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={trip && trip.id ? "Editar Viagem" : "Cadastrar Viagem"}>
-                                {texto &&
-                                    <Alert variant="filled" severity="warning">
-                                        {texto}
-                                    </Alert>
-                                }
+                    <Select
+                        label={'SELECIONE O MOTORISTA'}
+                        name={'driver_id'}
+                        value={driver_id}
+                        store={getDrivers(drivers)}
+                        changeItem={changeItem}
+                    />
 
-                                <br />
+                    <Select
+                        value={route_id}
+                        label={'SELECIONE A ROTA'}
+                        name={'route_id'}
+                        store={transformedRoutes(routes)}
+                        changeItem={changeItem}
+                    />
 
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
+                    <Select
+                        value={vehicle_id}
+                        label={'SELECIONE O VEICULO'}
+                        name={'vehicle_id'}
+                        store={transformedVehicle(vehicles)}
+                        changeItem={changeItem}
+                    />
 
-                                    <Box
-                                        sx={{
-                                            display: 'grid',
-                                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                                            gap: 2,
-                                        }}
-                                    >
+                    <CampoTexto
+                        id="Obs"
+                        label={obs && obs.length > 0 ? `Observações: ${300 - obs.length} caracteres restantes` : 'Observações'}
+                        multiline
+                        rows={2}
+                        value={obs ? obs : ''}
+                        name="obs"
+                        onChange={changeItem}
+                        maxLength={300}
+                        className="uppercase"
+                    />
+                </div>
 
-                                        <BasicDatePicker
-                                            id="departure_date"
-                                            label="Data da Viagem"
-                                            name="departure_date, "
-                                            value={departure_date}
-                                            setValue={handleSetDepartureDate}
-                                            className=""
-                                            required
-                                        />
-
-                                        <DateTime
-                                            id="departure_time"
-                                            label="Horário de saída"
-                                            name="departure_time"
-                                            value={departure_time}
-                                            onChange={changeItem}
-                                        />
-
-
-
-                                    </Box>
-
-                                    <Select
-                                        label={'SELECIONE O MOTORISTA'}
-                                        name={'driver_id'}
-                                        value={driver_id}
-                                        store={getDrivers(drivers)}
-                                        changeItem={changeItem}
-                                    />
-
-                                    <Select
-                                        value={route_id}
-                                        label={'SELECIONE A ROTA'}
-                                        name={'route_id'}
-                                        store={transformedRoutes(routes)}
-                                        changeItem={changeItem}
-                                    />
-
-                                    <Select
-                                        value={vehicle_id}
-                                        label={'SELECIONE O VEICULO'}
-                                        name={'vehicle_id'}
-                                        store={transformedVehicle(vehicles)}
-                                        changeItem={changeItem}
-                                    />
-
-                                    <TextField
-                                        id="Obs"
-                                        label={obs && obs.length > 0 ? `Observações: ${300 - obs.length} caracteres restantes` : 'Observações'}
-                                        multiline
-                                        rows={2}
-                                        value={obs ? obs : ''}
-                                        name="obs"
-                                        // disabled={queue?.id ? true : false}
-                                        onChange={changeItem}
-                                        inputProps={{
-                                            style: {
-                                                textTransform: "uppercase"
-                                            },
-                                            maxLength: 300
-                                        }}
-                                    />
-                                </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={modalPrimaryButtonSx}>
-                                        Gravar
-                                    </Button>
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
-                </Box>
-            </Modal>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+                    <Button type="button" onClick={handleSaveData}>Gravar</Button>
+                </DialogoRodape>
+            </Dialogo>
 
             {/* Confirmação de cadastro de nova viagem */}
-            <Dialog
-                open={confirmOpen}
-                onClose={() => setConfirmOpen(false)}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogContent sx={{ textAlign: 'center', pt: 5, pb: 3 }}>
-                    <Typography variant="body1" sx={{ mb: 2, fontSize: 18 }}>
-                        Confirma o cadastro da viagem para a data
-                    </Typography>
-                    <Typography sx={{ fontWeight: 'bold', fontSize: 46, lineHeight: 1.2 }}>
-                        {formatDisplayDate(departure_date)}{departure_time ? ` às ${departure_time}` : ''}
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
-                    <Button variant="contained" size="large" onClick={handleConfirm}>
-                        Confirmar
-                    </Button>
-                    <Button variant="outlined" size="large" onClick={() => setConfirmOpen(false)}>
-                        Cancelar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <Dialogo aberto={confirmOpen} aoFechar={() => setConfirmOpen(false)} tamanho="md" elevado>
+                <DialogoCabecalho>Confirma o cadastro da viagem para a data</DialogoCabecalho>
+                <p className="text-center font-display text-4xl font-extrabold leading-tight">
+                    {formatDisplayDate(departure_date)}{departure_time ? ` às ${departure_time}` : ''}
+                </p>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
+                    <Button type="button" onClick={handleConfirm}>Confirmar</Button>
+                </DialogoRodape>
+            </Dialogo>
 
             {/* Viagem cadastrada: oferece replicar para outras datas */}
-            <Dialog
-                open={!!createdTrip}
-                onClose={() => setCreatedTrip(null)}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogContent sx={{ textAlign: 'center', pt: 5, pb: 3 }}>
-                    <Typography variant="body1" sx={{ mb: 1, fontSize: 18 }}>
-                        Viagem cadastrada com sucesso!
-                    </Typography>
-                    <Typography variant="body2">
-                        Deseja replicar a rota e as observações desta viagem para outras datas? Motorista, veículo e pacientes são adicionados depois, em cada viagem.
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', pb: 4, gap: 2 }}>
-                    <Button
-                        variant="contained"
-                        size="large"
-                        onClick={() => setReplicateOpen(true)}
-                    >
-                        Replicar Viagem
-                    </Button>
-                    <Button variant="outlined" size="large" onClick={() => setCreatedTrip(null)}>
-                        Fechar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <Dialogo aberto={Boolean(createdTrip) && !replicateOpen} aoFechar={() => setCreatedTrip(null)} tamanho="md" elevado>
+                <DialogoCabecalho>Viagem cadastrada com sucesso!</DialogoCabecalho>
+                <DialogoDescricao>
+                    Deseja replicar a rota e as observações desta viagem para outras datas? Motorista, veículo e pacientes são adicionados depois, em cada viagem.
+                </DialogoDescricao>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={() => setCreatedTrip(null)}>Fechar</Button>
+                    <Button type="button" onClick={() => setReplicateOpen(true)}>Replicar Viagem</Button>
+                </DialogoRodape>
+            </Dialogo>
 
             <ReplicateTripModal
                 open={replicateOpen}
@@ -329,10 +230,6 @@ export default function TripModal(props) {
                     setCreatedTrip(null);
                 }}
             />
-        </div >
+        </div>
     );
 }
-
-
-
-

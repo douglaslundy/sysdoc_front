@@ -1,33 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  Typography,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Fab,
-  Button,
-  styled,
-  TableContainer,
-  TablePagination,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Stack,
-  Backdrop,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
-
-import BaseCard from "../baseCard/BaseCard";
-import FeatherIcon from "feather-icons-react";
+import { useSelector, useDispatch } from "react-redux";
+import { parseISO, format } from "date-fns";
+import { Copy, Download, File, Printer, Search, Users } from "lucide-react";
 import { ActionCreateFab, ActionDeleteButton, ActionEditButton, ActionViewButton } from "../actions";
-import { modalFormRootSx } from "../modal/_shared/modalFormStyles";
 import TripModal from "../modal/trips";
 import TripClientsModal from "../modal/trips/clients";
 import ReplicateTripModal from "../modal/trips/replicate";
@@ -36,32 +11,20 @@ import tripsPDF from "../../reports/trips";
 import bpaTripsPdf from "../../reports/bpaTrips";
 import printTripsSelectedPDF from "../../reports/printTripsSelected";
 import loteTxt from "../../reports/loteTxt";
-
-import { useSelector, useDispatch } from "react-redux";
 import { excludeTripFetch, getAllTripsPerDate } from "../../store/fetchActions/trips";
 import { showTrip } from "../../store/ducks/trips";
 import { changeTitleAlert, openTripModal, openTripClientsModal } from "../../store/ducks/Layout";
 import ConfirmDialog from "../confirmDialog";
-
 import AlertModal from "../messagesModal";
-import { parseISO, format } from "date-fns";
 import BasicDatePicker from "../inputs/datePicker";
 import { AuthContext } from "../../contexts/AuthContext";
-
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td + td': { borderLeft: '0.5px solid rgba(114, 147, 222, 0.24)' },
-  '& td:first-of-type': { borderLeft: '0.5px solid var(--lg-border)', borderRadius: '14px 0 0 14px' },
-  '& td:last-of-type': { borderRight: '0.5px solid var(--lg-border)', borderRadius: '0 14px 14px 0' },
-  '&:hover td': { background: 'var(--queue-row-hover)' },
-}));
+import { Button } from "../ui/button";
+import { CampoDeBusca } from "../ui/campo-de-busca";
+import { CampoTexto } from "../ui/campos";
+import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
+import { Interruptor } from "../ui/interruptor";
+import { PaginaDeLista } from "../ui/pagina-de-lista";
+import { usePaginacaoLocal } from "../../lib/usePaginacaoLocal";
 
 const BPA_AUTORIZACAO_MAX_LENGTH = 13;
 const BPA_CNES_MAX_LENGTH = 7;
@@ -160,8 +123,7 @@ export default function Trips() {
     dispatch(getAllTripsPerDate(dateBegin, dateEnd));
   };
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const { fatia, propsDaPaginacao } = usePaginacaoLocal(allTrips);
 
   const handleGoAddClients = (trip) => {
     setOption("addCli");
@@ -177,10 +139,6 @@ export default function Trips() {
     dispatch(openTripModal());
   };
 
-  const handleChangePage = (_, newPage) => {
-    setPage(newPage);
-  };
-
   const handlePrintConfirm = (trip) => {
     const alreadySelected = printTrips.find((t) => t.id === trip.id);
 
@@ -191,20 +149,9 @@ export default function Trips() {
     }
   };
 
-  const handleCheckedAllTrips = (event) => {
-    const checked = event.target.checked;
+  const handleCheckedAllTrips = (checked) => {
     setSelectAllTrips(checked);
-
-    if (checked) {
-      setPrintTrips(allTrips);
-    } else {
-      setPrintTrips([]);
-    }
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPrintTrips(checked ? allTrips : []);
   };
 
   const openBpaModal = () => {
@@ -253,353 +200,140 @@ export default function Trips() {
     closeBpaModal();
   };
 
-  const actionFabSx = {
-    width: 48,
-    height: 48,
-    minHeight: 48,
-    boxShadow: "var(--lg-shadow-btn)",
-  };
-  const tripDatePickerSx = {
-    flex: "0 0 154px",
-    minWidth: 154,
-    width: 154,
-    maxWidth: 154,
-    "& .MuiInputBase-input": {
-      fontSize: "0.85rem",
+  const colunas = [
+    {
+      chave: 'imprimir',
+      titulo: 'Imprimir',
+      render: (trip) => {
+        const marcada = Boolean(printTrips.find((t) => t.id === trip.id));
+        return (
+          <Interruptor id={`imprimir-viagem-${trip.id}`} marcado={marcada} aoMudar={() => handlePrintConfirm(trip)}>
+            <span className="text-xs font-bold">{marcada ? "SIM" : "NÃO"}</span>
+          </Interruptor>
+        );
+      },
     },
-    "& .MuiInputLabel-root": {
-      fontSize: "0.85rem",
+    {
+      chave: 'id',
+      titulo: 'ID',
+      render: (trip) => <span className="font-semibold">{trip?.id}</span>,
     },
-  };
-
-  return (
-    <Box sx={modalFormRootSx} className="queue-page">
-    <BaseCard title={`Você possui ${allTrips.length} Viagens Cadastradas`}>
-      <Backdrop
-        open={isOpenLoading && allTrips.length === 0}
-        sx={{
-          position: 'absolute',
-          zIndex: 20,
-          color: '#fff',
-          background: 'rgba(0, 0, 0, 0.45)',
-          borderRadius: '8px',
-          flexDirection: 'column',
-          gap: 1,
-        }}
-      >
-        <CircularProgress color="inherit" size={34} />
-        <Typography variant="body2" sx={{ color: 'var(--lg-text-primary)' }}>
-          Carregando viagens...
-        </Typography>
-      </Backdrop>
-      <AlertModal />
-      <Stack className="queue-page__toolbar" sx={{ gap: 1.5, mb: 2 }}>
-        <SwitchModal option={option} />
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, width: '100%' }}>
-
-          {/* Filtros: todos inline na mesma linha */}
-          <Box sx={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 1.5, flex: '1 1 0%', minWidth: 0, width: '100%', justifyContent: 'flex-start' }}>
-            <TextField
-              className="lg-search-field trips-search-field"
-              placeholder="Buscar por motorista, destino ou placa"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              size="small"
-              sx={{ flex: '1 1 0%', minWidth: 0, width: '100%' }}
-            />
-
-            <FormControlLabel
-              sx={{ flexShrink: 0, whiteSpace: "nowrap", m: 0 }}
-              control={
-                <Switch
-                  checked={searchMode === "exclude"}
-                  onChange={(e) => setSearchMode(e.target.checked ? "exclude" : "include")}
-                />
-              }
-              label={searchMode === "exclude" ? "Excluir" : "Incluir"}
-            />
-
-            <BasicDatePicker
-              label="Data de Início"
-              name="date_begin"
-              value={dateBegin}
-              setValue={setDateBegin}
-              className="lg-search-field trips-date-field"
-              sx={tripDatePickerSx}
-            />
-
-            <BasicDatePicker
-              label="Data de Fim"
-              name="date_end"
-              value={dateEnd}
-              disabled={!dateBegin}
-              setValue={setDateEnd}
-              className="lg-search-field trips-date-field"
-              sx={tripDatePickerSx}
-            />
-
-            <Button
-              title="Buscar"
-              onClick={getTripsPerDate}
-              disabled={!dateBegin}
-              color="primary"
-              variant="contained"
-              sx={{ minWidth: 48, height: 48, minHeight: 48, px: 1.2, flexShrink: 0 }}
-            >
-              <FeatherIcon icon="search" width="16" height="16" />
-            </Button>
-          </Box>
-
-          {/* Botões de ação */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-            {profile === "admin" && (
-              <>
-              <Fab
-                  title="Imprimir PDF com BPA-I"
-                  onClick={() => { bpaTripsPdf(allTrips); }}
-                  color="success"
-                  aria-label="imprimir-bpa"
-                  disabled={allTrips.length <= 0}
-                  sx={actionFabSx}
-                >
-                  <FeatherIcon icon="file" width="16" height="16" />
-                </Fab>
-                <Fab
-                  title="Gerar BPA-I"
-                  onClick={() => { openBpaModal(); }}
-                  color="success"
-                  aria-label="gerar-bpa"
-                  disabled={allTrips.length <= 0}
-                  sx={actionFabSx}
-                >
-                  <FeatherIcon icon="download" width="16" height="16" />
-                </Fab>
-              </>
-            )}
-
-              <Fab
-                title="Imprimir mapa de viagens"
-                onClick={() => { tripsPDF(allTrips); }}
-                color="success"
-                aria-label="imprimir-mapa"
-                disabled={allTrips.length <= 0}
-                sx={actionFabSx}
-              >
-              <FeatherIcon icon="printer" width="16" height="16" />
-            </Fab>
-
-            <ActionCreateFab
-              title="Cadastrar viagem"
-              onClick={() => { handleGoTrip(); }}
-              icon="user-plus"
-              sx={{ ...actionFabSx, boxShadow: "0 0 20px rgba(124,58,237,0.45)" }}
-            />
-          </Box>
-
-        </Box>
-      </Stack>
-
-      {trips?.length > 0 && (
+    {
+      chave: 'motorista',
+      titulo: 'Motorista / Veículo',
+      render: (trip) => (
         <>
-          <FormControlLabel
-            control={<Switch checked={selectAllTrips} onChange={handleCheckedAllTrips} />}
-            label={selectAllTrips ? "Desmarcar todas as viagens" : "Marcar todas as viagens para impressão"}
-          />
+          <span className="block font-semibold">{trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO"}</span>
+          <span className="block text-xs text-muted-foreground">
+            {trip?.vehicle
+              ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES`
+              : "VEÍCULO NÃO ATRIBUÍDO"}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: 'rota',
+      titulo: 'Rota / Horário',
+      render: (trip) => (
+        <>
+          <span className="block font-semibold" title={getRouteTitleText(trip?.route)}>{getRouteDisplayText(trip?.route)}</span>
+          <span className="block text-xs text-muted-foreground">
+            {trip?.departure_date && format(parseISO(trip?.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
+          </span>
+        </>
+      ),
+    },
+    {
+      chave: 'lotacao',
+      titulo: 'Lotação',
+      render: (trip) => (
+        <Button type="button" size="sm" title="Passageiros incluindo acompanhantes" aria-label="Passageiros incluindo acompanhantes" onClick={() => handleGoAddClients(trip)}>
+          <Users aria-hidden /> {trip?.clients?.length}
+        </Button>
+      ),
+    },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (trip) => (
+        <div className="flex gap-2">
+          <Button type="button" variant="success" size="icon-sm" title="Imprimir Viagem" aria-label="Imprimir Viagem" onClick={() => tripPDF(trip)}>
+            <Printer />
+          </Button>
+          <ActionEditButton title="Editar Viagem" onClick={() => handleGoTrip(trip)} />
+          <Button type="button" variant="secondary" size="icon-sm" title="Replicar Viagem" aria-label="Replicar Viagem" onClick={() => setReplicateTrip(trip)}>
+            <Copy />
+          </Button>
+          <ActionDeleteButton title="Excluir Viagem" onClick={() => handleInactiveTrip(trip)} />
+        </div>
+      ),
+    },
+  ];
 
-          {printTrips?.length > 0 && (
-            <Fab
-              title="Imprimir mapa de viagens"
-              onClick={() => {
-                printTripsSelectedPDF(printTrips);
-              }}
-              color="primary"
-              aria-label="imprimir-selecionadas"
-              disabled={allTrips.length <= 0}
-              sx={actionFabSx}
-            >
-              <FeatherIcon icon="printer" width="16" height="16" />
-            </Fab>
-          )}
+  const semViagens = allTrips.length <= 0;
+
+  const barra = (
+    <div className="flex w-full flex-wrap items-end gap-3">
+      <CampoDeBusca
+        rotulo="Buscar viagem"
+        placeholder="Buscar por motorista, destino ou placa"
+        name="search"
+        value={searchValue}
+        onChange={(e) => setSearchValue(e.target.value)}
+      />
+      <Interruptor id="modo-busca-viagem" marcado={searchMode === "exclude"} aoMudar={(marcado) => setSearchMode(marcado ? "exclude" : "include")}>
+        {searchMode === "exclude" ? "Excluir" : "Incluir"}
+      </Interruptor>
+      <BasicDatePicker label="Data de Início" name="date_begin" value={dateBegin} setValue={setDateBegin} />
+      <BasicDatePicker label="Data de Fim" name="date_end" value={dateEnd} disabled={!dateBegin} setValue={setDateEnd} />
+      <Button type="button" title="Buscar" aria-label="Buscar" onClick={getTripsPerDate} disabled={!dateBegin}>
+        <Search aria-hidden />
+      </Button>
+      {profile === "admin" && (
+        <>
+          <Button type="button" variant="success" size="icon" title="Imprimir PDF com BPA-I" aria-label="imprimir-bpa" disabled={semViagens} onClick={() => bpaTripsPdf(allTrips)}>
+            <File />
+          </Button>
+          <Button type="button" variant="success" size="icon" title="Gerar BPA-I" aria-label="gerar-bpa" disabled={semViagens} onClick={openBpaModal}>
+            <Download />
+          </Button>
         </>
       )}
+      <Button type="button" variant="success" size="icon" title="Imprimir mapa de viagens" aria-label="imprimir-mapa" disabled={semViagens} onClick={() => tripsPDF(allTrips)}>
+        <Printer />
+      </Button>
+      <ActionCreateFab title="Cadastrar viagem" onClick={() => handleGoTrip()} />
+    </div>
+  );
 
-      <TableContainer className="queue-page__table-wrap">
-        <Table className="queue-page__table"
-          aria-label="simple table"
-          sx={{
-            mt: 3,
-            whiteSpace: "nowrap",
-          }}
-        >
-          <TableHead>
-            <TableRow>
-              <TableCell className="queue-page__th" sx={{ width: '1%', whiteSpace: 'nowrap' }}>
-                <Typography color="textSecondary" variant="h6">
-                  IMPRIMIR
-                </Typography>
-              </TableCell>
-              <TableCell className="queue-page__th">
-                <Typography color="textSecondary" variant="h6">
-                  ID
-                </Typography>
-              </TableCell>
-              <TableCell className="queue-page__th">
-                <Typography color="textSecondary" variant="h6">
-                  MOTORISTA / VEÍCULO
-                </Typography>
-              </TableCell>
-              <TableCell className="queue-page__th">
-                <Typography color="textSecondary" variant="h6">
-                  ROTA / HORÁRIO
-                </Typography>
-              </TableCell>
-              <TableCell className="queue-page__th">
-                <Typography color="textSecondary" variant="h6">
-                  LOTAÇÃO
-                </Typography>
-              </TableCell>
-              <TableCell className="queue-page__th" align="center">
-                <Typography color="textSecondary" variant="h6">
-                  Ações
-                </Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
+  return (
+    <PaginaDeLista
+      titulo={`Você possui ${allTrips.length} Viagens Cadastradas`}
+      barra={barra}
+      colunas={colunas}
+      linhas={fatia}
+      chaveDaLinha={(trip) => trip?.id}
+      carregando={isOpenLoading && allTrips.length === 0}
+      vazio="Nenhuma viagem encontrada."
+      rotuloDaTabela="viagens"
+      paginacao={propsDaPaginacao}
+    >
+      <AlertModal />
+      <SwitchModal option={option} />
 
-          <TableBody>
-            {allTrips
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((trip) => (
-                <StyledTableRow key={`${trip?.id}-${selectAllTrips}`} hover>
-                  <TableCell sx={{ width: '1%', whiteSpace: 'nowrap' }}>
-                    <FormControlLabel
-                      sx={{ m: 0, whiteSpace: 'nowrap' }}
-                      control={
-                        <Switch
-                          checked={!!printTrips.find((t) => t.id === trip.id)}
-                          onChange={() => handlePrintConfirm(trip)}
-                        />
-                      }
-                      label={!printTrips.find((t) => t.id === trip.id) ? "NÃO" : "SIM"}
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: "600",
-                        fontSize: "17px",
-                      }}
-                    >
-                      {trip?.id}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: "600", fontSize: "15px" }}>
-                          {trip?.driver ? trip.driver.name.toUpperCase() : "MOTORISTA NÃO ATRIBUÍDO"}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontSize: "11px" }}>
-                          {trip?.vehicle
-                            ? `${trip.vehicle.brand.toUpperCase()} ${trip.vehicle.model.toUpperCase()} ${trip.vehicle.license_plate.toUpperCase()} - ${trip.vehicle.capacity} LUGARES`
-                            : "VEÍCULO NÃO ATRIBUÍDO"}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: "600",
-                        fontSize: "15px",
-                      }}
-                      title={getRouteTitleText(trip?.route)}
-                    >
-                      {getRouteDisplayText(trip?.route)}
-                    </Typography>
-
-                    <Typography variant="h6" sx={{ fontSize: "11px" }}>
-                      {trip?.departure_date && format(parseISO(trip?.departure_date), "dd/MM/yyyy")} {trip?.departure_time}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Button
-                      title="Passageiros incluindo acompanhantes"
-                      onClick={() => {
-                        handleGoAddClients(trip);
-                      }}
-                      color="primary"
-                      size="medium"
-                      variant="contained"
-                      sx={{ minHeight: 36, whiteSpace: "nowrap" }}
-                    >
-                      <FeatherIcon icon="users" width="16" height="16" />
-                      <Box sx={{ ml: 0.8 }}>{trip?.clients?.length}</Box>
-                    </Button>
-                  </TableCell>
-
-                  <TableCell align="center" sx={{ minWidth: 210 }}>
-                    <Box sx={{ display: "inline-flex", flexWrap: "nowrap", "& button": { mx: 0.5 } }}>
-                      <Button
-                        title="Imprimir Viagem"
-                        onClick={() => {
-                          tripPDF(trip);
-                        }}
-                        color="success"
-                        size="medium"
-                        variant="contained"
-                      >
-                        <FeatherIcon icon="printer" width="20" height="20" />
-                      </Button>
-
-                      <ActionEditButton
-                        title="Editar Viagem"
-                        onClick={() => {
-                          handleGoTrip(trip);
-                        }}
-                      />
-
-                      <ActionViewButton
-                        title="Replicar Viagem"
-                        icon="copy"
-                        onClick={() => {
-                          setReplicateTrip(trip);
-                        }}
-                      />
-
-                      <ActionDeleteButton
-                        title="Excluir Viagem"
-                        onClick={() => {
-                          handleInactiveTrip(trip);
-                        }}
-                      />
-                    </Box>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-          </TableBody>
-        </Table>
-        <TablePagination className="queue-page__pagination"
-          component="div"
-          count={allTrips.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
+      {trips?.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Interruptor id="marcar-todas-viagens" marcado={selectAllTrips} aoMudar={handleCheckedAllTrips}>
+            {selectAllTrips ? "Desmarcar todas as viagens" : "Marcar todas as viagens para impressão"}
+          </Interruptor>
+          {printTrips?.length > 0 && (
+            <Button type="button" size="icon" title="Imprimir mapa de viagens" aria-label="imprimir-selecionadas" disabled={semViagens} onClick={() => printTripsSelectedPDF(printTrips)}>
+              <Printer />
+            </Button>
+          )}
+        </div>
+      )}
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
 
@@ -609,76 +343,57 @@ export default function Trips() {
         onClose={() => setReplicateTrip(null)}
       />
 
-      <Dialog
-        className="queue-page__dialog"
-        open={bpaModalOpen}
-        onClose={closeBpaModal}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            width: "min(440px, 96vw) !important",
-          },
-        }}
-      >
-        <DialogTitle>Gerar BPA-I</DialogTitle>
-        <DialogContent>
-          <Stack sx={{ gap: 2, pt: 1 }}>
-            <TextField
-              label="CNES"
-              name="cnes"
-              value={bpaForm.cnes}
-              onChange={changeBpaForm}
-              inputProps={{ maxLength: BPA_CNES_MAX_LENGTH, inputMode: "numeric" }}
-              error={!!bpaErrors.cnes}
-              helperText={bpaErrors.cnes || "Obrigatorio para gerar o arquivo."}
-              fullWidth
-            />
-
-            <TextField
-              label="CNS do medico"
-              name="cnsProfissional"
-              value={bpaForm.cnsProfissional}
-              onChange={changeBpaForm}
-              inputProps={{ maxLength: 15, inputMode: "numeric" }}
-              error={!!bpaErrors.cnsProfissional}
-              helperText={bpaErrors.cnsProfissional || "Obrigatorio para gerar o arquivo."}
-              fullWidth
-            />
-
-            <TextField
-              label="CBO"
-              name="cbo"
-              value={bpaForm.cbo}
-              onChange={changeBpaForm}
-              inputProps={{ maxLength: 6, inputMode: "numeric" }}
-              error={!!bpaErrors.cbo}
-              helperText={bpaErrors.cbo || "Obrigatorio para gerar o arquivo."}
-              fullWidth
-            />
-
-            <TextField
-              label="Numero de autorizacao"
-              name="numeroAutorizacao"
-              value={bpaForm.numeroAutorizacao}
-              onChange={changeBpaForm}
-              inputProps={{ maxLength: BPA_AUTORIZACAO_MAX_LENGTH }}
-              helperText={`Opcional no BPA-I. Maximo de ${BPA_AUTORIZACAO_MAX_LENGTH} caracteres.`}
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeBpaModal} variant="outlined">
-            Cancelar
-          </Button>
-          <Button onClick={handleGenerateBpa} variant="contained" color="success">
-            Gerar arquivo
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </BaseCard>
-    </Box>
+      <Dialogo aberto={bpaModalOpen} aoFechar={closeBpaModal} tamanho="sm">
+        <DialogoCabecalho>Gerar BPA-I</DialogoCabecalho>
+        <div className="grid gap-4">
+          <CampoTexto
+            id="bpa-cnes"
+            label="CNES"
+            name="cnes"
+            value={bpaForm.cnes}
+            onChange={changeBpaForm}
+            maxLength={BPA_CNES_MAX_LENGTH}
+            inputMode="numeric"
+            erro={bpaErrors.cnes}
+            dica="Obrigatorio para gerar o arquivo."
+          />
+          <CampoTexto
+            id="bpa-cns"
+            label="CNS do medico"
+            name="cnsProfissional"
+            value={bpaForm.cnsProfissional}
+            onChange={changeBpaForm}
+            maxLength={15}
+            inputMode="numeric"
+            erro={bpaErrors.cnsProfissional}
+            dica="Obrigatorio para gerar o arquivo."
+          />
+          <CampoTexto
+            id="bpa-cbo"
+            label="CBO"
+            name="cbo"
+            value={bpaForm.cbo}
+            onChange={changeBpaForm}
+            maxLength={6}
+            inputMode="numeric"
+            erro={bpaErrors.cbo}
+            dica="Obrigatorio para gerar o arquivo."
+          />
+          <CampoTexto
+            id="bpa-autorizacao"
+            label="Numero de autorizacao"
+            name="numeroAutorizacao"
+            value={bpaForm.numeroAutorizacao}
+            onChange={changeBpaForm}
+            maxLength={BPA_AUTORIZACAO_MAX_LENGTH}
+            dica={`Opcional no BPA-I. Maximo de ${BPA_AUTORIZACAO_MAX_LENGTH} caracteres.`}
+          />
+        </div>
+        <DialogoRodape>
+          <Button type="button" variant="outline" onClick={closeBpaModal}>Cancelar</Button>
+          <Button type="button" variant="success" onClick={handleGenerateBpa}>Gerar arquivo</Button>
+        </DialogoRodape>
+      </Dialogo>
+    </PaginaDeLista>
   );
 }
-

@@ -1,30 +1,6 @@
-﻿import { useState, useEffect, useContext } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../../_shared/modalFormStyles';
-import {
-    Grid,
-    Stack,
-    TextField,
-    Alert,
-    Button,
-    styled,
-    FormControlLabel,
-    TableContainer,
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell,
-    Typography,
-    TablePagination,
-    FormGroup,
-    Switch
-} from "@mui/material";
-
-
-import BaseCard from "../../../baseCard/BaseCard";
+import { format, parseISO } from 'date-fns';
 import { closeTripClientsModal, changeTitleAlert } from '../../../../store/ducks/Layout';
 import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClientTrip, unConfirmedClientTrip } from '../../../../store/fetchActions/trips';
 import AlertModal from '../../../messagesModal';
@@ -35,18 +11,25 @@ import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
 import Phone from '../../../../components/inputs/textFields/phone';
-import { format, parseISO } from 'date-fns';
-import FeatherIcon from 'feather-icons-react';
+import { ActionDeleteButton, ActionEditButton } from '../../../actions';
+import { Banner } from '../../../ui/banner';
+import { Button } from '../../../ui/button';
+import { CampoTexto } from '../../../ui/campos';
+import { DataTable } from '../../../ui/data-table';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
+import { Interruptor } from '../../../ui/interruptor';
+import { Paginacao } from '../../../ui/paginacao';
+import { usePaginacaoLocal } from '../../../../lib/usePaginacaoLocal';
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
-    },
-    // hide last border
-    '&:last-child td, &:last-child th': {
-        border: 0,
-    },
-}));
+const FORM_VAZIO = {
+    id: "",
+    client_id: "",
+    person_type: "",
+    phone: "",
+    departure_location: "",
+    destination_location: "",
+    time: ""
+};
 
 export default function TripClientsModal(props) {
 
@@ -56,49 +39,25 @@ export default function TripClientsModal(props) {
         subTitle: 'Esta ação não poderá ser desfeita',
     });
 
-
     const dispatch = useDispatch();
     const { trip } = useSelector(state => state.trips);
     const { isOpenTripClientsModal } = useSelector(state => state.layout);
     const { clients } = useSelector(state => state.clients);
-    const [form, setForm] = useState({
-        id: "",
-        client_id: "",
-        person_type: "",
-        phone: "",
-        departure_location: "",
-        destination_location: "",
-        time: ""
-    });
+    const [form, setForm] = useState(FORM_VAZIO);
 
-    const { id, person_type, phone, departure_location, destination_location, time } = form;
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const { person_type, phone, departure_location, destination_location, time } = form;
 
     const [cli, setClient] = useState([]);
     const [texto, setTexto] = useState();
 
-
-    // const { person_type, destination_location } = form;
-
-
+    const { fatia, propsDaPaginacao } = usePaginacaoLocal(trip?.clients || []);
 
     const changeItem = ({ target }) => {
         setForm({ ...form, [target.name]: target.value });
     };
 
-
     const cleanFormCancel = () => {
-        setForm({
-            id: "",
-            client_id: "",
-            person_type: "",
-            phone: "",
-            departure_location: "",
-            destination_location: "",
-            time: ""
-        });
+        setForm(FORM_VAZIO);
         setClient([]);
         setTexto('');
         dispatch(closeTripClientsModal());
@@ -106,32 +65,14 @@ export default function TripClientsModal(props) {
     }
 
     const cleanForm = () => {
-        setForm({
-            id: trip?.id || "",
-            client_id: "",
-            person_type: "",
-            phone: "",
-            departure_location: "",
-            destination_location: "",
-            time: ""
-        });
+        setForm({ ...FORM_VAZIO, id: trip?.id || "" });
         setClient([]);
         setTexto('');
     }
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
     const handleSaveData = async () => {
         trip && trip?.id ? (cli && cli?.pivot?.id ? handleUpdateClient() : handleSaveClient()) : null
     }
-
 
     const HandleExcludeTrip = async cli => {
         setConfirmDialog({ ...confirmDialog, isOpen: true, title: `Deseja Realmente Excluir a o passageiro? `, confirm: excludeClientTripFetch(cli) })
@@ -141,7 +82,6 @@ export default function TripClientsModal(props) {
     const HandleEditClient = async cli => {
         setForm(
             {
-                // ...form,
                 id: cli.pivot.id,
                 trip_id: trip.id,
                 client_id: cli.id,
@@ -149,7 +89,6 @@ export default function TripClientsModal(props) {
                 phone: cli.pivot.phone,
                 departure_location: cli.pivot.departure_location,
                 destination_location: cli.pivot.destination_location,
-                // time: cli.pivot.time
                 time: new Date(0, 0, 0, ...(cli.pivot.time.split(":"))).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", hour12: false })
             },
         )
@@ -176,10 +115,6 @@ export default function TripClientsModal(props) {
         }
     };
 
-    const handleClose = () => {
-        cleanFormCancel();
-    };
-
     // Carregar os dados do trip ao iniciar
     useEffect(() => {
         if (trip && trip.id) {
@@ -189,7 +124,6 @@ export default function TripClientsModal(props) {
             }));
         }
     }, [trip]);
-
 
     // Atualiza o client_id quando o cliente é selecionado
     useEffect(() => {
@@ -216,332 +150,146 @@ export default function TripClientsModal(props) {
         }
     }, []);
 
+    const colunas = [
+        { chave: 'nome', titulo: 'Nome', render: (c) => <span className="font-semibold">{c?.name && c.name.substring(0, 22).toUpperCase()}</span> },
+        { chave: 'tipo', titulo: 'Tipo', render: (c) => (c?.pivot?.person_type == "passenger" ? "PASSAGEIRO" : "ACOMPANHANTE") },
+        { chave: 'telefone', titulo: 'Telefone', render: (c) => c?.pivot?.phone && c.pivot.phone.substring(0, 15).toUpperCase() },
+        { chave: 'saida', titulo: 'Saída', render: (c) => c?.pivot?.departure_location && c.pivot.departure_location.substring(0, 15).toUpperCase() },
+        { chave: 'destino', titulo: 'Destino', render: (c) => c?.pivot?.destination_location && c.pivot.destination_location.substring(0, 10).toUpperCase() },
+        { chave: 'horario', titulo: 'Horário', render: (c) => c?.pivot?.time },
+        {
+            chave: 'confirmado',
+            titulo: 'Confirmado?',
+            render: (c) => {
+                const confirmado = Number(c?.pivot?.is_confirmed) === 1;
+                return (
+                    <>
+                        <Interruptor id={`confirmado-${c.id}`} marcado={confirmado} aoMudar={() => handleIsConfirm(c)}>
+                            <span className="text-xs font-bold">{confirmado ? "SIM" : "NÃO"}</span>
+                        </Interruptor>
+                        {c?.pivot?.updated_at && confirmado ? (
+                            <span className="mt-1 block text-xs text-muted-foreground">{format(parseISO(c.pivot.updated_at), "dd/MM/yyyy HH:mm:ss")}</span>
+                        ) : null}
+                    </>
+                );
+            },
+        },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (c) => (
+                <div className="flex gap-2">
+                    <ActionEditButton title="Editar cliente" onClick={() => HandleEditClient(c)} />
+                    <ActionDeleteButton title="Excluir cliente" onClick={() => HandleExcludeTrip(c)} />
+                </div>
+            ),
+        },
+    ];
+
+    const titulo = `VIAGEM ${trip?.id} - ${trip?.route?.origin?.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()}`
+        + `${trip?.vehicle?.brand ? ` - VEÍCULO ${trip.vehicle.brand.toUpperCase()}` : ''}`
+        + `${trip?.vehicle?.model ? ` ${trip.vehicle.model.toUpperCase()}` : ''}`
+        + `${trip?.vehicle?.license_plate ? ` PLACA ${trip.vehicle.license_plate.toUpperCase()}` : ''}`
+        + `${trip?.vehicle?.capacity ? ` ${trip.vehicle.capacity} LUGARES` : ''}`;
 
     return (
         <div>
             {props.children}
-            <Modal
-                open={isOpenTripClientsModal}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-            >
-                <Box sx={{ ...modalShellSx, ...modalFormRootSx }} className="trip-clients-modal-box">
+            <Dialogo aberto={Boolean(isOpenTripClientsModal)} aoFechar={cleanFormCancel} tamanho="xl">
+                <DialogoCabecalho>{titulo}</DialogoCabecalho>
+                <AlertModal />
 
-                    <AlertModal />
+                <div className="grid gap-3">
+                    {texto && <Banner tom="alerta">{texto}</Banner>}
+                    {trip?.obs && <Banner tom="alerta">{trip.obs}</Banner>}
+                </div>
 
-                    <Grid container spacing={0}>
-                        <Grid item xs={12} lg={12}>
-                            <BaseCard title={`VIAGEM ${trip?.id} - ${trip?.route?.origin.toUpperCase()} X ${trip?.route?.destination?.toUpperCase()} 
-                            
-                                ${trip?.vehicle?.brand ? `${" - VEÍCULO " + trip?.vehicle?.brand.toUpperCase()}` : ''} 
-                                ${trip?.vehicle?.model ? trip?.vehicle?.model.toUpperCase() : ''} 
-                                ${trip?.vehicle?.license_plate ? `${"PLACA " + trip?.vehicle?.license_plate.toUpperCase()}` : ''} 
-                                ${trip?.vehicle?.capacity ? `${trip?.vehicle?.capacity} LUGARES` : ''}`}>
+                <div className="mt-4 grid gap-4">
+                    <div className="max-w-[200px]">
+                        <DateTime
+                            id="time"
+                            label="Horário do compromisso"
+                            name="time"
+                            value={time ? time : ''}
+                            onChange={changeItem}
+                            wd="200px"
+                        />
+                    </div>
 
+                    <div className="grid gap-4 md:grid-cols-[1fr_300px_300px]">
+                        {cli?.id ? (
+                            <CampoTexto id="cliente-da-viagem" label="Cliente" value={cli?.name || ''} disabled readOnly />
+                        ) : (
+                            <InputSelectClient
+                                id="client_id"
+                                label="SELECIONE O CLIENTE"
+                                value=""
+                                name="client_id"
+                                clients={clients}
+                                setClient={setClient}
+                                wd="100%"
+                            />
+                        )}
 
-                                {texto &&
-                                    <Alert variant="filled" severity="warning">
-                                        {texto}
-                                    </Alert>
-                                }
+                        <Select
+                            value={person_type ? person_type : ''}
+                            label={'QUALIFIQUE O CLIENTE'}
+                            name={'person_type'}
+                            store={typesOfPerson}
+                            changeItem={changeItem}
+                        />
 
-                                {trip?.obs &&
-                                    <Alert variant="filled" severity="warning">
-                                        {trip.obs}
-                                    </Alert>
-                                }
+                        <Phone value={phone ? phone : ''}
+                            label={'Telefone'}
+                            name={'phone'}
+                            changeItem={changeItem}
+                        />
+                    </div>
 
-                                <br />
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <CampoTexto
+                            id="departure_location"
+                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA: ${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
+                            value={departure_location ? departure_location : ''}
+                            name="departure_location"
+                            onChange={changeItem}
+                            maxLength={50}
+                            className="uppercase"
+                        />
+                        <CampoTexto
+                            id="destination_location"
+                            label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
+                            value={destination_location ? destination_location : ''}
+                            name="destination_location"
+                            onChange={changeItem}
+                            maxLength={50}
+                            className="uppercase"
+                        />
+                    </div>
 
-                                {/* <FormGroup > */}
-                                <Stack spacing={3}>
+                    <div className="flex flex-wrap justify-end gap-3">
+                        <Button type="button" variant="outline" onClick={cleanForm}>Limpar dados</Button>
+                        <Button type="button" onClick={handleSaveData}>Gravar</Button>
+                    </div>
+                </div>
 
-                                    <DateTime
-                                        id="time"
-                                        label="Horário do compromisso"
-                                        name="time"
-                                        value={time ? time : ''}
-                                        onChange={changeItem}
-                                        wd="200px"
-                                    />
+                <div className="mt-6">
+                    <DataTable
+                        rotulo="passageiros da viagem"
+                        colunas={colunas}
+                        linhas={fatia}
+                        chaveDaLinha={(c) => c.id}
+                        vazio="Nenhum passageiro na viagem."
+                    />
+                    <Paginacao {...propsDaPaginacao} />
+                </div>
 
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 300px 300px' }, gap: 2 }}>
-                                        {cli?.id ? (
-                                            <TextField
-                                                className="lg-search-field"
-                                                id={cli?.id_client}
-                                                value={cli?.name || ''}
-                                                name=""
-                                                disabled
-                                            />
-                                        ) : (
-                                            <InputSelectClient
-                                                id="client_id"
-                                                label="SELECIONE O CLIENTE"
-                                                value=""
-                                                name="client_id"
-                                                clients={clients}
-                                                setClient={setClient}
-                                                wd="100%"
-                                            />
-                                        )}
+                <DialogoRodape>
+                    <Button type="button" onClick={cleanFormCancel}>Cancelar</Button>
+                </DialogoRodape>
 
-                                        <Select
-                                            value={person_type ? person_type : ''}
-                                            label={'QUALIFIQUE O CLIENTE'}
-                                            name={'person_type'}
-                                            store={typesOfPerson}
-                                            changeItem={changeItem}
-                                        />
-
-                                        <Phone value={phone ? phone : ''}
-                                            label={'Telefone'}
-                                            name={'phone'}
-                                            changeItem={changeItem}
-                                        />
-                                    </Box>
-
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                                        <TextField
-                                            className="lg-search-field"
-                                            id="departure_location"
-                                            label={departure_location && departure_location.length > 0 ? `LOCAL DE SAÍDA: ${50 - departure_location.length} caracteres restantes` : 'LOCAL DE SAÍDA'}
-                                            value={departure_location ? departure_location : ''}
-                                            name="departure_location"
-                                            onChange={changeItem}
-                                            inputProps={{
-                                                style: { textTransform: "uppercase" },
-                                                maxLength: 50
-                                            }}
-                                        />
-
-                                        <TextField
-                                            className="lg-search-field"
-                                            id="destination_location"
-                                            label={destination_location && destination_location.length > 0 ? `LOCAL DE DESTINO: ${50 - destination_location.length} caracteres restantes` : 'LOCAL DE DESTINO'}
-                                            value={destination_location ? destination_location : ''}
-                                            name="destination_location"
-                                            onChange={changeItem}
-                                            inputProps={{
-                                                style: { textTransform: "uppercase" },
-                                                maxLength: 50
-                                            }}
-                                        />
-                                    </Box>
-
-                                </Stack>
-                                {/* </FormGroup> */}
-                                <br />
-                                <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                    <Button onClick={handleSaveData} variant="contained" sx={{ ...modalPrimaryButtonSx, flex: 'unset', minWidth: 'unset', width: 'auto' }}>
-                                        Gravar
-                                    </Button>
-
-                                    <Button onClick={() => { cleanForm() }} variant="outlined" sx={modalSecondaryButtonSx}>
-                                        Limpar dados
-                                    </Button>
-                                </Box>
-
-                                <TableContainer>
-
-                                    <Table
-                                        aria-label="simple table"
-                                        sx={{
-                                            mt: 3,
-                                            whiteSpace: "nowrap",
-                                            '& .MuiTableCell-root': {
-                                                fontSize: '14px',
-                                            },
-                                            '& .MuiTypography-root': {
-                                                fontSize: '14px',
-                                            },
-                                        }}
-                                    >
-                                        <TableHead>
-                                            <TableRow>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        NOME
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        TIPO
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        TELEFONE
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        SAÍDA
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        DESTINO
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        HORÁRIO
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell>
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        CONFIRMADO?
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell align="center">
-                                                    <Typography color="textSecondary" variant="h6">
-                                                        Ações
-                                                    </Typography>
-                                                </TableCell>
-
-                                            </TableRow>
-                                        </TableHead>
-
-                                        <TableBody>
-                                            {trip?.clients ?
-                                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                                    .map((cli, index) => (
-                                                        <StyledTableRow key={cli.id} hover>
-                                                            <>
-                                                                <TableCell>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            alignItems: "center",
-                                                                        }}
-                                                                    >
-                                                                        <Typography variant="h6"
-                                                                            sx={{
-                                                                                fontWeight: "600",
-                                                                                fontSize: "14px",
-                                                                            }}
-                                                                        >
-                                                                            {cli?.name && cli?.name.substring(0, 22).toUpperCase()}
-                                                                        </Typography>
-                                                                    </Box>
-                                                                </TableCell>
-
-                                                                <TableCell>
-                                                                    <Box
-                                                                        sx={{
-                                                                            display: "flex",
-                                                                            alignItems: "center",
-                                                                        }}
-                                                                    >
-                                                                        <Typography
-                                                                            variant="h6"
-                                                                        >
-                                                                            {cli?.pivot?.person_type && cli?.pivot?.person_type == "passenger" ? "PASSAGEIRO" : "ACOMPANHANTE"}
-                                                                        </Typography>
-                                                                    </Box>
-                                                                </TableCell>
-
-
-                                                                <TableCell>
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                    >
-                                                                        {cli?.pivot?.phone && cli?.pivot?.phone.substring(0, 15).toUpperCase()}
-                                                                    </Typography>
-                                                                </TableCell>
-
-                                                                <TableCell>
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                    >
-                                                                        {cli?.pivot?.departure_location && cli?.pivot?.departure_location.substring(0, 15).toUpperCase()}
-                                                                    </Typography>
-                                                                </TableCell>
-
-                                                                <TableCell>
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                    >
-                                                                        {cli?.pivot?.destination_location && cli?.pivot?.destination_location.substring(0, 10).toUpperCase()}
-                                                                    </Typography>
-                                                                </TableCell>
-
-                                                                <TableCell>
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                    >
-                                                                        {cli?.pivot?.time && cli?.pivot?.time}
-                                                                    </Typography>
-                                                                </TableCell>
-
-                                                                <TableCell>
-                                                                    <FormGroup>
-                                                                        <FormControlLabel control={<Switch checked={Number(cli?.pivot?.is_confirmed) === 1}
-                                                                            onClick={() => handleIsConfirm(cli)} />} label={Number(cli?.pivot?.is_confirmed) === 1 ? "SIM" : "NÃO"} />
-                                                                    </FormGroup>
-
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                    >
-                                                                        {cli?.pivot?.updated_at && Number(cli?.pivot?.is_confirmed) === 1 ? format(parseISO(cli?.pivot?.updated_at),"dd/MM/yyyy HH:mm:ss") : ''}
-                                                                    </Typography>
-
-                                                                </TableCell>
-
-                                                                <TableCell align="center">
-                                                                    <Box sx={{ "& button": { mx: 1 } }}>
-
-                                                                        <Button title="Editar cliente" onClick={() => { HandleEditClient(cli) }} color="success" size="medium" variant="contained">
-                                                                            <FeatherIcon icon="edit" width="20" height="20" />
-                                                                        </Button>
-
-                                                                        <Button title="Excluir cliente" onClick={() => { HandleExcludeTrip(cli) }} color="error" size="medium" variant="contained">
-                                                                            <FeatherIcon icon="trash" width="20" height="20" />
-                                                                        </Button>
-
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </>
-
-                                                        </StyledTableRow>
-                                                    ))}
-                                        </TableBody>
-                                    </Table>
-                                    <br />
-                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', "& button": { mx: 1 } }}>
-                                        <Button onClick={() => { cleanFormCancel() }} variant="contained" sx={{ mt: 2 }}>
-                                            Cancelar
-                                        </Button>
-                                    </Box>
-                                    <TablePagination
-                                        component="div"
-                                        count={trip?.clients?.length}
-                                        page={page}
-                                        onPageChange={handleChangePage}
-                                        rowsPerPage={rowsPerPage}
-                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                    />
-                                </TableContainer>
-
-                                <ConfirmDialog
-                                    confirmDialog={confirmDialog}
-                                    setConfirmDialog={setConfirmDialog} />
-
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-
-                </Box>
-            </Modal >
-        </div >
+                <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
+            </Dialogo>
+        </div>
     );
 }

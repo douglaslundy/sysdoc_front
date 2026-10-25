@@ -1,21 +1,60 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Typography,
-    Box,
-} from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { CalendarPicker } from '@mui/x-date-pickers/CalendarPicker';
-import { PickersDay } from '@mui/x-date-pickers/PickersDay';
-import { isSameDay, format } from 'date-fns';
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isBefore, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import ptBrLocale from 'date-fns/locale/pt-BR';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { replicateTripFetch } from '../../../../store/fetchActions/trips';
+import { Button } from '../../../ui/button';
+import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape } from '../../../ui/dialogo';
+import { cn } from '../../../../lib/cn';
+
+const DIAS_DA_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+// shortcut: calendário só para esta tela (seleção múltipla de dias futuros); extrair para ui/ se outra tela precisar.
+function CalendarioMultiplo({ mes, selecionadas, aoMudarMes, aoAlternar }) {
+    const hoje = startOfDay(new Date());
+    const dias = eachDayOfInterval({ start: startOfWeek(startOfMonth(mes)), end: endOfWeek(endOfMonth(mes)) });
+    return (
+        <div>
+            <div className="mb-2 flex items-center justify-between">
+                <Button type="button" variant="ghost" size="icon-sm" aria-label="Mês anterior" disabled={!isBefore(hoje, startOfMonth(mes))} onClick={() => aoMudarMes(addMonths(mes, -1))}>
+                    <ChevronLeft />
+                </Button>
+                <span className="font-display text-sm font-bold capitalize" aria-live="polite">{format(mes, 'MMMM yyyy', { locale: ptBrLocale })}</span>
+                <Button type="button" variant="ghost" size="icon-sm" aria-label="Próximo mês" onClick={() => aoMudarMes(addMonths(mes, 1))}>
+                    <ChevronRight />
+                </Button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+                {DIAS_DA_SEMANA.map((d, i) => <span key={i} aria-hidden>{d}</span>)}
+            </div>
+            <div className="mt-1 grid grid-cols-7 gap-1">
+                {dias.map((dia) => {
+                    const marcado = selecionadas.some((d) => isSameDay(d, dia));
+                    const passado = isBefore(dia, hoje);
+                    const doMes = isSameMonth(dia, mes);
+                    return (
+                        <button
+                            key={dia.toISOString()}
+                            type="button"
+                            disabled={passado}
+                            aria-pressed={marcado}
+                            aria-label={format(dia, "d 'de' MMMM 'de' yyyy", { locale: ptBrLocale })}
+                            onClick={() => aoAlternar(dia)}
+                            className={cn(
+                                'h-9 rounded-md text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-30',
+                                marcado ? 'bg-primary font-bold text-primary-foreground' : 'hover:bg-hover',
+                                !doMes && !marcado && 'text-muted-foreground/60',
+                            )}
+                        >
+                            {format(dia, 'd')}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 export default function ReplicateTripModal({ open, trip, onClose }) {
     const dispatch = useDispatch();
@@ -51,52 +90,24 @@ export default function ReplicateTripModal({ open, trip, onClose }) {
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-            <DialogTitle>Replicar Viagem</DialogTitle>
-            <DialogContent>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                    Selecione os dias para os quais deseja repetir esta viagem. Motorista e veículo ficarão em branco em cada nova viagem — atribua depois.
-                </Typography>
+        <Dialogo aberto={Boolean(open)} aoFechar={handleClose} tamanho="sm">
+            <DialogoCabecalho>Replicar Viagem</DialogoCabecalho>
+            <DialogoDescricao className="mb-3">
+                Selecione os dias para os quais deseja repetir esta viagem. Motorista e veículo ficarão em branco em cada nova viagem — atribua depois.
+            </DialogoDescricao>
 
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBrLocale}>
-                    <CalendarPicker
-                        date={viewedDate}
-                        minDate={new Date()}
-                        onChange={(day) => { if (day) toggleDate(day); }}
-                        onMonthChange={(month) => setViewedDate(month)}
-                        renderDay={(day, _selectedDays, pickersDayProps) => {
-                            const isSelected = selectedDates.some((d) => isSameDay(d, day));
-                            return (
-                                <PickersDay
-                                    {...pickersDayProps}
-                                    key={day.toString()}
-                                    selected={isSelected}
-                                />
-                            );
-                        }}
-                    />
-                </LocalizationProvider>
+            <CalendarioMultiplo mes={viewedDate} selecionadas={selectedDates} aoMudarMes={setViewedDate} aoAlternar={toggleDate} />
 
-                <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2">
-                        {selectedDates.length === 0
-                            ? 'Nenhuma data selecionada.'
-                            : `${selectedDates.length} data(s) selecionada(s).`}
-                    </Typography>
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose} variant="outlined">
-                    Cancelar
-                </Button>
-                <Button
-                    onClick={handleConfirm}
-                    variant="contained"
-                    disabled={selectedDates.length === 0 || submitting}
-                >
-                    Confirmar
-                </Button>
-            </DialogActions>
-        </Dialog>
+            <p className="mt-3 text-sm" aria-live="polite">
+                {selectedDates.length === 0
+                    ? 'Nenhuma data selecionada.'
+                    : `${selectedDates.length} data(s) selecionada(s).`}
+            </p>
+
+            <DialogoRodape>
+                <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
+                <Button type="button" onClick={handleConfirm} disabled={selectedDates.length === 0 || submitting}>Confirmar</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }
