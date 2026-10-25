@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
-import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
 import InputSelectClient from "../../inputs/inputSelectClient";
+import { Banner } from "../../ui/banner";
+import { Button } from "../../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { CampoSelecao } from "../../ui/campos";
 
 export default function AttendanceTickets() {
   const [selectedClient, setSelectedClient] = useState({});
@@ -60,61 +62,64 @@ export default function AttendanceTickets() {
   };
 
   return (
-    <BaseCard title="Emissão de Senha">
-      <Box className="attendance-tickets__toolbar" sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
-        <Box
-          className="attendance-tickets__client-field"
-          sx={{
-            width: { xs: "100%", md: "50%" },
-            minWidth: 260,
-            "& .MuiAutocomplete-root": { width: "100%" },
-          }}
-        >
-          <InputSelectClient
-            label="Cliente"
-            name="client"
-            setClient={setSelectedClient}
-            clients={clients}
-            value={selectedClient?.id || ""}
-            wd={"100%"}
-          />
-        </Box>
-        <TextField className="attendance-tickets__room-select" select label="Sala" value={roomId} onChange={(e) => setRoomId(e.target.value)} sx={{ width: 260 }}>
-          {rooms.map((room) => (
-            <MenuItem key={room.id} value={room.id}>
-              {room.name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField className="attendance-tickets__prefix-select" select label="Prefixo" value={prefix} onChange={(e) => setPrefix(e.target.value)} sx={{ width: 120 }}>
-          <MenuItem value="A">A</MenuItem>
-          <MenuItem value="G">G</MenuItem>
-          <MenuItem value="P">P</MenuItem>
-        </TextField>
-        <Button className="attendance-tickets__generate" variant="contained" onClick={handleCreate} disabled={loading || !selectedClient?.id || !roomId}>
-          {loading ? "Gerando..." : "Gerar senha"}
-        </Button>
-      </Box>
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>Emissão de Senha</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="attendance-tickets__toolbar flex flex-wrap items-end gap-3">
+          <div className="attendance-tickets__client-field w-full min-w-[260px] md:w-1/2">
+            <InputSelectClient
+              label="Cliente"
+              name="client"
+              setClient={setSelectedClient}
+              clients={clients}
+              value={selectedClient?.id || ""}
+              wd={"100%"}
+            />
+          </div>
+          <div className="w-full sm:w-[260px]">
+            <CampoSelecao id="senha-sala" label="Sala" value={roomId} onChange={(e) => setRoomId(e.target.value)} className="attendance-tickets__room-select">
+              <option value="">Selecione</option>
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>{room.name}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <div className="w-[120px]">
+            <CampoSelecao id="senha-prefixo" label="Prefixo" value={prefix} onChange={(e) => setPrefix(e.target.value)} className="attendance-tickets__prefix-select">
+              <option value="A">A</option>
+              <option value="G">G</option>
+              <option value="P">P</option>
+            </CampoSelecao>
+          </div>
+          <Button className="attendance-tickets__generate" onClick={handleCreate} disabled={loading || !selectedClient?.id || !roomId}>
+            {loading ? "Gerando..." : "Gerar senha"}
+          </Button>
+        </div>
 
-      {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
-      {created ? (
-        <Typography sx={{ mb: 2 }}>
-          Senha gerada: <strong>{created.display_code}</strong> para {created.client?.name || `cliente #${created.client_id}`}
-        </Typography>
-      ) : null}
+        {error ? <Banner tom="perigo">{error}</Banner> : null}
+        {created ? (
+          <Banner tom="sucesso">
+            Senha gerada: <strong>{created.display_code}</strong> para {created.client?.name || `cliente #${created.client_id}`}
+          </Banner>
+        ) : null}
 
-      <Typography variant="h6" sx={{ mb: 1 }}>Fila atual da sala</Typography>
-      {!roomId ? (
-        <Typography>Selecione uma sala para visualizar a fila.</Typography>
-      ) : tickets.length === 0 ? (
-        <Typography>Nenhum cliente aguardando atendimento.</Typography>
-      ) : (
-        tickets.map((t) => (
-          <Typography key={t.id}>
-            {t.display_code} - {t.client?.name || `Cliente #${t.client_id}`} ({t.room?.name || "Sem sala"})
-          </Typography>
-        ))
-      )}
-    </BaseCard>
+        <div>
+          <h3 className="mb-1 font-display text-base font-bold">Fila atual da sala</h3>
+          {!roomId ? (
+            <p className="text-sm text-muted-foreground">Selecione uma sala para visualizar a fila.</p>
+          ) : tickets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum cliente aguardando atendimento.</p>
+          ) : (
+            tickets.map((t) => (
+              <p key={t.id}>
+                {t.display_code} - {t.client?.name || `Cliente #${t.client_id}`} ({t.room?.name || "Sem sala"})
+              </p>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

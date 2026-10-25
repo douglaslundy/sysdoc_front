@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { Box, Typography } from "@mui/material";
+import { Carregando } from "../../../src/components/ui/carregando";
 
 export default function AttendanceServiceCurrentPage() {
   const router = useRouter();
@@ -16,9 +16,8 @@ export default function AttendanceServiceCurrentPage() {
   }, [router]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography>Redirecionando para o atendimento atual...</Typography>
-    </Box>
+    <div className="ui-reset p-6">
+      <Carregando>Redirecionando para o atendimento atual...</Carregando>
+    </div>
   );
 }
-

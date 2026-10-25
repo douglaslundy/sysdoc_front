@@ -1,13 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
-import FeatherIcon from 'feather-icons-react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { X } from 'lucide-react';
 import { api } from '../../services/api';
-import { modalBackdropSx } from '../modal/_shared/modalFormStyles';
+import { Button } from '../ui/button';
+import { Dialogo, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
 
 export default function NoticeModal({ previewNotice, onPreviewClose } = {}) {
-  const theme = useTheme();
   const router = useRouter();
   const [queue, setQueue] = useState([]);
   const [current, setCurrent] = useState(null);
@@ -39,14 +37,6 @@ export default function NoticeModal({ previewNotice, onPreviewClose } = {}) {
     if (!current?.id) return;
     api.post(`/system-notices/${current.id}/views`).catch(() => {});
   }, [current?.id, previewNotice]);
-
-  const imageStyle = useMemo(() => ({
-    width: '100%',
-    maxHeight: 220,
-    objectFit: 'cover',
-    borderRadius: 16,
-    border: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
-  }), [theme]);
 
   const formatNoticeBody = (body) => {
     const raw = String(body || '');
@@ -113,69 +103,30 @@ export default function NoticeModal({ previewNotice, onPreviewClose } = {}) {
   if (!effectiveCurrent) return null;
 
   return (
-    <Dialog
-      open={effectiveOpen}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      slotProps={{ backdrop: { sx: modalBackdropSx } }}
-      PaperProps={{
-        sx: {
-          borderRadius: 4,
-          background: 'var(--lg-glass-modal)',
-          backdropFilter: 'var(--lg-blur-modal)',
-          WebkitBackdropFilter: 'var(--lg-blur-modal)',
-          border: '0.5px solid var(--lg-border)',
-          boxShadow: 'var(--lg-shadow-modal)',
-        },
-      }}
-    >
-      <DialogTitle sx={{ pb: 1.2 }}>
-        <Typography variant="overline" color="primary.main" sx={{ letterSpacing: 1.8 }}>
-          Aviso do Sistema
-        </Typography>
-        <Typography variant="h4" fontWeight={800} sx={{ mt: 0.5 }}>
-          {effectiveCurrent.title}
-        </Typography>
+    <Dialogo aberto={effectiveOpen} aoFechar={handleClose} tamanho="md">
+      <div className="mb-3">
+        <p className="text-xs font-bold tracking-[0.18em] text-primary-text uppercase">Aviso do Sistema</p>
+        <DialogoTitulo className="mt-1 text-2xl">{effectiveCurrent.title}</DialogoTitulo>
         {effectiveCurrent.subtitle ? (
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-            {effectiveCurrent.subtitle}
-          </Typography>
+          <p className="mt-2 text-base text-muted-foreground">{effectiveCurrent.subtitle}</p>
         ) : null}
-      </DialogTitle>
-      <DialogContent sx={{ pt: 1, pb: 0 }}>
-        {effectiveCurrent.image_data ? (
-          <Box sx={{ mb: 2 }}>
-            <img src={effectiveCurrent.image_data} alt={effectiveCurrent.title} style={imageStyle} />
-          </Box>
-        ) : null}
-        <Box
-          sx={{
-            lineHeight: 1.8,
-            color: 'text.primary',
-            '& p': { my: 1.25 },
-            '& h1, & h2, & h3': { mt: 2, mb: 1, fontWeight: 800, lineHeight: 1.2 },
-            '& ul, & ol': { pl: 3, my: 1.25 },
-            '& a': { color: 'primary.main' },
-            '& strong': { fontWeight: 800 },
-          }}
-          dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+      </div>
+      {effectiveCurrent.image_data ? (
+        <img
+          src={effectiveCurrent.image_data}
+          alt={effectiveCurrent.title}
+          className="mb-4 max-h-[220px] w-full rounded-xl border border-border object-cover"
         />
-      </DialogContent>
-      <DialogActions sx={{ p: 3, pt: 2 }}>
-        <Button
-          variant="contained"
-          onClick={handleClose}
-          startIcon={<FeatherIcon icon="x" width="16" height="16" />}
-          sx={{
-            borderRadius: 999,
-            px: 2.5,
-            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`,
-          }}
-        >
-          Fechar aviso
+      ) : null}
+      <div
+        className="leading-[1.8] [&_a]:text-primary-text [&_a]:underline [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-2xl [&_h1]:font-extrabold [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-extrabold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-extrabold [&_ol]:my-2.5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2.5 [&_strong]:font-extrabold [&_ul]:my-2.5 [&_ul]:list-disc [&_ul]:pl-6"
+        dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+      />
+      <DialogoRodape>
+        <Button onClick={handleClose}>
+          <X /> Fechar aviso
         </Button>
-      </DialogActions>
-    </Dialog>
+      </DialogoRodape>
+    </Dialogo>
   );
 }

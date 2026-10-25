@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
-import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
+import { Banner } from "../../ui/banner";
+import { Button } from "../../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { CampoTexto } from "../../ui/campos";
+import { Carregando } from "../../ui/carregando";
 
 export default function AttendanceService() {
   const router = useRouter();
@@ -103,56 +106,65 @@ export default function AttendanceService() {
   };
 
   if (!data && !initialLoadDone) {
-    return <BaseCard title="Atendimento"><Typography>Carregando...</Typography></BaseCard>;
+    return (
+      <Card className="ui-reset">
+        <CardHeader><CardTitle>Atendimento</CardTitle></CardHeader>
+        <CardContent><Carregando>Carregando...</Carregando></CardContent>
+      </Card>
+    );
   }
 
   if (!data && initialLoadDone) {
     return (
-      <BaseCard title="Atendimento">
-        <Typography color="error" sx={{ mb: 2 }}>{error || "Falha ao carregar atendimento."}</Typography>
-        <Button variant="outlined" onClick={load}>Tentar novamente</Button>
-      </BaseCard>
+      <Card className="ui-reset">
+        <CardHeader><CardTitle>Atendimento</CardTitle></CardHeader>
+        <CardContent className="grid gap-4">
+          <Banner tom="perigo">{error || "Falha ao carregar atendimento."}</Banner>
+          <div><Button variant="outline" onClick={load}>Tentar novamente</Button></div>
+        </CardContent>
+      </Card>
     );
   }
 
   const ticket = data.ticket || {};
 
   return (
-    <BaseCard title={`Atendimento - ${ticket.display_code || ""}`}>
-      <Typography sx={{ mb: 1 }}>Cliente: <strong>{ticket.client?.name || `#${ticket.client_id}`}</strong></Typography>
-      <Typography sx={{ mb: 1 }}>Status: <strong>{ticket.status}</strong></Typography>
-      <Typography sx={{ mb: 2 }}>Sala: <strong>{ticket.room?.name || "-"}</strong></Typography>
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>{`Atendimento - ${ticket.display_code || ""}`}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="grid gap-1">
+          <p>Cliente: <strong>{ticket.client?.name || `#${ticket.client_id}`}</strong></p>
+          <p>Status: <strong>{ticket.status}</strong></p>
+          <p>Sala: <strong>{ticket.room?.name || "-"}</strong></p>
+        </div>
 
-      <Typography variant="h6" sx={{ mb: 1 }}>Pendencias</Typography>
-      {(data.pendingSummary || []).length === 0 ? (
-        <Typography sx={{ mb: 2 }}>Nenhuma pendencia encontrada.</Typography>
-      ) : (
-        <Box sx={{ mb: 2 }}>
-          {data.pendingSummary.map((p) => (
-            <Typography key={p.type}>{p.label}: {p.count}</Typography>
-          ))}
-        </Box>
-      )}
+        <div>
+          <h3 className="mb-1 font-display text-base font-bold">Pendencias</h3>
+          {(data.pendingSummary || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma pendencia encontrada.</p>
+          ) : (
+            <div>
+              {data.pendingSummary.map((p) => (
+                <p key={p.type}>{p.label}: {p.count}</p>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <TextField
-        label="Registro do atendimento"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        fullWidth
-        multiline
-        minRows={3}
-        sx={{ mb: 2 }}
-      />
+        <CampoTexto id="atendimento-registro" label="Registro do atendimento" value={notes} onChange={(e) => setNotes(e.target.value)} multiline rows={3} />
 
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        <Button variant="outlined" onClick={doStart} disabled={loading}>Iniciar</Button>
-        <Button variant="outlined" onClick={saveNotes} disabled={loading}>Salvar observacoes</Button>
-        <Button variant="contained" onClick={finish} disabled={loading}>Finalizar atendimento</Button>
-        <Button variant="contained" color="warning" onClick={noShow} disabled={loading}>Nao compareceu</Button>
-      </Box>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={doStart} disabled={loading}>Iniciar</Button>
+          <Button variant="outline" onClick={saveNotes} disabled={loading}>Salvar observacoes</Button>
+          <Button onClick={finish} disabled={loading}>Finalizar atendimento</Button>
+          <Button variant="secondary" onClick={noShow} disabled={loading}>Nao compareceu</Button>
+        </div>
 
-      {success ? <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert> : null}
-      {error ? <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert> : null}
-    </BaseCard>
+        {success ? <Banner tom="sucesso">{success}</Banner> : null}
+        {error ? <Banner tom="perigo">{error}</Banner> : null}
+      </CardContent>
+    </Card>
   );
 }

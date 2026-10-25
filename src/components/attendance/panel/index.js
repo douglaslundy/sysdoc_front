@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Typography } from "@mui/material";
 import { attendanceApi } from "../../../services/attendanceApi";
 
 const DEFAULT_POLL_MS = 10000;
@@ -97,55 +96,47 @@ export default function AttendancePanel() {
   }, []);
 
   return (
-    <Box
-      sx={{
-        p: { xs: 2, md: 5 },
-        minHeight: "100vh",
-        background: "linear-gradient(120deg, #0f172a 0%, #1e293b 100%)",
-        color: "#f8fafc",
-      }}
-    >
-      <Typography variant="h3" sx={{ mb: 3, fontWeight: 700 }}>Painel de Atendimento</Typography>
-      {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
+    <main className="ui-reset min-h-screen bg-background p-4 text-foreground md:p-10">
+      <h1 className="mb-6 font-display text-3xl font-extrabold md:text-5xl">Painel de Atendimento</h1>
+      {error ? <p className="mb-4 text-danger">{error}</p> : null}
 
-      <Box sx={{ p: 4, border: "2px solid #93c5fd", borderRadius: 2, mb: 3, backgroundColor: "rgba(15,23,42,0.55)" }}>
-        <Typography variant="h6">Senha chamada</Typography>
+      <section className="mb-6 rounded-xl border-2 border-primary bg-card p-6 md:p-8">
+        <h2 className="font-display text-lg font-bold">Senha chamada</h2>
         {state?.currentCall ? (
           <>
-            <Typography variant="h1" sx={{ fontWeight: 800, lineHeight: 1.1 }}>{state.currentCall.ticketCode}</Typography>
-            <Typography variant="h3">{(state.currentCall.clientName || "").toUpperCase()}</Typography>
-            <Typography variant="h5">Sala: {state.currentCall.roomName}</Typography>
-            <Typography>Atendente: {state.currentCall.userName}</Typography>
+            <p className="font-display text-6xl leading-[1.1] font-extrabold md:text-8xl">{state.currentCall.ticketCode}</p>
+            <p className="font-display text-3xl font-bold md:text-5xl">{(state.currentCall.clientName || "").toUpperCase()}</p>
+            <p className="font-display text-2xl md:text-3xl">Sala: {state.currentCall.roomName}</p>
+            <p className="text-muted-foreground">Atendente: {state.currentCall.userName}</p>
           </>
         ) : (
-          <Typography>Aguardando próxima chamada.</Typography>
+          <p className="text-muted-foreground">Aguardando próxima chamada.</p>
         )}
-      </Box>
+      </section>
 
-      <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>Em atendimento</Typography>
+      <h2 className="mb-2 font-display text-2xl font-bold">Em atendimento</h2>
       {(state?.currentInService || []).length === 0 ? (
-        <Typography sx={{ mb: 2 }}>Nenhum cliente em atendimento.</Typography>
+        <p className="mb-4">Nenhum cliente em atendimento.</p>
       ) : (
-        <Box sx={{ mb: 2 }}>
+        <div className="mb-4">
           {state.currentInService.map((item, idx) => (
-            <Typography key={`${item.ticketCode}-${idx}`}>
+            <p key={`${item.ticketCode}-${idx}`}>
               {item.ticketCode} - {item.clientName} - {item.roomName} - {item.userName}
-            </Typography>
+            </p>
           ))}
-        </Box>
+        </div>
       )}
 
-      <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>Últimas chamadas</Typography>
+      <h2 className="mb-2 font-display text-2xl font-bold">Últimas chamadas</h2>
       {(state?.lastCalls || []).length === 0 ? (
-        <Typography>Nenhuma chamada anterior.</Typography>
+        <p>Nenhuma chamada anterior.</p>
       ) : (
         state.lastCalls.map((item, idx) => (
-          <Typography key={`${item.ticketCode}-${idx}`}>
+          <p key={`${item.ticketCode}-${idx}`}>
             {item.ticketCode} - {item.clientName} - {item.roomName}
-          </Typography>
+          </p>
         ))
       )}
-    </Box>
+    </main>
   );
 }
-

@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Switch, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
-import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import { AcoesDeLinha } from '../ui/acoes-de-linha';
+import { Banner } from '../ui/banner';
+import { Button, buttonVariants } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { DataTable } from '../ui/data-table';
+import { FormularioModal } from '../ui/formulario-modal';
 
 const initialForm = { id: null, codigo: '', nome: '', descricao: '', ordem: 0, ativo: true };
+
+const CAMPOS = [
+  { name: 'codigo', label: 'Código' },
+  { name: 'nome', label: 'Nome' },
+  { name: 'descricao', label: 'Descrição', rows: 3 },
+  { name: 'ordem', label: 'Ordem', type: 'number' },
+  { name: 'ativo', label: 'Ativo', interruptor: true },
+];
+
+const TOM_DO_ALERTA = { success: 'sucesso', error: 'perigo', warning: 'alerta' };
 
 export default function DocumentosTipos() {
   const [types, setTypes] = useState([]);
@@ -70,76 +83,50 @@ export default function DocumentosTipos() {
     });
   };
 
+  const aoMudar = ({ target: { name, value } }) => {
+    setForm((prev) => ({ ...prev, [name]: name === 'ordem' ? Number(value) : value }));
+  };
+
+  const colunas = [
+    { chave: 'codigo', titulo: 'Código', render: (type) => type.codigo },
+    { chave: 'nome', titulo: 'Nome', render: (type) => type.nome },
+    { chave: 'ordem', titulo: 'Ordem', render: (type) => type.ordem },
+    { chave: 'ativo', titulo: 'Ativo', render: (type) => (type.ativo ? 'Sim' : 'Não') },
+    { chave: 'acoes', titulo: 'Ações', render: (type) => <AcoesDeLinha aoEditar={() => edit(type)} aoExcluir={() => askDelete(type)} /> },
+  ];
+
   return (
-    <Box sx={modalFormRootSx}>
-      <BaseCard title="Tipos de Documentos">
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>Tipos de Documentos</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
         {alertState.visible && (
-          <Alert sx={{ mb: 2 }} variant="filled" severity={alertState.type} onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}>
+          <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
             {alertState.message}
-          </Alert>
+          </Banner>
         )}
 
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <Button variant="contained" onClick={() => setOpen(true)}>Novo tipo</Button>
-          <Button variant="outlined" href="/documentos">Voltar para documentos</Button>
-        </Stack>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => { setForm(initialForm); setOpen(true); }}>Novo tipo</Button>
+          <a className={buttonVariants({ variant: 'outline' })} href="/documentos">Voltar para documentos</a>
+        </div>
 
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Código</TableCell>
-                <TableCell>Nome</TableCell>
-                <TableCell>Ordem</TableCell>
-                <TableCell>Ativo</TableCell>
-                <TableCell>Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {types.map((type) => (
-                <TableRow key={type.id} hover>
-                  <TableCell>{type.codigo}</TableCell>
-                  <TableCell>{type.nome}</TableCell>
-                  <TableCell>{type.ordem}</TableCell>
-                  <TableCell>{type.ativo ? 'Sim' : 'Não'}</TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      <Button size="small" variant="outlined" onClick={() => edit(type)}>Editar</Button>
-                      <Button size="small" color="error" variant="outlined" onClick={() => askDelete(type)}>Excluir</Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!loading && types.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    <Typography color="text.secondary">Nenhum tipo cadastrado.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </BaseCard>
+        <DataTable rotulo="tipos de documentos" colunas={colunas} linhas={types} chaveDaLinha={(type) => type.id} carregando={loading} vazio="Nenhum tipo cadastrado." />
+      </CardContent>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{form.id ? 'Editar tipo' : 'Novo tipo'}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField label="Código" value={form.codigo} onChange={(e) => setForm((prev) => ({ ...prev, codigo: e.target.value }))} />
-            <TextField label="Nome" value={form.nome} onChange={(e) => setForm((prev) => ({ ...prev, nome: e.target.value }))} />
-            <TextField label="Descrição" multiline minRows={3} value={form.descricao} onChange={(e) => setForm((prev) => ({ ...prev, descricao: e.target.value }))} />
-            <TextField label="Ordem" type="number" value={form.ordem} onChange={(e) => setForm((prev) => ({ ...prev, ordem: Number(e.target.value) }))} />
-            <FormControlLabel control={<Switch checked={form.ativo} onChange={(e) => setForm((prev) => ({ ...prev, ativo: e.target.checked }))} />} label="Ativo" />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} variant="outlined" sx={modalSecondaryButtonSx}>Cancelar</Button>
-          <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>Gravar</Button>
-        </DialogActions>
-      </Dialog>
+      <FormularioModal
+        aberto={open}
+        titulo={form.id ? 'Editar tipo' : 'Novo tipo'}
+        aoFechar={() => setOpen(false)}
+        aoGravar={save}
+        campos={CAMPOS}
+        valores={form}
+        aoMudar={aoMudar}
+        tamanho="md"
+      />
 
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-    </Box>
+    </Card>
   );
 }

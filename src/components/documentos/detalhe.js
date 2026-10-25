@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Button, Chip, Divider, Drawer, Link, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
-import BaseCard from '../baseCard/BaseCard';
 import { api } from '../../services/api';
+import { Banner } from '../ui/banner';
+import { Button, buttonVariants } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Carregando } from '../ui/carregando';
+import { Gaveta } from '../ui/gaveta';
+import { Pilula } from '../ui/pilula';
 
 const SIGILO_LABELS = {
   publico: 'Público',
@@ -24,6 +28,8 @@ const ACTION_LABELS = {
   VERSION_CREATE: 'Nova versão enviada',
 };
 
+const TOM_DO_ALERTA = { success: 'sucesso', error: 'perigo', warning: 'alerta' };
+
 const formatDateTime = (value) => {
   if (!value) return '—';
   return new Intl.DateTimeFormat('pt-BR', {
@@ -38,6 +44,10 @@ const formatAction = (value) =>
     .replaceAll('_', ' ')
     .toLowerCase()
     .replace(/^./, (char) => char.toUpperCase());
+
+function Rotulo({ children }) {
+  return <p className="text-xs font-semibold tracking-[0.05em] text-muted-foreground uppercase">{children}</p>;
+}
 
 export default function DocumentoDetalhe({ documentId = null, embedded = false, onClose = null }) {
   const router = useRouter();
@@ -133,189 +143,119 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
   );
 
   const historyPanel = (
-    <>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h5">Histórico</Typography>
-        <Button variant="outlined" size="small" onClick={() => setHistoryOpen(false)}>
-          Fechar
-        </Button>
-      </Stack>
-
+    <Gaveta aberto={historyOpen} aoFechar={() => setHistoryOpen(false)} titulo="Histórico">
       {historyLoading ? (
-        <Typography color="text.secondary">Carregando histórico...</Typography>
+        <Carregando>Carregando histórico...</Carregando>
       ) : historico.length === 0 ? (
-        <Typography color="text.secondary">Nenhum registro encontrado para este documento.</Typography>
+        <p className="text-sm text-muted-foreground">Nenhum registro encontrado para este documento.</p>
       ) : (
-        <Stack divider={<Divider flexItem />} spacing={0}>
+        <ul className="divide-y divide-border">
           {historico.map((item) => (
-            <Box key={item.id} sx={{ py: 1.5 }}>
-              <Typography variant="subtitle2">{formatAction(item.action)}</Typography>
-              <Typography variant="body2" color="text.secondary">
+            <li key={item.id} className="py-3">
+              <p className="text-sm font-semibold">{formatAction(item.action)}</p>
+              <p className="text-sm text-muted-foreground">
                 {item.user_name || 'Sistema'} • {formatDateTime(item.created_at)}
-              </Typography>
-            </Box>
+              </p>
+            </li>
           ))}
-        </Stack>
+        </ul>
       )}
-    </>
+    </Gaveta>
   );
 
   const mainArea = (
-    <Box className="queue-page documentos-page">
+    <div className="ui-reset documentos-page grid gap-4">
       {alertState.visible && (
-        <Alert
-          sx={{ mb: 2 }}
-          variant="filled"
-          severity={alertState.type}
-          onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-        >
+        <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
           {alertState.message}
-        </Alert>
+        </Banner>
       )}
 
-      <BaseCard title={documento?.titulo || 'Documento'} sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap' }}>
-          {!embedded && (
-            <Button variant="outlined" href="/documentos">
-              Voltar
+      <Card>
+        <CardHeader>
+          <CardTitle>{documento?.titulo || 'Documento'}</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-5">
+          <div className="flex flex-wrap gap-2">
+            {!embedded && (
+              <a className={buttonVariants({ variant: 'outline' })} href="/documentos">
+                Voltar
+              </a>
+            )}
+            <Button variant="outline" onClick={handleOpenHistory} disabled={loading}>
+              Histórico
             </Button>
-          )}
-          <Button variant="outlined" onClick={handleOpenHistory} disabled={loading}>
-            Histórico
-          </Button>
-          {embedded && onClose && (
-            <Button variant="outlined" onClick={onClose}>
-              Fechar
-            </Button>
-          )}
-        </Stack>
+            {embedded && onClose && (
+              <Button variant="outline" onClick={onClose}>
+                Fechar
+              </Button>
+            )}
+          </div>
 
-        {loading ? (
-          <Typography color="text.secondary">Carregando documento...</Typography>
-        ) : documento ? (
-          <Stack spacing={2.5}>
-            <Box>
-              <Typography variant="overline" color="text.secondary">
-                Tipo
-              </Typography>
-              <Typography variant="h6">{documento.type?.nome || '—'}</Typography>
-            </Box>
+          {loading ? (
+            <Carregando>Carregando documento...</Carregando>
+          ) : documento ? (
+            <div className="grid gap-5">
+              <div>
+                <Rotulo>Tipo</Rotulo>
+                <p className="font-display text-base font-bold">{documento.type?.nome || '—'}</p>
+              </div>
 
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label={SIGILO_LABELS[documento.sigilo] || documento.sigilo || '—'} size="small" />
-              <Chip label={STATUS_LABELS[documento.status] || documento.status || '—'} size="small" />
-              <Chip label={`Versão ${documento.current_version_number || 0}`} size="small" />
-            </Box>
+              <div className="flex flex-wrap gap-2">
+                <Pilula tom="neutro" contorno>{SIGILO_LABELS[documento.sigilo] || documento.sigilo || '—'}</Pilula>
+                <Pilula tom="neutro" contorno>{STATUS_LABELS[documento.status] || documento.status || '—'}</Pilula>
+                <Pilula tom="neutro" contorno>{`Versão ${documento.current_version_number || 0}`}</Pilula>
+              </div>
 
-            <Box>
-              <Typography variant="overline" color="text.secondary">
-                Resumo
-              </Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {documento.resumo || 'Sem resumo informado.'}
-              </Typography>
-            </Box>
+              <div>
+                <Rotulo>Resumo</Rotulo>
+                <p className="whitespace-pre-wrap text-base">{documento.resumo || 'Sem resumo informado.'}</p>
+              </div>
 
-            <Box sx={{ display: 'grid', gap: 0.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                Criado por: <strong>{documento.creator?.name || '—'}</strong>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Última atualização: <strong>{formatDateTime(documento.updated_at)}</strong>
-              </Typography>
-            </Box>
+              <div className="grid gap-1 text-sm text-muted-foreground">
+                <p>Criado por: <strong className="text-foreground">{documento.creator?.name || '—'}</strong></p>
+                <p>Última atualização: <strong className="text-foreground">{formatDateTime(documento.updated_at)}</strong></p>
+              </div>
 
-            {sortedVersions.length > 0 && (
-              <Box>
-                <Typography variant="overline" color="text.secondary">
-                  Arquivos anexados
-                </Typography>
-                <Stack spacing={0} sx={{ mt: 1 }}>
-                  {sortedVersions.map((v) => (
-                    <Box
-                      key={v.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 1,
-                        py: 1,
-                        borderBottom: '1px solid rgba(0,0,0,0.08)',
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Link
-                          component="button"
-                          variant="body2"
-                          fontWeight={700}
-                          underline="hover"
+              {sortedVersions.length > 0 && (
+                <div>
+                  <Rotulo>Arquivos anexados</Rotulo>
+                  <ul className="mt-2 divide-y divide-border">
+                    {sortedVersions.map((v) => (
+                      <li key={v.id} className="min-w-0 py-2">
+                        <button
+                          type="button"
                           onClick={() => handleDownloadVersion(v)}
-                          sx={{ textAlign: 'left', display: 'block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          className="block max-w-full truncate text-left text-sm font-bold text-primary-text hover:underline focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
                         >
                           {v.original_name || 'arquivo'}
-                        </Link>
-                        <Typography variant="caption" color="text.secondary">
+                        </button>
+                        <p className="text-xs text-muted-foreground">
                           Versão {v.version_number}
                           {v.uploader?.name ? ` • ${v.uploader.name}` : ''}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            )}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {sortedVersions.length === 0 && (
-              <Typography variant="body2" color="text.secondary">
-                Nenhum arquivo anexado a este documento.
-              </Typography>
-            )}
-          </Stack>
-        ) : (
-          <Typography color="text.secondary">Documento não encontrado.</Typography>
-        )}
-      </BaseCard>
-    </Box>
+              {sortedVersions.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum arquivo anexado a este documento.</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Documento não encontrado.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 
-  if (embedded) {
-    return (
-      <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>{mainArea}</Box>
-
-        <Box
-          sx={{
-            width: historyOpen ? { xs: 300, sm: 400 } : 0,
-            flexShrink: 0,
-            overflow: 'hidden',
-            transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
-            borderLeft: historyOpen ? '1px solid var(--lg-border)' : 'none',
-          }}
-        >
-          <Box sx={{ width: { xs: 300, sm: 400 }, height: '100%', overflow: 'auto', p: 2.5 }}>
-            {historyPanel}
-          </Box>
-        </Box>
-      </Box>
-    );
-  }
-
   return (
-    <Box>
+    <div className={embedded ? 'h-full overflow-auto p-4 sm:p-6' : undefined}>
       {mainArea}
-      <Drawer
-        anchor="right"
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        PaperProps={{
-          sx: {
-            width: { xs: '100%', sm: 460 },
-            p: 2.5,
-          },
-        }}
-      >
-        {historyPanel}
-      </Drawer>
-    </Box>
+      {historyPanel}
+    </div>
   );
 }

@@ -1,26 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  Typography,
-} from '@mui/material';
-import BaseCard from '../baseCard/BaseCard';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import { Banner } from '../ui/banner';
+import { Button, buttonVariants } from '../ui/button';
+import { CaixaDeMarcacao } from '../ui/caixa-de-marcacao';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { CampoSelecao } from '../ui/campos';
+import { Carregando } from '../ui/carregando';
+import { Interruptor } from '../ui/interruptor';
 
 const SIGILO_OPTIONS = [
   { value: 'publico', label: 'Público' },
   { value: 'interno', label: 'Interno' },
   { value: 'restrito', label: 'Restrito/Sigiloso' },
 ];
+
+const TOM_DO_ALERTA = { success: 'sucesso', error: 'perigo', warning: 'alerta' };
 
 const initialForm = {
   triple_signature_enabled: false,
@@ -97,87 +91,86 @@ export default function DocumentosConfiguracoes() {
     }
   };
 
+  const alternarSigilo = (valor, marcado) => {
+    setForm((prev) => ({
+      ...prev,
+      triple_signature_sigilos: marcado
+        ? [...prev.triple_signature_sigilos, valor]
+        : prev.triple_signature_sigilos.filter((v) => v !== valor),
+    }));
+  };
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page documentos-page">
-      <BaseCard title="Configurações de Documentos">
+    <Card className="ui-reset documentos-page">
+      <CardHeader>
+        <CardTitle>Configurações de Documentos</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-5">
         {alertState.visible && (
-          <Alert
-            sx={{ mb: 2 }}
-            variant="filled"
-            severity={alertState.type}
-            onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-          >
+          <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
             {alertState.message}
-          </Alert>
+          </Banner>
         )}
 
         {loading ? (
-          <Typography color="text.secondary">Carregando configurações...</Typography>
+          <Carregando>Carregando configurações...</Carregando>
         ) : (
-          <Stack spacing={2.5}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.triple_signature_enabled}
-                  onChange={(event) => setForm((prev) => ({ ...prev, triple_signature_enabled: event.target.checked }))}
-                />
-              }
-              label="Ativar tripla assinatura para exclusão"
-            />
+          <>
+            <Interruptor
+              id="docs-tripla"
+              marcado={form.triple_signature_enabled}
+              aoMudar={(v) => setForm((prev) => ({ ...prev, triple_signature_enabled: v }))}
+            >
+              Ativar tripla assinatura para exclusão
+            </Interruptor>
 
-            <Typography variant="body2" color="text.secondary">
+            <p className="text-sm text-muted-foreground">
               Defina os 3 usuários responsáveis e em quais níveis de sigilo a regra será aplicada.
-            </Typography>
+            </p>
 
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <FormControl sx={{ width: { xs: '100%', md: '50%' } }}>
-              <InputLabel>Aplicar em</InputLabel>
-              <Select
-                multiple
-                value={form.triple_signature_sigilos}
-                label="Aplicar em"
-                onChange={(event) => setForm((prev) => ({ ...prev, triple_signature_sigilos: event.target.value }))}
-                renderValue={(selected) => selected.map((value) => SIGILO_OPTIONS.find((option) => option.value === value)?.label || value).join(', ')}
-              >
-                {SIGILO_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                ))}
-              </Select>
-              </FormControl>
-            </Box>
+            <fieldset className="grid max-w-md gap-2">
+              <legend className="mb-1 text-[13px] text-muted-foreground">Aplicar em</legend>
+              {SIGILO_OPTIONS.map((option) => (
+                <CaixaDeMarcacao
+                  key={option.value}
+                  id={`docs-sigilo-${option.value}`}
+                  marcado={form.triple_signature_sigilos.includes(option.value)}
+                  aoMudar={(v) => alternarSigilo(option.value, v)}
+                >
+                  {option.label}
+                </CaixaDeMarcacao>
+              ))}
+            </fieldset>
 
-            <Stack spacing={2}>
+            <div className="grid max-w-md gap-4">
               {[1, 2, 3].map((index) => {
                 const key = `signer_user_${index}_id`;
                 return (
-                  <Box key={key} sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                    <FormControl sx={{ width: { xs: '100%', md: '50%' } }}>
-                      <InputLabel>{`Usuário ${index}`}</InputLabel>
-                      <Select
-                        value={form[key]}
-                        label={`Usuário ${index}`}
-                        onChange={(event) => setForm((prev) => ({ ...prev, [key]: event.target.value }))}
-                      >
-                        <MenuItem value=""><em>Selecione</em></MenuItem>
-                        {users.map((user) => (
-                          <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
+                  <CampoSelecao
+                    key={key}
+                    id={`docs-${key}`}
+                    label={`Usuário ${index}`}
+                    value={form[key]}
+                    onChange={(event) => setForm((prev) => ({ ...prev, [key]: event.target.value }))}
+                  >
+                    <option value="">Selecione</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>{user.name}</option>
+                    ))}
+                  </CampoSelecao>
                 );
               })}
-            </Stack>
+            </div>
 
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
-              <Button variant="outlined" href="/documentos">Voltar</Button>
-              <Button variant="contained" onClick={save} disabled={saving}>
+            <div className="flex flex-wrap justify-end gap-2">
+              <a className={buttonVariants({ variant: 'outline' })} href="/documentos">Voltar</a>
+              <Button onClick={save} disabled={saving}>
                 {saving ? 'Salvando...' : 'Salvar configurações'}
               </Button>
-            </Stack>
-          </Stack>
+            </div>
+          </>
         )}
-      </BaseCard>
-    </Box>
+      </CardContent>
+    </Card>
   );
 }

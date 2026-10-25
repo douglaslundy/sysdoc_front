@@ -1,39 +1,30 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    Box, Button, Card, CardContent, CircularProgress, FormControl,
-    Grid, InputLabel, MenuItem, Select, Table, TableBody,
-    TableCell, TableContainer, TableHead, TableRow, TextField, Typography,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, CheckCircle2, Clock, Loader, Printer, UserX } from 'lucide-react';
 import { painelEsusApi } from '../../services/painelEsusApi';
 import generateFilaEsusPDF from '../../reports/filaEsus';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { Card, CardContent } from '../ui/card';
+import { Carregando } from '../ui/carregando';
+import { DataTable } from '../ui/data-table';
 
-function ContadorCard({ icon, titulo, valor, cor }) {
+function ContadorCard({ Icone, titulo, valor, cor }) {
     return (
-        <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ px: 2.5, py: 2 }}>
-                <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
-                    <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-secondary)', fontWeight: 600 }}>
-                            {titulo}
-                        </Typography>
-                        <Typography variant="h3" fontWeight="bold" mt={0.5} sx={{ color: cor }}>
-                            {valor ?? '—'}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ minWidth: 48, width: 48, height: 48, borderRadius: '50%', bgcolor: cor + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <FeatherIcon icon={icon} color={cor} width="22" height="22" />
-                    </Box>
-                </Box>
+        <Card size="sm">
+            <CardContent className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-muted-foreground">{titulo}</p>
+                    <p className={`mt-1 font-mono text-3xl font-bold ${cor}`}>{valor ?? '—'}</p>
+                </div>
+                <span className={`flex size-12 shrink-0 items-center justify-center rounded-full bg-hover ${cor}`}>
+                    <Icone className="size-5" aria-hidden />
+                </span>
             </CardContent>
         </Card>
     );
 }
-
-const selSx = {
-    '& .MuiOutlinedInput-root': { background: 'var(--lg-glass-input)' },
-};
-
 const hojeIso = () => {
     const now = new Date();
     const offset = now.getTimezoneOffset();
@@ -198,272 +189,170 @@ export default function FilaEsus() {
     }, [carregarFila]);
 
     if (loadingUnidades) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-                <CircularProgress />
-            </Box>
-        );
+        return <Carregando className="min-h-[300px] justify-center">Carregando unidades...</Carregando>;
     }
 
     if (erroUnidades) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-                <Typography sx={{ color: '#E52207' }}>{erroUnidades}</Typography>
-            </Box>
+            <div className="flex min-h-[300px] items-center justify-center">
+                <p className="text-danger">{erroUnidades}</p>
+            </div>
         );
     }
 
     const unidadeAtual = unidades.find(u => u.cnes === cnes);
+    const colunas = [
+        { chave: 'n', titulo: '#', render: (row, i) => <span className="text-xs text-muted-foreground">{i + 1}</span> },
+        { chave: 'cidadao', titulo: 'Cidadão', render: (row) => <span className="font-semibold">{row.cidadao}</span> },
+        { chave: 'data', titulo: 'Data', numerica: true, render: (row) => row.data_atendimento || '—' },
+        {
+            chave: 'chegada',
+            titulo: 'Chegada',
+            numerica: true,
+            render: (row) => (
+                <>
+                    <span className="block">{row.hr_chegada || '—'}</span>
+                    <span className="block text-xs text-muted-foreground">Saída: {row.hr_saida || '—'}</span>
+                </>
+            ),
+        },
+        { chave: 'espera', titulo: 'Tempo Espera', numerica: true, render: (row) => row.tempo_espera || '—' },
+        { chave: 'equipe', titulo: 'Equipe', render: (row) => row.equipe || '—' },
+        { chave: 'profissional', titulo: 'Profissional', render: (row) => row.profissional || '—' },
+    ];
 
     return (
-        <Box>
+        <div className="ui-reset">
             {/* Nome da unidade selecionada */}
             {unidadeAtual && (
-                <Typography variant="subtitle2" sx={{ color: 'var(--lg-text-muted)', mb: 2 }}>
+                <p className="mb-4 text-sm font-semibold text-muted-foreground">
                     <span>{unidadeAtual.nome}</span>
                     {' — CNES '}
                     {cnes}
-                </Typography>
+                </p>
             )}
 
             {/* Estado: aguardando seleção */}
             {!cnes && unidades.length <= 1 && (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                    <Typography sx={{ color: 'var(--lg-text-muted)' }}>
-                        Selecione uma unidade de saúde para visualizar a fila.
-                    </Typography>
-                </Box>
+                <div className="flex min-h-[200px] items-center justify-center">
+                    <p className="text-muted-foreground">Selecione uma unidade de saúde para visualizar a fila.</p>
+                </div>
             )}
 
             {/* Conteúdo principal */}
             {(cnes || unidades.length > 1) && (
                 <>
                     {/* Filtros */}
-                    <Card sx={{ mt: '10px', mb: 3 }}>
-                        <CardContent>
-                            <Grid container spacing={2} alignItems="center">
-                                {unidades.length > 1 && (
-                                    <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                        <FormControl fullWidth size="small" sx={selSx}>
-                                            <InputLabel>Unidade de Saúde</InputLabel>
-                                            <Select
-                                                label="Unidade de Saúde"
-                                                value={cnes ?? ''}
-                                                MenuProps={{ keepMounted: true }}
-                                                onChange={e => {
-                                                    setCnes(e.target.value || null);
-                                                    setEquipeId('');
-                                                    setProfId('');
-                                                    setDados(null);
-                                                }}
-                                            >
-                                                <MenuItem value=""><em>Selecione uma unidade</em></MenuItem>
-                                                {unidades.map(u => (
-                                                    <MenuItem key={u.cnes} value={u.cnes}>{u.nome}</MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                )}
-                                {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        label="Data inicial"
-                                        type="date"
-                                        value={dataInicio}
-                                        onChange={e => handleDataInicio(e.target.value)}
-                                        InputLabelProps={{ shrink: true }}
-                                        sx={selSx}
-                                    />
-                                </Grid>
-                                )}
-                                {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        label="Data final"
-                                        type="date"
-                                        value={dataFim}
-                                        onChange={e => handleDataFim(e.target.value)}
-                                        InputLabelProps={{ shrink: true }}
-                                        sx={selSx}
-                                    />
-                                </Grid>
-                                )}
-                                {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                    <FormControl fullWidth size="small" sx={selSx}>
-                                        <InputLabel>Situação</InputLabel>
-                                        <Select
-                                            label="Situação"
-                                            value={situacao}
-                                            onChange={e => setSituacao(e.target.value)}
-                                        >
-                                            <MenuItem value="aguardando">Em espera</MenuItem>
-                                            <MenuItem value="atendidos">Atendidos</MenuItem>
-                                            <MenuItem value="nao_aguardaram">Não aguardaram</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                )}
-                                {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                    <FormControl fullWidth size="small" sx={selSx}>
-                                        <InputLabel>Equipe</InputLabel>
-                                        <Select
-                                            label="Equipe"
-                                            value={equipeId}
-                                            disabled={restrito && equipes.length === 1}
-                                            onChange={e => { setEquipeId(e.target.value); setProfId(''); }}
-                                        >
-                                            {!(restrito && equipes.length === 1) && (
-                                                <MenuItem value="">
-                                                    <em>{restrito ? 'Todas as minhas equipes' : 'Todas'}</em>
-                                                </MenuItem>
-                                            )}
-                                            {equipes.map(eq => (
-                                                <MenuItem key={eq.id} value={eq.id}>{eq.nome}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                )}
-                                {cnes && (
-                                <Grid item xs={12} sm={unidades.length > 1 ? 2 : 2.4}>
-                                    <FormControl fullWidth size="small" sx={selSx}>
-                                        <InputLabel>Profissional</InputLabel>
-                                        <Select
-                                            label="Profissional"
-                                            value={profId}
-                                            onChange={e => setProfId(e.target.value)}
-                                        >
-                                            <MenuItem value=""><em>Todos</em></MenuItem>
-                                            {profissionais.map(p => (
-                                                <MenuItem key={p.id} value={p.id}>{p.nome}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                )}
-                            </Grid>
+                    <Card className="mb-6">
+                        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                            {unidades.length > 1 && (
+                                <CampoSelecao
+                                    id="fila-unidade"
+                                    label="Unidade de Saúde"
+                                    value={cnes ?? ''}
+                                    onChange={e => {
+                                        setCnes(e.target.value || null);
+                                        setEquipeId('');
+                                        setProfId('');
+                                        setDados(null);
+                                    }}
+                                >
+                                    <option value="">Selecione uma unidade</option>
+                                    {unidades.map(u => (
+                                        <option key={u.cnes} value={u.cnes}>{u.nome}</option>
+                                    ))}
+                                </CampoSelecao>
+                            )}
+                            {cnes && (
+                                <CampoTexto id="fila-inicio" label="Data inicial" type="date" value={dataInicio} onChange={e => handleDataInicio(e.target.value)} />
+                            )}
+                            {cnes && (
+                                <CampoTexto id="fila-fim" label="Data final" type="date" value={dataFim} onChange={e => handleDataFim(e.target.value)} />
+                            )}
+                            {cnes && (
+                                <CampoSelecao id="fila-situacao" label="Situação" value={situacao} onChange={e => setSituacao(e.target.value)}>
+                                    <option value="aguardando">Em espera</option>
+                                    <option value="atendidos">Atendidos</option>
+                                    <option value="nao_aguardaram">Não aguardaram</option>
+                                </CampoSelecao>
+                            )}
+                            {cnes && (
+                                <CampoSelecao
+                                    id="fila-equipe"
+                                    label="Equipe"
+                                    value={equipeId}
+                                    disabled={restrito && equipes.length === 1}
+                                    onChange={e => { setEquipeId(e.target.value); setProfId(''); }}
+                                >
+                                    {!(restrito && equipes.length === 1) && (
+                                        <option value="">{restrito ? 'Todas as minhas equipes' : 'Todas'}</option>
+                                    )}
+                                    {equipes.map(eq => (
+                                        <option key={eq.id} value={eq.id}>{eq.nome}</option>
+                                    ))}
+                                </CampoSelecao>
+                            )}
+                            {cnes && (
+                                <CampoSelecao id="fila-profissional" label="Profissional" value={profId} onChange={e => setProfId(e.target.value)}>
+                                    <option value="">Todos</option>
+                                    {profissionais.map(p => (
+                                        <option key={p.id} value={p.id}>{p.nome}</option>
+                                    ))}
+                                </CampoSelecao>
+                            )}
                         </CardContent>
                     </Card>
 
                     {cnes && (
-                    <>
-                    {/* Contadores */}
-                    <Grid container spacing={3} sx={{ mb: 3 }}>
-                        <Grid item xs={12} sm={6} md={3}>
-                            <ContadorCard icon="clock" titulo="Em Espera" valor={dados?.contadores?.aguardando} cor="#1351B4" />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                            <ContadorCard icon="check-circle" titulo="Atendidos" valor={dados?.contadores?.atendidos} cor="#168821" />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                            <ContadorCard icon="user-x" titulo="Não Aguardaram" valor={dados?.contadores?.nao_aguardaram} cor="#E52207" />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                            <ContadorCard icon="activity" titulo="Tempo Médio" valor={dados?.contadores?.tempo_medio_espera} cor="#7A4CC2" />
-                        </Grid>
-                    </Grid>
+                        <>
+                            {/* Contadores */}
+                            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <ContadorCard Icone={Clock} titulo="Em Espera" valor={dados?.contadores?.aguardando} cor="text-info" />
+                                <ContadorCard Icone={CheckCircle2} titulo="Atendidos" valor={dados?.contadores?.atendidos} cor="text-success" />
+                                <ContadorCard Icone={UserX} titulo="Não Aguardaram" valor={dados?.contadores?.nao_aguardaram} cor="text-danger" />
+                                <ContadorCard Icone={Activity} titulo="Tempo Médio" valor={dados?.contadores?.tempo_medio_espera} cor="text-primary-text" />
+                            </div>
 
-                    {/* Lista de atendimentos */}
-                    <Card>
-                        <CardContent>
-                            <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5} sx={{ mb: 2 }}>
-                                <Typography variant="h6" fontWeight={700}>
-                                    {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
-                                </Typography>
-                                <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
-                                    <TextField
-                                        size="small"
-                                        placeholder="Buscar por nome, CPF ou CNS"
-                                        value={busca}
-                                        onChange={e => setBusca(e.target.value)}
-                                        sx={{ ...selSx, minWidth: 260 }}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <Box component="span" sx={{ display: 'flex', mr: 1, color: 'var(--lg-text-muted)' }}>
-                                                    <FeatherIcon icon="search" width={16} height={16} />
-                                                </Box>
-                                            ),
-                                        }}
-                                    />
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        disabled={printLoading || loading || !dados}
-                                        onClick={handlePrint}
-                                        startIcon={<FeatherIcon icon={printLoading ? 'loader' : 'printer'} width={15} height={15} />}
-                                        sx={{ textTransform: 'none', borderRadius: 1.5 }}
-                                    >
-                                        {printLoading ? 'Gerando...' : 'Imprimir PDF'}
-                                    </Button>
-                                </Box>
-                            </Box>
+                            {/* Lista de atendimentos */}
+                            <Card>
+                                <CardContent className="grid gap-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <h2 className="font-display text-lg font-bold">
+                                            {situacao === 'atendidos' ? 'Cidadãos Atendidos' : situacao === 'nao_aguardaram' ? 'Não Aguardaram' : 'Aguardando Atendimento'}
+                                        </h2>
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <CampoDeBusca
+                                                className="min-w-[260px]"
+                                                rotulo="Buscar por nome, CPF ou CNS"
+                                                placeholder="Buscar por nome, CPF ou CNS"
+                                                value={busca}
+                                                onChange={e => setBusca(e.target.value)}
+                                            />
+                                            <Button variant="outline" size="sm" disabled={printLoading || loading || !dados} onClick={handlePrint}>
+                                                {printLoading ? <Loader className="animate-spin" /> : <Printer />}
+                                                {printLoading ? 'Gerando...' : 'Imprimir PDF'}
+                                            </Button>
+                                        </div>
+                                    </div>
 
-                            {loading && (
-                                <Box display="flex" justifyContent="center" py={4}>
-                                    <CircularProgress size={32} />
-                                </Box>
-                            )}
+                                    {erro && !loading && <Banner tom="perigo">Erro: {erro}</Banner>}
 
-                            {erro && !loading && (
-                                <Typography color="error" sx={{ py: 2 }}>Erro: {erro}</Typography>
-                            )}
-
-                            {!loading && !erro && (
-                                <TableContainer>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Cidadão</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Chegada</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Tempo Espera</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Equipe</TableCell>
-                                                <TableCell sx={{ fontWeight: 700 }}>Profissional</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {listaFiltrada.length > 0 ? (
-                                                listaFiltrada.map((row, i) => (
-                                                    <TableRow key={row.id} hover>
-                                                        <TableCell sx={{ color: 'var(--lg-text-muted)', fontSize: 12 }}>{i + 1}</TableCell>
-                                                        <TableCell sx={{ fontWeight: 600 }}>{row.cidadao}</TableCell>
-                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.data_atendimento || '—'}</TableCell>
-                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                            <Box>{row.hr_chegada || '—'}</Box>
-                                                            <Box sx={{ color: 'var(--lg-text-muted)', fontSize: 12 }}>
-                                                                Saída: {row.hr_saida || '—'}
-                                                            </Box>
-                                                        </TableCell>
-                                                        <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.tempo_espera || '—'}</TableCell>
-                                                        <TableCell>{row.equipe || '—'}</TableCell>
-                                                        <TableCell>{row.profissional || '—'}</TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'var(--lg-text-muted)' }}>
-                                                        Nenhum registro encontrado
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-                        </CardContent>
-                    </Card>
-                    </>
+                                    {!erro && (
+                                        <DataTable
+                                            rotulo="fila de atendimento e-SUS"
+                                            colunas={colunas}
+                                            linhas={listaFiltrada}
+                                            chaveDaLinha={(row) => row.id}
+                                            carregando={loading}
+                                            vazio="Nenhum registro encontrado"
+                                        />
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </>
                     )}
                 </>
             )}
-        </Box>
+        </div>
     );
 }

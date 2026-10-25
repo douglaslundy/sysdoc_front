@@ -1,39 +1,22 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Fab,
-  FormControl,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Modal,
-  Select,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Typography,
-  styled,
-} from '@mui/material';
-import BaseCard from '../baseCard/BaseCard';
+import { Eye } from 'lucide-react';
 import ConfirmDialog from '../confirmDialog';
 import DocumentoDetalhe from './detalhe';
-import { modalFormRootSx, modalPrimaryButtonSx, modalSecondaryButtonSx, modalShellSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
-import FeatherIcon from 'feather-icons-react';
+import { ActionCreateFab } from '../actions';
+import { AcoesDeLinha } from '../ui/acoes-de-linha';
+import { Banner } from '../ui/banner';
+import { Button, buttonVariants } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { CampoDeBusca } from '../ui/campo-de-busca';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
+import { Paginacao } from '../ui/paginacao';
+import { Pilula } from '../ui/pilula';
+
+const TOM_DO_ALERTA = { success: 'sucesso', error: 'perigo', warning: 'alerta' };
 
 const initialForm = {
   id: null,
@@ -54,30 +37,6 @@ const STATUS_LABELS = {
   rascunho: 'Rascunho',
   publicado: 'Publicado',
 };
-
-const StyledTableRow = styled(TableRow)(() => ({
-  '& td': {
-    background: 'var(--queue-row-bg)',
-    borderTop: '0.5px solid var(--lg-border)',
-    borderBottom: '0.5px solid var(--lg-border)',
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: 'var(--queue-text-primary)',
-  },
-  '& td:first-of-type': {
-    borderLeft: '0.5px solid var(--lg-border)',
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
-  },
-  '& td:last-of-type': {
-    borderRight: '0.5px solid var(--lg-border)',
-    borderTopRightRadius: 14,
-    borderBottomRightRadius: 14,
-  },
-  '&:hover td': {
-    background: 'var(--queue-row-hover)',
-  },
-}));
 
 export default function Documentos() {
   const { profile } = useContext(AuthContext);
@@ -346,372 +305,196 @@ export default function Documentos() {
     });
   };
 
+  const colunas = [
+    { chave: 'titulo', titulo: 'Título', render: (doc) => <span className="font-bold">{doc.titulo || '-'}</span> },
+    { chave: 'tipo', titulo: 'Tipo', render: (doc) => doc.type?.nome || '—' },
+    { chave: 'sigilo', titulo: 'Sigilo', render: (doc) => <Pilula tom="neutro" contorno>{SIGILO_LABELS[doc.sigilo] || doc.sigilo}</Pilula> },
+    { chave: 'status', titulo: 'Status', render: (doc) => STATUS_LABELS[doc.status] || String(doc.status || '').toUpperCase() },
+    { chave: 'versao', titulo: 'Versão', render: (doc) => doc.current_version_number || 0 },
+    { chave: 'criador', titulo: 'Criado por', render: (doc) => doc.creator?.name || '—' },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (doc) => (
+        <AcoesDeLinha rotuloEditar="Editar documento" rotuloExcluir="Excluir documento" aoEditar={() => openEdit(doc)} aoExcluir={() => askDelete(doc)}>
+          <Button variant="secondary" size="icon-sm" onClick={() => openView(doc)} title="Visualizar documento" aria-label="Visualizar documento">
+            <Eye />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => openVersions(doc)}>Versões</Button>
+        </AcoesDeLinha>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page documentos-page">
+    <div className="ui-reset documentos-page">
+      <CabecalhoDePagina
+        titulo={`Você possui ${total} Documentos Cadastrados`}
+        subtitulo="Listagem, filtros e ações do módulo de documentos."
+      />
       {alertState.visible && (
-        <Alert
-          sx={{ mb: 2 }}
-          variant="filled"
-          severity={alertState.type}
-          onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-        >
-          {alertState.message}
-        </Alert>
+        <div className="mb-4">
+          <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
+            {alertState.message}
+          </Banner>
+        </div>
       )}
 
-      <BaseCard title={`Voce possui ${total} Documentos Cadastrados`} sx={{ mb: 3 }}>
-        <Box
-          className="queue-page__toolbar"
-          sx={{
-            '& > :not(style)': { m: 0 },
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 1,
-            flexWrap: 'wrap',
-            mb: 2,
-          }}
-        >
-          <TextField
-            className="lg-search-field"
-            sx={{ flex: 1, minWidth: 240 }}
-            placeholder="Pesquisar documento"
-            name="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FeatherIcon icon="search" width="22" height="22" />
-                </InputAdornment>
-              ),
-            }}
-            inputProps={{ maxLength: 80, autoComplete: 'off' }}
-          />
-
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              value={filters.document_type_id}
-              label="Tipo"
-              onChange={(e) => setFilters((prev) => ({ ...prev, document_type_id: e.target.value }))}
-            >
-              <MenuItem value=""><em>Todos</em></MenuItem>
-              {filteredTypes.map((type) => (
-                <MenuItem key={type.id} value={type.id}>{type.nome}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Sigilo</InputLabel>
-            <Select
-              value={filters.sigilo}
-              label="Sigilo"
-              onChange={(e) => setFilters((prev) => ({ ...prev, sigilo: e.target.value }))}
-            >
-              <MenuItem value=""><em>Todos</em></MenuItem>
-              {Object.entries(SIGILO_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filters.status}
-              label="Status"
-              onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-            >
-              <MenuItem value=""><em>Todos</em></MenuItem>
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Fab
-              className="queue-page__fab queue-page__fab--add"
-              onClick={openNew}
-              color="primary"
-              aria-label="novo documento"
-              sx={{ width: 62, height: 62, borderRadius: '14px' }}
-            >
-              <FeatherIcon icon="file-plus" />
-            </Fab>
-          </Stack>
-        </Box>
-        <Typography variant="body2" color="text.secondary">
-          Listagem, filtros e ações do módulo de documentos.
-        </Typography>
-      </BaseCard>
-
-      <BaseCard title="Listagem">
-        <TableContainer className="queue-page__table-wrap">
-          <Table
-            className="queue-page__table"
-            size="small"
-            sx={{ mt: 2, whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell>Título</TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Tipo</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Sigilo</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Status</Typography></TableCell>
-                <TableCell>Versão</TableCell>
-                <TableCell className="queue-page__th"><Typography color="textSecondary" variant="h6">Criado por</Typography></TableCell>
-                <TableCell>Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {documents.map((doc) => (
-                <StyledTableRow key={doc.id} hover>
-                  <TableCell><Typography variant="h6" sx={{ fontWeight: 700 }}>{doc.titulo || '-'}</Typography></TableCell>
-                  <TableCell>{doc.type?.nome || '—'}</TableCell>
-                  <TableCell><Chip size="small" label={SIGILO_LABELS[doc.sigilo] || doc.sigilo} /></TableCell>
-                  <TableCell><Typography variant="h6">{STATUS_LABELS[doc.status] || String(doc.status || '').toUpperCase()}</Typography></TableCell>
-                  <TableCell><Typography variant="h6">{doc.current_version_number || 0}</Typography></TableCell>
-                  <TableCell>{doc.creator?.name || '—'}</TableCell>
-                  <TableCell align="center">
-                    <Box className="queue-page__actions" sx={{ '& button': { mx: 0.5 } }}>
-                      <Button size="medium" variant="outlined" onClick={() => openView(doc)} title="Visualizar documento" sx={{ minWidth: 44, px: 1.25 }}>
-                        <FeatherIcon icon="eye" width="18" height="18" />
-                      </Button>
-                      <Button size="small" variant="outlined" onClick={() => openVersions(doc)}>Versões</Button>
-                      <Button className="queue-page__action queue-page__action--success" color="success" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => openEdit(doc)} title="Editar documento">
-                        <FeatherIcon icon="edit" width="18" height="18" />
-                      </Button>
-                      <Button className="queue-page__action queue-page__action--danger" color="error" size="medium" variant="contained" sx={{ minWidth: 62, height: 40 }} onClick={() => askDelete(doc)} title="Excluir documento">
-                        <FeatherIcon icon="trash" width="18" height="18" />
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-              {!loading && documents.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Typography color="text.secondary">Nenhum documento encontrado.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={total}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[15, 25, 50]}
-            onPageChange={(_, nextPage) => {
-              setPage(nextPage);
-              loadDocuments(nextPage, rowsPerPage);
-            }}
-            onRowsPerPageChange={(e) => {
-              const nextRows = Number(e.target.value);
-              setRowsPerPage(nextRows);
-              setPage(0);
-              loadDocuments(0, nextRows);
-            }}
-          />
-        </TableContainer>
-      </BaseCard>
-
-      <Modal open={isModalOpen} onClose={closeModal}>
-        <Box sx={{ ...modalShellSx, ...modalFormRootSx, maxWidth: 780 }}>
-          <BaseCard title={form.id ? 'Editar Documento' : 'Novo Documento'}>
-            <Stack spacing={2.5}>
-              <TextField
-                fullWidth
-                label="Título"
-                value={form.titulo}
-                onChange={(e) => setForm((prev) => ({ ...prev, titulo: e.target.value }))}
-              />
-              <FormControl fullWidth>
-                <InputLabel>Tipo</InputLabel>
-                <Select
-                  value={form.document_type_id}
-                  label="Tipo"
-                  onChange={(e) => setForm((prev) => ({ ...prev, document_type_id: e.target.value }))}
-                >
-                  <MenuItem value=""><em>Selecione</em></MenuItem>
-                  {filteredTypes.map((type) => (
-                    <MenuItem key={type.id} value={type.id}>{type.nome}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button variant="outlined" href="/documentos/tipos">Gerenciar tipos</Button>
-              </Box>
-              <FormControl fullWidth>
-                <InputLabel>Sigilo</InputLabel>
-                <Select
-                  value={form.sigilo}
-                  label="Sigilo"
-                  onChange={(e) => setForm((prev) => ({ ...prev, sigilo: e.target.value }))}
-                >
-                  {Object.entries(SIGILO_LABELS).map(([value, label]) => (
-                    <MenuItem key={value} value={value}>{label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={form.status}
-                  label="Status"
-                  onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-                >
-                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                    <MenuItem key={value} value={value}>{label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                label="Resumo"
-                multiline
-                minRows={4}
-                value={form.resumo}
-                onChange={(e) => setForm((prev) => ({ ...prev, resumo: e.target.value }))}
-              />
-              <TextField
-                fullWidth
-                label="Arquivo"
-                type="file"
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ accept: '.pdf,.doc,.docx,.png,.jpg,.jpeg' }}
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-              {form.id && (
-                <Typography variant="body2" color="text.secondary">
-                  Se anexar um arquivo, o sistema criará uma nova versão.
-                </Typography>
-              )}
-              {form.id && (
-                <Box sx={{ display: 'grid', gap: 1 }}>
-                  <Typography variant="subtitle2">Anexos do documento</Typography>
-                  {versionsLoading && <Typography color="text.secondary">Carregando anexos...</Typography>}
-                  {!versionsLoading && versions.length === 0 && <Typography color="text.secondary">Nenhum anexo registrado.</Typography>}
-                  {!versionsLoading && versions.map((version) => (
-                    <Box
-                      key={version.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 1,
-                        py: 1,
-                        borderBottom: '1px solid rgba(0,0,0,0.08)',
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                          {version.original_name || 'arquivo'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Versao {version.version_number}
-                        </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={1}>
-                        <Button variant="outlined" size="small" onClick={() => handleDownloadVersion(version)}>
-                          Baixar
-                        </Button>
-                        {isAdmin && (
-                          <Button variant="outlined" color="error" size="small" onClick={() => askDeleteVersion(version)}>
-                            Excluir
-                          </Button>
-                        )}
-                      </Stack>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Stack>
-
-            <Box sx={{ mt: 2.2, display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-              <Button onClick={saveDocument} variant="contained" sx={modalPrimaryButtonSx}>
-                Gravar
-              </Button>
-              <Button onClick={closeModal} variant="outlined" sx={modalSecondaryButtonSx}>
-                Cancelar
-              </Button>
-            </Box>
-          </BaseCard>
-        </Box>
-      </Modal>
-
-      <Dialog
-        open={viewOpen}
-        onClose={closeView}
-        fullScreen
-        PaperProps={{
-          sx: {
-            background: 'var(--lg-glass-modal)',
-            backdropFilter: 'var(--lg-blur-modal)',
-            WebkitBackdropFilter: 'var(--lg-blur-modal)',
-          },
-        }}
-      >
-        <DocumentoDetalhe documentId={viewDocumentId} embedded onClose={closeView} />
-      </Dialog>
-
-      <Dialog open={versionsOpen} onClose={() => setVersionsOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Versões do documento</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mb={2}>
-            <Button component="label" variant="outlined">
-              Selecionar nova versão
-              <input hidden type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onChange={(e) => setVersionFile(e.target.files?.[0] || null)} />
-            </Button>
-            {versionFile && (
-              <Typography variant="body2" color="text.secondary">
-                Arquivo selecionado: {versionFile.name}
-              </Typography>
-            )}
-            <Button variant="contained" onClick={handleUploadVersion} disabled={!versionFile || !currentDocument?.id}>
-              Enviar nova versão
-            </Button>
-          </Stack>
-          {versionsLoading && <Typography color="text.secondary">Carregando versões...</Typography>}
-          {!versionsLoading && versions.length === 0 && <Typography color="text.secondary">Nenhuma versão registrada.</Typography>}
-          {versions.map((version) => (
-            <Box
-              key={version.id}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              py={1}
-              borderBottom="1px solid rgba(0,0,0,0.08)"
-            >
-              <Box>
-                <Typography variant="body2" fontWeight={700}>
-                  Versão {version.version_number}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {version.original_name} | {version.mime_type || '—'}
-                </Typography>
-              </Box>
-              <Button variant="outlined" size="small" onClick={() => handleDownloadVersion(version)}>
-                Baixar
-              </Button>
-            </Box>
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <CampoDeBusca
+          rotulo="Pesquisar documento"
+          placeholder="Pesquisar documento"
+          name="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          maxLength={80}
+        />
+        <CampoSelecao id="docs-filtro-tipo" label="Tipo" value={filters.document_type_id} onChange={(e) => setFilters((prev) => ({ ...prev, document_type_id: e.target.value }))} className="min-w-[160px]">
+          <option value="">Todos</option>
+          {filteredTypes.map((type) => (
+            <option key={type.id} value={type.id}>{type.nome}</option>
           ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setVersionsOpen(false)} variant="outlined">
-            Fechar
+        </CampoSelecao>
+        <CampoSelecao id="docs-filtro-sigilo" label="Sigilo" value={filters.sigilo} onChange={(e) => setFilters((prev) => ({ ...prev, sigilo: e.target.value }))} className="min-w-[150px]">
+          <option value="">Todos</option>
+          {Object.entries(SIGILO_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </CampoSelecao>
+        <CampoSelecao id="docs-filtro-status" label="Status" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))} className="min-w-[150px]">
+          <option value="">Todos</option>
+          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </CampoSelecao>
+        <ActionCreateFab title="Novo documento" onClick={openNew} />
+      </div>
+
+      <DataTable
+        rotulo="documentos"
+        colunas={colunas}
+        linhas={documents}
+        chaveDaLinha={(doc) => doc.id}
+        carregando={loading}
+        vazio="Nenhum documento encontrado."
+      />
+      <Paginacao
+        total={total}
+        pagina={page}
+        porPagina={rowsPerPage}
+        opcoes={[15, 25, 50]}
+        aoMudarPagina={(nextPage) => {
+          setPage(nextPage);
+          loadDocuments(nextPage, rowsPerPage);
+        }}
+        aoMudarPorPagina={(nextRows) => {
+          setRowsPerPage(nextRows);
+          setPage(0);
+          loadDocuments(0, nextRows);
+        }}
+      />
+
+      <Dialogo aberto={isModalOpen} aoFechar={closeModal} tamanho="lg">
+        <DialogoCabecalho>{form.id ? 'Editar Documento' : 'Novo Documento'}</DialogoCabecalho>
+        <div className="grid gap-4">
+          <CampoTexto id="doc-titulo" label="Título" value={form.titulo} onChange={(e) => setForm((prev) => ({ ...prev, titulo: e.target.value }))} />
+          <CampoSelecao id="doc-tipo" label="Tipo" value={form.document_type_id} onChange={(e) => setForm((prev) => ({ ...prev, document_type_id: e.target.value }))}>
+            <option value="">Selecione</option>
+            {filteredTypes.map((type) => (
+              <option key={type.id} value={type.id}>{type.nome}</option>
+            ))}
+          </CampoSelecao>
+          <div className="flex justify-end">
+            <a className={buttonVariants({ variant: 'outline', size: 'sm' })} href="/documentos/tipos">Gerenciar tipos</a>
+          </div>
+          <CampoSelecao id="doc-sigilo" label="Sigilo" value={form.sigilo} onChange={(e) => setForm((prev) => ({ ...prev, sigilo: e.target.value }))}>
+            {Object.entries(SIGILO_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </CampoSelecao>
+          <CampoSelecao id="doc-status" label="Status" value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </CampoSelecao>
+          <CampoTexto id="doc-resumo" label="Resumo" multiline rows={4} value={form.resumo} onChange={(e) => setForm((prev) => ({ ...prev, resumo: e.target.value }))} />
+          <CampoTexto
+            id="doc-arquivo"
+            label="Arquivo"
+            type="file"
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+          {form.id && (
+            <p className="text-sm text-muted-foreground">Se anexar um arquivo, o sistema criará uma nova versão.</p>
+          )}
+          {form.id && (
+            <div className="grid gap-1">
+              <p className="text-sm font-semibold">Anexos do documento</p>
+              {versionsLoading && <p className="text-sm text-muted-foreground">Carregando anexos...</p>}
+              {!versionsLoading && versions.length === 0 && <p className="text-sm text-muted-foreground">Nenhum anexo registrado.</p>}
+              {!versionsLoading && versions.map((version) => (
+                <div key={version.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{version.original_name || 'arquivo'}</p>
+                    <p className="text-xs text-muted-foreground">Versão {version.version_number}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleDownloadVersion(version)}>Baixar</Button>
+                    {isAdmin && (
+                      <Button variant="destructive" size="sm" onClick={() => askDeleteVersion(version)}>Excluir</Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <DialogoRodape>
+          <Button variant="outline" onClick={closeModal}>Cancelar</Button>
+          <Button onClick={saveDocument}>Gravar</Button>
+        </DialogoRodape>
+      </Dialogo>
+
+      <Dialogo aberto={viewOpen} aoFechar={closeView} tamanho="xl">
+        <DialogoTitulo className="sr-only">Documento</DialogoTitulo>
+        <DocumentoDetalhe documentId={viewDocumentId} embedded onClose={closeView} />
+      </Dialogo>
+
+      <Dialogo aberto={versionsOpen} aoFechar={() => setVersionsOpen(false)} tamanho="lg">
+        <DialogoCabecalho>Versões do documento</DialogoCabecalho>
+        <div className="mb-4 grid gap-3">
+          <label className={`${buttonVariants({ variant: 'outline' })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>
+            Selecionar nova versão
+            <input type="file" className="sr-only" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onChange={(e) => setVersionFile(e.target.files?.[0] || null)} />
+          </label>
+          {versionFile && (
+            <p className="text-sm text-muted-foreground">Arquivo selecionado: {versionFile.name}</p>
+          )}
+          <Button onClick={handleUploadVersion} disabled={!versionFile || !currentDocument?.id}>
+            Enviar nova versão
           </Button>
-        </DialogActions>
-      </Dialog>
+        </div>
+        {versionsLoading && <p className="text-sm text-muted-foreground">Carregando versões...</p>}
+        {!versionsLoading && versions.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma versão registrada.</p>}
+        {versions.map((version) => (
+          <div key={version.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
+            <div className="min-w-0">
+              <p className="text-sm font-bold">Versão {version.version_number}</p>
+              <p className="text-xs text-muted-foreground">{version.original_name} | {version.mime_type || '—'}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => handleDownloadVersion(version)}>Baixar</Button>
+          </div>
+        ))}
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setVersionsOpen(false)}>Fechar</Button>
+        </DialogoRodape>
+      </Dialogo>
 
       <ConfirmDialog
         confirmDialog={confirmDialog}
         setConfirmDialog={setConfirmDialog}
       />
-    </Box>
+    </div>
   );
 }

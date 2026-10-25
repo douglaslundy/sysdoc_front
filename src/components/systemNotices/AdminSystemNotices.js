@@ -1,32 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { Eye, Image as ImagemIcone, Save } from 'lucide-react';
 import ConfirmDialog from '../confirmDialog';
 import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import NoticeRichTextEditor from './NoticeRichTextEditor';
 import NoticeModal from './NoticeModal';
+import { Banner } from '../ui/banner';
+import { Button, buttonVariants } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { DataTable } from '../ui/data-table';
+import { Pilula } from '../ui/pilula';
 
 const EMPTY = {
   title: '',
@@ -41,7 +25,6 @@ const EMPTY = {
 };
 
 export default function AdminSystemNotices() {
-  const theme = useTheme();
   const { permissionsLoaded } = useContext(AuthContext);
   const [form, setForm] = useState(EMPTY);
   const [users, setUsers] = useState([]);
@@ -55,41 +38,6 @@ export default function AdminSystemNotices() {
     onConfirm: null,
   });
   const [previewNotice, setPreviewNotice] = useState(null);
-
-  const fieldSx = {
-    '& .MuiOutlinedInput-root': {
-      color: theme.palette.text.primary,
-      background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.35 : 0.72),
-      borderRadius: 2,
-      '& fieldset': {
-        borderColor: alpha(theme.palette.divider, 0.9),
-      },
-      '&:hover fieldset': {
-        borderColor: alpha(theme.palette.primary.main, 0.55),
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`,
-      },
-    },
-    '& .MuiInputLabel-root': {
-      color: theme.palette.text.secondary,
-    },
-    '& .MuiSelect-icon': {
-      color: theme.palette.text.secondary,
-    },
-    '& .MuiInputBase-inputMultiline': {
-      lineHeight: 1.7,
-      color: theme.palette.text.primary,
-      WebkitTextFillColor: theme.palette.text.primary,
-      backgroundColor: 'transparent',
-    },
-    '& textarea.MuiInputBase-inputMultiline': {
-      color: theme.palette.text.primary,
-      WebkitTextFillColor: theme.palette.text.primary,
-      backgroundColor: 'transparent',
-    },
-  };
 
   const load = async () => {
     setError('');
@@ -112,9 +60,9 @@ export default function AdminSystemNotices() {
     load().catch(() => setError('Não foi possível carregar usuários ou avisos.'));
   }, [permissionsLoaded]);
 
-  const change = ({ target }) => {
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    setForm((current) => ({ ...current, [target.name]: value }));
+  const change = ({ target: { name, type, checked, value } }) => {
+    const novo = type === 'checkbox' ? checked : value;
+    setForm((current) => ({ ...current, [name]: novo }));
   };
 
   const handleImage = async ({ target }) => {
@@ -170,141 +118,97 @@ export default function AdminSystemNotices() {
     });
   };
 
-  return (
-    <Box className="queue-page avisos-page" sx={[{ py: 2 }, modalFormRootSx]}>
-      <BaseCard title="Cadastro de Avisos">
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+  const colunas = [
+    {
+      chave: 'titulo',
+      titulo: 'Título',
+      render: (notice) => (
+        <>
+          <span className="block font-bold">{notice.title}</span>
+          <span className="block text-sm text-muted-foreground">{notice.subtitle || '-'}</span>
+        </>
+      ),
+    },
+    {
+      chave: 'destinatario',
+      titulo: 'Destinatário',
+      render: (notice) => (notice.target_user_id ? notice.target_user?.name || `Usuário #${notice.target_user_id}` : 'Todos'),
+    },
+    { chave: 'periodo', titulo: 'Período', render: (notice) => notice.valid_until || '-' },
+    {
+      chave: 'status',
+      titulo: 'Status',
+      render: (notice) => <Pilula tom={notice.is_active ? 'sucesso' : 'neutro'}>{notice.is_active ? 'Ativo' : 'Inativo'}</Pilula>,
+    },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (notice) => (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setPreviewNotice(notice)}>
+            <Eye /> Preview
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => confirmRemove(notice)}>
+            Excluir
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-        <Box component="form" onSubmit={submit} sx={{ mb: 3 }}>
-          <Stack spacing={2}>
-            <TextField sx={fieldSx} name="title" label="Título" value={form.title} onChange={change} required fullWidth />
-            <TextField sx={fieldSx} name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} fullWidth />
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Texto do aviso
-              </Typography>
+  return (
+    <div className="ui-reset avisos-page">
+      <Card>
+        <CardHeader>
+          <CardTitle>Cadastro de Avisos</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          {error ? <Banner tom="perigo">{error}</Banner> : null}
+
+          <form onSubmit={submit} className="grid gap-4">
+            <CampoTexto id="aviso-titulo" name="title" label="Título" value={form.title} onChange={change} required obrigatorio />
+            <CampoTexto id="aviso-subtitulo" name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} />
+            <div>
+              <p className="mb-2 text-sm font-semibold">Texto do aviso</p>
               <NoticeRichTextEditor
                 value={form.body}
                 onChange={(content) => setForm((current) => ({ ...current, body: content }))}
               />
-            </Box>
-            <Button component="label" variant="outlined" startIcon={<FeatherIcon icon="image" width="16" height="16" />} sx={{ alignSelf: 'flex-start' }}>
-              Inserir imagem
-              <input hidden type="file" accept="image/*" onChange={handleImage} />
-            </Button>
-            {form.image_data ? <img src={form.image_data} alt="Pré-visualização" style={{ maxWidth: 360, borderRadius: 12, border: `1px solid ${alpha(theme.palette.divider, 0.8)}` }} /> : null}
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                sx={fieldSx}
-                name="times_per_day"
-                label="Vezes por dia"
-                type="number"
-                value={form.times_per_day}
-                onChange={change}
-                inputProps={{ min: 1, max: 24 }}
-                fullWidth
-              />
-              <TextField
-                sx={fieldSx}
-                name="interval_minutes"
-                label="Intervalo em minutos"
-                type="number"
-                value={form.interval_minutes}
-                onChange={change}
-                inputProps={{ min: 1, max: 1440 }}
-                fullWidth
-              />
-              <TextField
-                sx={fieldSx}
-                name="valid_until"
-                label="Válido até"
-                type="date"
-                value={form.valid_until}
-                onChange={change}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Stack>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-              <FormControl fullWidth sx={fieldSx}>
-                <InputLabel shrink>Destinatário</InputLabel>
-                <Select
-                  name="target_user_id"
-                  value={form.target_user_id}
-                  label="Destinatário"
-                  onChange={change}
-                  renderValue={(selected) => {
-                    if (selected === 'all') return 'Todos';
-                    const selectedUser = users.find((user) => String(user.id) === String(selected));
-                    return selectedUser?.name || 'Todos';
-                  }}
-                >
-                  <MenuItem value="all">Todos</MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button type="submit" variant="contained" startIcon={<FeatherIcon icon="save" width="16" height="16" />}>
-                Salvar
+            </div>
+            <label className={`${buttonVariants({ variant: 'outline' })} cursor-pointer self-start has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>
+              <ImagemIcone /> Inserir imagem
+              <input type="file" accept="image/*" className="sr-only" onChange={handleImage} />
+            </label>
+            {form.image_data ? <img src={form.image_data} alt="Pré-visualização" className="max-w-[360px] rounded-xl border border-border" /> : null}
+            <div className="grid gap-4 md:grid-cols-3">
+              <CampoTexto id="aviso-vezes" name="times_per_day" label="Vezes por dia" type="number" min={1} max={24} value={form.times_per_day} onChange={change} />
+              <CampoTexto id="aviso-intervalo" name="interval_minutes" label="Intervalo em minutos" type="number" min={1} max={1440} value={form.interval_minutes} onChange={change} />
+              <CampoTexto id="aviso-validade" name="valid_until" label="Válido até" type="date" value={form.valid_until} onChange={change} />
+            </div>
+            <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
+              <CampoSelecao id="aviso-destinatario" name="target_user_id" label="Destinatário" value={form.target_user_id} onChange={change}>
+                <option value="all">Todos</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>{user.name}</option>
+                ))}
+              </CampoSelecao>
+              <Button type="submit">
+                <Save /> Salvar
               </Button>
-            </Stack>
-          </Stack>
-        </Box>
+            </div>
+          </form>
 
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" sx={{ whiteSpace: 'nowrap', borderCollapse: 'separate', borderSpacing: '0 10px' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell className="queue-page__th"><Typography variant="h6">Título</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Destinatário</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Período</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Status</Typography></TableCell>
-                <TableCell className="queue-page__th"><Typography variant="h6">Ações</Typography></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {notices.map((notice) => (
-                <TableRow key={notice.id} hover>
-                  <TableCell>
-                    <Typography fontWeight={700}>{notice.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">{notice.subtitle || '-'}</Typography>
-                  </TableCell>
-                  <TableCell>{notice.target_user_id ? notice.target_user?.name || `Usuário #${notice.target_user_id}` : 'Todos'}</TableCell>
-                  <TableCell>{notice.valid_until || '-'}</TableCell>
-                  <TableCell>
-                    <Chip size="small" color={notice.is_active ? 'success' : 'default'} label={notice.is_active ? 'Ativo' : 'Inativo'} />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      color="primary"
-                      startIcon={<FeatherIcon icon="eye" width="16" height="16" />}
-                      onClick={() => setPreviewNotice(notice)}
-                      sx={{ mr: 1 }}
-                    >
-                      Preview
-                    </Button>
-                    <Button color="error" onClick={() => confirmRemove(notice)}>
-                      Excluir
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!notices.length && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    Nenhum aviso cadastrado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </BaseCard>
+          <DataTable
+            rotulo="avisos"
+            colunas={colunas}
+            linhas={notices}
+            chaveDaLinha={(notice) => notice.id}
+            vazio="Nenhum aviso cadastrado."
+          />
+        </CardContent>
+      </Card>
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
       <NoticeModal previewNotice={previewNotice} onPreviewClose={() => setPreviewNotice(null)} />
-    </Box>
+    </div>
   );
 }

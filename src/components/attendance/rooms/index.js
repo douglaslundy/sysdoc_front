@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Chip, TextField, Typography } from "@mui/material";
-import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
+import { Banner } from "../../ui/banner";
+import { Button } from "../../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { CampoTexto } from "../../ui/campos";
+import { EstadoVazio } from "../../ui/estado-vazio";
+import { Pilula } from "../../ui/pilula";
 
 const initialForm = { id: null, name: "", description: "", active: true };
 
@@ -81,74 +85,61 @@ export default function AttendanceRooms() {
   };
 
   return (
-    <BaseCard title="Salas de Atendimento">
-      <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-        <TextField
-          label="Nome da sala"
-          value={form.name}
-          onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          sx={{ minWidth: 260 }}
-        />
-        <TextField
-          label="Descrição"
-          value={form.description}
-          onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          sx={{ minWidth: 320 }}
-        />
-        <Button variant="contained" onClick={onSubmit} disabled={loading || !form.name.trim()}>
-          {form.id ? "Atualizar" : "Criar sala"}
-        </Button>
-        {form.id ? (
-          <Button variant="outlined" onClick={() => setForm(initialForm)} disabled={loading}>
-            Cancelar edição
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>Salas de Atendimento</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-full sm:w-[260px]">
+            <CampoTexto id="sala-nome" label="Nome da sala" value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} />
+          </div>
+          <div className="w-full sm:w-[320px]">
+            <CampoTexto id="sala-descricao" label="Descrição" value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
+          </div>
+          <Button onClick={onSubmit} disabled={loading || !form.name.trim()}>
+            {form.id ? "Atualizar" : "Criar sala"}
           </Button>
-        ) : null}
-      </Box>
+          {form.id ? (
+            <Button variant="outline" onClick={() => setForm(initialForm)} disabled={loading}>
+              Cancelar edição
+            </Button>
+          ) : null}
+        </div>
 
-      {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
+        {error ? <Banner tom="perigo">{error}</Banner> : null}
 
-      {rooms.length === 0 ? (
-        <Typography>Nenhuma sala cadastrada.</Typography>
-      ) : (
-        rooms.map((room) => (
-          <Box
-            key={room.id}
-            sx={{
-              py: 1.5,
-              borderBottom: "1px solid #e0e0e0",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-            <Box>
-              <Typography variant="h6">{room.name}</Typography>
-              <Typography color="text.secondary">{room.description || "-"}</Typography>
-              <Chip
-                size="small"
-                label={room.active ? "Ativa" : "Inativa"}
-                color={room.active ? "success" : "default"}
-                sx={{ mt: 0.5 }}
-              />
-            </Box>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button variant="outlined" onClick={() => onEdit(room)} disabled={loading}>
-                Editar
-              </Button>
-              {room.active ? (
-                <Button variant="outlined" color="warning" onClick={() => onInactivate(room.id)} disabled={loading}>
-                  Inativar
-                </Button>
-              ) : null}
-              <Button variant="outlined" color="error" onClick={() => onDelete(room.id)} disabled={loading}>
-                Excluir
-              </Button>
-            </Box>
-          </Box>
-        ))
-      )}
-    </BaseCard>
+        {rooms.length === 0 ? (
+          <EstadoVazio titulo="Nenhuma sala cadastrada." />
+        ) : (
+          <ul className="divide-y divide-border">
+            {rooms.map((room) => (
+              <li key={room.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="font-display text-base font-bold">{room.name}</p>
+                  <p className="text-sm text-muted-foreground">{room.description || "-"}</p>
+                  <div className="mt-1">
+                    <Pilula tom={room.active ? "sucesso" : "neutro"}>{room.active ? "Ativa" : "Inativa"}</Pilula>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => onEdit(room)} disabled={loading}>
+                    Editar
+                  </Button>
+                  {room.active ? (
+                    <Button variant="secondary" onClick={() => onInactivate(room.id)} disabled={loading}>
+                      Inativar
+                    </Button>
+                  ) : null}
+                  <Button variant="destructive" onClick={() => onDelete(room.id)} disabled={loading}>
+                    Excluir
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
-

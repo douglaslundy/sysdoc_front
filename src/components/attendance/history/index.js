@@ -1,19 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { useRouter } from "next/router";
-import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
+import { Banner } from "../../ui/banner";
+import { Button } from "../../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { CampoSelecao, CampoTexto } from "../../ui/campos";
+import { DataTable } from "../../ui/data-table";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
@@ -24,6 +16,19 @@ const STATUS_OPTIONS = [
   { value: "cancelada", label: "Cancelada" },
   { value: "nao_compareceu", label: "Nao Compareceu" },
 ];
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
 
 export default function AttendanceHistory() {
   const router = useRouter();
@@ -95,120 +100,65 @@ export default function AttendanceHistory() {
     return options;
   }, [tickets, filters.assignedUserId]);
 
-  const formatDateTime = (value) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "-";
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
+  const colunas = [
+    { chave: "senha", titulo: "Senha", render: (item) => item.display_code },
+    { chave: "cliente", titulo: "Cliente", render: (item) => item.client?.name || `Cliente #${item.client_id}` },
+    { chave: "sala", titulo: "Sala", render: (item) => item.room?.name || "-" },
+    { chave: "atendente", titulo: "Atendente", render: (item) => item.assigned_user?.name || "-" },
+    { chave: "status", titulo: "Status", render: (item) => item.status },
+    { chave: "data", titulo: "Data/Hora", render: (item) => formatDateTime(item.finished_at || item.started_at || item.called_at || item.issued_at) },
+    {
+      chave: "acao",
+      titulo: "Ação",
+      render: (item) => (
+        <Button variant="outline" size="sm" onClick={() => router.push(`/attendance/service/${item.id}`)}>
+          Visualizar
+        </Button>
+      ),
+    },
+  ];
 
   return (
-    <BaseCard title="Atendimentos Realizados">
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
-        <TextField
-          label="Data Inicial"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={filters.serviceFrom}
-          onChange={(e) => onChangeFilter("serviceFrom", e.target.value)}
-          sx={{ minWidth: 180 }}
-        />
-        <TextField
-          label="Data Final"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={filters.serviceTo}
-          onChange={(e) => onChangeFilter("serviceTo", e.target.value)}
-          sx={{ minWidth: 180 }}
-        />
-        <TextField
-          select
-          label="Sala"
-          value={filters.roomId}
-          onChange={(e) => onChangeFilter("roomId", e.target.value)}
-          sx={{ minWidth: 220 }}
-        >
-          <MenuItem value="">Todas</MenuItem>
-          {rooms.map((room) => (
-            <MenuItem key={room.id} value={room.id}>
-              {room.name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Usuário"
-          value={filters.assignedUserId}
-          onChange={(e) => onChangeFilter("assignedUserId", e.target.value)}
-          sx={{ minWidth: 260 }}
-        >
-          <MenuItem value="">Todos</MenuItem>
-          {attendantOptions.map((user) => (
-            <MenuItem key={user.id} value={user.id}>
-              {user.name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Status"
-          value={filters.status}
-          onChange={(e) => onChangeFilter("status", e.target.value)}
-          sx={{ minWidth: 200 }}
-        >
-          {STATUS_OPTIONS.map((status) => (
-            <MenuItem key={status.value || "all"} value={status.value}>
-              {status.label}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Button variant="contained" onClick={onSearch} disabled={loading}>
-          {loading ? "Buscando..." : "Filtrar"}
-        </Button>
-      </Box>
-
-      {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
-
-      {tickets.length === 0 ? (
-        <Typography>Nenhum atendimento encontrado para os filtros informados.</Typography>
-      ) : (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Senha</TableCell>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Sala</TableCell>
-              <TableCell>Atendente</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Data/Hora</TableCell>
-              <TableCell align="right">Acao</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {tickets.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.display_code}</TableCell>
-                <TableCell>{item.client?.name || `Cliente #${item.client_id}`}</TableCell>
-                <TableCell>{item.room?.name || "-"}</TableCell>
-                <TableCell>{item.assigned_user?.name || "-"}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell>{formatDateTime(item.finished_at || item.started_at || item.called_at || item.issued_at)}</TableCell>
-                <TableCell align="right">
-                  <Button variant="outlined" onClick={() => router.push(`/attendance/service/${item.id}`)}>
-                    Visualizar
-                  </Button>
-                </TableCell>
-              </TableRow>
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>Atendimentos Realizados</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <CampoTexto id="hist-inicio" label="Data Inicial" type="date" value={filters.serviceFrom} onChange={(e) => onChangeFilter("serviceFrom", e.target.value)} />
+          <CampoTexto id="hist-fim" label="Data Final" type="date" value={filters.serviceTo} onChange={(e) => onChangeFilter("serviceTo", e.target.value)} />
+          <CampoSelecao id="hist-sala" label="Sala" value={filters.roomId} onChange={(e) => onChangeFilter("roomId", e.target.value)} className="min-w-[200px]">
+            <option value="">Todas</option>
+            {rooms.map((room) => (
+              <option key={room.id} value={room.id}>{room.name}</option>
             ))}
-          </TableBody>
-        </Table>
-      )}
-    </BaseCard>
+          </CampoSelecao>
+          <CampoSelecao id="hist-usuario" label="Usuário" value={filters.assignedUserId} onChange={(e) => onChangeFilter("assignedUserId", e.target.value)} className="min-w-[220px]">
+            <option value="">Todos</option>
+            {attendantOptions.map((user) => (
+              <option key={user.id} value={user.id}>{user.name}</option>
+            ))}
+          </CampoSelecao>
+          <CampoSelecao id="hist-status" label="Status" value={filters.status} onChange={(e) => onChangeFilter("status", e.target.value)} className="min-w-[180px]">
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status.value || "all"} value={status.value}>{status.label}</option>
+            ))}
+          </CampoSelecao>
+          <Button onClick={onSearch} disabled={loading}>
+            {loading ? "Buscando..." : "Filtrar"}
+          </Button>
+        </div>
+
+        {error ? <Banner tom="perigo">{error}</Banner> : null}
+
+        <DataTable
+          rotulo="atendimentos realizados"
+          colunas={colunas}
+          linhas={tickets}
+          chaveDaLinha={(item) => item.id}
+          vazio="Nenhum atendimento encontrado para os filtros informados."
+        />
+      </CardContent>
+    </Card>
   );
 }

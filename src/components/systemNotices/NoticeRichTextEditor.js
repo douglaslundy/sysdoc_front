@@ -1,16 +1,21 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Box, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
-  loading: () => <Box sx={{ minHeight: 220 }} />,
+  loading: () => <div className="min-h-[220px]" />,
 });
 
-export default function NoticeRichTextEditor({ value, onChange }) {
-  const theme = useTheme();
+// Quill traz o próprio tema; aqui só o alinhamos aos tokens (claro/escuro).
+const ESTILO_QUILL = [
+  '[&_.ql-toolbar.ql-snow]:rounded-t-lg [&_.ql-toolbar.ql-snow]:border-border [&_.ql-toolbar.ql-snow]:bg-hover',
+  '[&_.ql-container.ql-snow]:min-h-[220px] [&_.ql-container.ql-snow]:rounded-b-lg [&_.ql-container.ql-snow]:border-border [&_.ql-container.ql-snow]:bg-background [&_.ql-container.ql-snow]:text-foreground',
+  '[&_.ql-editor]:min-h-[180px] [&_.ql-editor]:text-sm [&_.ql-editor]:leading-[1.7]',
+  '[&_.ql-editor.ql-blank::before]:text-muted-foreground [&_.ql-editor.ql-blank::before]:not-italic',
+  '[&_.ql-snow_.ql-stroke]:stroke-muted-foreground [&_.ql-snow_.ql-fill]:fill-muted-foreground [&_.ql-snow_.ql-picker]:text-muted-foreground',
+].join(' ');
 
+export default function NoticeRichTextEditor({ value, onChange }) {
   const modules = useMemo(() => ({
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -41,48 +46,11 @@ export default function NoticeRichTextEditor({ value, onChange }) {
   ]), []);
 
   return (
-    <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+    <div>
+      <p className="mb-1.5 text-xs text-muted-foreground">
         Use a barra para formatar texto, espaçamento, títulos, listas, cores e links.
-      </Typography>
-      <Box
-        sx={{
-          '& .ql-toolbar.ql-snow': {
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            borderColor: alpha(theme.palette.divider, 0.9),
-            background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.35 : 0.82),
-          },
-          '& .ql-container.ql-snow': {
-            borderBottomLeftRadius: 12,
-            borderBottomRightRadius: 12,
-            borderColor: alpha(theme.palette.divider, 0.9),
-            background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.35 : 0.72),
-            color: theme.palette.text.primary,
-            minHeight: 220,
-          },
-          '& .ql-editor': {
-            minHeight: 180,
-            lineHeight: 1.7,
-            color: theme.palette.text.primary,
-            fontFamily: theme.typography.body1.fontFamily,
-            fontSize: theme.typography.body1.fontSize,
-          },
-          '& .ql-editor.ql-blank::before': {
-            color: theme.palette.text.secondary,
-            fontStyle: 'normal',
-          },
-          '& .ql-snow .ql-stroke': {
-            stroke: theme.palette.text.secondary,
-          },
-          '& .ql-snow .ql-fill': {
-            fill: theme.palette.text.secondary,
-          },
-          '& .ql-snow .ql-picker': {
-            color: theme.palette.text.secondary,
-          },
-        }}
-      >
+      </p>
+      <div className={ESTILO_QUILL}>
         <ReactQuill
           theme="snow"
           value={value}
@@ -91,7 +59,7 @@ export default function NoticeRichTextEditor({ value, onChange }) {
           formats={formats}
           placeholder="Digite e formate o conteúdo do aviso..."
         />
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

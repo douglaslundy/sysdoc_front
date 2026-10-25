@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
-import BaseCard from "../../baseCard/BaseCard";
 import { attendanceApi } from "../../../services/attendanceApi";
+import { Banner } from "../../ui/banner";
+import { Button } from "../../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { CampoSelecao } from "../../ui/campos";
+import { EstadoVazio } from "../../ui/estado-vazio";
 
 export default function AttendanceQueue() {
   const router = useRouter();
@@ -68,43 +71,44 @@ export default function AttendanceQueue() {
   };
 
   return (
-    <BaseCard title="Fila de Atendimento">
-      <Box className="attendance-queue__toolbar" sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
-        <TextField
-          className="attendance-queue__room-select"
-          select
-          label="Sala"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          sx={{ width: 260 }}
-        >
-          {rooms.map((room) => (
-            <MenuItem key={room.id} value={room.id}>
-              {room.name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Button className="attendance-queue__call-next" variant="contained" onClick={callNext} disabled={loading || !roomId}>
-          Chamar próximo
-        </Button>
-      </Box>
-      {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
-      {!roomId ? (
-        <Typography>Selecione uma sala para visualizar os cidadãos aguardando.</Typography>
-      ) : queue.length === 0 ? (
-        <Typography>Nenhum cliente aguardando atendimento.</Typography>
-      ) : (
-        queue.map((item) => (
-          <Box key={item.id} sx={{ py: 1.5, borderBottom: "1px solid #e0e0e0", display: "flex", justifyContent: "space-between", gap: 2 }}>
-            <Typography>
-              <strong>{item.display_code}</strong> - {item.client?.name || `Cliente #${item.client_id}`} ({item.waitingMinutes || 0} min)
-            </Typography>
-            <Button variant="outlined" onClick={() => callSpecific(item.id)} disabled={loading || !roomId}>
-              Chamar
-            </Button>
-          </Box>
-        ))
-      )}
-    </BaseCard>
+    <Card className="ui-reset">
+      <CardHeader>
+        <CardTitle>Fila de Atendimento</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="attendance-queue__toolbar flex flex-wrap items-end gap-3">
+          <div className="w-full sm:w-[260px]">
+            <CampoSelecao id="atendimento-sala" label="Sala" value={roomId} onChange={(e) => setRoomId(e.target.value)} className="attendance-queue__room-select">
+              <option value="">Selecione</option>
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>{room.name}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <Button className="attendance-queue__call-next" onClick={callNext} disabled={loading || !roomId}>
+            Chamar próximo
+          </Button>
+        </div>
+        {error ? <Banner tom="perigo">{error}</Banner> : null}
+        {!roomId ? (
+          <EstadoVazio titulo="Selecione uma sala para visualizar os cidadãos aguardando." />
+        ) : queue.length === 0 ? (
+          <EstadoVazio titulo="Nenhum cliente aguardando atendimento." />
+        ) : (
+          <ul className="divide-y divide-border">
+            {queue.map((item) => (
+              <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <p>
+                  <strong>{item.display_code}</strong> - {item.client?.name || `Cliente #${item.client_id}`} ({item.waitingMinutes || 0} min)
+                </p>
+                <Button variant="outline" onClick={() => callSpecific(item.id)} disabled={loading || !roomId}>
+                  Chamar
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }

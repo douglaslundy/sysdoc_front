@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Button, Chip, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
-import BaseCard from '../baseCard/BaseCard';
 import ConfirmDialog from '../confirmDialog';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { api } from '../../services/api';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
+import { DataTable } from '../ui/data-table';
+import { Paginacao } from '../ui/paginacao';
+import { Pilula } from '../ui/pilula';
 
 const STATUS_LABELS = {
   approved: 'Aprovada',
   pending: 'Pendente',
   rejected: 'Rejeitada',
 };
+
+const STATUS_TONS = {
+  approved: 'sucesso',
+  pending: 'alerta',
+  rejected: 'perigo',
+};
+
+const TOM_DO_ALERTA = { success: 'sucesso', error: 'perigo', warning: 'alerta' };
 
 const getErrorMessage = (error, fallback) => {
   const data = error?.response?.data;
@@ -86,117 +97,85 @@ export default function DocumentosAprovacoes() {
     });
   };
 
+  const colunas = [
+    { chave: 'documento', titulo: 'Documento', render: (item) => item.document?.titulo || `#${item.document_id}` },
+    { chave: 'acao', titulo: 'Ação', render: (item) => String(item.action || '').toUpperCase() },
+    {
+      chave: 'status',
+      titulo: 'Status',
+      render: (item) => <Pilula tom={STATUS_TONS[item.status] || 'neutro'}>{STATUS_LABELS[item.status] || item.status}</Pilula>,
+    },
+    { chave: 'solicitante', titulo: 'Solicitante', render: (item) => item.requester?.name || '—' },
+    {
+      chave: 'assinaturas',
+      titulo: 'Assinaturas',
+      render: (item) => (
+        <div className="grid gap-1">
+          {(item.signers || []).map((signer) => (
+            <span key={signer.id} className={`text-sm ${signer.signed ? 'text-success' : 'text-muted-foreground'}`}>
+              {signer.name}{signer.signed ? ' - assinou' : ' - pendente'}
+            </span>
+          ))}
+        </div>
+      ),
+    },
+    { chave: 'conclusao', titulo: 'Conclusão', render: (item) => formatDateTime(item.approved_at || item.rejected_at || item.updated_at) },
+    {
+      chave: 'acoes',
+      titulo: 'Ações',
+      render: (item) => (item.can_current_user_approve ? (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="success" size="sm" disabled={actionLoadingId === item.id} onClick={() => askApprove(item)}>
+            Aprovar
+          </Button>
+          <Button variant="destructive" size="sm" disabled={actionLoadingId === item.id} onClick={() => askReject(item)}>
+            Rejeitar
+          </Button>
+        </div>
+      ) : (
+        <span className="text-sm text-muted-foreground">{item.status === 'pending' ? 'Aguardando responsáveis' : 'Sem ações'}</span>
+      )),
+    },
+  ];
+
   return (
-    <Box sx={modalFormRootSx} className="queue-page documentos-page">
-      <BaseCard title="Aprovações de Documentos">
-        {alertState.visible && (
-          <Alert
-            sx={{ mb: 2 }}
-            variant="filled"
-            severity={alertState.type}
-            onClose={() => setAlertState({ visible: false, type: 'success', message: '' })}
-          >
+    <div className="ui-reset documentos-page">
+      <CabecalhoDePagina
+        titulo="Aprovações de Documentos"
+        subtitulo="Solicitações pendentes e histórico formal de exclusões submetidas à tripla assinatura."
+      />
+      {alertState.visible && (
+        <div className="mb-4">
+          <Banner tom={TOM_DO_ALERTA[alertState.type] || 'info'} onDispensar={() => setAlertState({ visible: false, type: 'success', message: '' })}>
             {alertState.message}
-          </Alert>
-        )}
+          </Banner>
+        </div>
+      )}
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Solicitações pendentes e histórico formal de exclusões submetidas à tripla assinatura.
-        </Typography>
-
-        <TableContainer className="queue-page__table-wrap">
-          <Table className="queue-page__table" size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Documento</TableCell>
-                <TableCell>Ação</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Solicitante</TableCell>
-                <TableCell>Assinaturas</TableCell>
-                <TableCell>Conclusão</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id} hover>
-                  <TableCell>{item.document?.titulo || `#${item.document_id}`}</TableCell>
-                  <TableCell>{String(item.action || '').toUpperCase()}</TableCell>
-                  <TableCell>
-                    <Chip size="small" label={STATUS_LABELS[item.status] || item.status} />
-                  </TableCell>
-                  <TableCell>{item.requester?.name || '—'}</TableCell>
-                  <TableCell>
-                    <Stack spacing={0.5}>
-                      {(item.signers || []).map((signer) => (
-                        <Typography key={signer.id} variant="body2" color={signer.signed ? 'success.main' : 'text.secondary'}>
-                          {signer.name}{signer.signed ? ' - assinou' : ' - pendente'}
-                        </Typography>
-                      ))}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    {formatDateTime(item.approved_at || item.rejected_at || item.updated_at)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {item.can_current_user_approve ? (
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="success"
-                          disabled={actionLoadingId === item.id}
-                          onClick={() => askApprove(item)}
-                        >
-                          Aprovar
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          disabled={actionLoadingId === item.id}
-                          onClick={() => askReject(item)}
-                        >
-                          Rejeitar
-                        </Button>
-                      </Stack>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        {item.status === 'pending' ? 'Aguardando responsáveis' : 'Sem ações'}
-                      </Typography>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!loading && items.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Typography color="text.secondary">Nenhuma aprovação registrada.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={total}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[15, 25, 50]}
-            onPageChange={(_, nextPage) => {
-              setPage(nextPage);
-              load(nextPage, rowsPerPage);
-            }}
-            onRowsPerPageChange={(e) => {
-              const nextRows = Number(e.target.value);
-              setRowsPerPage(nextRows);
-              setPage(0);
-              load(0, nextRows);
-            }}
-          />
-        </TableContainer>
-      </BaseCard>
+      <DataTable
+        rotulo="aprovações de documentos"
+        colunas={colunas}
+        linhas={items}
+        chaveDaLinha={(item) => item.id}
+        carregando={loading}
+        vazio="Nenhuma aprovação registrada."
+      />
+      <Paginacao
+        total={total}
+        pagina={page}
+        porPagina={rowsPerPage}
+        opcoes={[15, 25, 50]}
+        aoMudarPagina={(nextPage) => {
+          setPage(nextPage);
+          load(nextPage, rowsPerPage);
+        }}
+        aoMudarPorPagina={(nextRows) => {
+          setRowsPerPage(nextRows);
+          setPage(0);
+          load(0, nextRows);
+        }}
+      />
       <ConfirmDialog confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog} />
-    </Box>
+    </div>
   );
 }
