@@ -1,31 +1,15 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  Checkbox,
-  CircularProgress,
-  Divider,
-  Drawer,
-  IconButton,
-  InputAdornment,
-  List,
-  ListItemButton,
-  ListItemText,
-  TextField,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import FeatherIcon from "feather-icons-react";
+import { AlertCircle, ArrowLeft, Check, CheckCheck, Download, MessageCircle, Paperclip, RefreshCw, Search, Send, Trash, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { ChatContext } from "../../contexts/ChatContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
 import DestructiveConfirmDialog from "../confirmDialog/DestructiveConfirmDialog";
-
-const PANEL_WIDTH = 780;
+import { Button, buttonVariants } from "../ui/button";
+import { CampoDeBusca } from "../ui/campo-de-busca";
+import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
+import { Input, TextareaNativo } from "../ui/campos";
+import { Carregando } from "../ui/carregando";
+import { Gaveta } from "../ui/gaveta";
 
 const initials = (name) =>
   String(name || "?")
@@ -44,6 +28,16 @@ const formatTime = (value) =>
         minute: "2-digit",
       }).format(new Date(value))
     : "";
+
+// Círculo com as iniciais; `ponto` (classe de cor) mostra o indicador de presença.
+function Avatar({ nome, tamanho = 36, ponto = null }) {
+  return (
+    <span className="relative inline-flex shrink-0" style={{ width: tamanho, height: tamanho }}>
+      <span className="flex size-full items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">{initials(nome)}</span>
+      {ponto ? <span className={`absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-card ${ponto}`} /> : null}
+    </span>
+  );
+}
 
 function Attachment({ attachment }) {
   const [url, setUrl] = useState("");
@@ -64,79 +58,47 @@ function Attachment({ attachment }) {
   }, [attachment.download_url]);
 
   if (!url) {
-    return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
-        <CircularProgress size={16} />
-        <Typography variant="caption">Carregando anexo...</Typography>
-      </Box>
-    );
+    return <Carregando className="py-2 text-xs">Carregando anexo...</Carregando>;
   }
 
   if (isImage) {
     return (
-      <Box
-        component="img"
+      <img
         src={url}
         alt={attachment.original_name}
-        sx={{
-          display: "block",
-          maxWidth: 260,
-          maxHeight: 220,
-          borderRadius: "12px",
-          mt: 1,
-          cursor: "pointer",
-        }}
+        className="mt-2 block max-h-[220px] max-w-[260px] cursor-pointer rounded-xl"
         onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
       />
     );
   }
 
   return (
-    <Button
-      href={url}
-      download={attachment.original_name}
-      size="small"
-      variant="outlined"
-      startIcon={<FeatherIcon icon="download" width="15" />}
-      sx={{ mt: 1, color: "inherit", borderColor: "currentColor" }}
-    >
-      {attachment.original_name}
-    </Button>
+    <a href={url} download={attachment.original_name} className={`${buttonVariants({ variant: "outline", size: "sm" })} mt-2`}>
+      <Download /> {attachment.original_name}
+    </a>
   );
 }
 
 function StatusIcon({ status }) {
   if (status === "failed") {
     return (
-      <Tooltip title="Falha no envio">
-        <Box component="span" sx={{ display: "inline-flex", color: "error.main", ml: 0.5 }}>
-          <FeatherIcon icon="alert-circle" width="13" />
-        </Box>
-      </Tooltip>
+      <span title="Falha no envio" className="ml-1 inline-flex text-danger">
+        <AlertCircle className="size-3.5" aria-hidden />
+      </span>
     );
   }
   const read = status === "read";
   const double = status === "delivered" || read;
   const title = status === "sending" ? "Enviada" : read ? "Lida" : double ? "Entregue" : "Enviada";
+  const Icone = double ? CheckCheck : Check;
   return (
-    <Tooltip title={title}>
-      <Box
-        component="span"
-        sx={{
-          display: "inline-flex",
-          color: read ? "#38a8ff" : "var(--lg-text-muted)",
-          ml: 0.5,
-        }}
-      >
-        <FeatherIcon icon={double ? "check-circle" : "check"} width="13" />
-      </Box>
-    </Tooltip>
+    <span title={title} className={`ml-1 inline-flex ${read ? "text-info" : "text-muted-foreground"}`}>
+      <Icone className="size-3.5" aria-hidden />
+    </span>
   );
 }
-
 export default function ChatPanel() {
-  const theme = useTheme();
-  const mobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const { user: currentUserId } = useContext(AuthContext);
   const {
     isOpen,
@@ -314,509 +276,257 @@ export default function ChatPanel() {
   };
 
   const renderUsers = (title, items) => (
-    <Box>
-      <Typography
-        sx={{
-          px: 1.5,
-          pt: 1.5,
-          pb: 0.5,
-          fontSize: "10px",
-          fontWeight: 800,
-          letterSpacing: "0.1em",
-          color: "var(--lg-text-muted)",
-          textTransform: "uppercase",
-        }}
-      >
+    <div>
+      <p className="px-3 pt-3 pb-1 text-[10px] font-extrabold tracking-[0.1em] text-muted-foreground uppercase">
         {title} ({items.length})
-      </Typography>
-      <List dense disablePadding>
+      </p>
+      <ul>
         {items.map((item) => (
-          <ListItemButton
-            key={item.id}
-            onClick={() => startConversation(item.id)}
-            sx={{ borderRadius: "10px", mx: 0.5 }}
-          >
-            <Badge
-              overlap="circular"
-              variant="dot"
-              color={item.presence === "away" ? "warning" : "success"}
-              invisible={!item.is_online}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          <li key={item.id}>
+            <button
+              type="button"
+              onClick={() => startConversation(item.id)}
+              className="mx-1 flex w-[calc(100%-8px)] items-center gap-3 rounded-[10px] px-3 py-2 text-left hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
             >
-              <Avatar sx={{ width: 34, height: 34, fontSize: "12px" }}>
-                {initials(item.name)}
-              </Avatar>
-            </Badge>
-            <ListItemText
-              sx={{ ml: 1.2 }}
-              primary={item.name}
-              secondary={
-                item.is_online
-                  ? item.presence === "away"
-                    ? "Ausente"
-                    : "Online"
-                  : item.last_seen_at
-                  ? `Visto ${formatTime(item.last_seen_at)}`
-                  : "Offline"
-              }
-              primaryTypographyProps={{ fontSize: "13px", fontWeight: 700 }}
-              secondaryTypographyProps={{ fontSize: "11px" }}
-            />
-          </ListItemButton>
+              <Avatar nome={item.name} tamanho={34} ponto={item.is_online ? (item.presence === "away" ? "bg-primary" : "bg-success") : null} />
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] font-bold">{item.name}</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {item.is_online
+                    ? item.presence === "away"
+                      ? "Ausente"
+                      : "Online"
+                    : item.last_seen_at
+                    ? `Visto ${formatTime(item.last_seen_at)}`
+                    : "Offline"}
+                </span>
+              </span>
+            </button>
+          </li>
         ))}
-      </List>
-    </Box>
+      </ul>
+    </div>
   );
 
-  return (
-    <Drawer
-      anchor="right"
-      open={isOpen}
-      onClose={() => setIsOpen(false)}
-      variant="temporary"
-      PaperProps={{
-        className: "lg-sidebar-paper",
-        sx: {
-          width: mobile ? "100%" : `${PANEL_WIDTH}px`,
-          maxWidth: "100vw",
-          background: "var(--lg-glass-sidebar)",
-          backdropFilter: "var(--lg-blur-sidebar)",
-          borderLeft: "1px solid var(--lg-border-sidebar)",
-          color: "var(--lg-text-primary)",
-        },
-      }}
-    >
-      <Box
-        sx={{
-          height: 64,
-          px: 2,
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid var(--lg-border)",
-          gap: 1.5,
-        }}
-      >
-        <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>
-          <FeatherIcon icon="message-circle" width="19" />
-        </Avatar>
-        <Box>
-          <Typography sx={{ fontWeight: 800 }}>Chat interno</Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: connected ? "success.main" : "var(--lg-text-muted)" }}
-          >
-            {connected ? "Tempo real conectado" : "Sincronização periódica"}
-          </Typography>
-        </Box>
-        <Box flexGrow={1} />
-        <Tooltip
-          title={
-            chatBehavior?.playSoundOnMessage === false
-              ? "Som desativado pelo administrador"
-              : soundEnabled
-              ? "Desativar som"
-              : "Ativar som"
-          }
-        >
-          <IconButton
-            aria-label={
-              chatBehavior?.playSoundOnMessage === false
-                ? "Som do chat desativado pelo administrador"
-                : soundEnabled
-                ? "Desativar som do chat"
-                : "Ativar som do chat"
-            }
-            onClick={toggleSound}
-            disabled={chatBehavior?.playSoundOnMessage === false}
-            sx={{ color: "inherit" }}
-          >
-            <FeatherIcon
-              icon={
-                chatBehavior?.playSoundOnMessage === false
-                  ? "volume-x"
-                  : soundEnabled
-                  ? "volume-2"
-                  : "volume-x"
-              }
-              width="18"
-            />
-          </IconButton>
-        </Tooltip>
-        <IconButton
-          aria-label="Fechar chat"
-          onClick={() => setIsOpen(false)}
-          sx={{ color: "inherit" }}
-        >
-          <FeatherIcon icon="x" />
-        </IconButton>
-      </Box>
+  const somDesativadoPeloAdmin = chatBehavior?.playSoundOnMessage === false;
+  const rotuloSom = somDesativadoPeloAdmin
+    ? "Som do chat desativado pelo administrador"
+    : soundEnabled
+    ? "Desativar som do chat"
+    : "Ativar som do chat";
+  const tituloSom = somDesativadoPeloAdmin ? "Som desativado pelo administrador" : soundEnabled ? "Desativar som" : "Ativar som";
 
-      <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
-        <Box
-          sx={{
-            width: mobile && activeConversation ? 0 : mobile ? "100%" : 285,
-            overflow: "hidden",
-            borderRight: mobile ? 0 : "1px solid var(--lg-border)",
-            display: mobile && activeConversation ? "none" : "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Box sx={{ p: 1.5 }}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Pesquisar usuário"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <FeatherIcon icon="search" width="17" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {syncError && (
-              <Typography color="error" variant="caption" sx={{ display: "block", mt: 1 }}>
-                {syncError}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ overflowY: "auto", flex: 1 }}>
-            <Typography
-              sx={{
-                px: 2,
-                py: 1,
-                fontSize: "11px",
-                fontWeight: 800,
-                color: "var(--lg-text-muted)",
-                textTransform: "uppercase",
-              }}
-            >
-              Conversas
-            </Typography>
-            <List dense disablePadding>
+  return (
+    <Gaveta aberto={Boolean(isOpen)} aoFechar={() => setIsOpen(false)} titulo="Chat interno" semCabecalho className="p-0 sm:w-[780px]">
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4">
+        <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <MessageCircle className="size-5" aria-hidden />
+        </span>
+        <div>
+          <p className="font-extrabold">Chat interno</p>
+          <p className={`text-xs ${connected ? "text-success" : "text-muted-foreground"}`}>
+            {connected ? "Tempo real conectado" : "Sincronização periódica"}
+          </p>
+        </div>
+        <div className="flex-1" />
+        <Button variant="ghost" size="icon" aria-label={rotuloSom} title={tituloSom} onClick={toggleSound} disabled={somDesativadoPeloAdmin}>
+          {somDesativadoPeloAdmin || !soundEnabled ? <VolumeX /> : <Volume2 />}
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Fechar chat" onClick={() => setIsOpen(false)}>
+          <X />
+        </Button>
+      </div>
+
+      <div className="flex min-h-0 flex-1">
+        <div className={`${activeConversation ? "hidden md:flex" : "flex"} w-full flex-col overflow-hidden md:w-[285px] md:shrink-0 md:border-r md:border-border`}>
+          <div className="p-3">
+            <CampoDeBusca rotulo="Pesquisar usuário" placeholder="Pesquisar usuário" value={search} onChange={(event) => setSearch(event.target.value)} />
+            {syncError && <p className="mt-2 text-xs text-danger">{syncError}</p>}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <p className="px-4 py-2 text-[11px] font-extrabold text-muted-foreground uppercase">Conversas</p>
+            <ul>
               {conversations.map((conversation) => (
-                <ListItemButton
-                  key={conversation.id}
-                  selected={activeConversation?.id === conversation.id}
-                  onClick={() => openConversation(conversation)}
-                  sx={{ borderRadius: "10px", mx: 0.5 }}
-                >
-                  <Avatar sx={{ width: 36, height: 36, fontSize: "12px" }}>
-                    {initials(conversation.other_user?.name)}
-                  </Avatar>
-                  <ListItemText
-                    sx={{ ml: 1.2, minWidth: 0 }}
-                    primary={conversation.other_user?.name || "Conversa"}
-                    secondary={
-                      conversation.last_message?.display_body || "Sem mensagens"
-                    }
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: conversation.unread_count ? 800 : 600,
-                      noWrap: true,
-                    }}
-                    secondaryTypographyProps={{ fontSize: "11px", noWrap: true }}
-                  />
-                  {conversation.unread_count > 0 && (
-                    <Badge badgeContent={conversation.unread_count} color="primary" />
-                  )}
-                </ListItemButton>
+                <li key={conversation.id}>
+                  <button
+                    type="button"
+                    onClick={() => openConversation(conversation)}
+                    aria-current={activeConversation?.id === conversation.id ? "true" : undefined}
+                    className={`mx-1 flex w-[calc(100%-8px)] items-center gap-3 rounded-[10px] px-3 py-2 text-left hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none ${
+                      activeConversation?.id === conversation.id ? "bg-hover" : ""
+                    }`}
+                  >
+                    <Avatar nome={conversation.other_user?.name} tamanho={36} />
+                    <span className="min-w-0 flex-1">
+                      <span className={`block truncate text-[13px] ${conversation.unread_count ? "font-extrabold" : "font-semibold"}`}>
+                        {conversation.other_user?.name || "Conversa"}
+                      </span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {conversation.last_message?.display_body || "Sem mensagens"}
+                      </span>
+                    </span>
+                    {conversation.unread_count > 0 && (
+                      <span className="flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+                        {conversation.unread_count}
+                      </span>
+                    )}
+                  </button>
+                </li>
               ))}
-            </List>
-            <Divider sx={{ my: 1 }} />
+            </ul>
+            <hr className="my-2 border-border" />
             {renderUsers("Online", onlineUsers)}
             {renderUsers("Offline", offlineUsers)}
-          </Box>
-        </Box>
+          </div>
+        </div>
 
-        <Box sx={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+        <div className={`${activeConversation ? "flex" : "hidden md:flex"} min-w-0 flex-1 flex-col`}>
           {activeConversation ? (
             <>
-              <Box
-                sx={{
-                  minHeight: 64,
-                  px: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.2,
-                  borderBottom: "1px solid var(--lg-border)",
-                }}
-              >
-                {mobile && (
-                  <IconButton
-                    onClick={closeConversation}
-                    sx={{ color: "inherit" }}
-                  >
-                    <FeatherIcon icon="arrow-left" />
-                  </IconButton>
-                )}
-                <Avatar sx={{ width: 38, height: 38 }}>
-                  {initials(activeConversation.other_user?.name)}
-                </Avatar>
-                <Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: "14px" }}>
-                    {activeConversation.other_user?.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
+              <div className="flex min-h-16 shrink-0 items-center gap-3 border-b border-border px-4">
+                <Button variant="ghost" size="icon" aria-label="Voltar às conversas" className="md:hidden" onClick={closeConversation}>
+                  <ArrowLeft />
+                </Button>
+                <Avatar nome={activeConversation.other_user?.name} tamanho={38} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-extrabold">{activeConversation.other_user?.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {typing[activeConversation.id]
                       ? `${typing[activeConversation.id]} está digitando...`
                       : "Conversa privada"}
-                  </Typography>
-                </Box>
-                <Box flexGrow={1} />
-                <TextField
-                  size="small"
-                  placeholder="Buscar mensagens"
-                  value={historySearch}
-                  onChange={(event) => setHistorySearch(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") searchMessages(historySearch.trim());
-                  }}
-                  sx={{ width: { xs: 130, md: 190 } }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          size="small"
-                          aria-label="Buscar no histórico"
-                          onClick={() => searchMessages(historySearch.trim())}
-                        >
-                          <FeatherIcon icon="search" width="15" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <Tooltip title="Apagar conversa da minha lista">
-                  <IconButton
-                    aria-label="Apagar conversa"
-                    onClick={() => setDeleteRequest({ type: "conversation" })}
-                    sx={{ color: "error.main" }}
-                  >
-                    <FeatherIcon icon="trash-2" width="18" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-
-              <Box
-                sx={{
-                  flex: 1,
-                  overflowY: "auto",
-                  p: 2,
-                  background:
-                    "radial-gradient(circle at 20% 0%, rgba(var(--lg-accent-rgb), .08), transparent 34%)",
-                }}
-              >
-                {selectedMessageIds.length > 0 && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 1,
-                      mb: 1.5,
-                      p: 1,
-                      border: "1px solid var(--lg-border)",
-                      borderRadius: "12px",
-                      background: "var(--lg-glass-panel)",
+                  </p>
+                </div>
+                <div className="flex-1" />
+                <div className="flex w-[130px] items-center gap-1 md:w-[190px]">
+                  <Input
+                    aria-label="Buscar mensagens"
+                    placeholder="Buscar mensagens"
+                    value={historySearch}
+                    onChange={(event) => setHistorySearch(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") searchMessages(historySearch.trim());
                     }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {selectedMessageIds.length} mensagem(ns) selecionada(s)
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <Button size="small" onClick={() => setSelectedMessageIds([])}>
+                  />
+                  <Button variant="ghost" size="icon-sm" aria-label="Buscar no histórico" onClick={() => searchMessages(historySearch.trim())}>
+                    <Search />
+                  </Button>
+                </div>
+                <Button variant="destructive" size="icon-sm" title="Apagar conversa da minha lista" aria-label="Apagar conversa" onClick={() => setDeleteRequest({ type: "conversation" })}>
+                  <Trash2 />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {selectedMessageIds.length > 0 && (
+                  <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-2">
+                    <p className="text-sm font-bold">{selectedMessageIds.length} mensagem(ns) selecionada(s)</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setSelectedMessageIds([])}>
                         Limpar
                       </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        variant="contained"
-                        onClick={() => setDeleteRequest({ type: "multiple" })}
-                      >
+                      <Button size="sm" variant="destructive" onClick={() => setDeleteRequest({ type: "multiple" })}>
                         Excluir selecionadas
                       </Button>
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
                 )}
                 {loading ? (
-                  <Box sx={{ display: "grid", placeItems: "center", height: "100%" }}>
-                    <CircularProgress size={28} />
-                  </Box>
+                  <Carregando className="justify-center">Carregando mensagens...</Carregando>
                 ) : (
                   <>
                     {hasOlderMessages && (
-                      <Box sx={{ display: "flex", justifyContent: "center", mb: 1.5 }}>
-                        <Button size="small" variant="outlined" onClick={loadOlderMessages}>
+                      <div className="mb-3 flex justify-center">
+                        <Button size="sm" variant="outline" onClick={loadOlderMessages}>
                           Carregar mensagens anteriores
                         </Button>
-                      </Box>
+                      </div>
                     )}
                     {messages.filter((message) => !message.is_deleted).map((message) => {
-                    const mine = String(message.sender_id) === String(currentUserId);
-                    return (
-                      <Box
-                        key={message.id}
-                        sx={{
-                          display: "flex",
-                          justifyContent: mine ? "flex-end" : "flex-start",
-                          mb: 1.2,
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            position: "relative",
-                            maxWidth: "78%",
-                            px: 1.5,
-                            py: 1,
-                            borderRadius: mine
-                              ? "14px 14px 3px 14px"
-                              : "14px 14px 14px 3px",
-                            bgcolor: mine
-                              ? "rgba(var(--lg-accent-rgb), .20)"
-                              : "var(--lg-glass-panel)",
-                            border: "1px solid var(--lg-border)",
-                          }}
-                        >
-                          {mine &&
-                            !message.is_deleted &&
-                            !["sending", "failed"].includes(message.status) && (
-                              <Checkbox
-                                size="small"
-                                checked={selectedMessageIds.includes(message.id)}
-                                onChange={() => toggleMessageSelection(message.id)}
-                                inputProps={{ "aria-label": "Selecionar mensagem" }}
-                                sx={{
-                                  position: "absolute",
-                                  left: -34,
-                                  top: 4,
-                                  p: 0.5,
-                                }}
-                              />
-                            )}
-                          <Typography
-                            sx={{
-                              fontSize: "13px",
-                              whiteSpace: "pre-wrap",
-                              fontStyle: message.is_deleted ? "italic" : "normal",
-                              color: message.is_deleted
-                                ? "var(--lg-text-muted)"
-                                : "inherit",
-                            }}
+                      const mine = String(message.sender_id) === String(currentUserId);
+                      return (
+                        <div key={message.id} className={`mb-3 flex ${mine ? "justify-end" : "justify-start"}`}>
+                          <div
+                            className={`relative max-w-[78%] border border-border px-3 py-2 ${
+                              mine ? "rounded-[14px_14px_3px_14px] bg-primary/20" : "rounded-[14px_14px_14px_3px] bg-card"
+                            }`}
                           >
-                            {message.display_body}
-                          </Typography>
-                          {(message.attachments || []).map((attachment) => (
-                            <Attachment key={attachment.id} attachment={attachment} />
-                          ))}
-                          {message.pending_attachment_name && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, mt: 1 }}>
-                              <FeatherIcon icon="paperclip" width="13" />
-                              <Typography variant="caption">
-                                {message.pending_attachment_name}
-                              </Typography>
-                            </Box>
-                          )}
-                          {mine && message.status === "failed" && (
-                            <Box sx={{ mt: 0.7 }}>
-                              <Button
-                                size="small"
-                                color="error"
-                                variant="text"
-                                startIcon={<FeatherIcon icon="refresh-cw" width="13" />}
-                                onClick={() => handleRetry(message)}
-                              >
-                                Tentar novamente
-                              </Button>
-                            </Box>
-                          )}
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                              alignItems: "center",
-                              mt: 0.5,
-                            }}
-                          >
-                            <Typography
-                              variant="caption"
-                              sx={{ fontSize: "9px", color: "var(--lg-text-muted)" }}
-                            >
-                              {formatTime(message.created_at)}
-                            </Typography>
-                            {mine && <StatusIcon status={message.status} />}
                             {mine &&
                               !message.is_deleted &&
                               !["sending", "failed"].includes(message.status) && (
-                              <IconButton
-                                size="small"
-                                aria-label="Apagar mensagem"
-                                onClick={() =>
-                                  setDeleteRequest({
-                                    type: "single",
-                                    messageId: message.id,
-                                  })
-                                }
-                                sx={{ p: 0.25, ml: 0.5, color: "var(--lg-text-muted)" }}
-                              >
-                                <FeatherIcon icon="trash" width="11" />
-                              </IconButton>
+                                <span className="absolute top-1 -left-9">
+                                  <CaixaDeMarcacao
+                                    id={`chat-msg-${message.id}`}
+                                    marcado={selectedMessageIds.includes(message.id)}
+                                    aoMudar={() => toggleMessageSelection(message.id)}
+                                    aria-label="Selecionar mensagem"
+                                  />
+                                </span>
+                              )}
+                            <p className="text-[13px] whitespace-pre-wrap">{message.display_body}</p>
+                            {(message.attachments || []).map((attachment) => (
+                              <Attachment key={attachment.id} attachment={attachment} />
+                            ))}
+                            {message.pending_attachment_name && (
+                              <p className="mt-2 flex items-center gap-1.5 text-xs">
+                                <Paperclip className="size-3.5" aria-hidden />
+                                {message.pending_attachment_name}
+                              </p>
                             )}
-                          </Box>
-                        </Box>
-                      </Box>
-                    );
+                            {mine && message.status === "failed" && (
+                              <div className="mt-1.5">
+                                <Button size="xs" variant="destructive" onClick={() => handleRetry(message)}>
+                                  <RefreshCw /> Tentar novamente
+                                </Button>
+                              </div>
+                            )}
+                            <div className="mt-1 flex items-center justify-end">
+                              <span className="text-[9px] text-muted-foreground">{formatTime(message.created_at)}</span>
+                              {mine && <StatusIcon status={message.status} />}
+                              {mine &&
+                                !message.is_deleted &&
+                                !["sending", "failed"].includes(message.status) && (
+                                  <button
+                                    type="button"
+                                    aria-label="Apagar mensagem"
+                                    onClick={() => setDeleteRequest({ type: "single", messageId: message.id })}
+                                    className="ml-1 rounded p-0.5 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
+                                  >
+                                    <Trash className="size-3" aria-hidden />
+                                  </button>
+                                )}
+                            </div>
+                          </div>
+                        </div>
+                      );
                     })}
                   </>
                 )}
                 <div ref={messagesEndRef} />
-              </Box>
+              </div>
 
-              <Box sx={{ p: 1.5, borderTop: "1px solid var(--lg-border)" }}>
+              <div className="shrink-0 border-t border-border p-3">
                 {file && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                      color: "var(--lg-text-muted)",
-                    }}
-                  >
-                    <FeatherIcon icon="paperclip" width="15" />
-                    <Typography variant="caption" noWrap sx={{ flex: 1 }}>
-                      {file.name}
-                    </Typography>
-                    <IconButton size="small" onClick={() => setFile(null)}>
-                      <FeatherIcon icon="x" width="14" />
-                    </IconButton>
-                  </Box>
+                  <div className="mb-2 flex items-center gap-2 text-muted-foreground">
+                    <Paperclip className="size-4" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate text-xs">{file.name}</span>
+                    <Button variant="ghost" size="icon-xs" aria-label="Remover anexo" onClick={() => setFile(null)}>
+                      <X />
+                    </Button>
+                  </div>
                 )}
-                {error && (
-                  <Typography color="error" variant="caption" sx={{ display: "block", mb: 1 }}>
-                    {error}
-                  </Typography>
-                )}
-                <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1 }}>
-                  <IconButton
-                    component="label"
+                {error && <p className="mb-2 text-xs text-danger">{error}</p>}
+                <div className="flex items-end gap-2">
+                  <label
                     aria-label="Anexar arquivo"
-                    sx={{ color: "var(--lg-text-primary)" }}
+                    className={`${buttonVariants({ variant: "ghost", size: "icon" })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}
                   >
-                    <FeatherIcon icon="paperclip" />
-                    <input
-                      hidden
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.webp,.txt,.pdf"
-                      onChange={handleFileChange}
-                    />
-                  </IconButton>
-                  <TextField
-                    fullWidth
-                    multiline
-                    maxRows={4}
+                    <Paperclip />
+                    <input className="sr-only" type="file" accept=".jpg,.jpeg,.png,.webp,.txt,.pdf" onChange={handleFileChange} />
+                  </label>
+                  <TextareaNativo
+                    aria-label="Mensagem"
+                    rows={1}
+                    className="max-h-28 min-h-[37px] flex-1 resize-none"
                     placeholder="Digite uma mensagem"
                     value={body}
                     onChange={handleBodyChange}
@@ -826,42 +536,25 @@ export default function ChatPanel() {
                         handleSend();
                       }
                     }}
-                    inputProps={{ maxLength: 4000 }}
+                    maxLength={4000}
                   />
-                  <IconButton
-                    color="primary"
-                    aria-label="Enviar mensagem"
-                    disabled={!body.trim() && !file}
-                    onClick={handleSend}
-                  >
-                    <FeatherIcon icon="send" />
-                  </IconButton>
-                </Box>
-              </Box>
+                  <Button size="icon" aria-label="Enviar mensagem" disabled={!body.trim() && !file} onClick={handleSend}>
+                    <Send />
+                  </Button>
+                </div>
+              </div>
             </>
           ) : (
-            <Box
-              sx={{
-                height: "100%",
-                display: "grid",
-                placeItems: "center",
-                textAlign: "center",
-                p: 4,
-              }}
-            >
-              <Box>
-                <FeatherIcon icon="message-circle" width="52" height="52" />
-                <Typography variant="h5" sx={{ mt: 2, fontWeight: 800 }}>
-                  Selecione uma conversa
-                </Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  Escolha um usuário online ou offline para iniciar.
-                </Typography>
-              </Box>
-            </Box>
+            <div className="grid h-full place-items-center p-8 text-center">
+              <div>
+                <MessageCircle className="mx-auto size-12" aria-hidden />
+                <h2 className="mt-4 font-display text-xl font-extrabold">Selecione uma conversa</h2>
+                <p className="mt-2 text-muted-foreground">Escolha um usuário online ou offline para iniciar.</p>
+              </div>
+            </div>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
       <DestructiveConfirmDialog
         open={Boolean(deleteRequest)}
         title={
@@ -887,6 +580,6 @@ export default function ChatPanel() {
         onClose={() => setDeleteRequest(null)}
         onConfirm={confirmDelete}
       />
-    </Drawer>
+    </Gaveta>
   );
 }
