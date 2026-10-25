@@ -1,19 +1,18 @@
 // src/components/conformidadeCidadao/index.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-    Box, Typography, Button, Alert, CircularProgress,
-    Table, TableBody, TableCell, TableHead, TableRow,
-    TableContainer, Paper, Chip, Grid, TablePagination,
-    LinearProgress, TextField, Dialog, DialogTitle,
-    DialogContent, DialogActions, Tooltip,
-} from '@mui/material';
-import FeatherIcon from 'feather-icons-react';
-import BaseCard from '../baseCard/BaseCard';
+import { ChevronLeft, ChevronRight, Download, Eye, Loader, RefreshCw } from 'lucide-react';
 import { conformidadeCidadaoApi } from '../../services/conformidadeCidadaoApi';
-import { modalFormRootSx } from '../modal/_shared/modalFormStyles';
 import { generateConformidadeHistoricoPDF } from '../../reports/conformidadeCidadao';
+import { Banner } from '../ui/banner';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Carregando } from '../ui/carregando';
+import { DataTable } from '../ui/data-table';
+import { Dialogo, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
+import { Input } from '../ui/campos';
+import { Pilula } from '../ui/pilula';
 
-const CHIP_COLORS = { criar: 'success', atualizar: 'info', obito: 'error' };
+const CHIP_TONS = { criar: 'sucesso', atualizar: 'info', obito: 'perigo' };
 const CHIP_LABELS = { criar: 'Criar', atualizar: 'Atualizar', obito: 'Óbito' };
 
 const STATUS_LABELS = {
@@ -55,24 +54,50 @@ function PageJumper({ currentPage, lastPage, onGo }) {
     if (lastPage <= 1) return null;
 
     return (
-        <Box display="flex" alignItems="center" gap={1} sx={{ px: 1 }}>
-            <Typography variant="caption" color="textSecondary">Ir para</Typography>
-            <TextField
-                size="small"
+        <div className="flex items-center gap-2 px-2">
+            <span className="text-xs text-muted-foreground">Ir para</span>
+            <Input
+                aria-label="Número da página"
                 value={value}
                 onChange={e => setValue(e.target.value.replace(/\D/g, '') || '')}
                 onBlur={go}
                 onKeyDown={e => e.key === 'Enter' && go()}
-                inputProps={{ style: { width: 44, textAlign: 'center', padding: '3px 6px', fontSize: 13 } }}
+                className="h-8 w-12 px-1.5 text-center text-[13px]"
             />
-            <Typography variant="caption" color="textSecondary">de {lastPage}</Typography>
+            <span className="text-xs text-muted-foreground">de {lastPage}</span>
             {currentPage < lastPage && (
-                <Button size="small" variant="outlined" sx={{ minWidth: 0, px: 1, fontSize: 12 }}
-                    onClick={() => onGo(lastPage)}>
+                <Button size="xs" variant="outline" onClick={() => onGo(lastPage)}>
                     Ultima
                 </Button>
             )}
-        </Box>
+        </div>
+    );
+}
+
+// Rodapé de paginação do servidor: salto de página + intervalo + anterior/próxima.
+function NavegacaoDePaginas({ meta, aoIr }) {
+    const inicio = meta.total === 0 ? 0 : (meta.current_page - 1) * meta.per_page + 1;
+    const fim = Math.min(meta.total, meta.current_page * meta.per_page);
+    return (
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-3 text-sm text-muted-foreground">
+            <PageJumper currentPage={meta.current_page} lastPage={meta.last_page} onGo={aoIr} />
+            <span aria-live="polite">{inicio}–{fim} de {meta.total}</span>
+            <Button variant="outline" size="icon-sm" aria-label="Página anterior" disabled={meta.current_page <= 1} onClick={() => aoIr(meta.current_page - 1)}>
+                <ChevronLeft />
+            </Button>
+            <Button variant="outline" size="icon-sm" aria-label="Próxima página" disabled={meta.current_page >= meta.last_page} onClick={() => aoIr(meta.current_page + 1)}>
+                <ChevronRight />
+            </Button>
+        </div>
+    );
+}
+
+function Contador({ valor, rotulo, cor }) {
+    return (
+        <div className="rounded-xl border border-border p-4 text-center">
+            <p className={`font-mono text-3xl font-bold ${cor}`}>{valor}</p>
+            <p className="text-sm">{rotulo}</p>
+        </div>
     );
 }
 export default function ConformidadeCidadao() {
@@ -334,642 +359,321 @@ export default function ConformidadeCidadao() {
 
     const emAndamento = ['analyzing', 'applying'].includes(fase);
 
+    const colunasPrevia = [
+        { chave: 'acao', titulo: 'Ação', render: (item) => <Pilula tom={CHIP_TONS[item.acao] || 'neutro'}>{CHIP_LABELS[item.acao]}</Pilula> },
+        { chave: 'nome', titulo: 'Nome (e-SUS)', render: (item) => item.nome_esus },
+        { chave: 'doc', titulo: 'CPF / CNS', render: (item) => <span className="text-xs">{item.cpf || '—'}<br />{item.cns || '—'}</span> },
+        {
+            chave: 'campos',
+            titulo: 'Campos',
+            render: (item) => (
+                <span className="text-xs">
+                    {item.acao === 'criar' ? 'Novo cadastro' :
+                     item.acao === 'obito' ? 'Inativar + filas' :
+                     diffToString(item.payload)}
+                </span>
+            ),
+        },
+    ];
+
+    const colunasErros = [
+        { chave: 'nome', titulo: 'Nome (e-SUS)', render: (item) => item.nome_esus },
+        { chave: 'cpf', titulo: 'CPF', render: (item) => item.cpf || '—' },
+        { chave: 'acao', titulo: 'Ação', render: (item) => CHIP_LABELS[item.acao] || item.acao },
+        { chave: 'erro', titulo: 'Motivo do erro', render: (item) => item.erro || '—' },
+    ];
+
+    const tomDoStatus = (status) => (
+        status === 'completed' ? 'sucesso' :
+        status === 'failed' ? 'perigo' :
+        ['analyzing', 'applying', 'pending'].includes(status) ? 'alerta' :
+        'neutro'
+    );
+
+    const colunasHistorico = [
+        { chave: 'data', titulo: 'Data', render: (s) => <span className="text-xs">{s.created_at ? new Date(s.created_at).toLocaleString('pt-BR') : '—'}</span> },
+        { chave: 'status', titulo: 'Status', render: (s) => <Pilula tom={tomDoStatus(s.status)}>{STATUS_LABELS[s.status] ?? s.status}</Pilula> },
+        { chave: 'criados', titulo: 'Criados', render: (s) => s.result_criados ?? '—' },
+        { chave: 'atualizados', titulo: 'Atualizados', render: (s) => s.result_atualizados ?? '—' },
+        { chave: 'obitos', titulo: 'Óbitos', render: (s) => s.result_obitos ?? '—' },
+        { chave: 'erros', titulo: 'Erros', render: (s) => s.result_erros ?? '—' },
+        { chave: 'por', titulo: 'Iniciado por', render: (s) => s.iniciado_por?.name ?? '—' },
+        {
+            chave: 'acoes',
+            titulo: 'Ações',
+            render: (s) => (
+                <div className="flex justify-end gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
+                        title="Visualizar atualizacoes"
+                        aria-label="Visualizar atualizacoes"
+                        disabled={!s.job_id || s.job_id === '__new__'}
+                        onClick={() => carregarDetalhesHistorico(s, 1)}
+                    >
+                        <Eye />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
+                        title="Baixar PDF"
+                        aria-label="Baixar PDF"
+                        disabled={!s.job_id || s.job_id === '__new__' || pdfJobId === s.job_id}
+                        onClick={() => baixarPdfHistorico(s)}
+                    >
+                        {pdfJobId === s.job_id ? <Loader className="animate-spin" /> : <Download />}
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
+    const colunasDetalhes = [
+        { chave: 'acao', titulo: 'Acao', render: (item) => <Pilula tom={CHIP_TONS[item.acao] || 'neutro'}>{CHIP_LABELS[item.acao] ?? item.acao}</Pilula> },
+        { chave: 'nome', titulo: 'Nome (e-SUS)', render: (item) => item.nome_esus },
+        { chave: 'doc', titulo: 'CPF / CNS', render: (item) => <span className="text-xs">{item.cpf || '-'}<br />{item.cns || '-'}</span> },
+        {
+            chave: 'campos',
+            titulo: 'Campos',
+            render: (item) => (
+                <span className="text-xs">
+                    {item.acao === 'criar' ? 'Novo cadastro' :
+                     item.acao === 'obito' ? 'Inativar + filas' :
+                     diffToString(item.payload ?? {})}
+                </span>
+            ),
+        },
+        { chave: 'resultado', titulo: 'Resultado', render: (item) => <span className="text-xs">{item.erro || (item.aplicado ? 'Aplicado' : 'Pendente')}</span> },
+    ];
+
+    const Progresso = ({ pct }) => (
+        <div className="flex items-center gap-2">
+            <div
+                role="progressbar"
+                aria-label="Progresso"
+                aria-valuenow={pct ?? undefined}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="h-2 flex-1 overflow-hidden rounded-full bg-primary/20"
+            >
+                <div
+                    className={`h-full rounded-full bg-primary ${pct === null ? 'w-1/3 animate-[pulse-suave_1.5s_ease-in-out_infinite]' : 'transition-[width] duration-[400ms]'}`}
+                    style={pct === null ? undefined : { width: `${pct}%` }}
+                />
+            </div>
+            {pct !== null && <span className="min-w-9 text-right text-xs">{pct}%</span>}
+        </div>
+    );
+
     return (
-        <Box
-            className="conformidade-theme-surface"
-            sx={{
-                ...modalFormRootSx,
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                "& .MuiCard-root.card.info-card, & .MuiCard-root.info-card": {
-                    background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%) !important",
-                    border: "1px solid rgba(82, 129, 218, 0.24) !important",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05) !important",
-                    backdropFilter: "none !important",
-                    WebkitBackdropFilter: "none !important",
-                    borderRadius: "16px !important",
-                    "[data-theme='light'] &": {
-                        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%) !important",
-                        border: "1px solid rgba(180, 210, 255, 0.35) !important",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92) !important",
-                    }
-                },
-                "& .card.info-card .card__title, & .MuiCard-root .card__title": {
-                    color: "var(--lg-text-primary)",
-                    fontWeight: 700,
-                },
-                "& .card.info-card .card__content, & .MuiCard-root .card__content": {
-                    color: "var(--lg-text-primary)",
-                },
-                "& .MuiPaper-root": {
-                    background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%) !important",
-                    border: "1px solid rgba(82, 129, 218, 0.24) !important",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05) !important",
-                    backdropFilter: "none !important",
-                    WebkitBackdropFilter: "none !important",
-                    color: "var(--lg-text-primary)",
-                    "[data-theme='light'] &": {
-                        background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%) !important",
-                        border: "1px solid rgba(180, 210, 255, 0.35) !important",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92) !important",
-                    }
-                },
-                "& .MuiTableContainer-root": {
-                    borderRadius: "14px",
-                    border: "0.5px solid var(--lg-border-input)",
-                    background: "var(--lg-glass-panel)",
-                },
-                "& .MuiAlert-root": {
-                    borderRadius: "10px",
-                    backdropFilter: "var(--lg-blur-input)",
-                    WebkitBackdropFilter: "var(--lg-blur-input)",
-                },
-                "& .MuiTableHead-root .MuiTableCell-root": {
-                    color: "var(--lg-text-secondary)",
-                    borderBottom: "1px solid var(--lg-border-row)",
-                    fontWeight: 700,
-                },
-                "& .MuiTableBody-root .MuiTableCell-root": {
-                    color: "var(--lg-text-primary)",
-                    borderBottom: "1px solid var(--lg-border-row)",
-                },
-                "& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root": {
-                    background: "var(--lg-glass-row-hover)",
-                },
-                "& .MuiChip-root": {
-                    borderRadius: "8px",
-                },
-                "& .MuiButton-contained": {
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    boxShadow: "var(--lg-shadow-btn)",
-                },
-                "& .MuiButton-outlined": {
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    background: "var(--lg-glass-input)",
-                    border: "0.5px solid var(--lg-border-input)",
-                    color: "var(--lg-text-secondary)",
-                },
-                "& .MuiButton-outlined:hover": {
-                    background: "var(--lg-glass-input-focus)",
-                    color: "var(--lg-text-primary)",
-                    border: "0.5px solid var(--lg-border-input)",
-                },
-                "& .MuiLinearProgress-root": {
-                    background: "rgba(var(--lg-accent-rgb),0.18)",
-                    borderRadius: "10px",
-                    height: 8,
-                },
-                "& .MuiLinearProgress-bar": {
-                    background: "linear-gradient(90deg, var(--lg-accent), #7c3aed)",
-                },
-                "& .MuiTablePagination-root, & .MuiTablePagination-root *": {
-                    color: "var(--lg-text-secondary)",
-                },
-            }}
-        >
-            {erro && <Alert severity="error" onClose={() => setErro(null)}>{erro}</Alert>}
+        <div className="ui-reset conformidade-theme-surface grid gap-6">
+            {erro && <Banner tom="perigo" onDispensar={() => setErro(null)}>{erro}</Banner>}
 
             {fase === 'idle' && (
-                <BaseCard title="Conformidade de Cidadãos — e-SUS PEC">
-                    <Box display="flex" flexDirection="column" gap={2} maxWidth={560}>
-                        <Typography variant="body2" color="textSecondary">
+                <Card>
+                    <CardHeader><CardTitle>Conformidade de Cidadãos — e-SUS PEC</CardTitle></CardHeader>
+                    <CardContent className="grid max-w-[560px] gap-4">
+                        <p className="text-sm text-muted-foreground">
                             Compara os clientes cadastrados no Sysdoc com os cidadãos ativos no e-SUS PEC.
                             Atualiza dados divergentes, processa óbitos e cria novos registros. Uma prévia
                             é exibida antes de qualquer alteração ser aplicada.
-                        </Typography>
-                        <Box>
-                            <Button
-                                variant="contained"
-                                startIcon={<FeatherIcon icon="refresh-cw" width="16" />}
-                                onClick={handleAnalisar}
-                            >
-                                Analisar agora
+                        </p>
+                        <div>
+                            <Button onClick={handleAnalisar}>
+                                <RefreshCw /> Analisar agora
                             </Button>
-                        </Box>
-                    </Box>
-                </BaseCard>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {fase === 'analyzing' && (
-                <BaseCard title="Analisando...">
-                    <Box display="flex" flexDirection="column" gap={2} maxWidth={560}>
+                <Card>
+                    <CardHeader><CardTitle>Analisando...</CardTitle></CardHeader>
+                    <CardContent className="grid max-w-[560px] gap-4">
                         {(() => {
                             const previsto = syncData?.total_esus_previsto ?? 0;
                             const processado = syncData?.total_esus ?? 0;
                             const pct = previsto > 0 ? Math.min(100, Math.round((processado / previsto) * 100)) : null;
                             return (
                                 <>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                        <Box flex={1}>
-                                            <LinearProgress
-                                                variant={pct !== null ? 'determinate' : 'indeterminate'}
-                                                value={pct ?? 0}
-                                            />
-                                        </Box>
-                                        {pct !== null && (
-                                            <Typography variant="caption" sx={{ minWidth: 36, textAlign: 'right' }}>
-                                                {pct}%
-                                            </Typography>
-                                        )}
-                                    </Box>
-                                    <Box display="flex" alignItems="center" gap={2}>
-                                        <CircularProgress size={20} />
-                                        <Box>
-                                            <Typography>Comparando cidadãos com e-SUS PEC...</Typography>
+                                    <Progresso pct={pct} />
+                                    <Carregando className="py-0">
+                                        <div>
+                                            <p className="text-foreground">Comparando cidadãos com e-SUS PEC...</p>
                                             {processado > 0 && (
-                                                <Typography variant="caption" color="textSecondary">
+                                                <p className="text-xs text-muted-foreground">
                                                     {processado.toLocaleString('pt-BR')}
                                                     {previsto > 0 && ` de ${previsto.toLocaleString('pt-BR')}`}
                                                     {' '}registros processados
                                                     {syncData.preview_criados > 0 && ` · ${syncData.preview_criados} para criar`}
                                                     {syncData.preview_atualizados > 0 && ` · ${syncData.preview_atualizados} para atualizar`}
                                                     {syncData.preview_obitos > 0 && ` · ${syncData.preview_obitos} óbitos`}
-                                                </Typography>
+                                                </p>
                                             )}
-                                        </Box>
-                                    </Box>
+                                        </div>
+                                    </Carregando>
                                 </>
                             );
                         })()}
-                        <Box>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                disabled={cancelando}
-                                onClick={handleCancelar}
-                            >
+                        <div>
+                            <Button variant="destructive" size="sm" disabled={cancelando} onClick={handleCancelar}>
                                 {cancelando ? 'Cancelando...' : 'Cancelar'}
                             </Button>
-                        </Box>
-                    </Box>
-                </BaseCard>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {fase === 'preview' && syncData && (
-                <BaseCard title="Prévia das Alterações">
-                    <Box display="flex" flexDirection="column" gap={3}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
-                                <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                                    <Typography variant="h4" color="success.main">{syncData.preview_criados}</Typography>
-                                    <Typography variant="body2">Novos para criar</Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                                    <Typography variant="h4" color="info.main">{syncData.preview_atualizados}</Typography>
-                                    <Typography variant="body2">Com dados diferentes</Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                                    <Typography variant="h4" color="error.main">{syncData.preview_obitos}</Typography>
-                                    <Typography variant="body2">Óbitos a processar</Typography>
-                                </Paper>
-                            </Grid>
-                        </Grid>
+                <Card>
+                    <CardHeader><CardTitle>Prévia das Alterações</CardTitle></CardHeader>
+                    <CardContent className="grid gap-6">
+                        <div className="grid gap-4 sm:grid-cols-3">
+                            <Contador valor={syncData.preview_criados} rotulo="Novos para criar" cor="text-success" />
+                            <Contador valor={syncData.preview_atualizados} rotulo="Com dados diferentes" cor="text-info" />
+                            <Contador valor={syncData.preview_obitos} rotulo="Óbitos a processar" cor="text-danger" />
+                        </div>
 
-                        <TableContainer component={Paper} variant="outlined">
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Ação</TableCell>
-                                        <TableCell>Nome (e-SUS)</TableCell>
-                                        <TableCell>CPF / CNS</TableCell>
-                                        <TableCell>Campos</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {itens.map((item) => (
-                                        <TableRow key={item.id}>
-                                            <TableCell>
-                                                <Chip
-                                                    label={CHIP_LABELS[item.acao]}
-                                                    color={CHIP_COLORS[item.acao]}
-                                                    size="small"
-                                                />
-                                            </TableCell>
-                                            <TableCell>{item.nome_esus}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.75rem' }}>
-                                                {item.cpf || '—'}<br />{item.cns || '—'}
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: '0.75rem' }}>
-                                                {item.acao === 'criar' ? 'Novo cadastro' :
-                                                 item.acao === 'obito' ? 'Inativar + filas' :
-                                                 diffToString(item.payload)}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            <Box display="flex" alignItems="center" justifyContent="flex-end" flexWrap="wrap">
-                                <PageJumper
-                                    currentPage={itensMeta.current_page}
-                                    lastPage={itensMeta.last_page}
-                                    onGo={page => handleItensPagina(null, page - 1)}
-                                />
-                                <TablePagination
-                                    component="div"
-                                    count={itensMeta.total}
-                                    page={itensMeta.current_page - 1}
-                                    rowsPerPage={itensMeta.per_page}
-                                    rowsPerPageOptions={[]}
-                                    onPageChange={handleItensPagina}
-                                    labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
-                                />
-                            </Box>
-                        </TableContainer>
+                        <div>
+                            <DataTable rotulo="prévia das alterações" colunas={colunasPrevia} linhas={itens} chaveDaLinha={(item) => item.id} vazio="Nenhuma alteração." />
+                            <NavegacaoDePaginas meta={itensMeta} aoIr={(page) => handleItensPagina(null, page - 1)} />
+                        </div>
 
-                        <Box display="flex" gap={2}>
-                            <Button variant="contained" color="primary" onClick={handleAplicar}>
-                                Aplicar alterações
-                            </Button>
-                            <Button variant="outlined" color="inherit" onClick={handleDescartarPreview} disabled={cancelando}>
+                        <div className="flex flex-wrap gap-3">
+                            <Button onClick={handleAplicar}>Aplicar alterações</Button>
+                            <Button variant="outline" onClick={handleDescartarPreview} disabled={cancelando}>
                                 Descartar
                             </Button>
-                        </Box>
-                    </Box>
-                </BaseCard>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {fase === 'applying' && (
-                <BaseCard title="Aplicando...">
-                    <Box display="flex" flexDirection="column" gap={2} maxWidth={560}>
+                <Card>
+                    <CardHeader><CardTitle>Aplicando...</CardTitle></CardHeader>
+                    <CardContent className="grid max-w-[560px] gap-4">
                         {(() => {
                             const totalAplicar = syncData?.total_a_aplicar ?? 0;
                             const aplicados = syncData?.total_aplicado ?? 0;
                             const pct = totalAplicar > 0 ? Math.min(100, Math.round((aplicados / totalAplicar) * 100)) : null;
                             return (
                                 <>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                        <Box flex={1}>
-                                            <LinearProgress
-                                                variant={pct !== null ? 'determinate' : 'indeterminate'}
-                                                value={pct ?? 0}
-                                            />
-                                        </Box>
-                                        {pct !== null && (
-                                            <Typography variant="caption" sx={{ minWidth: 36, textAlign: 'right' }}>
-                                                {pct}%
-                                            </Typography>
-                                        )}
-                                    </Box>
-                                    <Box display="flex" alignItems="center" gap={2}>
-                                        <CircularProgress size={20} />
-                                        <Box>
-                                            <Typography>Aplicando alterações no Sysdoc...</Typography>
+                                    <Progresso pct={pct} />
+                                    <Carregando className="py-0">
+                                        <div>
+                                            <p className="text-foreground">Aplicando alterações no Sysdoc...</p>
                                             {aplicados > 0 && (
-                                                <Typography variant="caption" color="textSecondary">
+                                                <p className="text-xs text-muted-foreground">
                                                     {aplicados.toLocaleString('pt-BR')}
                                                     {totalAplicar > 0 && ` de ${totalAplicar.toLocaleString('pt-BR')}`}
                                                     {' '}registros aplicados
-                                                </Typography>
+                                                </p>
                                             )}
-                                        </Box>
-                                    </Box>
+                                        </div>
+                                    </Carregando>
                                 </>
                             );
                         })()}
 
-                        <Box>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                disabled={cancelando}
-                                onClick={handleCancelar}
-                            >
+                        <div>
+                            <Button variant="destructive" size="sm" disabled={cancelando} onClick={handleCancelar}>
                                 {cancelando ? 'Cancelando...' : 'Cancelar'}
                             </Button>
-                        </Box>
-                    </Box>
-                </BaseCard>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {fase === 'done' && syncData && (
-                <BaseCard title="Sincronização Concluída">
-                    <Box display="flex" flexDirection="column" gap={2}>
+                <Card>
+                    <CardHeader><CardTitle>Sincronização Concluída</CardTitle></CardHeader>
+                    <CardContent className="grid gap-4">
                         {syncData.result_erros > 0 && (
-                            <Alert severity="warning">
+                            <Banner tom="alerta">
                                 {syncData.result_erros} item(s) com erro — verifique os detalhes no histórico.
-                            </Alert>
+                            </Banner>
                         )}
-                        <Grid container spacing={2}>
-                            {[
-                                { label: 'Criados', value: syncData.result_criados ?? 0, color: 'success.main' },
-                                { label: 'Atualizados', value: syncData.result_atualizados ?? 0, color: 'info.main' },
-                                { label: 'Óbitos', value: syncData.result_obitos ?? 0, color: 'error.main' },
-                                { label: 'Erros', value: syncData.result_erros ?? 0, color: syncData.result_erros > 0 ? 'warning.main' : 'text.secondary' },
-                            ].map(({ label, value, color }) => (
-                                <Grid item xs={6} sm={3} key={label}>
-                                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                                        <Typography variant="h4" color={color}>{value}</Typography>
-                                        <Typography variant="body2">{label}</Typography>
-                                    </Paper>
-                                </Grid>
-                            ))}
-                        </Grid>
-                        <Box>
-                            <Button variant="outlined" onClick={handleNovaSincronizacao}>
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            <Contador valor={syncData.result_criados ?? 0} rotulo="Criados" cor="text-success" />
+                            <Contador valor={syncData.result_atualizados ?? 0} rotulo="Atualizados" cor="text-info" />
+                            <Contador valor={syncData.result_obitos ?? 0} rotulo="Óbitos" cor="text-danger" />
+                            <Contador valor={syncData.result_erros ?? 0} rotulo="Erros" cor={syncData.result_erros > 0 ? 'text-primary-text' : 'text-muted-foreground'} />
+                        </div>
+                        <div>
+                            <Button variant="outline" onClick={handleNovaSincronizacao}>
                                 Nova sincronização
                             </Button>
-                        </Box>
+                        </div>
                         {syncData.result_erros > 0 && errosDetalhe.length > 0 && (
-                            <Box display="flex" flexDirection="column" gap={1.5}>
-                                <Box>
-                                    <Button variant="outlined" size="small" onClick={() => window.print()}>
+                            <div className="grid gap-3">
+                                <div>
+                                    <Button variant="outline" size="sm" onClick={() => window.print()}>
                                         Exportar erros (PDF)
                                     </Button>
-                                </Box>
-                                <TableContainer component={Paper} variant="outlined">
-                                    <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Nome (e-SUS)</TableCell>
-                                            <TableCell>CPF</TableCell>
-                                            <TableCell>Ação</TableCell>
-                                            <TableCell>Motivo do erro</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {errosDetalhe.map((item) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell>{item.nome_esus}</TableCell>
-                                                <TableCell>{item.cpf || '—'}</TableCell>
-                                                <TableCell>{CHIP_LABELS[item.acao] || item.acao}</TableCell>
-                                                <TableCell>{item.erro || '—'}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Box>
+                                </div>
+                                <DataTable rotulo="erros da sincronização" colunas={colunasErros} linhas={errosDetalhe} chaveDaLinha={(item) => item.id} vazio="Sem erros." />
+                            </div>
                         )}
-                    </Box>
-                </BaseCard>
+                    </CardContent>
+                </Card>
             )}
 
             {fase === 'error' && (
-                <BaseCard title="Erro na Sincronização">
-                    <Box display="flex" flexDirection="column" gap={2}>
-                        <Alert severity="error">{erro || 'Erro desconhecido.'}</Alert>
-                        <Box>
-                            <Button variant="outlined" onClick={handleNovaSincronizacao}>
+                <Card>
+                    <CardHeader><CardTitle>Erro na Sincronização</CardTitle></CardHeader>
+                    <CardContent className="grid gap-4">
+                        <Banner tom="perigo">{erro || 'Erro desconhecido.'}</Banner>
+                        <div>
+                            <Button variant="outline" onClick={handleNovaSincronizacao}>
                                 Tentar novamente
                             </Button>
-                        </Box>
-                    </Box>
-                </BaseCard>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {historico.length > 0 && (
-                <BaseCard title="Histórico de Sincronizações">
-                    <TableContainer
-                        component={Paper}
-                        variant="outlined"
-                        sx={{
-                            mt: 1,
-                            background: "transparent !important",
-                            border: "none",
-                            boxShadow: "none",
-                            "& .MuiTableRow-root th": {
-                                borderBottom: "1px solid rgba(117, 155, 228, 0.22)",
-                                color: "var(--lg-text-secondary)",
-                            },
-                            "& .MuiTableRow-root td": {
-                                borderBottom: "none",
-                            }
-                        }}
-                    >
-                        <Table size="small" sx={{ borderCollapse: "separate", borderSpacing: "0 10px" }}>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Data</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Criados</TableCell>
-                                    <TableCell>Atualizados</TableCell>
-                                    <TableCell>Óbitos</TableCell>
-                                    <TableCell>Erros</TableCell>
-                                    <TableCell>Iniciado por</TableCell>
-                                    <TableCell align="right">Ações</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {historico.map((s, i) => (
-                                    <TableRow
-                                        key={i}
-                                        sx={{
-                                            "& td": {
-                                                background: "linear-gradient(135deg, rgba(8, 24, 56, 0.82) 0%, rgba(7, 21, 49, 0.9) 100%)",
-                                                borderTop: "1px solid rgba(82, 129, 218, 0.2)",
-                                                borderBottom: "1px solid rgba(82, 129, 218, 0.2)",
-                                                color: "var(--lg-text-primary)"
-                                            },
-                                            "& td:first-of-type": {
-                                                borderLeft: "1px solid rgba(82, 129, 218, 0.2)",
-                                                borderRadius: "12px 0 0 12px"
-                                            },
-                                            "& td:last-of-type": {
-                                                borderRight: "1px solid rgba(82, 129, 218, 0.2)",
-                                                borderRadius: "0 12px 12px 0"
-                                            },
-                                            "[data-theme='light'] & td": {
-                                                background: "linear-gradient(135deg, rgba(255,255,255,0.72) 0%, rgba(239,246,255,0.78) 100%)",
-                                                borderTop: "1px solid rgba(180, 210, 255, 0.35)",
-                                                borderBottom: "1px solid rgba(180, 210, 255, 0.35)"
-                                            },
-                                            "[data-theme='light'] & td:first-of-type": {
-                                                borderLeft: "1px solid rgba(180, 210, 255, 0.35)"
-                                            },
-                                            "[data-theme='light'] & td:last-of-type": {
-                                                borderRight: "1px solid rgba(180, 210, 255, 0.35)"
-                                            }
-                                        }}
-                                    >
-                                        <TableCell sx={{ fontSize: '0.75rem' }}>
-                                            {s.created_at ? new Date(s.created_at).toLocaleString('pt-BR') : '—'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={STATUS_LABELS[s.status] ?? s.status}
-                                                size="small"
-                                                color={
-                                                    s.status === 'completed' ? 'success' :
-                                                    s.status === 'failed'    ? 'error'   :
-                                                    ['analyzing', 'applying', 'pending'].includes(s.status) ? 'warning' :
-                                                    'default'
-                                                }
-                                            />
-                                        </TableCell>
-                                        <TableCell>{s.result_criados ?? '—'}</TableCell>
-                                        <TableCell>{s.result_atualizados ?? '—'}</TableCell>
-                                        <TableCell>{s.result_obitos ?? '—'}</TableCell>
-                                        <TableCell>{s.result_erros ?? '—'}</TableCell>
-                                        <TableCell>{s.iniciado_por?.name ?? '—'}</TableCell>
-                                        <TableCell align="right">
-                                            <Box display="flex" justifyContent="flex-end" gap={1}>
-                                                <Tooltip title="Visualizar atualizacoes">
-                                                    <span>
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            disabled={!s.job_id || s.job_id === '__new__'}
-                                                            onClick={() => carregarDetalhesHistorico(s, 1)}
-                                                            sx={{ minWidth: 36, px: 1 }}
-                                                        >
-                                                            <FeatherIcon icon="eye" width="15" />
-                                                        </Button>
-                                                    </span>
-                                                </Tooltip>
-                                                <Tooltip title="Baixar PDF">
-                                                    <span>
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            disabled={!s.job_id || s.job_id === '__new__' || pdfJobId === s.job_id}
-                                                            onClick={() => baixarPdfHistorico(s)}
-                                                            sx={{ minWidth: 36, px: 1 }}
-                                                        >
-                                                            {pdfJobId === s.job_id
-                                                                ? <CircularProgress size={14} />
-                                                                : <FeatherIcon icon="download" width="15" />}
-                                                        </Button>
-                                                    </span>
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <Box display="flex" alignItems="center" justifyContent="flex-end" flexWrap="wrap">
-                            <PageJumper
-                                currentPage={histMeta.current_page}
-                                lastPage={histMeta.last_page}
-                                onGo={page => carregarHistorico(page)}
-                            />
-                            <TablePagination
-                                component="div"
-                                count={histMeta.total}
-                                page={histMeta.current_page - 1}
-                                rowsPerPage={histMeta.per_page}
-                                rowsPerPageOptions={[]}
-                                onPageChange={(_, p) => carregarHistorico(p + 1)}
-                                labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
-                            />
-                        </Box>
-                    </TableContainer>
-                </BaseCard>
+                <Card>
+                    <CardHeader><CardTitle>Histórico de Sincronizações</CardTitle></CardHeader>
+                    <CardContent>
+                        <DataTable rotulo="histórico de sincronizações" colunas={colunasHistorico} linhas={historico} chaveDaLinha={(s) => s.job_id ?? s.created_at} vazio="Sem histórico." />
+                        <NavegacaoDePaginas meta={histMeta} aoIr={(page) => carregarHistorico(page)} />
+                    </CardContent>
+                </Card>
             )}
-            <Dialog
-                open={detalhesHistorico.open}
-                onClose={fecharDetalhesHistorico}
-                maxWidth="lg"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        width: 'min(1180px, 96vw) !important',
-                        maxWidth: '96vw !important',
-                    },
-                }}
-            >
-                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-                    <Box>
-                        <Typography variant="h6">Atualizacoes registradas</Typography>
-                        <Typography variant="caption" color="textSecondary">
-                            Job {detalhesHistorico.row?.job_id ?? '-'}
-                        </Typography>
-                    </Box>
+
+            <Dialogo aberto={detalhesHistorico.open} aoFechar={fecharDetalhesHistorico} tamanho="xl">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3 pr-8">
+                    <div>
+                        <DialogoTitulo>Atualizacoes registradas</DialogoTitulo>
+                        <p className="text-xs text-muted-foreground">Job {detalhesHistorico.row?.job_id ?? '-'}</p>
+                    </div>
                     <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={pdfJobId === detalhesHistorico.row?.job_id
-                            ? <CircularProgress size={14} />
-                            : <FeatherIcon icon="download" width="15" />}
+                        variant="outline"
+                        size="sm"
                         disabled={!detalhesHistorico.row?.job_id || pdfJobId === detalhesHistorico.row?.job_id}
                         onClick={() => baixarPdfHistorico(detalhesHistorico.row)}
                     >
+                        {pdfJobId === detalhesHistorico.row?.job_id ? <Loader className="animate-spin" /> : <Download />}
                         Baixar PDF
                     </Button>
-                </DialogTitle>
-                <DialogContent dividers>
-                    {detalhesHistorico.loading ? (
-                        <Box display="flex" alignItems="center" justifyContent="center" py={5}>
-                            <CircularProgress size={24} />
-                        </Box>
-                    ) : (
-                        <TableContainer component={Paper} variant="outlined">
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Acao</TableCell>
-                                        <TableCell>Nome (e-SUS)</TableCell>
-                                        <TableCell>CPF / CNS</TableCell>
-                                        <TableCell>Campos</TableCell>
-                                        <TableCell>Resultado</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {detalhesHistorico.itens.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} align="center">
-                                                Nenhuma atualizacao registrada.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : detalhesHistorico.itens.map((item) => (
-                                        <TableRow key={item.id}>
-                                            <TableCell>
-                                                <Chip
-                                                    label={CHIP_LABELS[item.acao] ?? item.acao}
-                                                    color={CHIP_COLORS[item.acao] ?? 'default'}
-                                                    size="small"
-                                                />
-                                            </TableCell>
-                                            <TableCell>{item.nome_esus}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.75rem' }}>
-                                                {item.cpf || '-'}<br />{item.cns || '-'}
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: '0.75rem' }}>
-                                                {item.acao === 'criar' ? 'Novo cadastro' :
-                                                 item.acao === 'obito' ? 'Inativar + filas' :
-                                                 diffToString(item.payload ?? {})}
-                                            </TableCell>
-                                            <TableCell sx={{ fontSize: '0.75rem' }}>
-                                                {item.erro || (item.aplicado ? 'Aplicado' : 'Pendente')}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            <Box display="flex" alignItems="center" justifyContent="flex-end" flexWrap="wrap">
-                                <PageJumper
-                                    currentPage={detalhesHistorico.meta.current_page}
-                                    lastPage={detalhesHistorico.meta.last_page}
-                                    onGo={page => carregarDetalhesHistorico(detalhesHistorico.row, page)}
-                                />
-                                <TablePagination
-                                    component="div"
-                                    count={detalhesHistorico.meta.total}
-                                    page={detalhesHistorico.meta.current_page - 1}
-                                    rowsPerPage={detalhesHistorico.meta.per_page}
-                                    rowsPerPageOptions={[]}
-                                    onPageChange={(_, p) => carregarDetalhesHistorico(detalhesHistorico.row, p + 1)}
-                                    labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-                                />
-                            </Box>
-                        </TableContainer>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button variant="outlined" onClick={fecharDetalhesHistorico}>
+                </div>
+                {detalhesHistorico.loading ? (
+                    <Carregando className="justify-center">Carregando...</Carregando>
+                ) : (
+                    <div>
+                        <DataTable rotulo="atualizações registradas" colunas={colunasDetalhes} linhas={detalhesHistorico.itens} chaveDaLinha={(item) => item.id} vazio="Nenhuma atualizacao registrada." />
+                        <NavegacaoDePaginas meta={detalhesHistorico.meta} aoIr={(page) => carregarDetalhesHistorico(detalhesHistorico.row, page)} />
+                    </div>
+                )}
+                <DialogoRodape>
+                    <Button variant="outline" onClick={fecharDetalhesHistorico}>
                         Fechar
                     </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                </DialogoRodape>
+            </Dialogo>
+        </div>
     );
 }
