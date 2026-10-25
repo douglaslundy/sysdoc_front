@@ -1,25 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { api } from "../../services/api";
+import { Banner } from "../ui/banner";
+import { Button } from "../ui/button";
+import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
+import { CampoSelecao, CampoTexto } from "../ui/campos";
+import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
+import { Pilula } from "../ui/pilula";
 
 const EMPTY = { nome: "", descricao: "", unit_id: "", ativo: true, ordem: 0 };
 
@@ -78,6 +64,8 @@ export default function MotivosPeticao() {
       ordem: motivo.ordem ?? 0,
     });
 
+  const mudar = ({ target: { name, value } }) => setForm((f) => ({ ...f, [name]: value }));
+
   const handleSave = async () => {
     setErro("");
     if (!form.nome.trim()) {
@@ -118,103 +106,67 @@ export default function MotivosPeticao() {
   };
 
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Motivos de petição</Typography>
-        <Button variant="contained" onClick={openNew}>Novo motivo</Button>
-      </Stack>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+    <div className="ui-reset grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-bold">Motivos de petição</h2>
+        <Button onClick={openNew}>Novo motivo</Button>
+      </div>
+      <p className="text-sm text-muted-foreground">
         Aparecem no formulário público (/petition). A unidade responsável recebe cada petição como um card no kanban.
-      </Typography>
+      </p>
 
-      {erro ? <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert> : null}
+      {erro ? <Banner tom="perigo">{erro}</Banner> : null}
 
       {motivos.length === 0 ? (
-        <Typography color="text.secondary">Nenhum motivo cadastrado.</Typography>
+        <p className="text-sm text-muted-foreground">Nenhum motivo cadastrado.</p>
       ) : (
-        <Stack divider={<Divider flexItem />}>
+        <ul className="divide-y divide-border">
           {motivos.map((motivo) => (
-            <Stack key={motivo.id} direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ py: 1 }}>
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>{motivo.nome}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {motivo.unit?.nome || "Sem unidade responsável"}
-                </Typography>
-              </Box>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {!motivo.ativo ? <Chip size="small" label="Inativo" /> : null}
-                <Button size="small" variant="outlined" onClick={() => openEdit(motivo)}>Editar</Button>
-                <Button size="small" color="error" variant="outlined" onClick={() => setExcluir(motivo)}>Excluir</Button>
-              </Stack>
-            </Stack>
+            <li key={motivo.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <p className="font-semibold">{motivo.nome}</p>
+                <p className="text-sm text-muted-foreground">{motivo.unit?.nome || "Sem unidade responsável"}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {!motivo.ativo ? <Pilula tom="neutro">Inativo</Pilula> : null}
+                <Button size="sm" variant="outline" onClick={() => openEdit(motivo)}>Editar</Button>
+                <Button size="sm" variant="destructive" onClick={() => setExcluir(motivo)}>Excluir</Button>
+              </div>
+            </li>
           ))}
-        </Stack>
+        </ul>
       )}
 
-      <Dialog open={Boolean(form)} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{form?.id ? "Editar motivo" : "Novo motivo"}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Nome"
-              value={form?.nome || ""}
-              onChange={(event) => setForm((f) => ({ ...f, nome: event.target.value }))}
-              inputProps={{ maxLength: 120 }}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Descrição (opcional)"
-              value={form?.descricao || ""}
-              onChange={(event) => setForm((f) => ({ ...f, descricao: event.target.value }))}
-              inputProps={{ maxLength: 255 }}
-              fullWidth
-            />
-            <FormControl fullWidth>
-              <InputLabel>Unidade responsável</InputLabel>
-              <Select
-                value={form?.unit_id || ""}
-                label="Unidade responsável"
-                onChange={(event) => setForm((f) => ({ ...f, unit_id: event.target.value }))}
-              >
-                <MenuItem value="">Nenhuma</MenuItem>
-                {unitOptions.map((unit) => (
-                  <MenuItem key={unit.id} value={String(unit.id)} sx={{ pl: 2 + unit.level * 2 }}>
-                    {unit.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Ordem"
-              type="number"
-              value={form?.ordem ?? 0}
-              onChange={(event) => setForm((f) => ({ ...f, ordem: event.target.value }))}
-              inputProps={{ min: 0 }}
-              fullWidth
-            />
-            <FormControlLabel
-              control={<Checkbox checked={Boolean(form?.ativo)} onChange={(event) => setForm((f) => ({ ...f, ativo: event.target.checked }))} />}
-              label="Ativo (aparece no formulário público)"
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setForm(null)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSave} disabled={saving}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
+      <Dialogo aberto={Boolean(form)} aoFechar={() => setForm(null)} tamanho="md">
+        <DialogoCabecalho>{form?.id ? "Editar motivo" : "Novo motivo"}</DialogoCabecalho>
+        <div className="grid gap-4">
+          <CampoTexto id="motivo-nome" label="Nome" name="nome" value={form?.nome || ""} onChange={mudar} maxLength={120} required obrigatorio />
+          <CampoTexto id="motivo-descricao" label="Descrição (opcional)" name="descricao" value={form?.descricao || ""} onChange={mudar} maxLength={255} />
+          <CampoSelecao id="motivo-unidade" label="Unidade responsável" name="unit_id" value={form?.unit_id || ""} onChange={mudar}>
+            <option value="">Nenhuma</option>
+            {unitOptions.map((unit) => (
+              <option key={unit.id} value={String(unit.id)}>{`${"— ".repeat(unit.level)}${unit.nome}`}</option>
+            ))}
+          </CampoSelecao>
+          <CampoTexto id="motivo-ordem" label="Ordem" name="ordem" type="number" min={0} value={form?.ordem ?? 0} onChange={mudar} />
+          <CaixaDeMarcacao id="motivo-ativo" marcado={Boolean(form?.ativo)} aoMudar={(v) => setForm((f) => ({ ...f, ativo: v }))}>
+            Ativo (aparece no formulário público)
+          </CaixaDeMarcacao>
+        </div>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setForm(null)}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>Salvar</Button>
+        </DialogoRodape>
+      </Dialogo>
 
-      <Dialog open={Boolean(excluir)} onClose={() => setExcluir(null)}>
-        <DialogTitle>Excluir motivo</DialogTitle>
-        <DialogContent>
-          <Typography>Excluir o motivo {excluir?.nome}?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setExcluir(null)}>Cancelar</Button>
-          <Button color="error" variant="contained" onClick={handleDelete}>Excluir</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      <Dialogo aberto={Boolean(excluir)} aoFechar={() => setExcluir(null)} alerta tamanho="sm">
+        <DialogoCabecalho>Excluir motivo</DialogoCabecalho>
+        <p className="text-sm">Excluir o motivo {excluir?.nome}?</p>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setExcluir(null)}>Cancelar</Button>
+          <Button variant="destructive" onClick={handleDelete}>Excluir</Button>
+        </DialogoRodape>
+      </Dialogo>
+    </div>
   );
 }

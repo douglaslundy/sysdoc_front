@@ -1,20 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
 import { api } from "../../services/api";
+import { Banner } from "../ui/banner";
+import { Button } from "../ui/button";
+import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
+import { CampoTexto } from "../ui/campos";
+import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
+import { Pilula } from "../ui/pilula";
 
 const digits = (value) => String(value || "").replace(/\D+/g, "");
 
@@ -108,67 +99,62 @@ export default function ContatosWhatsapp() {
   };
 
   return (
-    <Box>
-      <Typography variant="h6" sx={{ fontWeight: 700 }}>Avisos por WhatsApp</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Os profissionais ativos abaixo recebem uma mensagem quando chega uma denúncia nova ou é registrada uma fiscalização.
-        A mensagem traz só protocolo, assunto e local — nunca a identificação do denunciante.
-      </Typography>
+    <div className="ui-reset grid gap-4">
+      <div>
+        <h2 className="font-display text-lg font-bold">Avisos por WhatsApp</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Os profissionais ativos abaixo recebem uma mensagem quando chega uma denúncia nova ou é registrada uma fiscalização.
+          A mensagem traz só protocolo, assunto e local — nunca a identificação do denunciante.
+        </p>
+      </div>
 
-      {erro ? <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert> : null}
+      {erro ? <Banner tom="perigo">{erro}</Banner> : null}
 
-      <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ mb: 2 }}>
-        <TextField label="Nome" value={nome} onChange={(event) => setNome(event.target.value)} inputProps={{ maxLength: 150 }} fullWidth />
-        <TextField
-          label="WhatsApp (com DDD)"
-          value={telefone}
-          onChange={(event) => setTelefone(event.target.value)}
-          inputProps={{ maxLength: 20 }}
-          fullWidth
-        />
-        <Button variant="contained" onClick={handleAdd} disabled={saving} sx={{ minWidth: 140 }}>
+      <div className="grid items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
+        <CampoTexto id="contato-nome" label="Nome" value={nome} onChange={(event) => setNome(event.target.value)} maxLength={150} />
+        <CampoTexto id="contato-telefone" label="WhatsApp (com DDD)" value={telefone} onChange={(event) => setTelefone(event.target.value)} maxLength={20} />
+        <Button onClick={handleAdd} disabled={saving} className="min-w-[140px]">
           Adicionar
         </Button>
-      </Stack>
+      </div>
 
       {contatos.length === 0 ? (
-        <Typography color="text.secondary">
+        <p className="text-sm text-muted-foreground">
           Nenhum profissional cadastrado. Cadastre para receber avisos de novas denúncias e fiscalizações por WhatsApp.
-        </Typography>
+        </p>
       ) : (
-        <Stack divider={<Divider flexItem />}>
+        <ul className="divide-y divide-border">
           {contatos.map((contato) => (
-            <Stack key={contato.id} direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ py: 1 }}>
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>{contato.nome}</Typography>
-                <Typography variant="body2" color="text.secondary">{formatPhone(contato.telefone)}</Typography>
-              </Box>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {!contato.ativo ? <Chip size="small" label="Inativo" /> : null}
-                <Checkbox
-                  checked={Boolean(contato.ativo)}
-                  onChange={() => handleToggle(contato)}
-                  inputProps={{ "aria-label": `Receber avisos: ${contato.nome}` }}
+            <li key={contato.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <p className="font-semibold">{contato.nome}</p>
+                <p className="text-sm text-muted-foreground">{formatPhone(contato.telefone)}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {!contato.ativo ? <Pilula tom="neutro">Inativo</Pilula> : null}
+                <CaixaDeMarcacao
+                  id={`contato-ativo-${contato.id}`}
+                  marcado={Boolean(contato.ativo)}
+                  aoMudar={() => handleToggle(contato)}
+                  aria-label={`Receber avisos: ${contato.nome}`}
                 />
-                <Button size="small" color="error" variant="outlined" onClick={() => setRemover(contato)}>
+                <Button size="sm" variant="destructive" onClick={() => setRemover(contato)}>
                   Remover
                 </Button>
-              </Stack>
-            </Stack>
+              </div>
+            </li>
           ))}
-        </Stack>
+        </ul>
       )}
 
-      <Dialog open={Boolean(remover)} onClose={() => setRemover(null)}>
-        <DialogTitle>Remover profissional</DialogTitle>
-        <DialogContent>
-          <Typography>Remover {remover?.nome} da lista de avisos por WhatsApp?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRemover(null)}>Cancelar</Button>
-          <Button color="error" variant="contained" onClick={handleRemove}>Remover</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      <Dialogo aberto={Boolean(remover)} aoFechar={() => setRemover(null)} alerta tamanho="sm">
+        <DialogoCabecalho>Remover profissional</DialogoCabecalho>
+        <p className="text-sm">Remover {remover?.nome} da lista de avisos por WhatsApp?</p>
+        <DialogoRodape>
+          <Button variant="outline" onClick={() => setRemover(null)}>Cancelar</Button>
+          <Button variant="destructive" onClick={handleRemove}>Remover</Button>
+        </DialogoRodape>
+      </Dialogo>
+    </div>
   );
 }
