@@ -1,9 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
-import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, ExternalLink, Pencil, RotateCcw } from "lucide-react";
 import AlertModal from "../messagesModal";
+import DesfechoDialog from "../modal/iluminacao/DesfechoDialog";
 import PosteDialog from "../modal/iluminacao/PosteDialog";
+import ReabrirDialog from "../modal/iluminacao/ReabrirDialog";
+import { AuthContext } from "../../contexts/AuthContext";
 import MapaPonto from "../mapa/MapaPonto";
 import StreetViewPanel from "../mapa/StreetViewPanel";
 import { obterHistorico, obterPoste } from "../../services/iluminacaoPostes";
@@ -21,7 +24,7 @@ import { StatusPoste } from "./StatusPoste";
 const dataHora = (iso) => (iso ? new Date(iso).toLocaleString("pt-BR") : "—");
 const metros = (n) => String(Math.round(n * 10) / 10).replace(".", ",");
 
-/** Detalhe de um poste. modo "cadastro" (pode editar o que é seu) ou "servico" (empresa; o desfecho entra no Lote 9). */
+/** Detalhe de um poste. modo "cadastro" (pode editar o que é seu) ou "servico" (empresa: desfecho; admin: reabrir). */
 export default function DetalhePoste({ modo = "cadastro", id }) {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -29,6 +32,9 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
   const [historico, setHistorico] = useState([]);
   const [erro, setErro] = useState("");
   const [editando, setEditando] = useState(false);
+  const [desfechando, setDesfechando] = useState(false);
+  const [reabrindo, setReabrindo] = useState(false);
+  const { profile } = useContext(AuthContext) || {};
 
   const carregar = useCallback(async () => {
     setErro("");
@@ -53,6 +59,14 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
     carregar();
   };
 
+  const aoRegistrar = (texto) => () => {
+    setDesfechando(false);
+    setReabrindo(false);
+    dispatch(addMessage(texto));
+    dispatch(turnAlert());
+    carregar();
+  };
+
   const voltar = (
     <Button variant="outline" className="min-h-11" onClick={() => router.push(`/iluminacao/${modo}`)}>
       <ArrowLeft /> Voltar
@@ -73,6 +87,8 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
   const lat = Number(poste.latitude);
   const lng = Number(poste.longitude);
   const endereco = `${poste.logradouro}${poste.numero ? `, ${poste.numero}` : ""}`;
+  const podeDesfecho = modo === "servico" && poste.status !== "concluido";
+  const podeReabrir = modo === "servico" && profile === "admin" && poste.status === "concluido";
   const fotosCadastro = (poste.fotos || []).filter((f) => f.momento === "cadastro");
 
   return (
@@ -91,6 +107,17 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
           </>
         )}
       />
+
+      {podeDesfecho ? (
+        <Button className="min-h-12 w-full text-base sm:w-auto sm:min-w-48" onClick={() => setDesfechando(true)}>
+          <ClipboardCheck /> Desfecho
+        </Button>
+      ) : null}
+      {podeReabrir ? (
+        <Button variant="outline" className="min-h-12 w-full text-base sm:w-auto sm:min-w-48" onClick={() => setReabrindo(true)}>
+          <RotateCcw /> Reabrir
+        </Button>
+      ) : null}
 
       <Card>
         <CardHeader><CardTitle>Dados</CardTitle></CardHeader>
@@ -135,6 +162,12 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
         <CardContent><HistoricoPoste posteId={poste.id} itens={historico} /></CardContent>
       </Card>
 
+      {modo === "servico" ? (
+        <>
+          <DesfechoDialog open={desfechando} onClose={() => setDesfechando(false)} posteId={poste.id} onSuccess={aoRegistrar("Desfecho registrado com sucesso!")} />
+          <ReabrirDialog open={reabrindo} onClose={() => setReabrindo(false)} posteId={poste.id} onSuccess={aoRegistrar("Poste reaberto com sucesso!")} />
+        </>
+      ) : null}
       {modo === "cadastro" ? <PosteDialog open={editando} onClose={() => setEditando(false)} poste={poste} onSuccess={aoEditar} /> : null}
     </div>
   );

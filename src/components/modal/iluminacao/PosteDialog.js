@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { novoUuid } from "../../../lib/uuid";
 import { atualizarPoste, criarPoste } from "../../../services/iluminacaoPostes";
 import CampoFotos from "../../iluminacao/CampoFotos";
@@ -37,13 +38,6 @@ const limparRascunho = () => {
   } catch (e) {
     /* idem */
   }
-};
-
-const mensagemDeErro = (e) => {
-  if (!e?.response) return "Sem conexão. Verifique a internet e tente de novo; o que você preencheu foi mantido.";
-  const erros = e.response.data?.errors;
-  if (erros) return Object.values(erros).flat()[0];
-  return e.response.data?.message || "Não foi possível gravar o poste.";
 };
 
 const doPoste = (p) => ({
@@ -103,7 +97,7 @@ export default function PosteDialog({ open, onClose, poste = null, onSuccess }) 
       if (!poste) limparRascunho();
       onSuccess && onSuccess(resposta);
     } catch (e) {
-      setErro(mensagemDeErro(e));
+      setErro(mensagemDeErro(e, "Não foi possível gravar o poste."));
     } finally {
       setSalvando(false);
     }
