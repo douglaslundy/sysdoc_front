@@ -1,20 +1,13 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/material';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showMedico } from '../../../store/ducks/medicosSolicitantes';
 import { closeMedicoSolicitanteModal } from '../../../store/ducks/Layout';
 import { addMedicoFetch, editMedicoFetch } from '../../../store/fetchActions/medicosSolicitantes';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
+import { Button } from '../../ui/button';
+import { CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
 
 const FORM_INICIAL = { nome: '', crm: '', uf_crm: '', especialidade: '', telefone: '', ativo: true };
 
@@ -33,7 +26,7 @@ export default function MedicoSolicitanteModal(props) {
         dispatch(showMedico({}));
     };
 
-    const handleChange = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const handleChange = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
 
     const handleSave = () => {
         if (isEdit) {
@@ -61,77 +54,26 @@ export default function MedicoSolicitanteModal(props) {
     return (
         <div>
             {props.children}
-            <Modal keepMounted open={isOpenMedicoSolicitanteModal} onClose={cleanForm} slotProps={{ backdrop: { sx: modalBackdropSx } }}>
-                <Box className="lab-medico-solicitante-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <Grid container spacing={0}>
-                        <Grid item xs={12}>
-                            <BaseCard title={isEdit ? 'Editar Médico Solicitante' : 'Cadastrar Médico Solicitante'}>
-                                <Stack spacing={3}>
-                                    <TextField
-                                        label="Nome completo"
-                                        name="nome"
-                                        value={form.nome}
-                                        onChange={handleChange}
-                                        required
-                                        inputProps={{ maxLength: 100, autoComplete: 'off' }}
-                                    />
-                                    <Stack direction="row" spacing={2}>
-                                        <TextField
-                                            label="CRM"
-                                            name="crm"
-                                            value={form.crm}
-                                            onChange={handleChange}
-                                            inputProps={{ maxLength: 20, autoComplete: 'off' }}
-                                            sx={{ flex: 2 }}
-                                        />
-                                        <TextField
-                                            label="UF"
-                                            name="uf_crm"
-                                            value={form.uf_crm}
-                                            onChange={e => setForm(f => ({ ...f, uf_crm: e.target.value.toUpperCase().slice(0, 2) }))}
-                                            inputProps={{ maxLength: 2, autoComplete: 'off' }}
-                                            sx={{ flex: 1 }}
-                                        />
-                                    </Stack>
-                                    <TextField
-                                        label="Especialidade"
-                                        name="especialidade"
-                                        value={form.especialidade}
-                                        onChange={handleChange}
-                                        inputProps={{ maxLength: 80, autoComplete: 'off' }}
-                                    />
-                                    <TextField
-                                        label="Telefone"
-                                        name="telefone"
-                                        value={form.telefone}
-                                        onChange={handleChange}
-                                        inputProps={{ maxLength: 20, autoComplete: 'off' }}
-                                    />
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={form.ativo}
-                                                onChange={e => setForm(f => ({ ...f, ativo: e.target.checked }))}
-                                            />
-                                        }
-                                        label="Médico ativo"
-                                    />
-                                </Stack>
-                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                                    <Button variant="contained" onClick={handleSave} sx={modalPrimaryButtonSx}>
-                                        Gravar
-                                    </Button>
-                                    <Button variant="outlined" onClick={cleanForm} sx={modalSecondaryButtonSx}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
+            <Dialogo aberto={Boolean(isOpenMedicoSolicitanteModal)} aoFechar={cleanForm} tamanho="md">
+                <DialogoCabecalho>{isEdit ? 'Editar Médico Solicitante' : 'Cadastrar Médico Solicitante'}</DialogoCabecalho>
+                <AlertModal />
+                <div className="grid gap-4">
+                    <CampoTexto id="medico-nome" label="Nome completo" name="nome" value={form.nome} onChange={handleChange} obrigatorio maxLength={100} autoComplete="off" />
+                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <CampoTexto id="medico-crm" label="CRM" name="crm" value={form.crm} onChange={handleChange} maxLength={20} autoComplete="off" />
+                        <CampoTexto id="medico-uf" label="UF" name="uf_crm" value={form.uf_crm} onChange={({ target: { value } }) => setForm(f => ({ ...f, uf_crm: value.toUpperCase().slice(0, 2) }))} maxLength={2} autoComplete="off" />
+                    </div>
+                    <CampoTexto id="medico-especialidade" label="Especialidade" name="especialidade" value={form.especialidade} onChange={handleChange} maxLength={80} autoComplete="off" />
+                    <CampoTexto id="medico-telefone" label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} maxLength={20} autoComplete="off" />
+                    <Interruptor id="medico-ativo" marcado={form.ativo} aoMudar={(ativo) => setForm(f => ({ ...f, ativo }))}>
+                        Médico ativo
+                    </Interruptor>
+                </div>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+                    <Button type="button" onClick={handleSave}>Gravar</Button>
+                </DialogoRodape>
+            </Dialogo>
         </div>
     );
 }
-

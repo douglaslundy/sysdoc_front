@@ -1,20 +1,13 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import { Grid, Stack, TextField, Button, FormControlLabel, Switch } from '@mui/material';
-import BaseCard from '../../baseCard/BaseCard';
 import AlertModal from '../../messagesModal';
 import { showCategoria } from '../../../store/ducks/categoriasExame';
 import { closeCategoriaExameModal } from '../../../store/ducks/Layout';
 import { addCategoriaFetch, editCategoriaFetch } from '../../../store/fetchActions/categoriasExame';
-import {
-    modalBackdropSx,
-    modalFormRootSx,
-    modalPrimaryButtonSx,
-    modalSecondaryButtonSx,
-    modalShellSx,
-} from '../_shared/modalFormStyles';
+import { Button } from '../../ui/button';
+import { CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import { Interruptor } from '../../ui/interruptor';
 
 const FORM_INICIAL = { nome: '', ativo: true };
 
@@ -52,50 +45,30 @@ export default function CategoriaExameModal(props) {
     return (
         <div>
             {props.children}
-            <Modal
-                keepMounted
-                open={isOpenCategoriaExameModal}
-                onClose={cleanForm}
-                slotProps={{ backdrop: { sx: modalBackdropSx } }}
-            >
-                <Box className="lab-categoria-exame-modal-shell" sx={{ ...modalShellSx, ...modalFormRootSx }}>
-                    <AlertModal />
-                    <Grid container spacing={0}>
-                        <Grid item xs={12}>
-                            <BaseCard title={isEdit ? 'Editar Categoria' : 'Cadastrar Categoria de Exame'}>
-                                <Stack spacing={3}>
-                                    <TextField
-                                        label="Nome da Categoria"
-                                        name="nome"
-                                        value={form.nome}
-                                        onChange={({ target }) => setForm(f => ({ ...f, nome: target.value }))}
-                                        required
-                                        inputProps={{ maxLength: 80, style: { textTransform: 'uppercase' }, autoComplete: 'off' }}
-                                    />
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={form.ativo}
-                                                onChange={e => setForm(f => ({ ...f, ativo: e.target.checked }))}
-                                            />
-                                        }
-                                        label="Categoria ativa"
-                                    />
-                                </Stack>
-                                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                                    <Button variant="contained" onClick={handleSave} sx={modalPrimaryButtonSx}>
-                                        Gravar
-                                    </Button>
-                                    <Button variant="outlined" onClick={cleanForm} sx={modalSecondaryButtonSx}>
-                                        Cancelar
-                                    </Button>
-                                </Box>
-                            </BaseCard>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Modal>
+            <Dialogo aberto={Boolean(isOpenCategoriaExameModal)} aoFechar={cleanForm} tamanho="md">
+                <DialogoCabecalho>{isEdit ? 'Editar Categoria' : 'Cadastrar Categoria de Exame'}</DialogoCabecalho>
+                <AlertModal />
+                <div className="grid gap-4">
+                    <CampoTexto
+                        id="categoria-nome"
+                        label="Nome da Categoria"
+                        name="nome"
+                        value={form.nome}
+                        onChange={({ target: { value } }) => setForm(f => ({ ...f, nome: value }))}
+                        obrigatorio
+                        maxLength={80}
+                        autoComplete="off"
+                        className="uppercase"
+                    />
+                    <Interruptor id="categoria-ativa" marcado={form.ativo} aoMudar={(ativo) => setForm(f => ({ ...f, ativo }))}>
+                        Categoria ativa
+                    </Interruptor>
+                </div>
+                <DialogoRodape>
+                    <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
+                    <Button type="button" onClick={handleSave}>Gravar</Button>
+                </DialogoRodape>
+            </Dialogo>
         </div>
     );
 }
-

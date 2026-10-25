@@ -1,24 +1,15 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import InputMask from 'react-input-mask';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    Stack,
-    TextField,
-} from '@mui/material';
-import BaseCard from '../../baseCard/BaseCard';
 import { api } from '../../../services/api';
 import { addAlertMessage } from '../../../store/ducks/Layout';
 import { upsertMonthlyAcquisitionFetch } from '../../../store/fetchActions/medicineMonthlyAcquisitions';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
-import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { Campo, Input } from '../../ui/campos';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -59,8 +50,8 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
         }
     }, [open]);
 
-    const change = ({ target }) => {
-        setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => {
+        setForm(f => ({ ...f, [name]: value }));
         if (errorMessage) setErrorMessage('');
     };
 
@@ -88,67 +79,36 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            PaperProps={{
-                className: 'pharmacy-monthly-acquisition-dialog-shell',
-            }}
-        >
-            <BaseCard title="Aquisição Mensal">
-                <Stack spacing={2}>
-                    {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
-                    <FormControl fullWidth required>
-                        <InputLabel>Medicamento</InputLabel>
-                        <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>
-                            {medicines.map((m) => (
-                                <MenuItem key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <InputMask mask="99/9999" value={form.reference_month} onChange={change}>
-                        {(inputProps) => (
-                            <TextField
-                                {...inputProps}
-                                name="reference_month"
-                                label="Mês de Referência"
-                                placeholder="MM/AAAA"
-                                fullWidth
-                                required
-                                inputProps={{ ...inputProps.inputProps, inputMode: 'numeric' }}
-                            />
-                        )}
-                    </InputMask>
-                    <TextField name="acquired_quantity" type="number" label="Quantidade Adquirida" value={form.acquired_quantity} onChange={change} fullWidth required />
-                    <FormControl fullWidth required>
-                        <InputLabel>Unidade de Medida</InputLabel>
-                        <Select name="unit_measure" value={form.unit_measure} label="Unidade de Medida" onChange={change}>
-                            {units.map((u) => (
-                                <MenuItem key={u.id} value={u.code}>{u.code} - {u.name}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl fullWidth>
-                        <InputLabel>Origem da Aquisição</InputLabel>
-                        <Select name="source_document" value={form.source_document} label="Origem da Aquisição" onChange={change}>
-                            <MenuItem value=""><em>Não informar</em></MenuItem>
-                            {sources.map((s) => (
-                                <MenuItem key={s.id} value={s.name}>{s.name}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField name="note" label="Observação" value={form.note} onChange={change} fullWidth />
-                </Stack>
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>
-                        Salvar
-                    </Button>
-                </Box>
-            </BaseCard>
-        </Dialog>
+        <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="md">
+            <DialogoCabecalho>Aquisição Mensal</DialogoCabecalho>
+            <div className="grid gap-4">
+                {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                <CampoSelecao id="am-medicamento" name="medicine_item_id" label="Medicamento" value={form.medicine_item_id} onChange={({ target }) => change({ target: { name: target.name, value: target.value === '' ? '' : Number(target.value) } })} obrigatorio>
+                    <option value="" />
+                    {medicines.map((m) => <option key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</option>)}
+                </CampoSelecao>
+                <Campo id="am-mes" label="Mês de Referência" obrigatorio>
+                    {(p) => (
+                        <InputMask mask="99/9999" value={form.reference_month} onChange={change}>
+                            {(inputProps) => <Input {...inputProps} {...p} name="reference_month" placeholder="MM/AAAA" inputMode="numeric" />}
+                        </InputMask>
+                    )}
+                </Campo>
+                <CampoTexto id="am-quantidade" name="acquired_quantity" type="number" label="Quantidade Adquirida" value={form.acquired_quantity} onChange={change} obrigatorio />
+                <CampoSelecao id="am-unidade" name="unit_measure" label="Unidade de Medida" value={form.unit_measure} onChange={change} obrigatorio>
+                    <option value="" />
+                    {units.map((u) => <option key={u.id} value={u.code}>{u.code} - {u.name}</option>)}
+                </CampoSelecao>
+                <CampoSelecao id="am-origem" name="source_document" label="Origem da Aquisição" value={form.source_document} onChange={change}>
+                    <option value="">Não informar</option>
+                    {sources.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </CampoSelecao>
+                <CampoTexto id="am-obs" name="note" label="Observação" value={form.note} onChange={change} />
+            </div>
+            <DialogoRodape>
+                <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button type="button" onClick={save}>Salvar</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }
-

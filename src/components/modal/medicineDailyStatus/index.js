@@ -1,21 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    Stack,
-    TextField,
-} from '@mui/material';
-import BaseCard from '../../baseCard/BaseCard';
 import { upsertDailyStatusFetch } from '../../../store/fetchActions/medicineDailyStatuses';
 import { getMedicinesSelect } from '../../../store/fetchActions/medicines';
-import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -46,8 +36,8 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
         }
     }, [open, dispatch]);
 
-    const change = ({ target }) => {
-        setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => {
+        setForm(f => ({ ...f, [name]: value }));
         if (errorMessage) setErrorMessage('');
     };
 
@@ -61,46 +51,27 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            PaperProps={{
-                className: 'pharmacy-daily-status-dialog-shell',
-            }}
-        >
-            <BaseCard title="Atualizar Status Diário">
-                <Stack spacing={2}>
-                    {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
-                    <FormControl fullWidth required>
-                        <InputLabel>Medicamento</InputLabel>
-                        <Select name="medicine_item_id" value={form.medicine_item_id} label="Medicamento" onChange={change}>
-                            {medicines.map((m) => (
-                                <MenuItem key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField name="reference_date" label="Data de Referência" type="date" value={form.reference_date} onChange={change} InputLabelProps={{ shrink: true }} fullWidth required />
-                    <FormControl fullWidth required>
-                        <InputLabel>Disponibilidade</InputLabel>
-                        <Select name="availability_status" value={form.availability_status} label="Disponibilidade" onChange={change}>
-                            <MenuItem value="available">Disponível</MenuItem>
-                            <MenuItem value="unavailable">Indisponível</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <TextField name="available_quantity" type="number" label="Quantidade Disponível" value={form.available_quantity} onChange={change} fullWidth />
-                    <TextField name="restock_forecast_date" label="Previsão de Reposição" type="date" value={form.restock_forecast_date} onChange={change} InputLabelProps={{ shrink: true }} fullWidth />
-                    <TextField name="public_note" label="Observação Pública" value={form.public_note} onChange={change} fullWidth />
-                </Stack>
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>
-                        Salvar
-                    </Button>
-                </Box>
-            </BaseCard>
-        </Dialog>
+        <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="md">
+            <DialogoCabecalho>Atualizar Status Diário</DialogoCabecalho>
+            <div className="grid gap-4">
+                {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                <CampoSelecao id="ds-medicamento" name="medicine_item_id" label="Medicamento" value={form.medicine_item_id} onChange={({ target }) => change({ target: { name: target.name, value: target.value === '' ? '' : Number(target.value) } })} obrigatorio>
+                    <option value="" />
+                    {medicines.map((m) => <option key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</option>)}
+                </CampoSelecao>
+                <CampoTexto id="ds-data" name="reference_date" label="Data de Referência" type="date" value={form.reference_date} onChange={change} obrigatorio />
+                <CampoSelecao id="ds-disponibilidade" name="availability_status" label="Disponibilidade" value={form.availability_status} onChange={change} obrigatorio>
+                    <option value="available">Disponível</option>
+                    <option value="unavailable">Indisponível</option>
+                </CampoSelecao>
+                <CampoTexto id="ds-quantidade" name="available_quantity" type="number" label="Quantidade Disponível" value={form.available_quantity} onChange={change} />
+                <CampoTexto id="ds-reposicao" name="restock_forecast_date" label="Previsão de Reposição" type="date" value={form.restock_forecast_date} onChange={change} />
+                <CampoTexto id="ds-nota" name="public_note" label="Observação Pública" value={form.public_note} onChange={change} />
+            </div>
+            <DialogoRodape>
+                <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button type="button" onClick={save}>Salvar</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }
-

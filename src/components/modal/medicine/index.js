@@ -1,11 +1,12 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import Dialog from '@mui/material/Dialog';
-import { Alert, Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
-import BaseCard from '../../baseCard/BaseCard';
 import { api } from '../../../services/api';
 import { addMedicineFetch, editMedicineFetch } from '../../../store/fetchActions/medicines';
-import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
+import { Banner } from '../../ui/banner';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 
 const EMPTY = {
     internal_code: '',
@@ -52,9 +53,8 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
         }
     }, [open]);
 
-    const change = ({ target }) => {
-        const value = target.type === 'checkbox' ? target.checked : target.value;
-        setForm((f) => ({ ...f, [target.name]: value }));
+    const change = ({ target: { name, value } }) => {
+        setForm((f) => ({ ...f, [name]: value }));
         if (errorMessage) setErrorMessage('');
     };
 
@@ -66,63 +66,45 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
         dispatch(addMedicineFetch(form, onSuccess, setErrorMessage));
     };
 
+    const campo = (name, label, extra = {}) => (
+        <CampoTexto id={`med-${name}`} name={name} label={label} value={form[name] || ''} onChange={change} {...extra} />
+    );
+    const selecao = (name, label, opcoes) => (
+        <CampoSelecao id={`med-${name}`} name={name} label={label} value={form[name] || ''} onChange={change} obrigatorio>
+            <option value="" />
+            {opcoes}
+        </CampoSelecao>
+    );
+    const marca = (name, label) => (
+        <CaixaDeMarcacao id={`med-${name}`} marcado={!!form[name]} aoMudar={(v) => { setForm((f) => ({ ...f, [name]: v })); if (errorMessage) setErrorMessage(''); }}>
+            {label}
+        </CaixaDeMarcacao>
+    );
+
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            PaperProps={{
-                className: 'pharmacy-medicine-dialog-shell',
-            }}
-        >
-            <BaseCard title={medicine?.id ? 'Editar Medicamento' : 'Novo Medicamento'}>
-                <Stack spacing={2}>
-                    {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
-                    <TextField name="internal_code" label="Código Interno" value={form.internal_code} onChange={change} fullWidth required />
-                    <TextField name="brand_name" label="Nome Comercial" value={form.brand_name || ''} onChange={change} fullWidth />
-                    <TextField name="active_ingredient" label="Princípio Ativo" value={form.active_ingredient} onChange={change} fullWidth required />
-                    <TextField name="concentration" label="Concentração" value={form.concentration} onChange={change} fullWidth required />
-                    <FormControl fullWidth required>
-                        <InputLabel>Forma Farmacêutica</InputLabel>
-                        <Select name="pharmaceutical_form" value={form.pharmaceutical_form} label="Forma Farmacêutica" onChange={change}>
-                            {forms.map((f) => (
-                                <MenuItem key={f.id} value={f.name}>{f.name}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl fullWidth required>
-                        <InputLabel>Apresentação</InputLabel>
-                        <Select name="presentation" value={form.presentation} label="Apresentação" onChange={change}>
-                            {presentations.map((p) => (
-                                <MenuItem key={p.id} value={p.name}>{p.name}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl fullWidth required>
-                        <InputLabel>Unidade de Medida</InputLabel>
-                        <Select name="unit_measure" value={form.unit_measure} label="Unidade de Medida" onChange={change}>
-                            {units.map((u) => (
-                                <MenuItem key={u.id} value={u.code}>{u.code} - {u.name}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField name="ean_code" label="Código EAN" value={form.ean_code || ''} onChange={change} fullWidth />
-                    <TextField name="technical_notes" label="Observações Técnicas" value={form.technical_notes || ''} onChange={change} fullWidth />
-                    <FormControlLabel control={<Checkbox name="is_free_distribution" checked={!!form.is_free_distribution} onChange={change} />} label="Distribuição Gratuita" />
-                    <FormControlLabel control={<Checkbox name="is_controlled" checked={!!form.is_controlled} onChange={change} />} label="Medicamento Controlado" />
-                    <FormControlLabel control={<Checkbox name="is_judicial_order" checked={!!form.is_judicial_order} onChange={change} />} label="Ordem Judicial" />
-                    <FormControlLabel control={<Checkbox name="is_high_cost" checked={!!form.is_high_cost} onChange={change} />} label="Alto Custo" />
-                    <FormControlLabel control={<Checkbox name="active" checked={!!form.active} onChange={change} />} label="Ativo" />
-                </Stack>
-                <Box sx={{ display: 'flex', gap: 1, mt: 2.2 }}>
-                    <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>
-                        Salvar
-                    </Button>
-                </Box>
-            </BaseCard>
-        </Dialog>
+        <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="md">
+            <DialogoCabecalho>{medicine?.id ? 'Editar Medicamento' : 'Novo Medicamento'}</DialogoCabecalho>
+            <div className="grid gap-4">
+                {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                {campo('internal_code', 'Código Interno', { obrigatorio: true })}
+                {campo('brand_name', 'Nome Comercial')}
+                {campo('active_ingredient', 'Princípio Ativo', { obrigatorio: true })}
+                {campo('concentration', 'Concentração', { obrigatorio: true })}
+                {selecao('pharmaceutical_form', 'Forma Farmacêutica', forms.map((f) => <option key={f.id} value={f.name}>{f.name}</option>))}
+                {selecao('presentation', 'Apresentação', presentations.map((p) => <option key={p.id} value={p.name}>{p.name}</option>))}
+                {selecao('unit_measure', 'Unidade de Medida', units.map((u) => <option key={u.id} value={u.code}>{u.code} - {u.name}</option>))}
+                {campo('ean_code', 'Código EAN')}
+                {campo('technical_notes', 'Observações Técnicas')}
+                {marca('is_free_distribution', 'Distribuição Gratuita')}
+                {marca('is_controlled', 'Medicamento Controlado')}
+                {marca('is_judicial_order', 'Ordem Judicial')}
+                {marca('is_high_cost', 'Alto Custo')}
+                {marca('active', 'Ativo')}
+            </div>
+            <DialogoRodape>
+                <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button type="button" onClick={save}>Salvar</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }
-

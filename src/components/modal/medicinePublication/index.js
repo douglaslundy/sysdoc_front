@@ -1,21 +1,9 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    Stack,
-    TextField,
-} from '@mui/material';
 import { registerMedicinePublicationFetch } from '../../../store/fetchActions/medicinePublications';
-import { modalPrimaryButtonSx, modalSecondaryButtonSx } from '../_shared/modalFormStyles';
+import { Button } from '../../ui/button';
+import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 
 const EMPTY = {
     reference_type: 'daily',
@@ -29,7 +17,7 @@ export default function MedicinePublicationDialog({ open, onClose, onSuccess }) 
     const dispatch = useDispatch();
     const [form, setForm] = useState(EMPTY);
 
-    const change = ({ target }) => setForm(f => ({ ...f, [target.name]: target.value }));
+    const change = ({ target: { name, value } }) => setForm(f => ({ ...f, [name]: value }));
     const save = () => {
         dispatch(registerMedicinePublicationFetch({
             ...form,
@@ -39,63 +27,32 @@ export default function MedicinePublicationDialog({ open, onClose, onSuccess }) 
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            PaperProps={{
-                sx: {
-                    width: '600px',
-                    maxWidth: '96vw',
-                    maxHeight: '92vh',
-                    background: 'var(--lg-glass-modal)',
-                    backdropFilter: 'var(--lg-blur-modal)',
-                    WebkitBackdropFilter: 'var(--lg-blur-modal)',
-                    border: '0.5px solid var(--lg-border)',
-                    borderTop: '1px solid var(--lg-border-strong)',
-                    boxShadow: 'var(--lg-shadow-modal)',
-                    borderRadius: '20px',
-                },
-            }}
-        >
-            <DialogTitle>Register Publication Evidence</DialogTitle>
-            <DialogContent>
-                <Box sx={{ mt: 1 }}>
-                    <Stack spacing={2}>
-                        <FormControl fullWidth>
-                            <InputLabel>Reference Type</InputLabel>
-                            <Select name="reference_type" value={form.reference_type} label="Reference Type" onChange={change}>
-                                <MenuItem value="daily">Daily</MenuItem>
-                                <MenuItem value="monthly">Monthly</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField name="reference_id" label="Reference ID" value={form.reference_id} onChange={change} fullWidth required />
-                        <FormControl fullWidth>
-                            <InputLabel>Channel</InputLabel>
-                            <Select name="channel" value={form.channel} label="Channel" onChange={change}>
-                                <MenuItem value="site">Site</MenuItem>
-                                <MenuItem value="panel">Panel</MenuItem>
-                                <MenuItem value="instagram">Instagram</MenuItem>
-                                <MenuItem value="facebook">Facebook</MenuItem>
-                                <MenuItem value="other">Other</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth>
-                            <InputLabel>Status</InputLabel>
-                            <Select name="status" value={form.status} label="Status" onChange={change}>
-                                <MenuItem value="published">Published</MenuItem>
-                                <MenuItem value="pending">Pending</MenuItem>
-                                <MenuItem value="failed">Failed</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField name="published_at" type="datetime-local" label="Published At" value={form.published_at} onChange={change} InputLabelProps={{ shrink: true }} fullWidth />
-                    </Stack>
-                </Box>
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'flex-end', px: 3, pb: 2.4, gap: 1.2 }}>
-                <Button onClick={onClose} variant="outlined" sx={modalSecondaryButtonSx}>Cancel</Button>
-                <Button onClick={save} variant="contained" sx={modalPrimaryButtonSx}>Save</Button>
-            </DialogActions>
-        </Dialog>
+        <Dialogo aberto={Boolean(open)} aoFechar={onClose} tamanho="md">
+            <DialogoCabecalho>Register Publication Evidence</DialogoCabecalho>
+            <div className="grid gap-4">
+                <CampoSelecao id="pub-tipo" label="Reference Type" name="reference_type" value={form.reference_type} onChange={change}>
+                    <option value="daily">Daily</option>
+                    <option value="monthly">Monthly</option>
+                </CampoSelecao>
+                <CampoTexto id="pub-ref" name="reference_id" label="Reference ID" value={form.reference_id} onChange={change} obrigatorio />
+                <CampoSelecao id="pub-canal" label="Channel" name="channel" value={form.channel} onChange={change}>
+                    <option value="site">Site</option>
+                    <option value="panel">Panel</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="other">Other</option>
+                </CampoSelecao>
+                <CampoSelecao id="pub-status" label="Status" name="status" value={form.status} onChange={change}>
+                    <option value="published">Published</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                </CampoSelecao>
+                <CampoTexto id="pub-data" name="published_at" type="datetime-local" label="Published At" value={form.published_at} onChange={change} />
+            </div>
+            <DialogoRodape>
+                <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                <Button type="button" onClick={save}>Save</Button>
+            </DialogoRodape>
+        </Dialogo>
     );
 }
-
