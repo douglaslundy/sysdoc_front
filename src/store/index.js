@@ -28,6 +28,7 @@ import vigilanciaConfigReducer from './ducks/vigilanciaConfig';
 import estabelecimentosReducer from './ducks/estabelecimentos';
 import alvarasReducer from './ducks/alvaras';
 import fiscalizacoesReducer from './ducks/fiscalizacoes';
+import iluminacaoPostesReducer from './ducks/iluminacaoPostes';
 import medicinesReducer from './ducks/medicines';
 import medicineDailyStatusesReducer from './ducks/medicineDailyStatuses';
 import medicineMonthlyAcquisitionsReducer from './ducks/medicineMonthlyAcquisitions';
@@ -65,6 +66,7 @@ export default configureStore({
         estabelecimentos: estabelecimentosReducer,
         alvaras: alvarasReducer,
         fiscalizacoes: fiscalizacoesReducer,
+        iluminacaoPostes: iluminacaoPostesReducer,
         medicines: medicinesReducer,
         medicineDailyStatuses: medicineDailyStatusesReducer,
         medicineMonthlyAcquisitions: medicineMonthlyAcquisitionsReducer,
