@@ -8,6 +8,12 @@ module.exports = {
       config.resolve.fallback = {fs: false};
       return config;
     },
+    // Proxy para o back: o navegador chama /backend/api (mesma origem) e o Next repassa no servidor, sem CORS.
+    // Ative com NEXT_PUBLIC_API_URL=/backend/api e BACKEND_API_URL=https://<back>/api.
+    async rewrites() {
+      const destino = (process.env.BACKEND_API_URL || "").trim().replace(/\/+$/, "");
+      return destino ? [{ source: "/backend/api/:path*", destination: `${destino}/:path*` }] : [];
+    },
     // Endereços antigos da denúncia pública (links já enviados) levam à nova página de petição.
     async redirects() {
       return [

@@ -23,6 +23,7 @@ export function middleware(request) {
     // Let Next.js internals, static files, and API routes through
     if (
         pathname.startsWith('/api/') ||
+        pathname.startsWith('/backend/') ||
         pathname.startsWith('/_next/') ||
         pathname.includes('.')
     ) {

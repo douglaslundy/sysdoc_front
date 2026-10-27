@@ -66,5 +66,8 @@
   "bugs": {
     "url": "https://github.com/douglaslundy/sysvendas_front/issues"
   },
-  "homepage": "https://github.com/douglaslundy/sysvendas_front#readme"
+  "homepage": "https://github.com/douglaslundy/sysvendas_front#readme",
+  "engines": {
+    "node": "22.x"
+  }
 }

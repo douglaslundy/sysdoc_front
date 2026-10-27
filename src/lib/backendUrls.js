@@ -18,7 +18,8 @@ function ensureApiSuffix(base) {
 }
 
 export function getApiBaseCandidates() {
-    const envBase = ensureApiSuffix(process.env.NEXT_PUBLIC_API_URL);
+    // BACKEND_API_URL (só servidor) é o endereço real do back quando NEXT_PUBLIC_API_URL aponta para o proxy /backend/api.
+    const envBase = ensureApiSuffix(process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL);
     const all = [envBase, ...DEFAULT_BASES.map(ensureApiSuffix)].filter(Boolean);
     return [...new Set(all)];
 }
