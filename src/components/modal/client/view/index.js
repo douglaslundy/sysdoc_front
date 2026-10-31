@@ -5,6 +5,7 @@ import { Carregando } from '../../../ui/carregando';
 import { Dado } from '../../../ui/dado';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
 import { Pilula } from '../../../ui/pilula';
+import { AcoesDoCidadao } from './AcoesDoCidadao';
 
 const fieldLabel = {
   id: 'ID',
@@ -98,6 +99,8 @@ export default function ClientViewModal({ open, client, loading, error, onClose 
               <Dado rotulo="Complemento">{naoInformado(address.complement)}</Dado>
             </div>
           </div>
+
+          <AcoesDoCidadao cliente={client} />
 
           <DialogoRodape>
             <Button variant="outline" onClick={onClose}>Voltar</Button>
