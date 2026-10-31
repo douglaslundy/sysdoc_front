@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import Phone from '../../inputs/textFields/phone';
 import { Banner } from '../../ui/banner';
+import { FotoAvatar } from '../../ui/foto-avatar';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
@@ -287,6 +288,7 @@ export default function UserModal(props) {
             handleSaveData();
           }}
         >
+          {user && user.id ? <FotoAvatar tipo="users" id={user.id} nome={user.name} className="mb-4" /> : null}
           <p className="mb-4 font-display text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground">Dados do usuário</p>
 
           <div className="grid gap-4">

@@ -8,6 +8,7 @@ import { turnUserModal } from "../../store/ducks/Layout";
 import { getUserFetch } from "../../store/fetchActions/user";
 import { Button } from "../../components/ui/button";
 import { Menu, MenuConteudo, MenuItem, MenuTrigger } from "../../components/ui/menu";
+import { useFotoPessoa } from "../../lib/fotoPessoa";
 
 const getInitials = (name) => {
   if (!name) return "US";
@@ -34,6 +35,7 @@ const ProfileDD = () => {
   const dispatch = useDispatch();
   const { username, user, profile } = useContext(AuthContext);
   const [mounted, setMounted] = useState(false);
+  const foto = useFotoPessoa("users", mounted ? user : null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -53,7 +55,7 @@ const ProfileDD = () => {
           render={<Button variant="ghost" size="default" className="max-w-[260px] gap-2 px-2 sm:px-3" />}
         >
           <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-card text-xs font-semibold text-primary-text">
-            {mounted ? getInitials(username) : ""}
+            {foto ? <img src={foto} alt="" className="size-full rounded-full object-cover" /> : mounted ? getInitials(username) : ""}
           </span>
           <span className="hidden min-w-0 truncate text-sm text-foreground sm:inline">{identidade}</span>
           <ChevronDown aria-hidden className="hidden size-3.5 shrink-0 sm:inline" />

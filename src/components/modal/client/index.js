@@ -5,6 +5,7 @@ import Phone from '../../inputs/textFields/phone';
 import CpfCnpj from '../../inputs/textFields/cpfCnpj';
 import BasicDatePicker from '../../inputs/datePicker';
 import { Banner } from '../../ui/banner';
+import { FotoAvatar } from '../../ui/foto-avatar';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape, DialogoTitulo } from '../../ui/dialogo';
@@ -119,6 +120,7 @@ export default function ClientModal(props) {
             handleSaveData();
           }}
         >
+          {client && client.id ? <FotoAvatar tipo="clients" id={client.id} nome={client.name} /> : null}
           <p className="text-xs font-semibold tracking-[0.07em] text-muted-foreground uppercase">Dados do cliente</p>
 
           {texto_('cliente-nome', 'Nome Completo', 'name', 100, { required: true })}
