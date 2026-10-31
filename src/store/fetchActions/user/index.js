@@ -34,7 +34,7 @@ export const addUserFetch = (user, cleanForm) => {
                 dispatch(addMessage(`Usuário ${res.data.user.name} foi adicionado com sucesso!`)),
                 dispatch(turnAlert()),
                 dispatch(turnLoading()),
-                cleanForm(),
+                cleanForm()
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));

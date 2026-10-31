@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { ColorModeContext } from '../../contexts/ThemeContext';
 import { AlertTriangle, Archive, CheckCircle, ShoppingCart } from 'lucide-react';
 import { Abas } from '../ui/abas';
 import { DataTable } from '../ui/data-table';
@@ -50,8 +51,8 @@ function normalizeMeses(aquisicoesPorMes = [], janelaMeses = 12) {
 }
 
 export default function FarmaciaDashboard() {
-    const theme = useTheme();
-    const isDarkMode = theme.palette.mode === 'dark';
+    const { mode } = useContext(ColorModeContext);
+    const isDarkMode = mode === 'dark';
     const [dados, setDados] = useState(null);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState(null);

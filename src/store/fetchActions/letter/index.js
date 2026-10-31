@@ -71,7 +71,7 @@ export const getTextAI = (letter) => {
             (
                 dispatch(getTextOpenAi(res.data.content)),
                 dispatch(addMessage(`Modelo Gerado com Sucesso`)),
-                dispatch(turnLoading()),
+                dispatch(turnLoading())
             ))
             .catch((error) => {                
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));

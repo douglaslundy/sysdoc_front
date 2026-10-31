@@ -41,7 +41,7 @@ export default function DashboardPage() {
     const abasVisiveis = useMemo(() => {
         const permitted = profile === 'admin'
             ? ABAS
-            : ABAS.filter(a => myPermissions.includes(a.permission));
+            : ABAS.filter(a => (myPermissions || []).includes(a.permission));
         const visible = permitted.filter(a => a.permission !== '/dashboard/chat' || canUseChat);
         const orderByPath = new Map(
             (authorizedPages || []).map((page) => [page.path, Number(page.ordem ?? 999)])

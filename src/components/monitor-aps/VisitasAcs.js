@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CircleCheck, CircleX, Home, List, Loader2, Map, MapPin, Printer, User, UserX } from 'lucide-react';
+import { CircleCheck, CircleX, Home, List, Loader2, Map as IconeMapa, MapPin, Printer, User, UserX } from 'lucide-react';
 import { equipeLabel } from '../../utils/equipeLabel';
 import { isMonitorApsCanceled, monitorApsApi } from '../../services/monitorApsApi';
 import { useMonitorApsAudit } from '../../services/monitorApsAudit';
@@ -30,7 +30,7 @@ const MESES_COMPLETO = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', '
 const ABAS = [
     { chave: 'tabela', rotulo: 'Visitas', Icone: List },
     { chave: 'agentes', rotulo: 'Por Agente', Icone: User },
-    { chave: 'mapa', rotulo: 'Mapa', Icone: Map },
+    { chave: 'mapa', rotulo: 'Mapa', Icone: IconeMapa },
 ];
 
 function MetricCard({ Icone, titulo, valor, cor, sub, subFamily, subDestacado = false }) {
