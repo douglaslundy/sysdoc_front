@@ -93,6 +93,13 @@ export default function SignIn() {
                 <Button type="submit" size="lg" className="w-full">
                     Entrar
                 </Button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                    Não tem acesso?{' '}
+                    <Link href="/cadastre-se">
+                        <a className="text-primary-text underline-offset-4 hover:underline">Cadastre-se</a>
+                    </Link>
+                </p>
             </form>
         </AuthCard>
     );

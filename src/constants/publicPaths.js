@@ -4,6 +4,7 @@
 // se desalinha — mantenha um só arquivo.
 export const PUBLIC_PATHS = [
     '/login',
+    '/cadastre-se',
     '/consulta-exame',
     '/petition',
     '/petition/track',

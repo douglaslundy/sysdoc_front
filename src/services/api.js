@@ -26,7 +26,9 @@ export async function prepararRequisicao(config) {
   const info = await getClientInfoHeader();
   if (info) config.headers["X-Client-Info"] = info;
   const secretaria = lerAtiva();
-  if (secretaria && !config.semSecretaria) config.headers["X-Secretaria-Id"] = secretaria;
+  if (secretaria && !config.semSecretaria && !config.publica) config.headers["X-Secretaria-Id"] = secretaria;
+  // config.publica: endpoint sem sessão (cadastro público); nunca leva token.
+  if (config.publica) delete config.headers["Authorization"];
   return config;
 }
 api.interceptors.request.use(prepararRequisicao);
