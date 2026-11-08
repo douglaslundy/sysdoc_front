@@ -21,7 +21,7 @@ export const getAllAlvaras = (params = {}) => {
     };
 };
 
-export const addAlvaraFetch = (dados, onSuccess, onError) => {
+export const addAlvaraFetch = (dados, onSuccess, onError, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/alvaras', dados)
@@ -33,6 +33,7 @@ export const addAlvaraFetch = (dados, onSuccess, onError) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 const message = error?.response?.data?.message || 'Erro ao cadastrar alvara';
                 dispatch(addAlertMessage(message));
                 onError && onError(message);

@@ -21,7 +21,7 @@ export const getAllFiscalizacoes = (params = {}) => {
     };
 };
 
-export const addFiscalizacaoFetch = (dados, onSuccess, onError) => {
+export const addFiscalizacaoFetch = (dados, onSuccess, onError, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/fiscalizacoes', dados)
@@ -33,6 +33,7 @@ export const addFiscalizacaoFetch = (dados, onSuccess, onError) => {
                 onSuccess && onSuccess(res.data);
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 const message = error?.response?.data?.message || 'Erro ao cadastrar fiscalização';
                 dispatch(addAlertMessage(message));
                 onError && onError(message);

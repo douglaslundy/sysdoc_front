@@ -13,6 +13,7 @@ import { Banner } from '../../ui/banner';
 import { Button, buttonVariants } from '../../ui/button';
 import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
 import { FormularioModal } from '../../ui/formulario-modal';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const RESULTADO_OPTIONS = ['Pendente de apuração', 'Conforme', 'Não conforme', 'Notificação', 'Auto de infração'];
 
@@ -39,6 +40,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
     const { selectList } = useSelector(state => state.estabelecimentos);
     const [form, setForm] = useState(EMPTY);
     const [localError, setLocalError] = useState('');
+    const secretaria = useSecretariaObrigatoria();
     const [attachments, setAttachments] = useState([]);
     const [uploading, setUploading] = useState(false);
 
@@ -46,6 +48,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         if (open) {
             dispatch(getEstabelecimentosSelect());
             setLocalError('');
+            secretaria.limpar();
             setForm(fiscalizacao
                 ? {
                     estabelecimento_id: fiscalizacao.estabelecimento_id || '',
@@ -80,7 +83,8 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
         if (fiscalizacao?.id) {
             dispatch(editFiscalizacaoFetch(fiscalizacao.id, dados, onSuccess, setLocalError));
         } else {
-            dispatch(addFiscalizacaoFetch(dados, onCreateSuccess || onSuccess, setLocalError));
+            if (!secretaria.validar()) return;
+            dispatch(addFiscalizacaoFetch({ ...dados, ...secretaria.payload() }, onCreateSuccess || onSuccess, setLocalError, secretaria.tratarErro));
         }
     };
 
@@ -138,6 +142,7 @@ export default function FiscalizacaoDialog({ open, onClose, fiscalizacao, onSucc
             tamanho="md"
             antes={(
                 <div className="mb-4 space-y-3">
+                    {!fiscalizacao?.id && <CampoSecretariaObrigatorio controle={secretaria} id="fis-secretaria" />}
                     {localError && <Banner tom="perigo">{localError}</Banner>}
                     {fiscalizacao?.protocolo && <p className="text-sm font-bold">Protocolo: {fiscalizacao.protocolo}</p>}
                     {isDenuncia && (

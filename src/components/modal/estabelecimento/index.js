@@ -6,6 +6,7 @@ import { Button } from '../../ui/button';
 import { Campo, CampoTexto } from '../../ui/campos';
 import { ComboboxMultiplo } from '../../ui/combobox-multiplo';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
     nome_responsavel: '',
@@ -67,7 +68,10 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
             : EMPTY);
         setCnaeBusca('');
         setCnaeInputValue('');
+        secretaria.limpar();
     }, [open, estabelecimento?.id]);
+
+    const secretaria = useSecretariaObrigatoria();
 
     const change = ({ target: { name, value } }) => setForm((f) => ({ ...f, [name]: value }));
 
@@ -76,7 +80,8 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
         if (estabelecimento?.id) {
             dispatch(editEstabelecimentoFetch(estabelecimento.id, payload, onSuccess));
         } else {
-            dispatch(addEstabelecimentoFetch(payload, onSuccess));
+            if (!secretaria.validar()) return;
+            dispatch(addEstabelecimentoFetch({ ...payload, ...secretaria.payload() }, onSuccess, secretaria.tratarErro));
         }
     };
 
@@ -90,6 +95,7 @@ export default function EstabelecimentoDialog({ open, onClose, estabelecimento, 
                     handleSalvar();
                 }}
             >
+                {!estabelecimento?.id && <CampoSecretariaObrigatorio controle={secretaria} id="est-secretaria" />}
                 <p className="text-xs font-semibold tracking-[0.07em] text-muted-foreground uppercase">Dados principais</p>
                 <CampoTexto id="est-nome" label="Nome do Estabelecimento" name="nome_estabelecimento" value={form.nome_estabelecimento} onChange={change} obrigatorio required />
                 <CampoTexto id="est-responsavel" label="Responsável" name="nome_responsavel" value={form.nome_responsavel} onChange={change} obrigatorio required />

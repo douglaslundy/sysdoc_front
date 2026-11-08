@@ -6,6 +6,7 @@ import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
 import { CampoSelecao, CampoTexto } from "../ui/campos";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 import { Pilula } from "../ui/pilula";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../secretaria/CampoSecretariaObrigatorio";
 
 const EMPTY = { nome: "", descricao: "", unit_id: "", ativo: true, ordem: 0 };
 
@@ -28,6 +29,7 @@ const errorMessage = (error, fallback) => {
  */
 export default function MotivosPeticao() {
   const [motivos, setMotivos] = useState([]);
+  const secretaria = useSecretariaObrigatoria();
   const [units, setUnits] = useState([]);
   const [erro, setErro] = useState("");
   const [form, setForm] = useState(null); // null = fechado; objeto = aberto (com id => edição)
@@ -53,7 +55,7 @@ export default function MotivosPeticao() {
     load();
   }, [load]);
 
-  const openNew = () => setForm({ ...EMPTY });
+  const openNew = () => { secretaria.limpar(); setForm({ ...EMPTY }); };
   const openEdit = (motivo) =>
     setForm({
       id: motivo.id,
@@ -80,13 +82,15 @@ export default function MotivosPeticao() {
       ordem: Number(form.ordem) || 0,
     };
 
+    if (!form.id && !secretaria.validar()) return;
     setSaving(true);
     try {
       if (form.id) await api.put(`/peticao-motivos/${form.id}`, payload);
-      else await api.post("/peticao-motivos", payload);
+      else await api.post("/peticao-motivos", { ...payload, ...secretaria.payload() });
       setForm(null);
       await load();
     } catch (error) {
+      if (secretaria.tratarErro(error)) return;
       setErro(errorMessage(error, "Não foi possível salvar o motivo."));
     } finally {
       setSaving(false);
@@ -140,6 +144,7 @@ export default function MotivosPeticao() {
       <Dialogo aberto={Boolean(form)} aoFechar={() => setForm(null)} tamanho="md">
         <DialogoCabecalho>{form?.id ? "Editar motivo" : "Novo motivo"}</DialogoCabecalho>
         <div className="grid gap-4">
+          {!form?.id && <CampoSecretariaObrigatorio controle={secretaria} id="motivo-secretaria" />}
           <CampoTexto id="motivo-nome" label="Nome" name="nome" value={form?.nome || ""} onChange={mudar} maxLength={120} required obrigatorio />
           <CampoTexto id="motivo-descricao" label="Descrição (opcional)" name="descricao" value={form?.descricao || ""} onChange={mudar} maxLength={255} />
           <CampoSelecao id="motivo-unidade" label="Unidade responsável" name="unit_id" value={form?.unit_id || ""} onChange={mudar}>
