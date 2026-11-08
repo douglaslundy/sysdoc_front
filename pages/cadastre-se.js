@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { parseCookies } from 'nookies';
@@ -21,7 +21,7 @@ const MSG_SUCESSO = 'Informações salvas e registradas com sucesso. Aguarde a a
 const OPCOES = { publica: true }; // sem token nem X-Secretaria-Id (ver api.js)
 const VAZIO = {
     name: '', preferred_name: '', cpf: '', email: '', phone: '', password: '', password_confirmation: '',
-    secretaria_id: '', cargo: '', observacao: '', captcha_resposta: '',
+    secretaria_id: '', cargo: '', observacao: '', captcha_resposta: '', website: '',
 };
 
 const soDigitos = (v) => String(v).replace(/\D/g, '');
@@ -47,22 +47,34 @@ export default function CadastreSe() {
     const [erro, setErro] = useState('');
     const [erros, setErros] = useState({});
 
+    const travado = useRef(false); // anti duplo clique mesmo antes do re-render
+    const [falhaCarga, setFalhaCarga] = useState(false);
+
+    // 403/404 = flag desligada (mensagem neutra); qualquer outra falha permite tentar de novo.
+    const falhou = useCallback((err) => {
+        if ([403, 404].includes(err?.response?.status)) setIndisponivel(true);
+        else setFalhaCarga(true);
+    }, []);
+
     const carregarDesafio = useCallback(async () => {
         try {
             const { data } = await api.get('/public/cadastro/desafio', OPCOES);
             setDesafio(data);
         } catch (err) {
             setDesafio(null);
-            if ([403, 404].includes(err?.response?.status)) setIndisponivel(true);
+            falhou(err);
         }
-    }, []);
+    }, [falhou]);
 
-    useEffect(() => {
+    const carregarTudo = useCallback(() => {
+        setFalhaCarga(false);
         api.get('/public/cadastro/secretarias', OPCOES)
             .then(({ data }) => setSecretarias(Array.isArray(data) ? data : []))
-            .catch((err) => { if ([403, 404].includes(err?.response?.status)) setIndisponivel(true); });
+            .catch(falhou);
         carregarDesafio();
-    }, [carregarDesafio]);
+    }, [carregarDesafio, falhou]);
+
+    useEffect(() => { carregarTudo(); }, [carregarTudo]);
 
     const mudar = (campo, mascara) => ({ target }) => {
         const valor = mascara ? mascara(target.value) : target.value; // lê antes do updater (o DOM é restaurado)
@@ -71,13 +83,14 @@ export default function CadastreSe() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (enviando) return;
+        if (travado.current) return;
         setErro('');
         setErros({});
         if (form.password !== form.password_confirmation) {
             setErros({ password_confirmation: 'As senhas não coincidem.' });
             return;
         }
+        travado.current = true;
         setEnviando(true);
         try {
             await api.post('/public/cadastro', {
@@ -93,24 +106,29 @@ export default function CadastreSe() {
                 observacao: form.observacao,
                 captcha_token: desafio?.token || '',
                 captcha_resposta: form.captcha_resposta,
-                website: '', // honeypot: humano nunca preenche
+                website: form.website, // honeypot: humano nunca preenche; o back rejeita se vier preenchido
             }, OPCOES);
             setSucesso(true);
+            setDesafio(null); // token já queimado; novo pedido busca outro
             setForm(VAZIO);
+            return;
         } catch (err) {
             const status = err?.response?.status;
             if (status === 429) setErro('Muitas tentativas. Tente novamente mais tarde.');
             else if ([403, 404].includes(status)) setIndisponivel(true);
             else if (status === 422) {
                 const e = err.response.data?.errors || {};
-                setErros(Object.fromEntries(Object.entries(e).map(([k, v]) => [k, [].concat(v)[0]])));
-                setErro('Revise os campos destacados.');
+                const msgs = Object.fromEntries(Object.entries(e).map(([k, v]) => [k, [].concat(v)[0]]));
+                setErros(msgs);
+                const destacado = Object.keys(msgs).some((k) => k in VAZIO && k !== 'website');
+                setErro(destacado ? 'Revise os campos destacados.' : Object.values(msgs)[0] || 'Não foi possível validar os dados. Revise e tente novamente.');
             } else setErro('Não foi possível enviar agora. Tente novamente.');
             setForm((f) => ({ ...f, captcha_resposta: '', password: '', password_confirmation: '' }));
         } finally {
+            travado.current = false;
             setEnviando(false);
-            carregarDesafio(); // o token é de uso único: sempre pede outro
         }
+        carregarDesafio(); // o token é de uso único: após erro, sempre pede outro
     };
 
     const texto = (id, label, campo, extra = {}) => (
@@ -141,10 +159,21 @@ export default function CadastreSe() {
             {indisponivel ? (
                 <Banner tom="info">Cadastro indisponível no momento.</Banner>
             ) : sucesso ? (
-                <Banner tom="sucesso" rotulo="Cadastro enviado">{MSG_SUCESSO}</Banner>
+                <div className="space-y-4">
+                    <Banner tom="sucesso" rotulo="Cadastro enviado">{MSG_SUCESSO}</Banner>
+                    <Button type="button" variant="ghost" onClick={() => { setSucesso(false); carregarDesafio(); }}>
+                        Fazer novo pedido
+                    </Button>
+                </div>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                     {erro ? <Banner tom="perigo">{erro}</Banner> : null}
+                    {falhaCarga ? (
+                        <Banner tom="perigo">
+                            Não foi possível carregar o formulário.{' '}
+                            <button type="button" className="underline" onClick={carregarTudo}>Tentar novamente</button>
+                        </Banner>
+                    ) : null}
 
                     {texto('name', 'Nome completo', 'name', { obrigatorio: true, maxLength: 50, required: true, autoComplete: 'name' })}
                     {texto('preferred_name', 'Nome preferido', 'preferred_name', { maxLength: 50 })}
@@ -215,7 +244,7 @@ export default function CadastreSe() {
 
                     {/* Honeypot: fora da tela (display:none seria ignorado por bots), inacessível a humanos e leitores de tela. */}
                     <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
-                        <input type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+                        <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={mudar('website')} />
                     </div>
 
                     {desafio ? (
