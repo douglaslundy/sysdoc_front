@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../services/api";
 import { Banner } from "../ui/banner";
 import { Button } from "../ui/button";
@@ -16,6 +16,17 @@ const mensagemDoErro = (e, padrao) => {
   const d = e?.response?.data;
   const campos = d?.errors ? Object.values(d.errors).flat() : [];
   return campos.length ? campos.join(" ") : d?.message || d?.error || padrao;
+};
+
+// Nenhuma capacidade nasce herdada: o back usaria o padrão do ator se o campo faltasse.
+const CAPACIDADES_OFF = {
+  chat_enabled: false,
+  almoxarifado_create_enabled: false,
+  almoxarifado_approve_enabled: false,
+  almoxarifado_deliver_enabled: false,
+  client_trips_view_enabled: false,
+  client_report_view_enabled: false,
+  client_history_view_enabled: false,
 };
 
 const slugDe = (nome) =>
@@ -43,16 +54,29 @@ export default function AutorizacaoDialog({ item, aberto, aoFechar, aoDecidir })
   const [novo, setNovo] = useState({ nome: "", page_ids: [] });
   const [motivo, setMotivo] = useState("");
   const [erroMotivo, setErroMotivo] = useState("");
+  const travado = useRef(false); // o state `enviando` só muda no próximo render; o ref barra o duplo clique
 
   useEffect(() => {
-    if (!aberto || !id) return undefined;
-    let vivo = true;
-    setCarregando(true);
+    // Zera tudo a cada abertura/troca de pedido: nunca sobra dado do pedido anterior.
+    setPedido(null);
+    setPerfis([]);
+    setSecretarias([]);
+    setPaginas([]);
+    setSelecionadas([]);
+    setNovo({ nome: "", page_ids: [] });
     setErro("");
     setModo("decidir");
     setPerfil("");
     setMotivo("");
     setErroMotivo("");
+    setEnviando(false);
+    travado.current = false;
+    if (!aberto || !id) {
+      setCarregando(false);
+      return undefined;
+    }
+    let vivo = true;
+    setCarregando(true);
     Promise.all([
       api.get(`/cadastro-solicitacoes/${id}`),
       api.get("/access-profiles"),
@@ -79,6 +103,8 @@ export default function AutorizacaoDialog({ item, aberto, aoFechar, aoDecidir })
     setLista(lista.includes(valor) ? lista.filter((v) => v !== valor) : [...lista, valor]);
 
   const enviar = async (url, corpo, falha) => {
+    if (travado.current) return;
+    travado.current = true;
     setEnviando(true);
     setErro("");
     try {
@@ -88,6 +114,7 @@ export default function AutorizacaoDialog({ item, aberto, aoFechar, aoDecidir })
     } catch (e) {
       setErro(mensagemDoErro(e, falha));
     } finally {
+      travado.current = false;
       setEnviando(false);
     }
   };
@@ -108,10 +135,12 @@ export default function AutorizacaoDialog({ item, aberto, aoFechar, aoDecidir })
   const salvarPerfil = async () => {
     const nome = novo.nome.trim();
     if (!nome || !slugDe(nome)) return setErro("Informe o nome do perfil.");
+    if (travado.current) return;
+    travado.current = true;
     setEnviando(true);
     setErro("");
     try {
-      const { data } = await api.post("/access-profiles", { nome, slug: slugDe(nome), page_ids: novo.page_ids });
+      const { data } = await api.post("/access-profiles", { nome, slug: slugDe(nome), page_ids: novo.page_ids, ...CAPACIDADES_OFF });
       setPerfis((atual) => [...atual, data]);
       setPerfil(data.slug);
       setNovo({ nome: "", page_ids: [] });
@@ -119,6 +148,7 @@ export default function AutorizacaoDialog({ item, aberto, aoFechar, aoDecidir })
     } catch (e) {
       setErro(mensagemDoErro(e, "Não foi possível criar o perfil."));
     } finally {
+      travado.current = false;
       setEnviando(false);
     }
   };
