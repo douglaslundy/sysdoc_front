@@ -45,7 +45,7 @@ export default function Users() {
 
   useEffect(() => {
     if (!permissionsLoaded) return;
-    if (profile !== "admin" && profile !== "user") {
+    if (profile !== "admin" && profile !== "gestor" && profile !== "user") {
       Router.push("/");
     }
   }, [profile, permissionsLoaded]);
@@ -100,6 +100,11 @@ export default function Users() {
           <span className="block break-all text-xs">{user?.email || "-"}</span>
         </>
       ),
+    },
+    {
+      chave: "secretarias",
+      titulo: "Secretarias",
+      render: (user) => <span className="text-xs">{(user?.secretarias || []).map((s) => s.nome).join(", ") || "-"}</span>,
     },
     {
       chave: "presenca",
