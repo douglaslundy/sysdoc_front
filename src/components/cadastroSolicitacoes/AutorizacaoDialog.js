@@ -7,14 +7,10 @@ import { Carregando } from "../ui/carregando";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 
 const TIPO = "solicitacao_cadastro";
-const RE_ID = /Pedido de cadastro #(\d+)/;
 
-// O /kanban não devolve o tipo do protocolo nem o id do pedido; o card traz "Pedido de cadastro #id" na descrição.
-export const idDaSolicitacao = (item) => {
-  if (!item?.protocol_id) return null;
-  const m = RE_ID.exec(item.descricao || "");
-  return m && (item.protocol?.tipo === TIPO || item.protocol?.tipo === undefined) ? Number(m[1]) : null;
-};
+// O back devolve protocol.tipo e protocol.solicitacao_id (só em cards de cadastro) no GET /kanban.
+export const idDaSolicitacao = (item) =>
+  item?.protocol?.tipo === TIPO && item.protocol.solicitacao_id ? Number(item.protocol.solicitacao_id) : null;
 
 const mensagemDoErro = (e, padrao) => {
   const d = e?.response?.data;
