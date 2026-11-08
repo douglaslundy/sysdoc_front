@@ -7,6 +7,7 @@ import { limparAtiva } from "../../ducks/secretaria";
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
         dispatch(turnLoading());
+        dispatch(limparAtiva()); // outro usuário pode herdar a ativa do anterior neste navegador
 
         const doLogin = async () => {
             const body = JSON.stringify(dataUser);

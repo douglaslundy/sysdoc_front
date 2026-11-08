@@ -1,6 +1,6 @@
 import { createAction, createReducer } from '@reduxjs/toolkit';
 
-const CHAVE = 'sysdoc.secretariaAtiva';
+export const CHAVE = 'sysdoc.secretariaAtiva';
 
 // localStorage pode lançar (modo privado) ou não existir (SSR): tudo em try/catch.
 const gravar = (valor) => {

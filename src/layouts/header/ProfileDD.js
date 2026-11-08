@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Check, ChevronDown, LogOut, UserRound } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getSecretarias } from "../../store/fetchActions/secretaria";
-import { setAtiva } from "../../store/ducks/secretaria";
+import { CHAVE, setAtiva } from "../../store/ducks/secretaria";
 import { AuthContext } from "../../contexts/AuthContext";
 import { logoutFetch } from "../../store/fetchActions/auth";
 import UserModal from "../../components/modal/user";
@@ -47,6 +47,13 @@ const ProfileDD = () => {
     setMounted(true);
     dispatch(getSecretarias());
   }, [dispatch]);
+
+  // Outra aba trocou a secretaria: recarrega para não misturar dados.
+  useEffect(() => {
+    const aoMudar = (e) => { if (e.key === CHAVE) window.location.reload(); };
+    window.addEventListener("storage", aoMudar);
+    return () => window.removeEventListener("storage", aoMudar);
+  }, []);
 
   const trocarSecretaria = (id) => {
     if (String(id) === String(ativa)) return;
