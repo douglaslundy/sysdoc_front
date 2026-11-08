@@ -30,7 +30,7 @@ export const getAllOrdinances = () => {
     };
 };
 
-export const addOrdinanceFetch = (ordinance, cleanForm) => {
+export const addOrdinanceFetch = (ordinance, cleanForm, aoErro) => {
     const { 'sysvendas.id': user } = parseCookies();
     const { 'sysvendas.username': username } = parseCookies();
 
@@ -62,6 +62,7 @@ export const addOrdinanceFetch = (ordinance, cleanForm) => {
                     error.response ? `ERROR - ${error.response.data.message}` : 'Erro desconhecido'
                 ));
                 dispatch(turnLoading());
+                if (aoErro) aoErro(error.response?.data);
             });
     };
 };

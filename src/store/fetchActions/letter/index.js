@@ -18,7 +18,7 @@ export const getAllLetters = () => {
     }
 }
 
-export const addLetterFetch = (letter, cleanForm) => {
+export const addLetterFetch = (letter, cleanForm, aoErro) => {
     const {'sysvendas.id' : user} = parseCookies();
     const {'sysvendas.username' : username} = parseCookies();
 
@@ -48,6 +48,7 @@ export const addLetterFetch = (letter, cleanForm) => {
             .catch((error) => {
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
+                if (aoErro) aoErro(error.response?.data);
                 return error.response ? error.response.data : 'erro desconhecido';
             })
     };

@@ -8,6 +8,7 @@ import { Carregando } from "../src/components/ui/carregando";
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../src/components/ui/dialogo";
 import { Pilula, tomDaCor } from "../src/components/ui/pilula";
 import { api } from "../src/services/api";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../src/components/secretaria/CampoSecretariaObrigatorio";
 import PeticaoChips from "../src/components/kanban/PeticaoChips";
 import AutorizacaoDialog, { idDaSolicitacao } from "../src/components/cadastroSolicitacoes/AutorizacaoDialog";
 
@@ -149,9 +150,11 @@ function KanbanCard({ item, onOpen, onDragStart, dragging, onOpenFiscalizacao })
 
 function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStatus }) {
   const [form, setForm] = useState(INITIAL_FORM);
+  const secretaria = useSecretariaObrigatoria({ ativo: !item });
 
   useEffect(() => {
     if (!open) return;
+    secretaria.limpar();
     setForm({
       titulo: item?.titulo || "",
       descricao: item?.descricao || "",
@@ -163,13 +166,16 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
     });
   }, [open, item, initialStatus]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onSave({
+    if (!secretaria.validar()) return;
+    const erro = await onSave({
       ...form,
+      ...secretaria.payload(),
       ordem: Number(form.ordem || 0),
       vencimento: form.vencimento || null,
     });
+    if (erro) secretaria.setErro(erro);
   };
 
   const campo = (nome) => ({ target: { value } }) => setForm((current) => ({ ...current, [nome]: value }));
@@ -180,6 +186,7 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
         <DialogoTitulo>{item ? "Editar item do kanban" : "Novo item do kanban"}</DialogoTitulo>
       </DialogoCabecalho>
       <form onSubmit={handleSubmit} className="grid gap-4">
+        <CampoSecretariaObrigatorio controle={secretaria} id="kb-secretaria" />
         <CampoTexto id="kb-titulo" label="Título" obrigatorio required value={form.titulo} onChange={campo("titulo")} />
         <CampoTexto id="kb-descricao" label="Descrição" multiline rows={3} value={form.descricao} onChange={campo("descricao")} />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -550,6 +557,8 @@ export default function KanbanPage() {
       await loadItems();
       closeDialog();
     } catch (error) {
+      const m = error?.response?.data?.errors?.secretaria_id;
+      if (m) return Array.isArray(m) ? m[0] : String(m); // 422 aparece junto ao campo
       setMessage(error?.response?.data?.message || "Não foi possível salvar o item.");
     } finally {
       setSaving(false);
