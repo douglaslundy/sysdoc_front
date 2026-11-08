@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { AuthContext } from "../../src/contexts/AuthContext";
 import { Button } from "../../src/components/ui/button";
 import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
 import { CampoDeBusca } from "../../src/components/ui/campo-de-busca";
@@ -17,6 +18,15 @@ const CANAIS = [
 const formatDate = (value) => (value ? new Date(value).toLocaleString("pt-BR") : "—");
 
 export default function MensagensEnviadasPage() {
+  const { profile } = useContext(AuthContext);
+  // A lista reúne mensagens de todas as secretarias: só o administrador vê (a API responde 403 aos demais).
+  if (profile !== "admin") {
+    return <p className="p-6 text-sm text-muted-foreground">Acesso restrito a administradores.</p>;
+  }
+  return <MensagensEnviadas />;
+}
+
+function MensagensEnviadas() {
   const dispatch = useDispatch();
   const { items, page, lastPage, loading } = useSelector((state) => state.messageLogs);
   const [canal, setCanal] = useState("");
