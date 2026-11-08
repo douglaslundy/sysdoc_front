@@ -2,6 +2,7 @@ import { turnLoading, addAlertMessage } from "../../ducks/Layout";
 import { setAuthToken } from "../../../services/api";
 import Router from "next/router";
 import { destroyCookie } from 'nookies';
+import { limparAtiva } from "../../ducks/secretaria";
 
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
@@ -43,6 +44,7 @@ export const logoutFetch = () => {
     return (dispatch) => {
         dispatch(turnLoading());
 
+        dispatch(limparAtiva());
         fetch('/api/auth/logout', { method: 'POST' })
             .then(() => {
                 setAuthToken(null);

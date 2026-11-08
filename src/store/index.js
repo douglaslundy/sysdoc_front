@@ -34,6 +34,7 @@ import medicineDailyStatusesReducer from './ducks/medicineDailyStatuses';
 import medicineMonthlyAcquisitionsReducer from './ducks/medicineMonthlyAcquisitions';
 import medicineComplianceReducer from './ducks/medicineCompliance';
 import messageLogsReducer from './ducks/messageLogs';
+import secretariaReducer from './ducks/secretaria';
 
 
 export default configureStore({
@@ -72,5 +73,6 @@ export default configureStore({
         medicineMonthlyAcquisitions: medicineMonthlyAcquisitionsReducer,
         medicineCompliance: medicineComplianceReducer,
         messageLogs: messageLogsReducer,
+        secretaria: secretariaReducer,
     },
 });

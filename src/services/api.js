@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getClientInfoHeader } from "../utils/clientInfo";
+import { lerAtiva } from "../store/ducks/secretaria";
 
 const normalize = (v) => String(v || "").trim().replace(/\/+$/, "");
 const ensureApiSuffix = (value) => {
@@ -22,6 +23,8 @@ export const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const info = await getClientInfoHeader();
   if (info) config.headers["X-Client-Info"] = info;
+  const secretaria = lerAtiva();
+  if (secretaria) config.headers["X-Secretaria-Id"] = secretaria;
   return config;
 });
 
