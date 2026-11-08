@@ -9,6 +9,7 @@ import { CampoTexto } from '../ui/campos';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Interruptor } from '../ui/interruptor';
 import { Pilula } from '../ui/pilula';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
   permitir_saida_sem_saldo: false,
@@ -44,10 +45,16 @@ export default function ConfiguracoesPage() {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const secretaria = useSecretariaObrigatoria();
 
   useEffect(() => {
     let mounted = true;
-    api.get('/almoxarifado/configuracoes')
+    if (!secretaria.pronta) {
+      setLoading(false);
+      return undefined;
+    }
+    setLoading(true);
+    api.get('/almoxarifado/configuracoes', { params: secretaria.payload() })
       .then((res) => {
         if (!mounted) return;
         setForm({ ...EMPTY, ...(res.data || {}) });
@@ -60,7 +67,7 @@ export default function ConfiguracoesPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [secretaria.exigir, secretaria.valor]);
 
   const handleSwitch = (name) => (checked) => setForm((prev) => ({ ...prev, [name]: checked }));
 
@@ -74,9 +81,10 @@ export default function ConfiguracoesPage() {
     try {
       const payload = {
         ...form,
+        ...secretaria.payload(),
         estoque_minimo_alerta_percentual: form.estoque_minimo_alerta_percentual === '' ? null : Number(form.estoque_minimo_alerta_percentual),
       };
-      const res = await api.put('/almoxarifado/configuracoes', payload);
+      const res = await api.put('/almoxarifado/configuracoes', payload, { params: secretaria.payload() });
       setForm({ ...EMPTY, ...(res.data || {}) });
     } finally {
       setSaving(false);
@@ -101,6 +109,10 @@ export default function ConfiguracoesPage() {
         ))}
       </div>
 
+      <div className="mb-4 max-w-sm">
+        <CampoSecretariaObrigatorio controle={secretaria} id="cfg-secretaria" />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[7fr_5fr]">
         <Card>
           <CardHeader>
@@ -123,7 +135,7 @@ export default function ConfiguracoesPage() {
             <CampoTexto id="cfg-observacoes" label="Observações" name="observacoes" multiline rows={4} value={form.observacoes} onChange={handleChange} />
             <div className="flex flex-wrap justify-end gap-2 pt-2">
               <BotaoLink href="/almoxarifado" variant="outline">Voltar</BotaoLink>
-              <Button onClick={handleSave} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+              <Button onClick={handleSave} disabled={saving || loading || !secretaria.pronta}>{saving ? 'Salvando...' : 'Salvar'}</Button>
             </div>
           </CardContent>
         </Card>

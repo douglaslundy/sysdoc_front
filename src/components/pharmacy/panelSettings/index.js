@@ -6,6 +6,7 @@ import { addAlertMessage, addMessage, turnAlert, turnLoading } from '../../../st
 import { Button } from '../../ui/button';
 import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
   filter_is_free_distribution: false,
@@ -45,10 +46,12 @@ const normalizeForm = (data) => {
 export default function MedicinesPanelSettings() {
   const dispatch = useDispatch();
   const [form, setForm] = useState(EMPTY);
+  const secretaria = useSecretariaObrigatoria();
 
   useEffect(() => {
+    if (!secretaria.pronta) return;
     dispatch(turnLoading());
-    api.get('/pharmacy/medicines/panel-settings')
+    api.get('/pharmacy/medicines/panel-settings', { params: secretaria.payload() })
       .then((res) => {
         setForm(normalizeForm(res.data));
         dispatch(turnLoading());
@@ -57,7 +60,7 @@ export default function MedicinesPanelSettings() {
         dispatch(addAlertMessage('Não foi possível carregar as configurações do painel de medicamentos.'));
         dispatch(turnLoading());
       });
-  }, [dispatch]);
+  }, [dispatch, secretaria.exigir, secretaria.valor]);
 
   const change = (name, checked) => {
     if (name === 'filter_show_all') {
@@ -74,7 +77,7 @@ export default function MedicinesPanelSettings() {
 
   const save = () => {
     dispatch(turnLoading());
-    api.put('/pharmacy/medicines/panel-settings', form)
+    api.put('/pharmacy/medicines/panel-settings', { ...form, ...secretaria.payload() }, { params: secretaria.payload() })
       .then(() => {
         dispatch(addMessage('Configurações do painel salvas com sucesso!'));
         dispatch(turnAlert());
@@ -97,6 +100,8 @@ export default function MedicinesPanelSettings() {
           Selecione quais tipos de medicamentos devem aparecer no painel público de disponibilidade.
         </p>
 
+        <div className="max-w-sm"><CampoSecretariaObrigatorio controle={secretaria} id="painel-secretaria" /></div>
+
         <div className="grid gap-3">
           <CaixaDeMarcacao id="painel-filter_show_all" name="filter_show_all" marcado={!!form.filter_show_all} aoMudar={(v) => change('filter_show_all', v)}>Todos</CaixaDeMarcacao>
           {OPCOES.map(([name, rotulo]) => (
@@ -107,7 +112,7 @@ export default function MedicinesPanelSettings() {
         </div>
 
         <div>
-          <Button onClick={save}>Salvar Configurações</Button>
+          <Button onClick={save} disabled={!secretaria.pronta}>Salvar Configurações</Button>
         </div>
       </CardContent>
     </Card>

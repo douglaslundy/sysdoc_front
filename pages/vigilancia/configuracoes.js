@@ -8,6 +8,7 @@ import { Button } from '../../src/components/ui/button';
 import { CampoTexto } from '../../src/components/ui/campos';
 import { Card, CardContent, CardHeader, CardTitle } from '../../src/components/ui/card';
 import { Carregando } from '../../src/components/ui/carregando';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../src/components/secretaria/CampoSecretariaObrigatorio';
 
 const emptyForm = {
     estado: '',
@@ -42,10 +43,11 @@ export default function ConfiguracoesVigilancia() {
 
     const [form, setForm]         = useState(emptyForm);
     const [novaObs, setNovaObs]   = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
-        dispatch(getVigilanciaConfig());
-    }, []);
+        if (secretaria.pronta) dispatch(getVigilanciaConfig(secretaria.payload()));
+    }, [secretaria.exigir, secretaria.valor]);
 
     useEffect(() => {
         if (config) {
@@ -88,8 +90,14 @@ export default function ConfiguracoesVigilancia() {
             cep:             form.cep.replace(/\D/g, ''),
             cnpj_prefeitura: form.cnpj_prefeitura.replace(/\D/g, ''),
             cnpj_secretaria: form.cnpj_secretaria.replace(/\D/g, ''),
-        }));
+        }, secretaria.payload()));
     };
+
+    if (!secretaria.pronta) {
+        return (
+            <Card><CardContent className="max-w-sm pt-6"><CampoSecretariaObrigatorio controle={secretaria} id="vig-secretaria" /></CardContent></Card>
+        );
+    }
 
     if (loading && !config) {
         return <Carregando className="justify-center py-16" />;
@@ -105,6 +113,7 @@ export default function ConfiguracoesVigilancia() {
             <Card>
                 <CardHeader><CardTitle>Configurações da Vigilância Sanitária</CardTitle></CardHeader>
                 <CardContent className="flex flex-col gap-5">
+                    <div className="max-w-sm"><CampoSecretariaObrigatorio controle={secretaria} id="vig-secretaria" /></div>
                     <Secao titulo="Identificação Institucional">
                         <div className="grid gap-4 md:grid-cols-12">
                             <div className="md:col-span-2">{campo('estado', 'UF (Estado)', { maxLength: 2, className: 'uppercase' })}</div>

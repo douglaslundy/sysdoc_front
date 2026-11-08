@@ -25,6 +25,8 @@ export function useSecretariaObrigatoria({ ativo = true } = {}) {
 
   return {
     exigir,
+    // telas de configuracao: so carrega/salva depois de escolher a secretaria (quando ativa = 'all')
+    pronta: !exigir || Boolean(valor),
     lista: estado?.lista || [],
     valor,
     erro,
@@ -50,12 +52,12 @@ export function useSecretariaObrigatoria({ ativo = true } = {}) {
   };
 }
 
-export default function CampoSecretariaObrigatorio({ controle, id = "secretaria-id" }) {
+export default function CampoSecretariaObrigatorio({ controle, id = "secretaria-id", label = "Secretaria" }) {
   if (!controle.exigir) return null;
   return (
     <CampoSelecao
       id={id}
-      label="Secretaria"
+      label={label}
       obrigatorio
       value={controle.valor}
       erro={controle.erro || undefined}
