@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { CampoTexto } from "../../ui/campos";
 import { EstadoVazio } from "../../ui/estado-vazio";
 import { Pilula } from "../../ui/pilula";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../../secretaria/CampoSecretariaObrigatorio";
 
 const initialForm = { id: null, name: "", description: "", active: true };
 
@@ -14,6 +15,7 @@ export default function AttendanceRooms() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const secretaria = useSecretariaObrigatoria();
 
   const loadRooms = async () => {
     const { data } = await attendanceApi.listRoomsAdmin();
@@ -36,15 +38,19 @@ export default function AttendanceRooms() {
           active: form.active,
         });
       } else {
+        if (!secretaria.validar()) return;
         await attendanceApi.createRoom({
           name: form.name,
           description: form.description,
           active: true,
+          ...secretaria.payload(),
         });
       }
       setForm(initialForm);
+      secretaria.limpar();
       await loadRooms();
     } catch (e) {
+      if (secretaria.tratarErro(e)) return;
       setError(e?.response?.data?.message || "Erro ao salvar sala.");
     } finally {
       setLoading(false);
@@ -91,6 +97,7 @@ export default function AttendanceRooms() {
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="flex flex-wrap items-end gap-3">
+          {!form.id && <div className="w-full sm:w-[260px]"><CampoSecretariaObrigatorio controle={secretaria} id="sala-secretaria" /></div>}
           <div className="w-full sm:w-[260px]">
             <CampoTexto id="sala-nome" label="Nome da sala" value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} />
           </div>

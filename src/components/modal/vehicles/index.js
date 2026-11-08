@@ -6,6 +6,7 @@ import { closeVehiclesModal, changeTitleAlert } from '../../../store/ducks/Layou
 import { editVehicleFetch, addVehicleFetch } from '../../../store/fetchActions/vehicles';
 import AlertModal from '../../messagesModal';
 import { FormularioModal } from '../../ui/formulario-modal';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_VAZIO = {
     brand: "",
@@ -34,6 +35,7 @@ export default function VehicleModal(props) {
     const { vehicle } = useSelector(state => state.vehicles);
     const { isOpenVehiclesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    const secretaria = useSecretariaObrigatoria();
 
     const changeItem = ({ target: { name, value } }) => {
         setForm(atual => ({ ...atual, [name]: value }));
@@ -41,6 +43,7 @@ export default function VehicleModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_VAZIO);
+        secretaria.limpar();
         dispatch(closeVehiclesModal());
         dispatch(showVehicle({}));
     };
@@ -50,8 +53,9 @@ export default function VehicleModal(props) {
     };
 
     const handlePostData = async () => {
+        if (!secretaria.validar()) return;
         dispatch(changeTitleAlert(`O Veículo ${form.model.toUpperCase()} ${form.brand.toUpperCase()} PLACA ${form.license_plate.toUpperCase()} foi cadastrado com sucesso!`));
-        dispatch(addVehicleFetch(form, cleanForm));
+        dispatch(addVehicleFetch({ ...form, ...secretaria.payload() }, cleanForm, secretaria.tratarErro));
     };
 
     const handlePutData = async () => {
@@ -75,7 +79,7 @@ export default function VehicleModal(props) {
                 campos={CAMPOS}
                 valores={form}
                 aoMudar={changeItem}
-                antes={<AlertModal />}
+                antes={<><AlertModal />{!(vehicle && vehicle.id) && <CampoSecretariaObrigatorio controle={secretaria} id="veiculo-secretaria" />}</>}
             />
         </div>
     );

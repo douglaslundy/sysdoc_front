@@ -5,6 +5,7 @@ import { Button } from '../../ui/button';
 import { CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 import AnexosDoRegistro from '../_shared/AnexosDoRegistro';
 import ConfirmDialog from '../../confirmDialog';
 import { showQueue, editQueue } from '../../../store/ducks/queues';
@@ -36,6 +37,7 @@ export default function QueueModal(props) {
     const { queue } = useSelector(state => state.queues);
     const { isOpenQueueModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    const secretaria = useSecretariaObrigatoria();
     const { clients } = useSelector(state => state.clients);
     const { specialities } = useSelector(state => state.specialities);
     const { specialityOptions } = useSelector(state => state.queues);
@@ -111,6 +113,7 @@ export default function QueueModal(props) {
         });
         setAlertState({ visible: false, type: 'success', message: '' });
         setPendingFiles([]);
+        secretaria.limpar();
         dispatch(closeQueueModal());
         dispatch(showQueue({}));
     }
@@ -124,9 +127,10 @@ export default function QueueModal(props) {
     }
 
     const handlePostData = async () => {
+        if (!secretaria.validar()) return;
         setIsSubmittingQueue(true);
         dispatch(changeTitleAlert(`A especialidade foi inserida com sucesso na fila!`));
-        dispatch(addQueueFetch(form, {
+        dispatch(addQueueFetch({ ...form, ...secretaria.payload() }, {
             closeOnSuccess: false,
             showGlobalAlert: false,
             showGlobalMessage: false,
@@ -197,7 +201,7 @@ export default function QueueModal(props) {
                 });
                 setIsSubmittingQueue(false);
             },
-        }));
+        }, secretaria.tratarErro));
     };
 
     const handlePutData = async () => {
@@ -424,6 +428,7 @@ export default function QueueModal(props) {
                 )}
 
                 <div className="grid gap-5">
+                    {!(queue && queue.id) && <CampoSecretariaObrigatorio controle={secretaria} id="fila-secretaria" />}
                     {isOpenQueueModal && (
                         <InputSelectClient
                             id="client"

@@ -9,6 +9,7 @@ import { Button } from '../../ui/button';
 import { Campo, Input } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_VAZIO = { name: "", allows_session_scheduling: false };
 
@@ -18,6 +19,7 @@ export default function SpecialityModal(props) {
     const { speciality } = useSelector(state => state.specialities);
     const { isOpenSpecialitiesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    const secretaria = useSecretariaObrigatoria();
     const [texto, setTexto] = useState();
 
     const changeItem = ({ target: { name, value } }) => {
@@ -26,6 +28,7 @@ export default function SpecialityModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_VAZIO);
+        secretaria.limpar();
         setTexto('');
         dispatch(closeSpecialitiesModal());
         dispatch(showSpeciality({}));
@@ -36,8 +39,9 @@ export default function SpecialityModal(props) {
     };
 
     const handlePostData = async () => {
+        if (!secretaria.validar()) return;
         dispatch(changeTitleAlert(`A especialidade ${form.name} foi Cadastrado com sucesso!`));
-        dispatch(addSpecialityFetch(form, cleanForm));
+        dispatch(addSpecialityFetch({ ...form, ...secretaria.payload() }, cleanForm, secretaria.tratarErro));
     };
 
     const handlePutData = async () => {
@@ -66,6 +70,7 @@ export default function SpecialityModal(props) {
                         handleSaveData();
                     }}
                 >
+                    {!editando && <CampoSecretariaObrigatorio controle={secretaria} id="especialidade-secretaria" />}
                     <Campo
                         id="especialidade-nome"
                         label="Nome da especialidade"

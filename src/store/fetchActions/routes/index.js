@@ -17,7 +17,7 @@ export const getAllRoutes = () => {
     }
 }
 
-export const addRouteFetch = (route, cleanForm) => {
+export const addRouteFetch = (route, cleanForm, aoErroSecretaria) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -46,6 +46,7 @@ export const addRouteFetch = (route, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
