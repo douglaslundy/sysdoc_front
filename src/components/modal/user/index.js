@@ -107,8 +107,9 @@ export default function UserModal(props) {
     }));
 
   const handleSaveData = async () => {
-    // Cadastro novo exige >=1 secretaria; na edição, usuário legado sem secretaria segue editável (campo omitido).
-    if (!(user && user.id) && form.secretaria_ids.length === 0) {
+    // Exige >=1 secretaria no cadastro e na edição de quem já tinha; legado sem secretaria segue editável (campo omitido).
+    const tinhaSecretaria = Boolean(user?.secretarias?.length);
+    if (form.secretaria_ids.length === 0 && (!(user && user.id) || tinhaSecretaria)) {
       setTexto('Informe ao menos uma secretaria');
       return;
     }
@@ -325,7 +326,7 @@ export default function UserModal(props) {
               >
                 <option value="">Selecione</option>
                 {dbProfiles
-                  .filter((p) => p.ativo && p.slug !== 'admin')
+                  .filter((p) => p.ativo !== false && p.slug !== 'admin')
                   .map((p) => (
                     <option key={p.id} value={p.slug}>{p.nome}</option>
                   ))}
