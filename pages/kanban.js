@@ -9,6 +9,7 @@ import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../src/
 import { Pilula, tomDaCor } from "../src/components/ui/pilula";
 import { api } from "../src/services/api";
 import PeticaoChips from "../src/components/kanban/PeticaoChips";
+import AutorizacaoDialog, { idDaSolicitacao } from "../src/components/cadastroSolicitacoes/AutorizacaoDialog";
 
 const BOARD_COLUMNS = [
   { value: "novo", label: "Novo", color: "info" },
@@ -420,6 +421,7 @@ export default function KanbanPage() {
   const [items, setItems] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
+  const [autorizacaoOpen, setAutorizacaoOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [createStatus, setCreateStatus] = useState("novo");
   const [draggedItemId, setDraggedItemId] = useState(null);
@@ -513,6 +515,11 @@ export default function KanbanPage() {
   };
 
   const openEdit = (item) => {
+    if (idDaSolicitacao(item)) {
+      setEditingItem(item);
+      setAutorizacaoOpen(true);
+      return;
+    }
     if (item?.protocol_id) {
       setEditingItem(item);
       setProtocolDialogOpen(true);
@@ -710,6 +717,15 @@ export default function KanbanPage() {
         onSave={saveItem}
         onDelete={deleteItem}
         saving={saving}
+      />
+      <AutorizacaoDialog
+        item={editingItem}
+        aberto={autorizacaoOpen}
+        aoFechar={() => {
+          setAutorizacaoOpen(false);
+          setEditingItem(null);
+        }}
+        aoDecidir={loadItems}
       />
       <ProtocolDialog
         open={protocolDialogOpen}
