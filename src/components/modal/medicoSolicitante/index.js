@@ -8,6 +8,7 @@ import { Button } from '../../ui/button';
 import { CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_INICIAL = { nome: '', crm: '', uf_crm: '', especialidade: '', telefone: '', ativo: true };
 
@@ -17,11 +18,13 @@ export default function MedicoSolicitanteModal(props) {
     const { isOpenMedicoSolicitanteModal } = useSelector(state => state.layout);
 
     const [form, setForm] = useState(FORM_INICIAL);
+    const secretaria = useSecretariaObrigatoria();
 
     const isEdit = !!(medico && medico.id);
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
+        secretaria.limpar();
         dispatch(closeMedicoSolicitanteModal());
         dispatch(showMedico({}));
     };
@@ -32,7 +35,8 @@ export default function MedicoSolicitanteModal(props) {
         if (isEdit) {
             dispatch(editMedicoFetch(medico.id, form, cleanForm));
         } else {
-            dispatch(addMedicoFetch(form, cleanForm));
+            if (!secretaria.validar()) return;
+            dispatch(addMedicoFetch({ ...form, ...secretaria.payload() }, cleanForm, secretaria.tratarErro));
         }
     };
 
@@ -58,6 +62,7 @@ export default function MedicoSolicitanteModal(props) {
                 <DialogoCabecalho>{isEdit ? 'Editar Médico Solicitante' : 'Cadastrar Médico Solicitante'}</DialogoCabecalho>
                 <AlertModal />
                 <div className="grid gap-4">
+                    {!isEdit && <CampoSecretariaObrigatorio controle={secretaria} id="medico-secretaria" />}
                     <CampoTexto id="medico-nome" label="Nome completo" name="nome" value={form.nome} onChange={handleChange} obrigatorio maxLength={100} autoComplete="off" />
                     <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
                         <CampoTexto id="medico-crm" label="CRM" name="crm" value={form.crm} onChange={handleChange} maxLength={20} autoComplete="off" />

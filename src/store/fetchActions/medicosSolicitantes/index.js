@@ -12,7 +12,7 @@ export const getAllMedicos = (params = {}) => async dispatch => {
     }
 };
 
-export const addMedicoFetch = (form, callback) => dispatch => {
+export const addMedicoFetch = (form, callback, aoErroSecretaria) => dispatch => {
     dispatch(turnLoading());
     api.post('/laboratorio/medicos', form)
         .then(res => {
@@ -23,6 +23,7 @@ export const addMedicoFetch = (form, callback) => dispatch => {
             if (callback) callback();
         })
         .catch(err => {
+                aoErroSecretaria && aoErroSecretaria(err);
             dispatch(addAlertMessage(err.response?.data?.message || 'Erro ao cadastrar médico.'));
             dispatch(turnLoading());
         });

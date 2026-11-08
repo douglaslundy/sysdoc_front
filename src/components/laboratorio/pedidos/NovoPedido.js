@@ -10,6 +10,7 @@ import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
 import { CampoTexto } from '../../ui/campos';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_INICIAL = {
     client_id: '',
@@ -33,6 +34,7 @@ export default function NovoPedido() {
 
     const [form, setForm]         = useState(FORM_INICIAL);
     const [busca, setBusca]       = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
         dispatch(getClientsSelect({ limit: 50 }));
@@ -56,7 +58,8 @@ export default function NovoPedido() {
     );
 
     const handleSubmit = () => {
-        dispatch(addPedidoFetch(form, () => router.push('/laboratorio/pedidos')));
+        if (!secretaria.validar()) return;
+        dispatch(addPedidoFetch({ ...form, ...secretaria.payload() }, () => router.push('/laboratorio/pedidos'), secretaria.tratarErro));
     };
 
     return (
@@ -66,6 +69,7 @@ export default function NovoPedido() {
             </CardHeader>
             <CardContent>
                 <div className="grid max-w-[700px] gap-5">
+                    <CampoSecretariaObrigatorio controle={secretaria} id="pedido-secretaria" />
                     <InputSelectClient
                         label="Paciente"
                         name="client_id"
