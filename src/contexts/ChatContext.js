@@ -832,7 +832,14 @@ export function ChatProvider({ children }) {
     send("online");
     // O heartbeat mantém a conexão viva no estado atual (online/ausente); sem ele o
     // servidor a expira em 2 min mesmo com a aba aberta em segundo plano.
-    const heartbeat = setInterval(() => send(lastState), 60000);
+    // Com a aba oculta o batimento cai pela metade (100 s, abaixo dos 2 min de expiração):
+    // aba esquecida aberta não deve gerar tráfego constante.
+    let tick = 0;
+    const heartbeat = setInterval(() => {
+      tick += 1;
+      if (document.hidden && tick % 2 === 1) return;
+      send(lastState);
+    }, 50000);
 
     let awayTimer = null;
     const onVisibility = () => {

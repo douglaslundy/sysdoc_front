@@ -178,6 +178,22 @@ export default function ChatConfigPage() {
     }
   };
 
+  const toggleChatEnabled = async (checked) => {
+    setFeedback(null);
+    try {
+      const { data } = await api.patch("/chat/config/chat-enabled", { chat_enabled: checked });
+      setConfig((atual) => ({ ...(atual || {}), chat_enabled: data.chat_enabled }));
+      setFeedback({
+        type: "success",
+        message: data.chat_enabled
+          ? "Chat ligado para todos os usuários."
+          : "Chat desligado para todos. Ninguém mais envia ou recebe mensagens.",
+      });
+    } catch (error) {
+      setFeedback({ type: "error", message: errorMessage(error, "Não foi possível alterar o chat.") });
+    }
+  };
+
   const toggleActive = async () => {
     setChangingStatus(true);
     setFeedback(null);
@@ -241,6 +257,17 @@ export default function ChatConfigPage() {
         titulo="Configurações do Chat"
         subtitulo="Escolha e configure o motor responsável pela comunicação em tempo real."
       />
+
+      <Card>
+        <CardContent className="flex flex-col gap-2">
+          <Interruptor id="chat-geral" marcado={config?.chat_enabled !== false} aoMudar={toggleChatEnabled}>
+            Chat ligado para todos os usuários
+          </Interruptor>
+          <p className="text-sm text-muted-foreground">
+            Desligado, o chat some para todos (inclusive administradores) e deixa de gerar qualquer conexão. As credenciais ficam salvas.
+          </p>
+        </CardContent>
+      </Card>
 
       {config?.configured && (
         <Card>
