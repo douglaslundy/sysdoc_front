@@ -127,7 +127,7 @@ export default function ClientModal(props) {
           {texto_('cliente-mae', 'Nome da Mãe', 'mother', 50)}
 
           <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
-            {texto_('cliente-email', 'E-mail', 'email', 100, { type: 'email', required: true })}
+            {texto_('cliente-email', 'E-mail', 'email', 100, { type: 'email' })}
             <BasicDatePicker label="Data de Nascimento" name="born_date" value={born_date} setValue={(v) => setForm((atual) => ({ ...atual, born_date: v }))} required />
             <CampoSelecao id="cliente-sexo" label="Sexo" value={sexo || ''} onChange={(e) => setForm((atual) => ({ ...atual, sexo: e.target.value }))}>
               <option value="" disabled hidden />
