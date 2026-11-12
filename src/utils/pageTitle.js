@@ -17,6 +17,7 @@ const TITLE_OVERRIDES = {
   "/petition/track": "Acompanhar Petição",
   "/peticao-motivos": "Motivos de Petição",
   "/protocolo/caixa-entrada": "Caixa de Entrada",
+  "/trips/agenda": "Agenda de Viagens",
   "/protocolo/estrutura": "Estrutura Organizacional",
   "/protocolo/configuracoes": "Configurações",
   "/protocolo/tipos": "Tipos de Protocolo",
