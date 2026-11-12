@@ -30,7 +30,7 @@ const configurarIcone = () =>
   });
 
 /** Mapa (OpenStreetMap) com um marcador no ponto. O pai define a altura. */
-export default function MapaPonto({ lat, lng, zoom = 17 }) {
+export default function MapaPonto({ lat, lng, zoom = 17, rotulo = "Mapa com a posição do poste" }) {
   const [pronto, setPronto] = useState(false);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function MapaPonto({ lat, lng, zoom = 17 }) {
   }, []);
 
   return (
-    <div role="img" aria-label={`Mapa com a posição do poste: ${lat}, ${lng}`} className="size-full">
+    <div role="img" aria-label={`${rotulo}: ${lat}, ${lng}`} className="size-full">
       {pronto ? (
         <MapContainer center={[lat, lng]} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
           <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
