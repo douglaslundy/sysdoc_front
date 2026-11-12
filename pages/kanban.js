@@ -126,8 +126,12 @@ function KanbanCard({ item, onOpen, onDragStart, dragging, onOpenFiscalizacao })
       <div className="min-w-0">
         <div className="mb-2 flex flex-wrap gap-2">
           <Pilula tom={tomDaCor(column.color)}>{column.label}</Pilula>
-          <Pilula tom="neutro" contorno>{item.visibility === "private" ? "Privado" : "Público"}</Pilula>
+          {item.protocol?.tipo ? <Pilula tom="neutro">{String(item.protocol.tipo).replace(/_/g, " ")}</Pilula> : null}
+          <Pilula tom="neutro" contorno>{(item.protocol?.visibility || item.visibility) === "private" ? "Privado" : "Público"}</Pilula>
         </div>
+        {item.protocol?.criado_por?.name ? (
+          <p className="mb-1.5 text-xs font-bold [overflow-wrap:anywhere]">{item.protocol.criado_por.name}</p>
+        ) : null}
         <p className="text-sm leading-tight font-extrabold [overflow-wrap:anywhere]">{item.titulo}</p>
         <p className="mt-1.5 text-sm leading-snug text-muted-foreground [overflow-wrap:anywhere]">
           {item.descricao || "Sem descrição"}

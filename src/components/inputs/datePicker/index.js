@@ -64,9 +64,11 @@ export default function BasicDatePicker(props) {
     setValue(data);
   };
 
-  // Clicar em qualquer ponto do campo abre o calendário (o ícone nativo é pequeno e some em alguns temas).
+  // Só o clique na área do ícone (extremo direito) abre o calendário; no restante do campo o usuário digita a data.
   const abrirCalendario = (e) => {
     if (disabled || e.target.readOnly) return;
+    const larguraIcone = 40;
+    if (e.nativeEvent.offsetX < e.target.clientWidth - larguraIcone) return;
     try {
       e.target.showPicker?.();
     } catch {
