@@ -12,11 +12,21 @@ const initialProtocolForm = {
   descricao: "",
   tipo: "administrativo",
   prioridade: "normal",
+  status: "novo",
   origem_unit_id: "",
   destino_unit_id: "",
   destino_user_id: "",
   prazo_dias: 10,
 };
+
+const PROTOCOL_STATUS_OPTIONS = [
+  { value: "novo", label: "Novo" },
+  { value: "recebido", label: "Recebido" },
+  { value: "encaminhado", label: "Encaminhado" },
+  { value: "encerrado", label: "Encerrado" },
+  { value: "concluido", label: "Concluído" },
+  { value: "cancelado", label: "Cancelado" },
+];
 
 const MAX_ATTACHMENTS = 10;
 
@@ -71,8 +81,15 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   );
   const protocolTypeOptions = useMemo(() => {
     const activeTypes = protocolTypes.filter((type) => type?.ativo !== false);
-    return activeTypes.length > 0 ? activeTypes : protocolTypeFallbackOptions;
-  }, [protocolTypes]);
+    const base = activeTypes.length > 0 ? activeTypes : protocolTypeFallbackOptions;
+    // Regra por usuário (cadastro do usuário): null = sem restrição.
+    const permitidos = creationContext?.allowed_types;
+    return Array.isArray(permitidos) ? base.filter((t) => permitidos.includes(t.codigo)) : base;
+  }, [protocolTypes, creationContext]);
+  const statusOptions = useMemo(() => {
+    const permitidos = creationContext?.allowed_statuses;
+    return PROTOCOL_STATUS_OPTIONS.filter((o) => !Array.isArray(permitidos) || permitidos.includes(o.value));
+  }, [creationContext]);
 
   useEffect(() => {
     if (!open) return;
@@ -87,9 +104,14 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
         setProtocolTypes(Array.isArray(typesRes?.data) ? typesRes.data : []);
         setCreationContext(contextRes?.data || null);
+        const ctx = contextRes?.data || {};
+        const tiposOk = Array.isArray(typesRes?.data) ? typesRes.data.filter((t) => t?.ativo !== false && (!Array.isArray(ctx.allowed_types) || ctx.allowed_types.includes(t.codigo))) : [];
         setProtocolForm((current) => ({
           ...current,
-          origem_unit_id: contextRes?.data?.origin?.id ? String(contextRes.data.origin.id) : "",
+          origem_unit_id: ctx.origin?.id ? String(ctx.origin.id) : "",
+          // O padrão precisa respeitar o que o usuário pode cadastrar.
+          tipo: Array.isArray(ctx.allowed_types) && tiposOk.length > 0 && !ctx.allowed_types.includes(current.tipo) ? tiposOk[0].codigo : current.tipo,
+          status: Array.isArray(ctx.allowed_statuses) && ctx.allowed_statuses.length > 0 && !ctx.allowed_statuses.includes(current.status) ? ctx.allowed_statuses[0] : current.status,
         }));
       })
       .catch(() => setError("Não foi possível carregar os dados do formulário."));
@@ -210,6 +232,15 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
               ))}
             </CampoSelecao>
           </div>
+          {Array.isArray(creationContext?.allowed_statuses) && statusOptions.length > 1 && (
+            <div className="md:col-span-4">
+              <CampoSelecao id="protocolo-status" label="Status" name="status" value={protocolForm.status} onChange={mudar}>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </CampoSelecao>
+            </div>
+          )}
           <div className="md:col-span-4">
             <CampoSelecao id="protocolo-prioridade" label="Prioridade" name="prioridade" value={protocolForm.prioridade} onChange={mudar}>
               {protocolPriorityOptions.map((option) => (

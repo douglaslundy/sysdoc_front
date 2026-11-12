@@ -157,6 +157,7 @@ export const insertClientTrip = (client, cleanForm) => {
             'trip_id': client.id,
             'client_id': client.client_id,
             'person_type': client.person_type,
+            'companion_of': client.companion_of || null,
             'phone': cleanPhone(client.phone),
             'departure_location': client.departure_location,
             'destination_location': client.destination_location,

@@ -8,6 +8,7 @@ import { editTripFetch, addTripFetch, getDriversOptions } from '../../../store/f
 import AlertModal from '../../messagesModal';
 import { getAllRoutes } from '../../../store/fetchActions/routes';
 import Select from '../../inputs/selects';
+import SelectPesquisavel from '../../inputs/selectPesquisavel';
 import DateTime from '../../inputs/dateTime';
 import BasicDatePicker from '../../inputs/datePicker';
 import ReplicateTripModal from '../trips/replicate';
@@ -109,6 +110,7 @@ export default function TripModal(props) {
     const transformedRoutes = (routes) =>
         routes.map(({ id, origin, destination }) => ({
             id,
+            destination,
             name: `${origin} X ${destination}` // Concatenar 'origin' e 'destination'
         }));
 
@@ -160,7 +162,7 @@ export default function TripModal(props) {
                         />
                     </div>
 
-                    <Select
+                    <SelectPesquisavel
                         label={'SELECIONE O MOTORISTA'}
                         name={'driver_id'}
                         value={driver_id}
@@ -168,15 +170,16 @@ export default function TripModal(props) {
                         changeItem={changeItem}
                     />
 
-                    <Select
+                    <SelectPesquisavel
                         value={route_id}
                         label={'SELECIONE A ROTA'}
                         name={'route_id'}
+                        chaveBusca={(r) => r.destination}
                         store={transformedRoutes(routes)}
                         changeItem={changeItem}
                     />
 
-                    <Select
+                    <SelectPesquisavel
                         value={vehicle_id}
                         label={'SELECIONE O VEICULO'}
                         name={'vehicle_id'}
