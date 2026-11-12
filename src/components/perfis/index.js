@@ -11,6 +11,7 @@ import { Interruptor } from '../ui/interruptor';
 import { PaginaDeLista } from '../ui/pagina-de-lista';
 import { Pilula } from '../ui/pilula';
 import { usePaginacaoLocal } from '../../lib/usePaginacaoLocal';
+import { api } from '../../services/api';
 
 const FORM_INICIAL = {
     nome: '',
@@ -24,8 +25,18 @@ const FORM_INICIAL = {
     client_trips_view_enabled: false,
     client_report_view_enabled: false,
     client_history_view_enabled: false,
+    // Protocolo: null = sem restrição de tipo/status; visibilidades null = só privado.
+    protocol_allowed_types: null,
+    protocol_allowed_statuses: null,
+    protocol_allowed_visibilities: null,
+    protocol_can_change_visibility: false,
     page_ids: [],
 };
+
+const STATUS_PROTOCOLO = [
+    ['novo', 'Novo'], ['recebido', 'Recebido'], ['encaminhado', 'Encaminhado'],
+    ['encerrado', 'Encerrado'], ['concluido', 'Concluído'], ['cancelado', 'Cancelado'],
+];
 
 const PERMISSOES_OPERACIONAIS = [
     ['chat_enabled', 'Permitir acesso ao chat'],
@@ -54,6 +65,20 @@ export default function Perfis() {
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
+    const [tiposProtocolo, setTiposProtocolo] = useState([]);
+
+    useEffect(() => {
+        api.get('/protocolos/tipos')
+            .then(({ data }) => setTiposProtocolo((Array.isArray(data) ? data : []).filter((t) => t.ativo !== false)))
+            .catch(() => {});
+    }, []);
+
+    // null = sem restrição; lista = só esses valores ao cadastrar protocolo.
+    const alternarRestricao = (nome, todos, ligado) => setForm((f) => ({ ...f, [nome]: ligado ? todos : null }));
+    const alternarItem = (nome, valor, marcado) => setForm((f) => {
+        const atual = Array.isArray(f[nome]) ? f[nome] : [];
+        return { ...f, [nome]: marcado ? [...atual, valor] : atual.filter((v) => v !== valor) };
+    });
 
     useEffect(() => {
         dispatch(getAllProfiles());
@@ -87,6 +112,10 @@ export default function Perfis() {
             client_trips_view_enabled: Boolean(profile.client_trips_view_enabled),
             client_report_view_enabled: Boolean(profile.client_report_view_enabled),
             client_history_view_enabled: Boolean(profile.client_history_view_enabled),
+            protocol_allowed_types: Array.isArray(profile.protocol_allowed_types) ? profile.protocol_allowed_types : null,
+            protocol_allowed_statuses: Array.isArray(profile.protocol_allowed_statuses) ? profile.protocol_allowed_statuses : null,
+            protocol_allowed_visibilities: Array.isArray(profile.protocol_allowed_visibilities) ? profile.protocol_allowed_visibilities : null,
+            protocol_can_change_visibility: Boolean(profile.protocol_can_change_visibility),
             page_ids: profile.pages?.map((p) => p.id) || [],
         });
         setOpenModal(true);
@@ -187,6 +216,55 @@ export default function Perfis() {
                         {PERMISSOES_OPERACIONAIS.map(([nome, rotulo]) => (
                             <Interruptor key={nome} id={`perfil-${nome}`} marcado={form[nome]} aoMudar={(v) => campo(nome, v)}>{rotulo}</Interruptor>
                         ))}
+                    </div>
+
+                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Protocolos: o que este perfil pode cadastrar</h3>
+                    <div className="grid gap-2 rounded-lg border border-border p-3">
+                        <Interruptor
+                            id="perfil-restringir-tipos"
+                            marcado={Array.isArray(form.protocol_allowed_types)}
+                            aoMudar={(ligado) => alternarRestricao('protocol_allowed_types', tiposProtocolo.map((t) => t.codigo), ligado)}
+                        >
+                            Restringir tipos de protocolo
+                        </Interruptor>
+                        {Array.isArray(form.protocol_allowed_types) && tiposProtocolo.map((t) => (
+                            <CaixaDeMarcacao key={t.codigo} id={`perfil-tipo-${t.codigo}`} marcado={form.protocol_allowed_types.includes(t.codigo)} aoMudar={(m) => alternarItem('protocol_allowed_types', t.codigo, m)}>
+                                {t.nome}
+                            </CaixaDeMarcacao>
+                        ))}
+                        <Interruptor
+                            id="perfil-restringir-status"
+                            marcado={Array.isArray(form.protocol_allowed_statuses)}
+                            aoMudar={(ligado) => alternarRestricao('protocol_allowed_statuses', ['novo'], ligado)}
+                        >
+                            Restringir status ao cadastrar
+                        </Interruptor>
+                        {Array.isArray(form.protocol_allowed_statuses) && STATUS_PROTOCOLO.map(([valor, rotulo]) => (
+                            <CaixaDeMarcacao key={valor} id={`perfil-status-${valor}`} marcado={form.protocol_allowed_statuses.includes(valor)} aoMudar={(m) => alternarItem('protocol_allowed_statuses', valor, m)}>
+                                {rotulo}
+                            </CaixaDeMarcacao>
+                        ))}
+                        <span className="text-sm font-medium">Visibilidade ao cadastrar (padrão: só privado)</span>
+                        {[['private', 'Privado (só quem tem acesso ao protocolo)'], ['public', 'Público (todos os usuários veem)']].map(([valor, rotulo]) => {
+                            const atuais = Array.isArray(form.protocol_allowed_visibilities) ? form.protocol_allowed_visibilities : ['private'];
+                            return (
+                                <CaixaDeMarcacao
+                                    key={valor}
+                                    id={`perfil-visibilidade-${valor}`}
+                                    marcado={atuais.includes(valor)}
+                                    aoMudar={(marcado) => setForm((f) => {
+                                        const lista = marcado ? [...atuais, valor] : atuais.filter((v) => v !== valor);
+                                        // Sempre sobra ao menos uma opção: sem nenhuma, vale o padrão (privado).
+                                        return { ...f, protocol_allowed_visibilities: lista.length > 0 ? lista : ['private'] };
+                                    })}
+                                >
+                                    {rotulo}
+                                </CaixaDeMarcacao>
+                            );
+                        })}
+                        <Interruptor id="perfil-alterar-visibilidade" marcado={Boolean(form.protocol_can_change_visibility)} aoMudar={(v) => campo('protocol_can_change_visibility', v)}>
+                            Pode alterar a visibilidade de um protocolo já cadastrado
+                        </Interruptor>
                     </div>
 
                     <h3 className="mb-3 mt-6 font-display text-base font-bold">Páginas com Acesso</h3>

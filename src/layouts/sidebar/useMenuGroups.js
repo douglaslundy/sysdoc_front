@@ -130,6 +130,8 @@ export function useMenuGroups() {
     const visiblePages = pages.filter((pg) => {
       if (!pg?.ativo) return false;
       if (pg.path === DashboardItem.href) return false;
+      // O cadastro de protocolo é o modal da Caixa de Entrada; a rota /protocolo/novo segue válida, mas sem item de menu.
+      if (pg.path === '/protocolo/novo') return false;
       if (resolveCategory(pg).title === 'Dashboard') return false;
       if (profile === "admin") return true;
       return hasPermissionForPath(myPermissions, pg.path);

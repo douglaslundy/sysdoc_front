@@ -24,11 +24,6 @@ const flattenProtocolUnits = (items, level = 0) =>
     ...flattenProtocolUnits(item.children, level + 1),
   ]);
 
-const STATUS_PROTOCOLO = [
-  ['novo', 'Novo'], ['recebido', 'Recebido'], ['encaminhado', 'Encaminhado'],
-  ['encerrado', 'Encerrado'], ['concluido', 'Concluído'], ['cancelado', 'Cancelado'],
-];
-
 export default function UserModal(props) {
   const [form, setForm] = useState({
     profile: '',
@@ -46,7 +41,6 @@ export default function UserModal(props) {
     password2: '',
   });
 
-  const [tiposProtocolo, setTiposProtocolo] = useState([]);
   const [equipesRt, setEquipesRt] = useState([]);
   const [equipesOpcoes, setEquipesOpcoes] = useState([]);
   const [loadingEquipes, setLoadingEquipes] = useState(false);
@@ -270,20 +264,6 @@ export default function UserModal(props) {
       .catch(() => {});
   }, [isOpenUserModal, userProfile, protocolUnits.length]);
 
-  useEffect(() => {
-    if (!isOpenUserModal || userProfile !== 'admin' || tiposProtocolo.length > 0) return;
-    api.get('/protocolos/tipos')
-      .then(({ data }) => setTiposProtocolo((Array.isArray(data) ? data : []).filter((t) => t.ativo !== false)))
-      .catch(() => {});
-  }, [isOpenUserModal, userProfile, tiposProtocolo.length]);
-
-  // null = sem restrição; lista = só esses valores ao cadastrar protocolo.
-  const alternarRestricao = (campo, todos, ligado) => setForm((f) => ({ ...f, [campo]: ligado ? todos : null }));
-  const alternarItem = (campo, valor, marcado) => setForm((f) => {
-    const atual = Array.isArray(f[campo]) ? f[campo] : [];
-    return { ...f, [campo]: marcado ? [...atual, valor] : atual.filter((v) => v !== valor) };
-  });
-
   const minusculas = (valor) => String(valor || '').toLowerCase();
   const unidadesFiltradas = protocolUnits.filter((unit) => minusculas(unit.nome).includes(minusculas(filtroUnidade)));
   const equipesFiltradas = equipesOpcoes.filter((equipe) => minusculas(equipe.no_equipe).includes(minusculas(filtroEquipe)));
@@ -382,44 +362,6 @@ export default function UserModal(props) {
                     rotuloDaOpcao={(option) => `${'— '.repeat(option.level || 0)}${option.nome}`}
                     chaveDaOpcao={(option) => option.id}
                   />
-                </div>
-
-                <div className="grid gap-2 rounded-lg border border-border p-3">
-                  <span className="text-sm font-medium">Protocolos: o que este usuário pode cadastrar</span>
-                  <Interruptor
-                    id="restringir_tipos_protocolo"
-                    marcado={Array.isArray(form.protocol_allowed_types)}
-                    aoMudar={(ligado) => alternarRestricao('protocol_allowed_types', tiposProtocolo.map((t) => t.codigo), ligado)}
-                  >
-                    Restringir tipos de protocolo
-                  </Interruptor>
-                  {Array.isArray(form.protocol_allowed_types) && tiposProtocolo.map((t) => (
-                    <CaixaDeMarcacao
-                      key={t.codigo}
-                      id={`tipo_protocolo_${t.codigo}`}
-                      marcado={form.protocol_allowed_types.includes(t.codigo)}
-                      aoMudar={(marcado) => alternarItem('protocol_allowed_types', t.codigo, marcado)}
-                    >
-                      {t.nome}
-                    </CaixaDeMarcacao>
-                  ))}
-                  <Interruptor
-                    id="restringir_status_protocolo"
-                    marcado={Array.isArray(form.protocol_allowed_statuses)}
-                    aoMudar={(ligado) => alternarRestricao('protocol_allowed_statuses', ['novo'], ligado)}
-                  >
-                    Restringir status ao cadastrar
-                  </Interruptor>
-                  {Array.isArray(form.protocol_allowed_statuses) && STATUS_PROTOCOLO.map(([valor, rotulo]) => (
-                    <CaixaDeMarcacao
-                      key={valor}
-                      id={`status_protocolo_${valor}`}
-                      marcado={form.protocol_allowed_statuses.includes(valor)}
-                      aoMudar={(marcado) => alternarItem('protocol_allowed_statuses', valor, marcado)}
-                    >
-                      {rotulo}
-                    </CaixaDeMarcacao>
-                  ))}
                 </div>
 
                 <Interruptor

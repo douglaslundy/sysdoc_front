@@ -355,6 +355,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [podeMudarVisibilidade, setPodeMudarVisibilidade] = useState(false);
   const [editTypes, setEditTypes] = useState([]);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returnMotivo, setReturnMotivo] = useState("");
@@ -573,6 +574,32 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     } catch (error) {
       setMessage(error?.response?.data?.message || "Não foi possível executar a ação.");
       return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Admin sempre; os demais só com a opção "alterar visibilidade" no cadastro do usuário.
+  useEffect(() => {
+    if (loggedProfile === "admin") {
+      setPodeMudarVisibilidade(true);
+      return;
+    }
+    api.get("/protocolos/contexto-novo")
+      .then(({ data }) => setPodeMudarVisibilidade(Boolean(data?.can_change_visibility)))
+      .catch(() => setPodeMudarVisibilidade(false));
+  }, [loggedProfile]);
+
+  const handleToggleVisibility = async () => {
+    const nova = protocolDetail?.visibility === "public" ? "private" : "public";
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.put(`/protocolos/${protocolId}`, { visibility: nova });
+      await loadDetail(protocolId, { resetForms: false });
+      setMessage(nova === "public" ? "Protocolo agora é público (todos os usuários veem)." : "Protocolo agora é privado.");
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível alterar a visibilidade.");
     } finally {
       setSaving(false);
     }
@@ -1034,6 +1061,11 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               )}
               {loggedProfile === "admin" && (
                 <Button variant="outline" onClick={openEditProtocol}>Editar</Button>
+              )}
+              {podeMudarVisibilidade && (
+                <Button variant="outline" disabled={saving} onClick={handleToggleVisibility}>
+                  {p.visibility === "public" ? "Público: tornar privado" : "Privado: tornar público"}
+                </Button>
               )}
               <Button variant="outline" onClick={() => setForwardDialogOpen(true)}>
                 Encaminhar

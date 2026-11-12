@@ -12,6 +12,7 @@ const initialProtocolForm = {
   tipo: "administrativo",
   prioridade: "normal",
   status: "novo",
+  visibility: "private",
   origem_unit_id: "",
   destino_unit_id: "",
   destino_user_id: "",
@@ -84,6 +85,10 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     const permitidos = creationContext?.allowed_types;
     return Array.isArray(permitidos) ? base.filter((t) => permitidos.includes(t.codigo)) : base;
   }, [protocolTypes, creationContext]);
+  const visibilityOptions = useMemo(() => {
+    const permitidas = Array.isArray(creationContext?.allowed_visibilities) ? creationContext.allowed_visibilities : ["private"];
+    return [["private", "Privado"], ["public", "Público"]].filter(([valor]) => permitidas.includes(valor));
+  }, [creationContext]);
   const statusOptions = useMemo(() => {
     const permitidos = creationContext?.allowed_statuses;
     return PROTOCOL_STATUS_OPTIONS.filter((o) => !Array.isArray(permitidos) || permitidos.includes(o.value));
@@ -110,6 +115,8 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
           // O padrão precisa respeitar o que o usuário pode cadastrar.
           tipo: Array.isArray(ctx.allowed_types) && tiposOk.length > 0 && !ctx.allowed_types.includes(current.tipo) ? tiposOk[0].codigo : current.tipo,
           status: Array.isArray(ctx.allowed_statuses) && ctx.allowed_statuses.length > 0 && !ctx.allowed_statuses.includes(current.status) ? ctx.allowed_statuses[0] : current.status,
+          // Padrão privado; se o usuário só pode cadastrar público, começa nele.
+          visibility: Array.isArray(ctx.allowed_visibilities) && ctx.allowed_visibilities.length > 0 && !ctx.allowed_visibilities.includes("private") ? ctx.allowed_visibilities[0] : "private",
         }));
       })
       .catch(() => setError("Não foi possível carregar os dados do formulário."));
@@ -230,6 +237,15 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
               <CampoSelecao id="protocolo-status" label="Status" name="status" value={protocolForm.status} onChange={mudar}>
                 {statusOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </CampoSelecao>
+            </div>
+          )}
+          {visibilityOptions.length > 1 && (
+            <div className="md:col-span-4">
+              <CampoSelecao id="protocolo-visibilidade" label="Visibilidade" name="visibility" value={protocolForm.visibility} onChange={mudar}>
+                {visibilityOptions.map(([valor, rotulo]) => (
+                  <option key={valor} value={valor}>{rotulo}</option>
                 ))}
               </CampoSelecao>
             </div>
