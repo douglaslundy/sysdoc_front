@@ -17,6 +17,13 @@ const ISO = 'yyyy-MM-dd';
 const iso = (d) => format(d, ISO);
 const FORM_VAZIO = { date: '', client: null, phone: '', departure_location: '', destination_location: '', time: '', companions: [], companion_of: null, paiNome: '' };
 
+const STATUS_AGENDA = {
+  agendado: { rotulo: 'Agendado', borda: 'border-l-blue-500', ponto: 'bg-blue-500' },
+  confirmado: { rotulo: 'Confirmado', borda: 'border-l-green-500', ponto: 'bg-green-500' },
+  cancelado: { rotulo: 'Cancelado', borda: 'border-l-red-500', ponto: 'bg-red-500' },
+  concluido: { rotulo: 'Concluído', borda: 'border-l-gray-500', ponto: 'bg-gray-500' },
+};
+
 const msgErro = (e, padrao) => {
   const erros = e?.response?.data?.errors;
   const primeiro = erros ? Object.values(erros)[0]?.[0] : null;
@@ -125,6 +132,16 @@ export default function TripScheduleAgenda() {
       setAviso({ tom: 'perigo', texto: msgErro(err, 'Não foi possível alterar o status.') });
     }
   };
+  // Cancelar, concluir ou reabrir o passageiro leva os acompanhantes dele junto.
+  const definirStatus = async (e, status) => {
+    try {
+      const ids = [e.id, ...entries.filter((x) => x.companion_of === e.id).map((x) => x.id)];
+      await Promise.all(ids.map((id) => api.put(`/trip-schedule/${id}`, { status })));
+      await carregar();
+    } catch (err) {
+      setAviso({ tom: 'perigo', texto: msgErro(err, 'Não foi possível alterar o status.') });
+    }
+  };
   const remover = async (e) => {
     if (!window.confirm(`Remover ${e.client?.name || 'pessoa'} da agenda?`)) return;
     try {
@@ -186,7 +203,7 @@ export default function TripScheduleAgenda() {
     const acomp = e.person_type === 'companion';
     return (
       <div
-        className={`rounded-md border border-border bg-card px-2 py-1.5 text-xs ${e.status === 'confirmado' ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-blue-500'}`}
+        className={`rounded-md border border-border bg-card px-2 py-1.5 text-xs border-l-4 ${(STATUS_AGENDA[e.status] || STATUS_AGENDA.agendado).borda} ${e.status === 'cancelado' ? 'opacity-60' : ''}`}
         style={acomp ? { marginLeft: 10 } : undefined}
       >
         <div className="flex items-start gap-2">
@@ -201,7 +218,18 @@ export default function TripScheduleAgenda() {
           </div>
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
-          <Button type="button" size="xs" variant="outline" onClick={() => alternarStatus(e)}>{e.status === 'confirmado' ? 'Desconfirmar' : 'Confirmar'}</Button>
+          {(e.status === 'agendado' || e.status === 'confirmado') && (
+            <Button type="button" size="xs" variant="outline" onClick={() => alternarStatus(e)}>{e.status === 'confirmado' ? 'Desconfirmar' : 'Confirmar'}</Button>
+          )}
+          {(e.status === 'agendado' || e.status === 'confirmado') && !acomp && (
+            <Button type="button" size="xs" variant="outline" onClick={() => definirStatus(e, 'cancelado')}>Cancelar</Button>
+          )}
+          {e.status === 'confirmado' && !acomp && (
+            <Button type="button" size="xs" variant="outline" onClick={() => definirStatus(e, 'concluido')}>Concluir</Button>
+          )}
+          {(e.status === 'cancelado' || e.status === 'concluido') && !acomp && (
+            <Button type="button" size="xs" variant="outline" onClick={() => definirStatus(e, 'agendado')}>Reabrir</Button>
+          )}
           {!acomp && <Button type="button" size="xs" variant="outline" onClick={() => abrirAcompanhante(e)}>+ Acompanhante</Button>}
           <Button type="button" size="xs" variant="outline" onClick={() => remover(e)}>Remover</Button>
         </div>
@@ -218,13 +246,15 @@ export default function TripScheduleAgenda() {
       {aviso && <div className="mb-3"><Banner tom={aviso.tom}>{aviso.texto}</Banner></div>}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-lg border border-border p-0.5">
+        <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
           <Button type="button" size="sm" variant={modo === 'week' ? 'default' : 'ghost'} onClick={() => setModo('week')}>Semana</Button>
           <Button type="button" size="sm" variant={modo === 'month' ? 'default' : 'ghost'} onClick={() => setModo('month')}>Mês</Button>
         </div>
-        <Button type="button" size="sm" variant="outline" aria-label="Anterior" onClick={() => navegar(-1)}>‹</Button>
-        <span className="min-w-[200px] text-center text-sm font-medium capitalize">{titulo}</span>
-        <Button type="button" size="sm" variant="outline" aria-label="Próximo" onClick={() => navegar(1)}>›</Button>
+        <div className="inline-flex items-center rounded-lg border border-border bg-card">
+          <Button type="button" size="sm" variant="ghost" aria-label="Anterior" onClick={() => navegar(-1)}>‹</Button>
+          <span className="min-w-[200px] px-2 text-center text-sm font-medium capitalize">{titulo}</span>
+          <Button type="button" size="sm" variant="ghost" aria-label="Próximo" onClick={() => navegar(1)}>›</Button>
+        </div>
         <Button type="button" size="sm" variant="outline" onClick={() => setCursor(new Date())}>Hoje</Button>
         <div className="ml-auto flex gap-2">
           <Button type="button" variant="outline" disabled={selecionados.length === 0} onClick={() => abrirEnvio(selecionados)}>
@@ -273,9 +303,10 @@ export default function TripScheduleAgenda() {
       )}
       {carregando && <p className="mt-2 text-xs text-muted-foreground">Carregando...</p>}
 
-      <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
-        <span><span className="mr-1 inline-block size-2.5 rounded-sm bg-blue-500" />Agendado</span>
-        <span><span className="mr-1 inline-block size-2.5 rounded-sm bg-green-500" />Confirmado</span>
+      <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+        {Object.entries(STATUS_AGENDA).map(([chave, s]) => (
+          <span key={chave}><span className={`mr-1 inline-block size-2.5 rounded-sm ${s.ponto}`} />{s.rotulo}</span>
+        ))}
       </div>
 
       {/* Dialogo: agendar passageiro (+ acompanhantes) ou só um acompanhante */}
