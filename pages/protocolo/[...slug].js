@@ -353,6 +353,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [forwardEligibleUsers, setForwardEligibleUsers] = useState([]);
   const [detailForwardObservation, setDetailForwardObservation] = useState("");
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [editTypes, setEditTypes] = useState([]);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returnMotivo, setReturnMotivo] = useState("");
   const [commentText, setCommentText] = useState("");
@@ -570,6 +573,45 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     } catch (error) {
       setMessage(error?.response?.data?.message || "Não foi possível executar a ação.");
       return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditProtocol = async () => {
+    const p = protocolDetail || {};
+    setEditForm({
+      assunto: p.assunto || "",
+      descricao: p.descricao || "",
+      tipo: p.tipo || "",
+      prioridade: p.prioridade || "normal",
+      status: p.status || "novo",
+      origem_unit_id: String(p.origem_unit_id || ""),
+      destino_unit_id: String(p.destino_unit_id || ""),
+    });
+    setEditDialogOpen(true);
+    try {
+      const { data } = await api.get("/protocolos/tipos");
+      setEditTypes(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setEditTypes([]);
+    }
+  };
+
+  const handleSubmitEdit = async () => {
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.put(`/protocolos/${protocolId}`, {
+        ...editForm,
+        origem_unit_id: editForm.origem_unit_id || null,
+        destino_unit_id: editForm.destino_unit_id || null,
+      });
+      await loadDetail(protocolId, { resetForms: false });
+      setEditDialogOpen(false);
+      setMessage("Protocolo atualizado com sucesso.");
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível atualizar o protocolo.");
     } finally {
       setSaving(false);
     }
@@ -990,6 +1032,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               ) && (
                 <Button onClick={() => handleDetailAction("receber")}>Receber</Button>
               )}
+              {loggedProfile === "admin" && (
+                <Button variant="outline" onClick={openEditProtocol}>Editar</Button>
+              )}
               <Button variant="outline" onClick={() => setForwardDialogOpen(true)}>
                 Encaminhar
               </Button>
@@ -1007,6 +1052,48 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </div>
           </CardContent>
         </Card>
+
+        <Dialogo aberto={editDialogOpen} aoFechar={() => setEditDialogOpen(false)} tamanho="md">
+          <DialogoCabecalho>
+            <DialogoTitulo>Editar protocolo</DialogoTitulo>
+          </DialogoCabecalho>
+          <div className="flex flex-col gap-4">
+            <CampoTexto id="edit-assunto" label="Assunto" value={editForm.assunto || ""} onChange={(e) => setEditForm((f) => ({ ...f, assunto: e.target.value }))} />
+            <CampoTexto id="edit-descricao" label="Descrição" multiline rows={3} value={editForm.descricao || ""} onChange={(e) => setEditForm((f) => ({ ...f, descricao: e.target.value }))} />
+            <CampoSelecao id="edit-tipo" label="Tipo" value={editForm.tipo || ""} onChange={(e) => setEditForm((f) => ({ ...f, tipo: e.target.value }))}>
+              {editTypes.filter((t) => t.ativo !== false || t.codigo === editForm.tipo).map((t) => (
+                <option key={t.codigo} value={t.codigo}>{t.nome}</option>
+              ))}
+            </CampoSelecao>
+            <CampoSelecao id="edit-status" label="Status" value={editForm.status || ""} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
+              {["novo", "recebido", "encaminhado", "devolvido", "reaberto", "encerrado", "concluido", "cancelado"].map((st) => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </CampoSelecao>
+            <CampoSelecao id="edit-prioridade" label="Prioridade" value={editForm.prioridade || "normal"} onChange={(e) => setEditForm((f) => ({ ...f, prioridade: e.target.value }))}>
+              <option value="baixa">Baixa</option>
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </CampoSelecao>
+            <CampoSelecao id="edit-origem" label="Origem" value={editForm.origem_unit_id || ""} onChange={(e) => setEditForm((f) => ({ ...f, origem_unit_id: e.target.value }))}>
+              <option value="">Selecione</option>
+              {unitOptions.map((unit) => (
+                <option key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>
+              ))}
+            </CampoSelecao>
+            <CampoSelecao id="edit-destino" label="Destino" value={editForm.destino_unit_id || ""} onChange={(e) => setEditForm((f) => ({ ...f, destino_unit_id: e.target.value }))}>
+              <option value="">Selecione</option>
+              {unitOptions.map((unit) => (
+                <option key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>
+              ))}
+            </CampoSelecao>
+          </div>
+          <DialogoRodape>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmitEdit} disabled={saving || !editForm.assunto}>{saving ? "Salvando..." : "Salvar"}</Button>
+          </DialogoRodape>
+        </Dialogo>
 
         <Dialogo aberto={forwardDialogOpen} aoFechar={() => setForwardDialogOpen(false)} tamanho="md">
           <DialogoCabecalho>

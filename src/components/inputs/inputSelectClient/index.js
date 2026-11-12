@@ -8,7 +8,7 @@ export default function InputSelectClient(props) {
   const [remoteClients, setRemoteClients] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const searchRef = useRef(null);
-  const { label, setClient, clients, wd, value } = props;
+  const { label, setClient, clients, wd, value, somenteNome } = props;
   const id = useUid("cliente");
   const safeClients = Array.isArray(clients) ? clients : [];
   const options = remoteClients.length > 0 ? remoteClients : safeClients;
@@ -29,7 +29,7 @@ export default function InputSelectClient(props) {
     clearTimeout(searchRef.current);
     searchRef.current = setTimeout(() => {
       setCarregando(true);
-      api.get("/clients/select", { params: { search: texto || undefined, limit: 50 } })
+      api.get("/clients/select", { params: { search: texto || undefined, limit: 50, somente_nome: somenteNome ? 1 : undefined } })
         .then((res) => setRemoteClients(res.data || []))
         .catch(() => {})
         .finally(() => setCarregando(false));

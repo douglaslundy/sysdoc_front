@@ -6,7 +6,6 @@ import { insertClientTrip, editClientTrip, excludeClientTripFetch, confirmedClie
 import AlertModal from '../../../messagesModal';
 import InputSelectClient from '../../../inputs/inputSelectClient';
 import { getClientsSelect } from '../../../../store/fetchActions/clients';
-import Select from '../../../inputs/selects';
 import { showTrip } from '../../../../store/ducks/trips';
 import ConfirmDialog from "../../../confirmDialog";
 import DateTime from '../../../inputs/dateTime';
@@ -25,6 +24,7 @@ const FORM_VAZIO = {
     id: "",
     client_id: "",
     person_type: "",
+    companion_of: "",
     phone: "",
     departure_location: "",
     destination_location: "",
@@ -45,7 +45,7 @@ export default function TripClientsModal(props) {
     const { clients } = useSelector(state => state.clients);
     const [form, setForm] = useState(FORM_VAZIO);
 
-    const { person_type, phone, departure_location, destination_location, time } = form;
+    const { phone, departure_location, destination_location, time } = form;
 
     const [cli, setClient] = useState([]);
     const [texto, setTexto] = useState();
@@ -95,9 +95,26 @@ export default function TripClientsModal(props) {
         setClient({ ...cli })
     }
 
+    // Todo cadastro novo é passageiro; acompanhante só nasce pelo botão do passageiro.
+    const HandleAddCompanion = (passageiro) => {
+        const p = passageiro.pivot;
+        setForm({
+            ...FORM_VAZIO,
+            id: trip?.id || "",
+            person_type: "companion",
+            companion_of: p.id,
+            phone: p.phone || "",
+            departure_location: p.departure_location || "",
+            destination_location: p.destination_location || "",
+            time: String(p.time || "").slice(0, 5),
+        });
+        setClient([]);
+        setTexto(`Adicionando acompanhante de ${String(passageiro.name || '').toUpperCase()}. Escolha o cliente abaixo e grave.`);
+    };
+
     const handleSaveClient = async () => {
         dispatch(changeTitleAlert(`O Cliente foi inserido na viagem com sucesso!`));
-        dispatch(insertClientTrip(form, cleanForm));
+        dispatch(insertClientTrip({ ...form, person_type: form.person_type || 'passenger' }, cleanForm));
     };
 
     const handleUpdateClient = async () => {
@@ -133,16 +150,6 @@ export default function TripClientsModal(props) {
         }));
     }, [cli]);
 
-    const typesOfPerson = [
-        {
-            id: "passenger",
-            name: "PASSAGEIRO"
-        }, {
-            id: "companion",
-            name: "ACOMPANHANTE"
-        }
-    ]
-
     // Carrega os clientes ao montar (o modal só monta quando open=true)
     useEffect(() => {
         if (clients.length <= 0) {
@@ -151,7 +158,16 @@ export default function TripClientsModal(props) {
     }, []);
 
     const colunas = [
-        { chave: 'nome', titulo: 'Nome', render: (c) => <span className="font-semibold">{c?.name && c.name.substring(0, 22).toUpperCase()}</span> },
+        {
+            chave: 'nome',
+            titulo: 'Nome',
+            // Acompanhante ligado a um passageiro aparece logo abaixo dele, com recuo.
+            render: (c) => (
+                <span className="font-semibold" style={c?.pivot?.companion_of ? { paddingLeft: 12 } : undefined}>
+                    {c?.pivot?.companion_of ? '↳ ' : ''}{c?.name && c.name.substring(0, 22).toUpperCase()}
+                </span>
+            ),
+        },
         { chave: 'tipo', titulo: 'Tipo', render: (c) => (c?.pivot?.person_type == "passenger" ? "PASSAGEIRO" : "ACOMPANHANTE") },
         { chave: 'telefone', titulo: 'Telefone', render: (c) => c?.pivot?.phone && c.pivot.phone.substring(0, 15).toUpperCase() },
         { chave: 'saida', titulo: 'Saída', render: (c) => c?.pivot?.departure_location && c.pivot.departure_location.substring(0, 15).toUpperCase() },
@@ -179,6 +195,9 @@ export default function TripClientsModal(props) {
             titulo: 'Ações',
             render: (c) => (
                 <div className="flex gap-2">
+                    {c?.pivot?.person_type === 'passenger' && (
+                        <Button type="button" size="sm" variant="outline" onClick={() => HandleAddCompanion(c)}>+ Acompanhante</Button>
+                    )}
                     <ActionEditButton title="Editar cliente" onClick={() => HandleEditClient(c)} />
                     <ActionDeleteButton title="Excluir cliente" onClick={() => HandleExcludeTrip(c)} />
                 </div>
@@ -216,7 +235,7 @@ export default function TripClientsModal(props) {
                         />
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-[1fr_300px_300px]">
+                    <div className="grid gap-4 md:grid-cols-[1fr_300px]">
                         {cli?.id ? (
                             <CampoTexto id="cliente-da-viagem" label="Cliente" value={cli?.name || ''} disabled readOnly />
                         ) : (
@@ -226,18 +245,11 @@ export default function TripClientsModal(props) {
                                 value=""
                                 name="client_id"
                                 clients={clients}
+                                somenteNome
                                 setClient={setClient}
                                 wd="100%"
                             />
                         )}
-
-                        <Select
-                            value={person_type ? person_type : ''}
-                            label={'QUALIFIQUE O CLIENTE'}
-                            name={'person_type'}
-                            store={typesOfPerson}
-                            changeItem={changeItem}
-                        />
 
                         <Phone value={phone ? phone : ''}
                             label={'Telefone'}

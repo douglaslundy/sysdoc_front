@@ -430,6 +430,7 @@ export default function QueueModal(props) {
                             label="Selecione o cliente"
                             name="client"
                             clients={clients}
+                            somenteNome
                             value={form.client}
                             setClient={setClient}
                             wd="100%"
