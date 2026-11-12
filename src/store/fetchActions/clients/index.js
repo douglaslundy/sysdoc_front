@@ -79,7 +79,17 @@ export const detailed_client_report = (value) => {
 }
 
 
-export const addClientFetch = (client, cleanForm) => {
+/** Junta as mensagens de validacao do back (errors{campo:[msg]}) ou a mensagem geral. */
+export const mensagensDeErro = (error) => {
+    const dados = error?.response?.data;
+    const lista = dados?.errors ? Object.values(dados.errors).flat().filter(Boolean) : [];
+    if (lista.length) return [...new Set(lista)];
+    return [dados?.message || 'Não foi possível gravar. Tente novamente.'];
+};
+
+// aoErro(mensagens): quando informado, o erro aparece onde o chamador quiser (ex.: dentro do modal)
+// em vez do aviso global da pagina.
+export const addClientFetch = (client, cleanForm, aoErro) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
@@ -123,14 +133,15 @@ export const addClientFetch = (client, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error ? `ERROR - ${error?.response?.data?.message} ` : 'Erro desconhecido'));
+                if (typeof aoErro === 'function') aoErro(mensagensDeErro(error));
+                else dispatch(addAlertMessage(error ? `ERROR - ${error?.response?.data?.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
     };
 };
 
-export const editClientFetch = (client, cleanForm) => {
+export const editClientFetch = (client, cleanForm, aoErro) => {
     return (dispatch) => {
         dispatch(turnLoading());
 
@@ -172,9 +183,10 @@ export const editClientFetch = (client, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                if (typeof aoErro === 'function') aoErro(mensagensDeErro(error));
+                else dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
-                return error ? error.response.data.message : 'erro desconhecido';
+                return error?.response?.data?.message || 'erro desconhecido';
             })
     };
 }

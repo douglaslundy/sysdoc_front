@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AlertModal from '../../messagesModal';
 import Phone from '../../inputs/textFields/phone';
@@ -47,6 +47,12 @@ export default function ClientModal(props) {
   } = form;
   const [texto, setTexto] = useState();
   const [confirmObito, setConfirmObito] = useState(false);
+  const [erros, setErros] = useState([]);
+  const refErros = useRef(null);
+
+  useEffect(() => {
+    if (erros.length) refErros.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [erros]);
 
   const changeItem = ({ target: { name, value } }) => {
     setForm((atual) => ({ ...atual, [name]: value }));
@@ -55,6 +61,7 @@ export default function ClientModal(props) {
   const cleanForm = () => {
     setForm(FORM_VAZIO);
     setTexto('');
+    setErros([]);
     dispatch(closeClientModal());
     dispatch(showClient({}));
   };
@@ -75,12 +82,14 @@ export default function ClientModal(props) {
 
   const handlePostData = async () => {
     dispatch(changeTitleAlert(`O cliente ${form.name} foi cadastrado com sucesso!`));
-    dispatch(addClientFetch(form, cleanForm));
+    setErros([]);
+    dispatch(addClientFetch(form, cleanForm, setErros));
   };
 
   const handlePutData = async () => {
     dispatch(changeTitleAlert(`O cliente ${form.name} foi atualizado com sucesso!`));
-    dispatch(editClientFetch(form, cleanForm));
+    setErros([]);
+    dispatch(editClientFetch(form, cleanForm, setErros));
   };
 
   useEffect(() => {
@@ -127,7 +136,7 @@ export default function ClientModal(props) {
           {texto_('cliente-mae', 'Nome da Mãe', 'mother', 50)}
 
           <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
-            {texto_('cliente-email', 'E-mail', 'email', 100, { type: 'email', required: true })}
+            {texto_('cliente-email', 'E-mail', 'email', 100, { type: 'email' })}
             <BasicDatePicker label="Data de Nascimento" name="born_date" value={born_date} setValue={(v) => setForm((atual) => ({ ...atual, born_date: v }))} required />
             <CampoSelecao id="cliente-sexo" label="Sexo" value={sexo || ''} onChange={(e) => setForm((atual) => ({ ...atual, sexo: e.target.value }))}>
               <option value="" disabled hidden />
@@ -187,6 +196,16 @@ export default function ClientModal(props) {
             value={obs || ''}
             onChange={changeItem}
           />
+
+          {erros.length ? (
+            <div ref={refErros}>
+              <Banner tom="perigo" rotulo="Erros ao gravar o cliente" onDispensar={() => setErros([])}>
+                <ul className="list-disc space-y-0.5 pl-4">
+                  {erros.map((mensagem) => <li key={mensagem}>{mensagem}</li>)}
+                </ul>
+              </Banner>
+            </div>
+          ) : null}
 
           <DialogoRodape>
             <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>

@@ -32,3 +32,19 @@
   /* Remove quebras de página indesejadas dentro do card do mapa */
   [data-slot="card"] { page-break-inside: avoid; }
 }
+
+/* Campos de data: o ícone do calendário usa o esquema de cores do tema (sumia no tema escuro) e é clicável. */
+input[type="date"] {
+  color-scheme: light;
+  cursor: pointer;
+}
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+}
+input[type="date"]:disabled {
+  cursor: not-allowed;
+}

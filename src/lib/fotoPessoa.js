@@ -66,6 +66,11 @@ export function useFotoPessoa(tipo, id) {
     api.get(`/${tipo}/${id}/photo`, { responseType: 'blob' })
       .then((res) => {
         if (cancelado) return;
+        // 204: pessoa sem foto (caso comum), sem erro no console.
+        if (res.status === 204 || !res.data || res.data.size === 0) {
+          setUrl(null);
+          return;
+        }
         objeto = URL.createObjectURL(res.data);
         setUrl(objeto);
       })
