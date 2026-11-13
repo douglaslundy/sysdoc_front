@@ -160,6 +160,7 @@ export const getPageTitle = (pathname) => {
   if (normalized.startsWith("/showqueue")) return "Consulta de Senha";
   if (normalized.startsWith("/painel-esus")) return "Painel eSUS";
   if (normalized.startsWith("/protocolo")) return "Protocolo";
+  if (normalized.startsWith("/ordem-servico")) return "Ordem de Serviço";
 
   return fallbackTitle(pathname);
 };

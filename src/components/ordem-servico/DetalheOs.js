@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Carregando } from "../ui/carregando";
 import { Dado } from "../ui/dado";
 import { FormularioModal } from "../ui/formulario-modal";
-import { STATUS_OS, StatusOs } from "./StatusOs";
+import { PRIORIDADES, STATUS_OS, StatusOs } from "./StatusOs";
 
 const dataHora = (iso) => (iso ? new Date(iso).toLocaleString("pt-BR") : "—");
 
@@ -123,7 +123,7 @@ export default function DetalheOs({ id }) {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <Dado rotulo="Local">{os.local}</Dado>
             <Dado rotulo="Endereço">{os.endereco || "—"}</Dado>
-            <Dado rotulo="Prioridade">{os.prioridade}</Dado>
+            <Dado rotulo="Prioridade">{PRIORIDADES.find((p) => p.value === os.prioridade)?.label || os.prioridade}</Dado>
             <Dado rotulo="Prazo">{os.prazo ? new Date(`${os.prazo}T00:00:00`).toLocaleDateString("pt-BR") : "—"}</Dado>
             <Dado rotulo="Solicitante">{os.solicitante?.name}</Dado>
             <Dado rotulo="Técnico">{os.tecnico?.name || "—"}</Dado>
