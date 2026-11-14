@@ -22,7 +22,26 @@ export const api = axios.create({
 // Envia dispositivo/fuso/tela ao back-end para a auditoria de acessos.
 // config.semSecretaria: a requisição não leva X-Secretaria-Id (usado em /auth/secretarias,
 // para que uma ativa obsoleta não impeça justamente de descobrir a ativa válida).
+// Sessão com cookie de metadados mas sem token em memória (carga da página): espera o token
+// do BFF em vez de disparar a requisição sem Authorization (que geraria 401 no console).
+let tokenPendente = null;
+function aguardarToken() {
+  if (!tokenPendente) {
+    tokenPendente = fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data?.token) setAuthToken(data.token); })
+      .catch(() => {})
+      .finally(() => { tokenPendente = null; });
+  }
+  return tokenPendente;
+}
+const sessaoAtiva = () => typeof document !== "undefined" && /(?:^|;\s*)sysvendas\.id=/.test(document.cookie);
+
 export async function prepararRequisicao(config) {
+  if (!config.publica && !api.defaults.headers["Authorization"] && !config.headers["Authorization"] && sessaoAtiva()) {
+    await aguardarToken();
+    if (api.defaults.headers["Authorization"]) config.headers["Authorization"] = api.defaults.headers["Authorization"];
+  }
   const info = await getClientInfoHeader();
   if (info) config.headers["X-Client-Info"] = info;
   const secretaria = lerAtiva();
