@@ -94,7 +94,7 @@ export default function SignIn() {
                     Entrar
                 </Button>
 
-                {process.env.NEXT_PUBLIC_CADASTRO_PUBLICO_HABILITADO === 'true' && (
+                {process.env.NEXT_PUBLIC_CADASTRO_PUBLICO_HABILITADO !== 'false' && (
                     <p className="text-center text-sm text-muted-foreground">
                         Não tem acesso?{' '}
                         <Link href="/cadastre-se">
