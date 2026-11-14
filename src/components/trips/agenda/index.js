@@ -37,6 +37,7 @@ export default function TripScheduleAgenda() {
   const [entries, setEntries] = useState([]);
   const [selecionados, setSelecionados] = useState([]);
   const [aviso, setAviso] = useState(null);
+  const [erroForm, setErroForm] = useState(null);
   const [carregando, setCarregando] = useState(false);
 
   const [form, setForm] = useState(null); // null = fechado
@@ -79,6 +80,7 @@ export default function TripScheduleAgenda() {
 
   // ---------- agendar ----------
   const abrirForm = async (data, extra = {}) => {
+    setErroForm(null);
     setForm({ ...FORM_VAZIO, date: data, ...extra });
     try {
       const { data: lista } = await api.get('/clients/select', { params: { limit: 50, somente_nome: 1 } });
@@ -99,6 +101,7 @@ export default function TripScheduleAgenda() {
   const salvar = async () => {
     if (!form?.client?.id) return;
     setSalvando(true);
+    setErroForm(null);
     try {
       const payload = {
         client_id: form.client.id,
@@ -117,7 +120,7 @@ export default function TripScheduleAgenda() {
       setAviso({ tom: 'sucesso', texto: 'Agendado com sucesso.' });
       await carregar();
     } catch (e) {
-      setAviso({ tom: 'perigo', texto: msgErro(e, 'Não foi possível agendar.') });
+      setErroForm(msgErro(e, 'Não foi possível agendar.'));
     } finally {
       setSalvando(false);
     }
@@ -314,6 +317,7 @@ export default function TripScheduleAgenda() {
         <DialogoCabecalho>{form?.companion_of ? `Acompanhante de ${String(form.paiNome).toUpperCase()}` : 'Agendar passageiro'}</DialogoCabecalho>
         {form && (
           <div className="grid gap-4">
+            {erroForm && <Banner tom="perigo">{erroForm}</Banner>}
             {!form.companion_of && (
               <CampoTexto id="ag-data" label="Data" type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} />
             )}
