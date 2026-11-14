@@ -7,6 +7,7 @@ import { Campo, CampoTexto, Input } from "../../src/components/ui/campos";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "../../src/components/ui/card";
 import { CaixaDeMarcacao } from "../../src/components/ui/caixa-de-marcacao";
 import { Carregando } from "../../src/components/ui/carregando";
+import { useConfirmacao } from "../../src/components/ui/confirmacao";
 import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
 import { Pilula } from "../../src/components/ui/pilula";
 import { api } from "../../src/services/api";
@@ -68,6 +69,7 @@ function StatusChip({ status }) {
   return <Pilula tom={item.tom}>{item.label}</Pilula>;
 }
 export default function WhatsappConfigPage() {
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -189,7 +191,7 @@ export default function WhatsappConfigPage() {
   };
 
   const desconectar = async () => {
-    if (!window.confirm("Desconectar a sessão do WhatsApp? Será necessário escanear o QR code novamente para reconectar.")) {
+    if (!(await confirmar({ titulo: "Desconectar WhatsApp", mensagem: "Desconectar a sessão do WhatsApp? Será necessário escanear o QR code novamente para reconectar.", confirmar: "Desconectar" }))) {
       return;
     }
 
@@ -238,6 +240,7 @@ export default function WhatsappConfigPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
+      {dialogoConfirmacao}
       <CabecalhoDePagina
         titulo="Configurações WhatsApp"
         subtitulo="Configuração geral do sistema para a integração com a Evolution API."

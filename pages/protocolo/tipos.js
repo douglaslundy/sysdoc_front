@@ -3,6 +3,7 @@ import { Banner } from "../../src/components/ui/banner";
 import { Button } from "../../src/components/ui/button";
 import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
 import { CampoTexto } from "../../src/components/ui/campos";
+import { useConfirmacao } from "../../src/components/ui/confirmacao";
 import { DataTable } from "../../src/components/ui/data-table";
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../../src/components/ui/dialogo";
 import { Interruptor } from "../../src/components/ui/interruptor";
@@ -18,6 +19,7 @@ const emptyForm = {
 };
 
 export default function ProtocolTypesPage() {
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -85,7 +87,7 @@ export default function ProtocolTypesPage() {
   };
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`Inativar o tipo "${item.nome}"?`)) return;
+    if (!(await confirmar({ titulo: "Inativar tipo", mensagem: `Inativar o tipo "${item.nome}"?`, confirmar: "Inativar" }))) return;
     setSaving(true);
     setMessage("");
     try {
@@ -122,6 +124,7 @@ export default function ProtocolTypesPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {dialogoConfirmacao}
       <CabecalhoDePagina
         titulo="Tipos de Protocolo"
         subtitulo="Cadastre os tipos usados no campo tipo do novo protocolo."

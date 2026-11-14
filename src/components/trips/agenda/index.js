@@ -328,7 +328,10 @@ export default function TripScheduleAgenda() {
                   <span>{format(d, "EEE., d 'de' MMM", { locale: ptBR })}</span>
                   <button type="button" aria-label="Agendar neste dia" onClick={(ev) => { ev.stopPropagation(); abrirForm(iso(d)); }} className="rounded px-1.5 text-sm leading-none hover:bg-border">+</button>
                 </div>
-                <div className="flex min-h-0 flex-1 p-2"><Resumo lista={lista} max={11} /></div>
+                <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-2">
+                  <button type="button" onClick={(ev) => { ev.stopPropagation(); abrirForm(iso(d)); }} className="rounded-md border border-dashed border-border py-1 text-xs text-muted-foreground hover:bg-hover">+ Agendar</button>
+                  <Resumo lista={lista} max={10} />
+                </div>
               </div>
             );
           })}

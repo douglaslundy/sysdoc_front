@@ -5,6 +5,7 @@ import { Button } from "../src/components/ui/button";
 import { CampoDeBusca } from "../src/components/ui/campo-de-busca";
 import { CampoSelecao, CampoTexto } from "../src/components/ui/campos";
 import { Carregando } from "../src/components/ui/carregando";
+import { useConfirmacao } from "../src/components/ui/confirmacao";
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../src/components/ui/dialogo";
 import { Pilula, tomDaCor } from "../src/components/ui/pilula";
 import { api } from "../src/services/api";
@@ -421,6 +422,7 @@ function ProtocolDialog({ open, item, onClose, onChanged }) {
 }
 
 export default function KanbanPage() {
+  const [confirmar, dialogoConfirmacao] = useConfirmacao();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -571,7 +573,7 @@ export default function KanbanPage() {
 
   const deleteItem = async (item) => {
     if (!item?.id) return;
-    if (!window.confirm("Deseja excluir este item do kanban?")) return;
+    if (!(await confirmar({ titulo: "Excluir item", mensagem: "Deseja excluir este item do kanban?", confirmar: "Excluir" }))) return;
 
     setSaving(true);
     try {
@@ -627,6 +629,7 @@ export default function KanbanPage() {
 
   return (
     <div className="kanban-page mx-auto max-w-[1600px]">
+      {dialogoConfirmacao}
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div className="min-w-0">
           <Pilula tom="neutro">{`Você possui ${totals.total} itens`}</Pilula>

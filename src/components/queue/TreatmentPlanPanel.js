@@ -4,6 +4,7 @@ import { Banner } from '../ui/banner';
 import { Button } from '../ui/button';
 import { CaixaDeMarcacao } from '../ui/caixa-de-marcacao';
 import { CampoTexto } from '../ui/campos';
+import { useConfirmacao } from '../ui/confirmacao';
 import { AuthContext } from '../../contexts/AuthContext';
 import {
     previewTreatmentPlan,
@@ -48,6 +49,7 @@ const STATUS_LABELS = {
 const statusLabel = (status) => STATUS_LABELS[status] || status;
 
 export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
+    const [confirmar, dialogoConfirmacao] = useConfirmacao();
     const { profile } = useContext(AuthContext);
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -132,7 +134,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
     };
 
     const handleComplete = async (sessionId) => {
-        if (!window.confirm('Confirmar conclusão desta sessão?')) return;
+        if (!(await confirmar({ titulo: 'Concluir sessão', mensagem: 'Confirmar conclusão desta sessão?', confirmar: 'Concluir' }))) return;
         setError('');
         setSubmitting(true);
         try {
@@ -209,6 +211,7 @@ export default function TreatmentPlanPanel({ queueId, speciality, onChanged }) {
 
     return (
         <div className="mt-4 rounded-lg border border-border p-4">
+            {dialogoConfirmacao}
             <h4 className="mb-2 font-display text-sm font-bold">Agendamento por sessões</h4>
 
             {error && <div className="mb-2"><Banner tom="perigo">{error}</Banner></div>}
