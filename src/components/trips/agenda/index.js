@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   addDays, addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek, format,
-  isSameMonth, startOfMonth, startOfWeek,
+  isSameMonth, parseISO, startOfMonth, startOfWeek,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRouter } from 'next/router';
 import { api } from '../../../services/api';
 import { cleanPhone } from '../../helpers/formatt/phone';
 import InputSelectClient from '../../inputs/inputSelectClient';
@@ -24,6 +25,8 @@ const STATUS_AGENDA = {
   concluido: { rotulo: 'Concluído', borda: 'border-l-gray-500', ponto: 'bg-gray-500' },
 };
 
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
 const msgErro = (e, padrao) => {
   const erros = e?.response?.data?.errors;
   const primeiro = erros ? Object.values(erros)[0]?.[0] : null;
@@ -32,8 +35,11 @@ const msgErro = (e, padrao) => {
 
 /** Agenda de viagens: passageiros (e acompanhantes) por data, antes de terem uma viagem. */
 export default function TripScheduleAgenda() {
+  const router = useRouter();
+  const diaSel = typeof router.query.dia === 'string' && DATA_ISO.test(router.query.dia) ? router.query.dia : null;
   const [modo, setModo] = useState('week');
   const [cursor, setCursor] = useState(new Date());
+  const [remocao, setRemocao] = useState(null); // entrada aguardando confirmação de remoção
   const [entries, setEntries] = useState([]);
   const [selecionados, setSelecionados] = useState([]);
   const [aviso, setAviso] = useState(null);
@@ -47,10 +53,16 @@ export default function TripScheduleAgenda() {
   const [envio, setEnvio] = useState(null); // { ids, tipo: 'existente'|'nova', ... }
   const [opcoes, setOpcoes] = useState({ trips: [], routes: [], vehicles: [], drivers: [] });
 
+  useEffect(() => {
+    const base = router.query.dia || router.query.ref;
+    if (typeof base === 'string' && DATA_ISO.test(base)) setCursor(parseISO(base));
+  }, [router.query.dia, router.query.ref]);
+
   const intervalo = useMemo(() => {
+    if (diaSel) return { from: parseISO(diaSel), to: parseISO(diaSel) };
     if (modo === 'week') return { from: startOfWeek(cursor), to: endOfWeek(cursor) };
     return { from: startOfWeek(startOfMonth(cursor)), to: endOfWeek(endOfMonth(cursor)) };
-  }, [modo, cursor]);
+  }, [modo, cursor, diaSel]);
   const dias = useMemo(() => eachDayOfInterval({ start: intervalo.from, end: intervalo.to }), [intervalo]);
 
   const carregar = useCallback(async () => {
@@ -145,8 +157,10 @@ export default function TripScheduleAgenda() {
       setAviso({ tom: 'perigo', texto: msgErro(err, 'Não foi possível alterar o status.') });
     }
   };
-  const remover = async (e) => {
-    if (!window.confirm(`Remover ${e.client?.name || 'pessoa'} da agenda?`)) return;
+  const confirmarRemocao = async () => {
+    const e = remocao;
+    setRemocao(null);
+    if (!e) return;
     try {
       await api.delete(`/trip-schedule/${e.id}`);
       setSelecionados((s) => s.filter((id) => id !== e.id));
@@ -234,11 +248,25 @@ export default function TripScheduleAgenda() {
             <Button type="button" size="xs" variant="outline" onClick={() => definirStatus(e, 'agendado')}>Reabrir</Button>
           )}
           {!acomp && <Button type="button" size="xs" variant="outline" onClick={() => abrirAcompanhante(e)}>+ Acompanhante</Button>}
-          <Button type="button" size="xs" variant="outline" onClick={() => remover(e)}>Remover</Button>
+          <Button type="button" size="xs" variant="outline" onClick={() => setRemocao(e)}>Remover</Button>
         </div>
       </div>
     );
   };
+
+  // Bloco compacto do calendário: só nomes, fonte pequena, cortados na largura; excedente vira "+N".
+  const Resumo = ({ lista, max }) => (
+    <div className="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
+      {lista.slice(0, max).map((e) => (
+        <span key={e.id} title={e.client?.name} className={`block truncate border-l-2 pl-1 text-[10px] leading-tight ${(STATUS_AGENDA[e.status] || STATUS_AGENDA.agendado).borda} ${e.status === 'cancelado' ? 'line-through opacity-60' : ''}`}>
+          {e.person_type === 'companion' ? '↳ ' : ''}{String(e.client?.name || '').toUpperCase()}
+        </span>
+      ))}
+      {lista.length > max && <span className="text-[10px] font-medium text-primary">+{lista.length - max} mais</span>}
+    </div>
+  );
+  const abrirDia = (d) => router.push({ pathname: router.pathname, query: { dia: d } });
+  const voltarCalendario = () => router.push({ pathname: router.pathname, query: { ref: diaSel } });
 
   const rotasOpc = opcoes.routes.map((r) => ({ id: r.id, name: `${r.origin} X ${r.destination}`, destination: r.destination }));
   const veicOpc = opcoes.vehicles.map((v) => ({ id: v.id, name: `${v.license_plate} - ${v.brand} ${v.model} CAPACIDADE ${v.capacity} LUGARES` }));
@@ -249,38 +277,58 @@ export default function TripScheduleAgenda() {
       {aviso && <div className="mb-3"><Banner tom={aviso.tom}>{aviso.texto}</Banner></div>}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
-          <Button type="button" size="sm" variant={modo === 'week' ? 'default' : 'ghost'} onClick={() => setModo('week')}>Semana</Button>
-          <Button type="button" size="sm" variant={modo === 'month' ? 'default' : 'ghost'} onClick={() => setModo('month')}>Mês</Button>
-        </div>
-        <div className="inline-flex items-center rounded-lg border border-border bg-card">
-          <Button type="button" size="sm" variant="ghost" aria-label="Anterior" onClick={() => navegar(-1)}>‹</Button>
-          <span className="min-w-[200px] px-2 text-center text-sm font-medium capitalize">{titulo}</span>
-          <Button type="button" size="sm" variant="ghost" aria-label="Próximo" onClick={() => navegar(1)}>›</Button>
-        </div>
-        <Button type="button" size="sm" variant="outline" onClick={() => setCursor(new Date())}>Hoje</Button>
+        {diaSel ? (
+          <>
+            <Button type="button" size="sm" variant="outline" onClick={voltarCalendario}>← Calendário</Button>
+            <span className="text-sm font-medium capitalize">{format(parseISO(diaSel), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+          </>
+        ) : (
+          <>
+            <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+              <Button type="button" size="sm" variant={modo === 'week' ? 'default' : 'ghost'} onClick={() => setModo('week')}>Semana</Button>
+              <Button type="button" size="sm" variant={modo === 'month' ? 'default' : 'ghost'} onClick={() => setModo('month')}>Mês</Button>
+            </div>
+            <div className="inline-flex items-center rounded-lg border border-border bg-card">
+              <Button type="button" size="sm" variant="ghost" aria-label="Anterior" onClick={() => navegar(-1)}>‹</Button>
+              <span className="min-w-[200px] px-2 text-center text-sm font-medium capitalize">{titulo}</span>
+              <Button type="button" size="sm" variant="ghost" aria-label="Próximo" onClick={() => navegar(1)}>›</Button>
+            </div>
+            <Button type="button" size="sm" variant="outline" onClick={() => setCursor(new Date())}>Hoje</Button>
+          </>
+        )}
         <div className="ml-auto flex gap-2">
+          {diaSel && (
+            <Button type="button" variant="outline" disabled={(porDia[diaSel] || []).filter((e) => e.person_type === 'passenger').length === 0}
+              onClick={() => setSelecionados((porDia[diaSel] || []).filter((e) => e.person_type === 'passenger').map((e) => e.id))}>
+              Selecionar todos
+            </Button>
+          )}
           <Button type="button" variant="outline" disabled={selecionados.length === 0} onClick={() => abrirEnvio(selecionados)}>
             Enviar para viagem ({selecionados.length})
           </Button>
-          <Button type="button" onClick={() => abrirForm(iso(cursor))}>+ Agendar</Button>
+          <Button type="button" onClick={() => abrirForm(diaSel || iso(cursor))}>+ Agendar</Button>
         </div>
       </div>
 
-      {modo === 'week' ? (
+      {diaSel ? (
+        <div className="grid max-w-3xl gap-1.5">
+          {(porDia[diaSel] || []).length === 0 && !carregando && <p className="text-sm text-muted-foreground">Ninguém agendado neste dia.</p>}
+          {(porDia[diaSel] || []).map((e) => <Linha key={e.id} e={e} />)}
+        </div>
+      ) : modo === 'week' ? (
         <div className="grid grid-cols-1 gap-2 md:grid-cols-7">
           {dias.map((d) => {
             const lista = porDia[iso(d)] || [];
             const hoje = iso(d) === iso(new Date());
             return (
-              <div key={iso(d)} className={`flex min-h-[240px] flex-col rounded-lg border bg-card ${hoje ? 'border-primary' : 'border-border'}`}>
-                <div className={`border-b px-2 py-1.5 text-xs font-medium capitalize ${hoje ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
-                  {format(d, "EEE., d 'de' MMM", { locale: ptBR })}
+              <div key={iso(d)} role="button" tabIndex={0} aria-label={`Abrir ${format(d, "d 'de' MMMM", { locale: ptBR })}`}
+                onClick={() => abrirDia(iso(d))} onKeyDown={(ev) => { if (ev.key === 'Enter') abrirDia(iso(d)); }}
+                className={`flex h-[220px] cursor-pointer flex-col overflow-hidden rounded-lg border bg-card hover:bg-hover ${hoje ? 'border-primary' : 'border-border'}`}>
+                <div className={`flex items-center justify-between border-b px-2 py-1.5 text-xs font-medium capitalize ${hoje ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
+                  <span>{format(d, "EEE., d 'de' MMM", { locale: ptBR })}</span>
+                  <button type="button" aria-label="Agendar neste dia" onClick={(ev) => { ev.stopPropagation(); abrirForm(iso(d)); }} className="rounded px-1.5 text-sm leading-none hover:bg-border">+</button>
                 </div>
-                <div className="flex flex-1 flex-col gap-1.5 p-2">
-                  <button type="button" onClick={() => abrirForm(iso(d))} className="rounded-md border border-dashed border-border py-2 text-xs text-muted-foreground hover:bg-hover">+ Agendar</button>
-                  {lista.map((e) => <Linha key={e.id} e={e} />)}
-                </div>
+                <div className="flex min-h-0 flex-1 p-2"><Resumo lista={lista} max={11} /></div>
               </div>
             );
           })}
@@ -289,16 +337,15 @@ export default function TripScheduleAgenda() {
         <div className="grid grid-cols-7 gap-1">
           {dias.map((d) => {
             const lista = porDia[iso(d)] || [];
-            const pax = lista.filter((e) => e.person_type === 'passenger').length;
             return (
               <button
                 key={iso(d)}
                 type="button"
-                onClick={() => { setCursor(d); setModo('week'); }}
-                className={`min-h-[80px] rounded-md border border-border p-1.5 text-left text-xs hover:bg-hover ${isSameMonth(d, cursor) ? 'bg-card' : 'opacity-50'}`}
+                onClick={() => abrirDia(iso(d))}
+                className={`flex h-[110px] min-w-0 flex-col overflow-hidden rounded-md border border-border p-1.5 text-left text-xs hover:bg-hover ${isSameMonth(d, cursor) ? 'bg-card' : 'opacity-50'}`}
               >
                 <span className="font-medium">{format(d, 'd')}</span>
-                {lista.length > 0 && <span className="mt-1 block text-primary">{pax} passageiro(s){lista.length > pax ? ` +${lista.length - pax} acomp.` : ''}</span>}
+                <Resumo lista={lista} max={4} />
               </button>
             );
           })}
@@ -311,6 +358,15 @@ export default function TripScheduleAgenda() {
           <span key={chave}><span className={`mr-1 inline-block size-2.5 rounded-sm ${s.ponto}`} />{s.rotulo}</span>
         ))}
       </div>
+
+      <Dialogo aberto={Boolean(remocao)} aoFechar={() => setRemocao(null)} alerta tamanho="sm">
+        <DialogoCabecalho>Remover da agenda</DialogoCabecalho>
+        <p className="text-sm">Remover <strong>{String(remocao?.client?.name || 'esta pessoa').toUpperCase()}</strong> da agenda?{remocao?.person_type === 'passenger' ? ' Os acompanhantes dela também saem.' : ''}</p>
+        <DialogoRodape>
+          <Button type="button" variant="outline" onClick={() => setRemocao(null)}>Cancelar</Button>
+          <Button type="button" onClick={confirmarRemocao}>Remover</Button>
+        </DialogoRodape>
+      </Dialogo>
 
       {/* Dialogo: agendar passageiro (+ acompanhantes) ou só um acompanhante */}
       <Dialogo aberto={Boolean(form)} aoFechar={() => setForm(null)} tamanho="lg">
