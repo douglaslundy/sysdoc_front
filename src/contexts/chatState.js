@@ -122,3 +122,10 @@ export const createSingleFlight = () => {
     return inflight;
   };
 };
+
+/**
+ * Canal de presença da secretaria ativa. Em 'all' (admin vendo todas) ou sem ativa não há
+ * canal: o back autoriza por vínculo e a lista de usuários segue pela reconciliação periódica.
+ */
+export const presenceChannelName = (secretariaAtiva) =>
+  secretariaAtiva && secretariaAtiva !== "all" ? `chat.presence.${secretariaAtiva}` : null;

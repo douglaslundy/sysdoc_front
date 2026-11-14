@@ -13,6 +13,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const hoje = () => new Date().toISOString().split('T')[0];
 
@@ -27,6 +28,7 @@ const FORM_INICIAL = {
 
 export default function PedidoModal(props) {
     const dispatch = useDispatch();
+    const secretaria = useSecretariaObrigatoria();
     const { isOpenPedidoModal } = useSelector(state => state.layout);
     const { exames } = useSelector(state => state.exames);
     const { medicos } = useSelector(state => state.medicosSolicitantes);
@@ -88,14 +90,16 @@ export default function PedidoModal(props) {
         setCpfCns('');
         setPaciente(null);
         setErroPaciente('');
+        secretaria.limpar();
         dispatch(closePedidoModal());
     };
 
     const handleSave = () => {
-        dispatch(addPedidoFetch(form, (_pedido, protocolo, senha) => {
+        if (!secretaria.validar()) return;
+        dispatch(addPedidoFetch({ ...form, ...secretaria.payload() }, (_pedido, protocolo, senha) => {
             setCredenciais({ protocolo, senha });
             props.onSaved && props.onSaved(_pedido);
-        }));
+        }, secretaria.tratarErro));
     };
 
     const handleFecharCredenciais = () => {
@@ -133,6 +137,7 @@ export default function PedidoModal(props) {
                 <DialogoCabecalho>Cadastrar Pedido de Exame</DialogoCabecalho>
                 <AlertModal />
                 <div className="grid gap-5">
+                    <CampoSecretariaObrigatorio controle={secretaria} id="pedido-secretaria" />
                     {/* Busca de paciente por CPF/CNS */}
                     <div className="grid gap-2">
                         <h3 className="font-display text-sm font-bold">Buscar Paciente</h3>

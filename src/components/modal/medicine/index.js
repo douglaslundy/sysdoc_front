@@ -7,6 +7,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
     internal_code: '',
@@ -32,6 +33,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
     const [forms, setForms] = useState([]);
     const [presentations, setPresentations] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
         setForm(medicine ? {
@@ -39,6 +41,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
             ...medicine,
         } : EMPTY);
         setErrorMessage('');
+        secretaria.limpar();
     }, [medicine?.id, open]);
 
     useEffect(() => {
@@ -63,7 +66,8 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
             dispatch(editMedicineFetch(medicine.id, form, onSuccess, setErrorMessage));
             return;
         }
-        dispatch(addMedicineFetch(form, onSuccess, setErrorMessage));
+        if (!secretaria.validar()) return;
+        dispatch(addMedicineFetch({ ...form, ...secretaria.payload() }, onSuccess, setErrorMessage, secretaria.tratarErro));
     };
 
     const campo = (name, label, extra = {}) => (
@@ -86,6 +90,7 @@ export default function MedicineDialog({ open, onClose, medicine, onSuccess }) {
             <DialogoCabecalho>{medicine?.id ? 'Editar Medicamento' : 'Novo Medicamento'}</DialogoCabecalho>
             <div className="grid gap-4">
                 {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                {!medicine?.id && <CampoSecretariaObrigatorio controle={secretaria} id="med-secretaria" />}
                 {campo('internal_code', 'Código Interno', { obrigatorio: true })}
                 {campo('brand_name', 'Nome Comercial')}
                 {campo('active_ingredient', 'Princípio Ativo', { obrigatorio: true })}

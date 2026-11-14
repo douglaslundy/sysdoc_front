@@ -23,7 +23,7 @@ export const getDailyStatuses = (params = {}) => {
     };
 };
 
-export const upsertDailyStatusFetch = (data, onSuccess, onError) => {
+export const upsertDailyStatusFetch = (data, onSuccess, onError, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/pharmacy/medicines/daily-statuses', data)
@@ -35,6 +35,7 @@ export const upsertDailyStatusFetch = (data, onSuccess, onError) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 const message = extractApiErrorMessage(error, 'Não foi possível salvar o status diário.');
                 onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());

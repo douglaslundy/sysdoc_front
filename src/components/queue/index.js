@@ -451,7 +451,7 @@ export default () => {
                 <CardHeader>
                     <CardTitle>{`Você possui ${pagination?.total ?? queues.length} registros cadastrados`}</CardTitle>
                 </CardHeader>
-                <CardContent className="grid gap-4">
+                <CardContent className="grid grid-cols-1 gap-4">
                     <AlertModal />
                     {isOpenOutcomeQueueModal && <QueueOutcomeModal onSaved={reloadQueues} />}
                     <BlockingErrorDialog

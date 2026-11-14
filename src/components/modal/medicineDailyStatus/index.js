@@ -6,6 +6,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -27,12 +28,14 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
     const { medicines } = useSelector(state => state.medicines);
     const [form, setForm] = useState(EMPTY);
     const [errorMessage, setErrorMessage] = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
         if (open) {
             dispatch(getMedicinesSelect({ active: 1, limit: 500 }));
             setForm({ ...EMPTY, reference_date: localDate() });
             setErrorMessage('');
+            secretaria.limpar();
         }
     }, [open, dispatch]);
 
@@ -42,12 +45,14 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
     };
 
     const save = () => {
+        if (!secretaria.validar()) return;
         dispatch(upsertDailyStatusFetch({
             ...form,
+            ...secretaria.payload(),
             available_quantity: form.available_quantity === '' ? null : Number(form.available_quantity),
             restock_forecast_date: form.restock_forecast_date || null,
             public_note: form.public_note || null,
-        }, onSuccess, setErrorMessage));
+        }, onSuccess, setErrorMessage, secretaria.tratarErro));
     };
 
     return (
@@ -55,6 +60,7 @@ export default function MedicineDailyStatusDialog({ open, onClose, onSuccess }) 
             <DialogoCabecalho>Atualizar Status Diário</DialogoCabecalho>
             <div className="grid gap-4">
                 {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                <CampoSecretariaObrigatorio controle={secretaria} id="ds-secretaria" />
                 <CampoSelecao id="ds-medicamento" name="medicine_item_id" label="Medicamento" value={form.medicine_item_id} onChange={({ target }) => change({ target: { name: target.name, value: target.value === '' ? '' : Number(target.value) } })} obrigatorio>
                     <option value="" />
                     {medicines.map((m) => <option key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</option>)}

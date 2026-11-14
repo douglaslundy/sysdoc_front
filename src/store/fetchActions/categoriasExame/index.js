@@ -15,7 +15,7 @@ export const getAllCategorias = (params = {}) => {
     };
 };
 
-export const addCategoriaFetch = (categoria, onSuccess) => {
+export const addCategoriaFetch = (categoria, onSuccess, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/laboratorio/categorias', categoria)
@@ -28,6 +28,7 @@ export const addCategoriaFetch = (categoria, onSuccess) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao criar categoria'));
                 dispatch(turnLoading());
             });

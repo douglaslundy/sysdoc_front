@@ -10,6 +10,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const EMPTY = {
     medicine_item_id: '',
@@ -27,6 +28,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
     const [units, setUnits] = useState([]);
     const [sources, setSources] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     const toApiMonth = (masked) => {
         const parts = (masked || '').replace(/_/g, '').split('/');
@@ -41,6 +43,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
             const maskedDefault = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
             setForm({ ...EMPTY, reference_month: maskedDefault });
             setErrorMessage('');
+            secretaria.limpar();
             api.get('/pharmacy/catalogs')
                 .then((res) => {
                     setUnits(res.data?.units || []);
@@ -69,13 +72,15 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
             setErrorMessage(validationError);
             return;
         }
+        if (!secretaria.validar()) return;
         dispatch(upsertMonthlyAcquisitionFetch({
             ...form,
+            ...secretaria.payload(),
             reference_month: toApiMonth(form.reference_month),
             acquired_quantity: Number(form.acquired_quantity || 0),
             source_document: form.source_document || null,
             note: form.note || null,
-        }, onSuccess, setErrorMessage));
+        }, onSuccess, setErrorMessage, secretaria.tratarErro));
     };
 
     return (
@@ -83,6 +88,7 @@ export default function MedicineMonthlyAcquisitionDialog({ open, onClose, onSucc
             <DialogoCabecalho>Aquisição Mensal</DialogoCabecalho>
             <div className="grid gap-4">
                 {errorMessage ? <Banner tom="perigo">{errorMessage}</Banner> : null}
+                <CampoSecretariaObrigatorio controle={secretaria} id="am-secretaria" />
                 <CampoSelecao id="am-medicamento" name="medicine_item_id" label="Medicamento" value={form.medicine_item_id} onChange={({ target }) => change({ target: { name: target.name, value: target.value === '' ? '' : Number(target.value) } })} obrigatorio>
                     <option value="" />
                     {medicines.map((m) => <option key={m.id} value={m.id}>{m.active_ingredient} {m.concentration}</option>)}

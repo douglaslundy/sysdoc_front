@@ -93,6 +93,15 @@ export default function SignIn() {
                 <Button type="submit" size="lg" className="w-full">
                     Entrar
                 </Button>
+
+                {process.env.NEXT_PUBLIC_CADASTRO_PUBLICO_HABILITADO === 'true' && (
+                    <p className="text-center text-sm text-muted-foreground">
+                        Não tem acesso?{' '}
+                        <Link href="/cadastre-se">
+                            <a className="text-primary-text underline-offset-4 hover:underline">Cadastre-se</a>
+                        </Link>
+                    </p>
+                )}
             </form>
         </AuthCard>
     );

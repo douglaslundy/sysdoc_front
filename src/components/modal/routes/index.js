@@ -7,6 +7,7 @@ import { editRouteFetch, addRouteFetch } from '../../../store/fetchActions/route
 import { getAllStates } from '../../../store/fetchActions/states';
 import AlertModal from '../../messagesModal';
 import { FormularioModal } from '../../ui/formulario-modal';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_VAZIO = {
     origin: "",
@@ -22,6 +23,7 @@ export default function RouteModal(props) {
     const { route } = useSelector(state => state.routes);
     const { isOpenRoutesModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
+    const secretaria = useSecretariaObrigatoria();
 
     const changeItem = ({ target: { name, value } }) => {
         setForm(atual => ({ ...atual, [name]: value }));
@@ -29,6 +31,7 @@ export default function RouteModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_VAZIO);
+        secretaria.limpar();
         dispatch(closeRoutesModal());
         dispatch(showRoute({}));
     };
@@ -38,8 +41,9 @@ export default function RouteModal(props) {
     };
 
     const handlePostData = async () => {
+        if (!secretaria.validar()) return;
         dispatch(changeTitleAlert(`A Rota ${form.origin.toUpperCase()} X ${form.destination.toUpperCase()} foi Cadastrado com sucesso!`));
-        dispatch(addRouteFetch(form, cleanForm));
+        dispatch(addRouteFetch({ ...form, ...secretaria.payload() }, cleanForm, secretaria.tratarErro));
     };
 
     const handlePutData = async () => {
@@ -81,7 +85,7 @@ export default function RouteModal(props) {
                 valores={form}
                 aoMudar={changeItem}
                 tamanho="md"
-                antes={<AlertModal />}
+                antes={<><AlertModal />{!(route && route.id) && <CampoSecretariaObrigatorio controle={secretaria} id="rota-secretaria" />}</>}
             />
         </div>
     );

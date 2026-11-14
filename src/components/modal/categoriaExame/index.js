@@ -8,6 +8,7 @@ import { Button } from '../../ui/button';
 import { CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_INICIAL = { nome: '', ativo: true };
 
@@ -17,11 +18,13 @@ export default function CategoriaExameModal(props) {
     const { isOpenCategoriaExameModal } = useSelector(state => state.layout);
 
     const [form, setForm] = useState(FORM_INICIAL);
+    const secretaria = useSecretariaObrigatoria();
 
     const isEdit = !!(categoria && categoria.id);
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
+        secretaria.limpar();
         dispatch(closeCategoriaExameModal());
         dispatch(showCategoria({}));
     };
@@ -30,7 +33,8 @@ export default function CategoriaExameModal(props) {
         if (isEdit) {
             dispatch(editCategoriaFetch(categoria.id, form, cleanForm));
         } else {
-            dispatch(addCategoriaFetch(form, cleanForm));
+            if (!secretaria.validar()) return;
+            dispatch(addCategoriaFetch({ ...form, ...secretaria.payload() }, cleanForm, secretaria.tratarErro));
         }
     };
 
@@ -49,6 +53,7 @@ export default function CategoriaExameModal(props) {
                 <DialogoCabecalho>{isEdit ? 'Editar Categoria' : 'Cadastrar Categoria de Exame'}</DialogoCabecalho>
                 <AlertModal />
                 <div className="grid gap-4">
+                    {!isEdit && <CampoSecretariaObrigatorio controle={secretaria} id="categoria-secretaria" />}
                     <CampoTexto
                         id="categoria-nome"
                         label="Nome da Categoria"

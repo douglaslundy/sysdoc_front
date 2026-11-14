@@ -6,6 +6,7 @@ import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { CampoTexto } from '../../ui/campos';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_INICIAL = { nome: '', codigo: '', categoria: '', descricao: '', ativo: true };
 
@@ -15,6 +16,7 @@ export default function ExameForm() {
     const { exame } = useSelector(state => state.exames);
 
     const [form, setForm] = useState(FORM_INICIAL);
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
         if (exame && exame.id) {
@@ -35,7 +37,8 @@ export default function ExameForm() {
         if (exame && exame.id) {
             dispatch(editExameFetch(exame.id, form, onSuccess));
         } else {
-            dispatch(addExameFetch(form, onSuccess));
+            if (!secretaria.validar()) return;
+            dispatch(addExameFetch({ ...form, ...secretaria.payload() }, onSuccess, secretaria.tratarErro));
         }
     };
 
@@ -48,6 +51,7 @@ export default function ExameForm() {
             </CardHeader>
             <CardContent>
                 <div className="grid max-w-[600px] gap-5">
+                    {!isEdit && <CampoSecretariaObrigatorio controle={secretaria} id="exame-secretaria" />}
                     <CampoTexto id="exame-nome" label="Nome do Exame" name="nome" value={form.nome} onChange={change} required obrigatorio maxLength={100} className="uppercase" />
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="sm:col-span-1">

@@ -6,6 +6,7 @@ import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
 import { CampoTexto } from "../ui/campos";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 import { Pilula } from "../ui/pilula";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../secretaria/CampoSecretariaObrigatorio";
 
 const digits = (value) => String(value || "").replace(/\D+/g, "");
 
@@ -33,6 +34,7 @@ export default function ContatosWhatsapp() {
   const [erro, setErro] = useState("");
   const [saving, setSaving] = useState(false);
   const [remover, setRemover] = useState(null);
+  const secretaria = useSecretariaObrigatoria();
 
   const load = useCallback(async () => {
     try {
@@ -59,13 +61,15 @@ export default function ContatosWhatsapp() {
       return;
     }
 
+    if (!secretaria.validar()) return;
     setSaving(true);
     try {
-      await api.post("/vigilancia/contatos-whatsapp", { nome: nome.trim(), telefone: numero });
+      await api.post("/vigilancia/contatos-whatsapp", { nome: nome.trim(), telefone: numero, ...secretaria.payload() });
       setNome("");
       setTelefone("");
       await load();
     } catch (error) {
+      if (secretaria.tratarErro(error)) return;
       setErro(errorMessage(error, "Não foi possível cadastrar o profissional."));
     } finally {
       setSaving(false);
@@ -110,6 +114,7 @@ export default function ContatosWhatsapp() {
 
       {erro ? <Banner tom="perigo">{erro}</Banner> : null}
 
+      <CampoSecretariaObrigatorio controle={secretaria} id="contato-secretaria" />
       <div className="grid items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
         <CampoTexto id="contato-nome" label="Nome" value={nome} onChange={(event) => setNome(event.target.value)} maxLength={150} />
         <CampoTexto id="contato-telefone" label="WhatsApp (com DDD)" value={telefone} onChange={(event) => setTelefone(event.target.value)} maxLength={20} />

@@ -5,6 +5,7 @@ import { CampoSelecao, CampoTexto } from "../ui/campos";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../secretaria/CampoSecretariaObrigatorio";
 
 const initialProtocolForm = {
   assunto: "",
@@ -71,6 +72,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   const [creationContext, setCreationContext] = useState(null);
   const [protocolForm, setProtocolForm] = useState(initialProtocolForm);
   const [attachmentFiles, setAttachmentFiles] = useState([]);
+  const secretaria = useSecretariaObrigatoria();
 
   const unitOptions = useMemo(() => flattenUnits(units), [units]);
   // Toda a árvore ativa (secretaria › departamento › subdepartamento), com recuo por nível.
@@ -165,16 +167,19 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     setProtocolForm(initialProtocolForm);
     setAttachmentFiles([]);
     setError("");
+    secretaria.limpar();
     onClose();
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!secretaria.validar()) return;
     setSaving(true);
     setError("");
     try {
       const { data: created } = await api.post("/protocolos", {
         ...protocolForm,
+        ...secretaria.payload(),
         origem_unit_id: protocolForm.origem_unit_id || null,
         destino_unit_id: protocolForm.destino_unit_id || null,
         destino_user_id: protocolForm.destino_user_id || null,
@@ -207,6 +212,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
       onClose();
     } catch (submitError) {
       setSaving(false);
+      if (secretaria.tratarErro(submitError)) return;
       setError(submitError?.response?.data?.message || "Não foi possível criar o protocolo.");
     }
   };
@@ -222,6 +228,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
       <form onSubmit={handleSubmit}>
         {error ? <div className="mb-4"><Banner tom="perigo">{error}</Banner></div> : null}
         <div className="grid gap-4 md:grid-cols-12">
+          {secretaria.exigir ? <div className="md:col-span-12"><CampoSecretariaObrigatorio controle={secretaria} id="protocolo-secretaria" /></div> : null}
           <div className="md:col-span-8">
             <CampoTexto id="protocolo-assunto" label="Assunto" name="assunto" value={protocolForm.assunto} onChange={mudar} required obrigatorio />
           </div>

@@ -23,7 +23,7 @@ export const getMonthlyAcquisitions = (params = {}) => {
     };
 };
 
-export const upsertMonthlyAcquisitionFetch = (data, onSuccess, onError) => {
+export const upsertMonthlyAcquisitionFetch = (data, onSuccess, onError, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/pharmacy/medicines/monthly-acquisitions', data)
@@ -35,6 +35,7 @@ export const upsertMonthlyAcquisitionFetch = (data, onSuccess, onError) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 const message = extractApiErrorMessage(error, 'Não foi possível salvar a aquisição mensal.');
                 onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());

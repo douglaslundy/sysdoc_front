@@ -10,6 +10,7 @@ import { CaixaDeMarcacao } from "../ui/caixa-de-marcacao";
 import { Input, TextareaNativo } from "../ui/campos";
 import { Carregando } from "../ui/carregando";
 import { Gaveta } from "../ui/gaveta";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../secretaria/CampoSecretariaObrigatorio";
 
 const initials = (name) =>
   String(name || "?")
@@ -134,6 +135,7 @@ export default function ChatPanel() {
   const [historySearch, setHistorySearch] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const secretaria = useSecretariaObrigatoria();
   const [selectedMessageIds, setSelectedMessageIds] = useState([]);
   const [deleteRequest, setDeleteRequest] = useState(null);
   const messagesEndRef = useRef(null);
@@ -275,6 +277,15 @@ export default function ChatPanel() {
     }
   };
 
+  const iniciarConversa = async (userId) => {
+    if (!secretaria.validar()) return;
+    try {
+      await startConversation(userId, secretaria.payload());
+    } catch (e) {
+      if (!secretaria.tratarErro(e)) setError(e?.response?.data?.message || "Não foi possível iniciar a conversa.");
+    }
+  };
+
   const renderUsers = (title, items) => (
     <div>
       <p className="px-3 pt-3 pb-1 text-[10px] font-extrabold tracking-[0.1em] text-muted-foreground uppercase">
@@ -285,7 +296,7 @@ export default function ChatPanel() {
           <li key={item.id}>
             <button
               type="button"
-              onClick={() => startConversation(item.id)}
+              onClick={() => iniciarConversa(item.id)}
               className="mx-1 flex w-[calc(100%-8px)] items-center gap-3 rounded-[10px] px-3 py-2 text-left hover:bg-hover focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none"
             >
               <Avatar nome={item.name} tamanho={34} ponto={item.is_online ? (item.presence === "away" ? "bg-primary" : "bg-success") : null} />
@@ -375,6 +386,7 @@ export default function ChatPanel() {
               ))}
             </ul>
             <hr className="my-2 border-border" />
+            <div className="px-3"><CampoSecretariaObrigatorio controle={secretaria} id="chat-secretaria" /></div>
             {renderUsers("Online", onlineUsers)}
             {renderUsers("Offline", offlineUsers)}
           </div>

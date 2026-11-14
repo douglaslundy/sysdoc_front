@@ -7,6 +7,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { Carregando } from '../../ui/carregando';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
 import { closeOrdinanceModal, changeTitleAlert } from '../../../store/ducks/Layout';
@@ -47,6 +48,7 @@ export default function OrdinanceModal(props) {
     const { isOpenOrdinanceModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
+    const secretaria = useSecretariaObrigatoria({ ativo: !ordinance?.id });
     const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
     const [attachments, setAttachments] = useState([]);
     const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(false);
@@ -64,6 +66,7 @@ export default function OrdinanceModal(props) {
     const changeItem = ({ target }) => setForm({ ...form, [target.name]: target.value });
 
     const cleanForm = () => {
+        secretaria.limpar();
         setForm({
             type: "normativa",
             title: "",
@@ -105,6 +108,7 @@ export default function OrdinanceModal(props) {
 
     const handleSaveData = async () => {
         if (isSubmitting || isAttachmentUploading) return;
+        if (!secretaria.validar()) return;
         setIsSubmitting(true);
         if (ordinance && ordinance.id) {
             dispatch(changeTitleAlert(`A Portaria ${form.number} foi atualizada com sucesso!`));
@@ -115,7 +119,10 @@ export default function OrdinanceModal(props) {
             return;
         }
         dispatch(changeTitleAlert('A Portaria foi cadastrada com sucesso!'));
-        dispatch(addOrdinanceFetch(form, async () => {}));
+        dispatch(addOrdinanceFetch({ ...form, ...secretaria.payload() }, async () => {}, (dados) => {
+            setIsSubmitting(false);
+            secretaria.tratarErro({ response: { data: dados } });
+        }));
     };
 
     const handleGetTextAI = () => dispatch(getTextAIOrdinance(form));
@@ -224,6 +231,7 @@ export default function OrdinanceModal(props) {
                 )}
                 <form onSubmit={(e) => { e.preventDefault(); handleSaveData(); }}>
                     <div className="grid gap-4">
+                        <CampoSecretariaObrigatorio controle={secretaria} id="ordinance-secretaria" />
                         <CampoSelecao id="ordinance-type" label="Tipo de Portaria" name="type" value={type} onChange={changeItem}>
                             {ordinanceTypes.map((item) => (<option key={item.id} value={item.id}>{item.name}</option>))}
                         </CampoSelecao>

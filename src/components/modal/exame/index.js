@@ -10,6 +10,7 @@ import { Button } from '../../ui/button';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const FORM_INICIAL = { nome: '', codigo: '', categoria_exame_id: '', descricao: '', ativo: true };
 
@@ -21,6 +22,7 @@ export default function ExameModal(props) {
     const { categorias } = useSelector(state => state.categoriasExame);
 
     const [form, setForm] = useState(FORM_INICIAL);
+    const secretaria = useSecretariaObrigatoria();
 
     const isEdit = !!(exame && exame.id);
 
@@ -28,6 +30,7 @@ export default function ExameModal(props) {
 
     const cleanForm = () => {
         setForm(FORM_INICIAL);
+        secretaria.limpar();
         dispatch(closeExameModal());
         dispatch(showExame({}));
     };
@@ -37,12 +40,13 @@ export default function ExameModal(props) {
             dispatch(changeTitleAlert(`Exame ${form.nome} atualizado com sucesso!`));
             dispatch(editExameFetch(exame.id, form, cleanForm));
         } else {
+            if (!secretaria.validar()) return;
             dispatch(changeTitleAlert(`Exame ${form.nome} criado com sucesso!`));
-            dispatch(addExameFetch(form, (saved) => {
+            dispatch(addExameFetch({ ...form, ...secretaria.payload() }, (saved) => {
                 dispatch(closeExameModal());
                 dispatch(showExame({}));
                 router.push(`/laboratorio/exames/${saved.id}/campos`);
-            }));
+            }, secretaria.tratarErro));
         }
     };
 
@@ -73,6 +77,7 @@ export default function ExameModal(props) {
                 <DialogoCabecalho>{isEdit ? 'Editar Exame' : 'Cadastrar Exame'}</DialogoCabecalho>
                 <AlertModal />
                 <div className="grid gap-4">
+                    {!isEdit && <CampoSecretariaObrigatorio controle={secretaria} id="exame-secretaria" />}
                     <CampoTexto id="exame-nome" label="Nome do Exame" name="nome" value={form.nome} onChange={change} obrigatorio maxLength={100} className="uppercase" />
                     <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
                         <CampoTexto id="exame-codigo" label="Código" name="codigo" value={form.codigo} onChange={change} obrigatorio maxLength={30} className="uppercase" />

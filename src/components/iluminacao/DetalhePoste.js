@@ -143,7 +143,7 @@ export default function DetalhePoste({ modo = "cadastro", id }) {
         <CardHeader><CardTitle>Localização</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-[280px] overflow-hidden rounded-lg border border-border md:h-[360px]"><MapaPonto lat={lat} lng={lng} /></div>
+            <div className="h-[280px] overflow-hidden rounded-lg border border-border md:h-[360px]"><MapaPonto lat={lat} lng={lng} rotulo="Mapa com a posição do poste" /></div>
             <div className="h-[280px] overflow-hidden rounded-lg border border-border md:h-[360px]"><StreetViewPanel lat={lat} lng={lng} /></div>
           </div>
           <a

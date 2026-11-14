@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import { parseCookies, destroyCookie } from 'nookies';
 import Router from 'next/router';
 import { api, setAuthToken } from '../services/api';
+import { limparAtiva } from '../store/ducks/secretaria';
 import { isPublicPath } from '../constants/publicPaths';
 
 export const AuthContext = createContext({});
@@ -27,6 +28,7 @@ export function AuthProvider({ children }) {
         fetch('/api/auth/me')
             .then(res => {
                 if (res.status === 401 && !isPublicPath(Router.pathname)) {
+                    limparAtiva();
                     destroyCookie(null, 'sysvendas.id',       { path: '/' });
                     destroyCookie(null, 'sysvendas.username',  { path: '/' });
                     destroyCookie(null, 'sysvendas.profile',   { path: '/' });

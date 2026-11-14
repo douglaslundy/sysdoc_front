@@ -31,7 +31,7 @@ export const getPedido = (id) => {
     };
 };
 
-export const addPedidoFetch = (pedido, onSuccess) => {
+export const addPedidoFetch = (pedido, onSuccess, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/laboratorio/pedidos', pedido)
@@ -41,6 +41,7 @@ export const addPedidoFetch = (pedido, onSuccess) => {
                 onSuccess && onSuccess(res.data.pedido, res.data.protocolo, res.data.senha);
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao criar pedido'));
                 dispatch(turnLoading());
             });

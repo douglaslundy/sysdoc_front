@@ -1,3 +1,4 @@
+import { PUBLIC_PATHS } from "../src/constants/publicPaths";
 import React, { useContext, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
@@ -19,7 +20,8 @@ import { api } from "../src/services/api";
 import { getPageTitle } from "../src/utils/pageTitle";
 import { ChatProvider } from "../src/contexts/ChatContext";
 
-const PUBLIC_ROUTES = ["/login", "/consulta-exame", "/petition", "/petition/track", "/denuncia", "/denuncia/consulta", "/esqueci-senha", "/redefinir-senha", "/attendance/panel", "/painel-esus", "/transparency/medicines", "/transparency/medicines-panel", "/transparency/medicines-monthly-acquisitions"];
+// Lista única em src/constants/publicPaths.js (a mesma do middleware); /painel-esus é só do layout.
+const PUBLIC_ROUTES = [...PUBLIC_PATHS, "/painel-esus"];
 
 function AuditPageView() {
   const { permissionsLoaded } = useContext(AuthContext);

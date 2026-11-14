@@ -28,6 +28,9 @@ const normalizeCategory = (value) => {
     .trim();
 };
 
+// Páginas cuja API é só do administrador: não aparecem no menu de outro perfil, mesmo liberadas.
+export const ADMIN_ONLY_PATHS = ["/sistema/mensagens-enviadas"];
+
 const normalizePath = (value) => String(value || "").split("?")[0].replace(/\/+$/, "");
 
 export const hasPermissionForPath = (allowedPaths, targetPath) => {
@@ -134,6 +137,7 @@ export function useMenuGroups() {
       if (pg.path === '/protocolo/novo') return false;
       if (resolveCategory(pg).title === 'Dashboard') return false;
       if (profile === "admin") return true;
+      if (ADMIN_ONLY_PATHS.includes(normalizePath(pg.path))) return false;
       return hasPermissionForPath(myPermissions, pg.path);
     });
 

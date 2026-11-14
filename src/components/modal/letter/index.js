@@ -7,6 +7,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { Carregando } from '../../ui/carregando';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { getTextOpenAi, showLetter, editLetter, addLetter } from '../../../store/ducks/letters';
 import { closeLetterFormModal, changeTitleAlert } from '../../../store/ducks/Layout';
@@ -32,6 +33,7 @@ export default function LetterModal(props) {
     const { isOpenLetterFormModal } = useSelector(state => state.layout);
     const dispatch = useDispatch();
 
+    const secretaria = useSecretariaObrigatoria({ ativo: !letter?.id });
     const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
     const [attachments, setAttachments] = useState([]);
     const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(false);
@@ -56,6 +58,7 @@ export default function LetterModal(props) {
     const changeItem = ({ target }) => setForm({ ...form, [target.name]: target.value });
 
     const cleanForm = () => {
+        secretaria.limpar();
         setForm({ sender: "", recipient: "", subject_matter: "", obs: "", summary: "" });
         setAlertState({ visible: false, type: 'success', message: '' });
         setAttachments([]);
@@ -94,6 +97,7 @@ export default function LetterModal(props) {
 
     const handleSaveData = async () => {
         if (isSubmitting || isAttachmentUploading) return;
+        if (!secretaria.validar()) return;
         setIsSubmitting(true);
         if (letter && letter.id) {
             dispatch(changeTitleAlert(`O Ofício ${form.number} foi atualizado com sucesso!`));
@@ -105,7 +109,10 @@ export default function LetterModal(props) {
         }
 
         dispatch(changeTitleAlert('O Ofício foi cadastrado com sucesso!'));
-        dispatch(addLetterFetch(form, async () => {}));
+        dispatch(addLetterFetch({ ...form, ...secretaria.payload() }, async () => {}, (dados) => {
+            setIsSubmitting(false);
+            secretaria.tratarErro({ response: { data: dados } });
+        }));
     };
 
     const handleGetTextAI = () => dispatch(getTextAI(form));
@@ -379,6 +386,7 @@ export default function LetterModal(props) {
                 )}
                 <form onSubmit={(e) => { e.preventDefault(); handleSaveData(); }}>
                     <div className="grid gap-4">
+                        <CampoSecretariaObrigatorio controle={secretaria} id="letter-secretaria" />
                         <CampoTexto id="sender" label="Remetente" name="sender" value={sender || ''} onChange={changeItem} obrigatorio maxLength={50} dica={restantes(sender, 50)} className="uppercase" />
                         <CampoTexto id="recipient" label="Destinatário" name="recipient" value={recipient || ''} onChange={changeItem} obrigatorio maxLength={50} dica={restantes(recipient, 50)} className="uppercase" />
                         <CampoTexto id="subject_matter" label="Assunto" name="subject_matter" multiline rows={2} value={subject_matter || ''} onChange={changeItem} obrigatorio maxLength={100} dica={restantes(subject_matter, 100)} className="uppercase" />

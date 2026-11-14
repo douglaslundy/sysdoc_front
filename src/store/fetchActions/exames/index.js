@@ -32,7 +32,7 @@ export const getExame = (id) => {
     };
 };
 
-export const addExameFetch = (exame, onSuccess) => {
+export const addExameFetch = (exame, onSuccess, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/laboratorio/exames', exame)
@@ -44,6 +44,7 @@ export const addExameFetch = (exame, onSuccess) => {
                 onSuccess && onSuccess(res.data.exame);
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao criar exame'));
                 dispatch(turnLoading());
             });

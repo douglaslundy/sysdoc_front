@@ -11,6 +11,7 @@ import { DataTable } from '../ui/data-table';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
 import { Interruptor } from '../ui/interruptor';
 import { Paginacao } from '../ui/paginacao';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../secretaria/CampoSecretariaObrigatorio';
 
 const initialValue = (field) => {
   if (field.type === 'switch') return field.defaultValue ?? true;
@@ -55,6 +56,7 @@ export default function CrudPage({
   const [form, setForm] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', subTitle: '', confirm: null });
   const searchTimer = useRef(null);
+  const secretaria = useSecretariaObrigatoria();
 
   const emptyForm = useMemo(() => {
     const value = {};
@@ -87,6 +89,7 @@ export default function CrudPage({
 
   const openCreate = () => {
     setEditing(null);
+    secretaria.limpar();
     setForm(emptyForm);
     setOpen(true);
   };
@@ -102,7 +105,13 @@ export default function CrudPage({
     if (editing?.id) {
       await api.put(`${apiPath}/${editing.id}`, payload);
     } else {
-      await api.post(apiPath, payload);
+      if (!secretaria.validar()) return;
+      try {
+        await api.post(apiPath, { ...payload, ...secretaria.payload() });
+      } catch (error) {
+        if (secretaria.tratarErro(error)) return;
+        throw error;
+      }
     }
     setOpen(false);
     await load();
@@ -218,6 +227,7 @@ export default function CrudPage({
             handleSave();
           }}
         >
+          {!editing && <CampoSecretariaObrigatorio controle={secretaria} />}
           {fields.map(renderField)}
           <DialogoRodape>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

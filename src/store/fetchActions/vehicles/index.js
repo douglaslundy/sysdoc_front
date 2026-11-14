@@ -17,7 +17,7 @@ export const getAllVehicles = () => {
     }
 }
 
-export const addVehicleFetch = (vehicle, cleanForm) => {
+export const addVehicleFetch = (vehicle, cleanForm, aoErroSecretaria) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -46,6 +46,7 @@ export const addVehicleFetch = (vehicle, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getClientInfoHeader } from "../utils/clientInfo";
+import { lerAtiva, limparAtiva } from "../store/ducks/secretaria";
 
 const normalize = (v) => String(v || "").trim().replace(/\/+$/, "");
 const ensureApiSuffix = (value) => {
@@ -19,11 +20,39 @@ export const api = axios.create({
 });
 
 // Envia dispositivo/fuso/tela ao back-end para a auditoria de acessos.
-api.interceptors.request.use(async (config) => {
+// config.semSecretaria: a requisição não leva X-Secretaria-Id (usado em /auth/secretarias,
+// para que uma ativa obsoleta não impeça justamente de descobrir a ativa válida).
+export async function prepararRequisicao(config) {
   const info = await getClientInfoHeader();
   if (info) config.headers["X-Client-Info"] = info;
+  const secretaria = lerAtiva();
+  if (secretaria && !config.semSecretaria && !config.publica) config.headers["X-Secretaria-Id"] = secretaria;
+  // config.publica: endpoint sem sessão (cadastro público); nunca leva token.
+  if (config.publica) delete config.headers["Authorization"];
   return config;
-});
+}
+api.interceptors.request.use(prepararRequisicao);
+
+// 403 por secretaria inválida: limpa a ativa e recarrega UMA vez (flag em sessionStorage,
+// zerada quando /auth/secretarias responde com sucesso) para nunca entrar em loop.
+const FLAG_RELOAD = "sysdoc.secretariaReload";
+export function liberarGuardaSecretaria() {
+  try { window.sessionStorage.removeItem(FLAG_RELOAD); } catch (_) {}
+}
+export function tratarErroSecretaria(error) {
+  const msg = error?.response?.data?.message;
+  if (error?.response?.status === 403 && typeof msg === "string" && msg.startsWith("Secretaria ") && lerAtiva()) {
+    limparAtiva();
+    try {
+      if (window.sessionStorage.getItem(FLAG_RELOAD)) return Promise.reject(error);
+      window.sessionStorage.setItem(FLAG_RELOAD, "1");
+    } catch (_) {
+      return Promise.reject(error);
+    }
+    window.location.reload();
+  }
+  return Promise.reject(error);
+}
 
 export function setAuthToken(token) {
   if (token) {
@@ -68,6 +97,8 @@ api.interceptors.response.use(
       api.defaults.baseURL = nextBase;
       return api(cfg);
     }
+
+    if (error.response?.status === 403) return tratarErroSecretaria(error);
 
     if (error.response?.status === 401 && !error.config._retry) {
       error.config._retry = true;

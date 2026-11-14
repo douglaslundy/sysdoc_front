@@ -6,6 +6,7 @@ import AlertModal from "../../src/components/messagesModal";
 import NewProtocolModal from "../../src/components/protocolo/NewProtocolModal";
 import { AuthContext } from "../../src/contexts/AuthContext";
 import { api } from "../../src/services/api";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../../src/components/secretaria/CampoSecretariaObrigatorio";
 import { Banner } from "../../src/components/ui/banner";
 import { Button, buttonVariants } from "../../src/components/ui/button";
 import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
@@ -342,6 +343,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [unitForm, setUnitForm] = useState(initialUnitForm);
+  const secretariaUnidade = useSecretariaObrigatoria();
   const [alertForm, setAlertForm] = useState(initialAlertForm);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(15);
@@ -663,17 +665,21 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
 
   const handleSubmitUnit = async (event) => {
     event.preventDefault();
+    if (!secretariaUnidade.validar()) return;
     setSaving(true);
     setMessage("");
     try {
       await api.post("/protocolos/unidades-organizacionais", {
         ...unitForm,
+        ...secretariaUnidade.payload(),
         parent_id: unitForm.parent_id || null,
       });
       setMessage("Unidade cadastrada com sucesso.");
       setUnitForm(initialUnitForm);
+      secretariaUnidade.limpar();
       await loadData();
     } catch (error) {
+      if (secretariaUnidade.tratarErro(error)) return;
       setMessage("Não foi possível cadastrar a unidade.");
     } finally {
       setSaving(false);
@@ -1414,6 +1420,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         <CardHeader><CardTitle>Nova unidade organizacional</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmitUnit} className="flex flex-col gap-4">
+            <CampoSecretariaObrigatorio controle={secretariaUnidade} id="un-secretaria" />
             <div className="grid gap-4 md:grid-cols-12">
               <div className="md:col-span-4">
                 <CampoSelecao id="un-pai" label="Unidade pai" value={unitForm.parent_id} onChange={(e) => setUnitForm((prev) => ({ ...prev, parent_id: e.target.value }))}>

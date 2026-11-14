@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { Check, ChevronDown, LogOut, UserRound } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { getSecretarias } from "../../store/fetchActions/secretaria";
+import { CHAVE, setAtiva } from "../../store/ducks/secretaria";
 import { AuthContext } from "../../contexts/AuthContext";
 import { logoutFetch } from "../../store/fetchActions/auth";
 import UserModal from "../../components/modal/user";
@@ -37,7 +39,28 @@ const ProfileDD = () => {
   const [mounted, setMounted] = useState(false);
   const foto = useFotoPessoa("users", mounted ? user : null);
 
-  useEffect(() => { setMounted(true); }, []);
+  const { lista, podeTodas, ativa } = useSelector((s) => s.secretaria);
+  // Admin com 1 secretaria ainda tem 'Todas'; os demais só veem o seletor com 2+.
+  const mostrarSeletor = podeTodas ? lista.length > 0 : lista.length > 1;
+
+  useEffect(() => {
+    setMounted(true);
+    dispatch(getSecretarias());
+  }, [dispatch]);
+
+  // Outra aba trocou a secretaria: recarrega para não misturar dados.
+  useEffect(() => {
+    const aoMudar = (e) => { if (e.key === CHAVE) window.location.reload(); };
+    window.addEventListener("storage", aoMudar);
+    return () => window.removeEventListener("storage", aoMudar);
+  }, []);
+
+  const trocarSecretaria = (id) => {
+    if (String(id) === String(ativa)) return;
+    dispatch(setAtiva(id));
+    // Recarrega a página: refaz permissões e descarta qualquer dado em cache da secretaria anterior.
+    window.location.reload();
+  };
 
   const handleEditUser = (userId) => {
     dispatch(getUserFetch(userId));
@@ -62,6 +85,21 @@ const ProfileDD = () => {
         </MenuTrigger>
         <MenuConteudo>
           <p className="truncate px-3 py-2 text-xs text-muted-foreground sm:hidden">{identidade}</p>
+          {mostrarSeletor && (
+            <div role="group" aria-label="Secretaria ativa" className="border-b border-border pb-1">
+              <p className="px-3 py-1 text-xs text-muted-foreground">Secretaria</p>
+              {podeTodas && (
+                <MenuItem onClick={() => trocarSecretaria("all")}>
+                  {ativa === "all" ? <Check className="size-4" aria-hidden /> : <span className="size-4" />} Todas
+                </MenuItem>
+              )}
+              {lista.map((s) => (
+                <MenuItem key={s.id} onClick={() => trocarSecretaria(s.id)}>
+                  {String(ativa) === String(s.id) ? <Check className="size-4" aria-hidden /> : <span className="size-4" />} {s.nome}
+                </MenuItem>
+              ))}
+            </div>
+          )}
           <MenuItem onClick={() => handleEditUser(user)}>
             <UserRound className="size-4" aria-hidden /> Meus Dados
           </MenuItem>

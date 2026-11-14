@@ -8,6 +8,7 @@ import { CampoTexto } from '../../src/components/ui/campos';
 import { Card, CardContent, CardHeader, CardTitle } from '../../src/components/ui/card';
 import { Carregando } from '../../src/components/ui/carregando';
 import { Interruptor } from '../../src/components/ui/interruptor';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../src/components/secretaria/CampoSecretariaObrigatorio';
 
 const emptyForm = {
     nome_estabelecimento: '',
@@ -40,10 +41,11 @@ export default function ConfiguracoesLaboratorio() {
 
     const [form, setForm] = useState(emptyForm);
     const [errors, setErrors] = useState({});
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
-        dispatch(getLabConfig());
-    }, []);
+        if (secretaria.pronta) dispatch(getLabConfig(secretaria.payload()));
+    }, [secretaria.exigir, secretaria.valor]);
 
     useEffect(() => {
         if (config) {
@@ -89,8 +91,14 @@ export default function ConfiguracoesLaboratorio() {
             ...form,
             endereco_cep: form.endereco_cep.replace(/\D/g, ''),
             cnpj:         form.cnpj.replace(/\D/g, ''),
-        }));
+        }, undefined, secretaria.payload()));
     };
+
+    if (!secretaria.pronta) {
+        return (
+            <Card><CardContent className="max-w-sm pt-6"><CampoSecretariaObrigatorio controle={secretaria} id="lab-secretaria" /></CardContent></Card>
+        );
+    }
 
     if (loading && !config) {
         return <Carregando className="justify-center py-16" />;
@@ -106,6 +114,7 @@ export default function ConfiguracoesLaboratorio() {
             <Card>
                 <CardHeader><CardTitle>Configurações do Laboratório</CardTitle></CardHeader>
                 <CardContent className="flex flex-col gap-5">
+                    <div className="max-w-sm"><CampoSecretariaObrigatorio controle={secretaria} id="lab-secretaria" /></div>
                     <Secao titulo="Dados do Estabelecimento">
                         <div className="grid gap-4 md:grid-cols-12">
                             <div className="md:col-span-6">{campo('nome_estabelecimento', 'Nome do Estabelecimento')}</div>

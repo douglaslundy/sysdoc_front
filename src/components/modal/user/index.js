@@ -37,6 +37,7 @@ export default function UserModal(props) {
     rt_all_teams: false,
     chat_access_override: '',
     protocol_unit_ids: [],
+    secretaria_ids: [],
     password: '',
     password2: '',
   });
@@ -51,6 +52,7 @@ export default function UserModal(props) {
   const { user } = useSelector((state) => state.users);
   const { isOpenUserModal } = useSelector((state) => state.layout);
   const { profiles: dbProfiles } = useSelector((state) => state.accessProfiles);
+  const { lista: secretariasPermitidas } = useSelector((state) => state.secretaria);
   const dispatch = useDispatch();
   const { user: userId, profile: userProfile } = useContext(AuthContext);
 
@@ -81,6 +83,7 @@ export default function UserModal(props) {
       rt_all_teams: false,
       chat_access_override: '',
       protocol_unit_ids: [],
+      secretaria_ids: [],
       password: '',
       password2: '',
     });
@@ -94,7 +97,23 @@ export default function UserModal(props) {
     dispatch(showUser({}));
   };
 
+  const gestor = userProfile === 'gestor';
+  const gestorEditando = gestor && Boolean(user && user.id);
+
+  const alternarSecretaria = (id, marcado) =>
+    setForm((current) => ({
+      ...current,
+      secretaria_ids: marcado ? [...current.secretaria_ids, id] : current.secretaria_ids.filter((x) => x !== id),
+    }));
+
   const handleSaveData = async () => {
+    // Exige >=1 secretaria no cadastro e na edição de quem já tinha; legado sem secretaria segue editável (campo omitido).
+    const tinhaSecretaria = Boolean(user?.secretarias?.length);
+    if (form.secretaria_ids.length === 0 && (!(user && user.id) || tinhaSecretaria)) {
+      setTexto('Informe ao menos uma secretaria');
+      return;
+    }
+    setTexto('');
     password && password !== password2
       ? dispatch(addAlertMessage('As senhas precisam ser iguais'))
       : user && user.id
@@ -138,7 +157,8 @@ export default function UserModal(props) {
     };
 
     dispatch(changeTitleAlert(`O usuário ${form.name} foi atualizado com sucesso!`));
-    dispatch(editUserFetch(form, cleanFormWithEquipes));
+    const { secretaria_ids, ...resto } = form;
+    dispatch(editUserFetch(secretaria_ids.length ? form : resto, cleanFormWithEquipes));
   };
 
   const handleIsDriver = (isDriver) => {
@@ -200,8 +220,10 @@ export default function UserModal(props) {
   // Load user data when editing an existing user
   useEffect(() => {
     if (user && user.id) {
+      const { secretarias, ...dados } = user;
       setForm({
-        ...user,
+        ...dados,
+        secretaria_ids: (secretarias || []).map((x) => x.id),
         preferred_name: user.preferred_name ?? '',
         phone: user.phone ?? '',
         is_driver: user.is_driver === true || Number(user.is_driver) === 1,
@@ -252,7 +274,7 @@ export default function UserModal(props) {
   }, [form.is_rt_psf, equipesOpcoes.length]);
 
   useEffect(() => {
-    if (isOpenUserModal && userProfile === 'admin' && dbProfiles.length === 0) {
+    if (isOpenUserModal && (userProfile === 'admin' || userProfile === 'gestor') && dbProfiles.length === 0) {
       dispatch(getAllProfiles());
     }
   }, [isOpenUserModal, userProfile, dbProfiles.length, dispatch]);
@@ -292,7 +314,7 @@ export default function UserModal(props) {
           <p className="mb-4 font-display text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground">Dados do usuário</p>
 
           <div className="grid gap-4">
-            {userProfile === 'admin' && (
+            {(userProfile === 'admin' || gestor) && (
               <CampoSelecao
                 id="profile"
                 label="Perfil do Usuário"
@@ -304,13 +326,15 @@ export default function UserModal(props) {
               >
                 <option value="">Selecione</option>
                 {dbProfiles
-                  .filter((p) => p.ativo && p.slug !== 'admin')
+                  .filter((p) => p.ativo !== false && p.slug !== 'admin')
                   .map((p) => (
                     <option key={p.id} value={p.slug}>{p.nome}</option>
                   ))}
               </CampoSelecao>
             )}
 
+            {!gestorEditando && (
+              <>
             <CampoTexto id="name" label="Nome" name="name" value={name || ''} onChange={changeItem} obrigatorio className="uppercase" />
 
             <CampoTexto
@@ -333,6 +357,23 @@ export default function UserModal(props) {
             <Interruptor id="is_driver" marcado={is_driver} aoMudar={handleIsDriver}>
               {is_driver ? 'DIRIGE VEÍCULO OFICIAL' : 'NÃO DIRIGE VEÍCULO OFICIAL'}
             </Interruptor>
+
+              </>
+            )}
+
+            <div className="grid gap-1.5">
+              <p className="text-sm font-medium">Secretarias *</p>
+              {secretariasPermitidas.map((sec) => (
+                <CaixaDeMarcacao
+                  key={sec.id}
+                  id={`secretaria_${sec.id}`}
+                  marcado={form.secretaria_ids.includes(sec.id)}
+                  aoMudar={(marcado) => alternarSecretaria(sec.id, marcado)}
+                >
+                  {sec.nome}
+                </CaixaDeMarcacao>
+              ))}
+            </div>
 
             {userProfile === 'admin' && (
               <>
@@ -442,10 +483,12 @@ export default function UserModal(props) {
               </>
             )}
 
+            {!gestorEditando && (
             <div className="grid gap-4 md:grid-cols-2">
               <CampoTexto id="password" label="Senha" type="password" name="password" value={password || ''} onChange={changeItem} obrigatorio autoComplete="new-password" />
               <CampoTexto id="password2" label="Repita a Senha" type="password" name="password2" value={password2 || ''} onChange={changeItem} obrigatorio autoComplete="new-password" />
             </div>
+            )}
           </div>
 
           <DialogoRodape>

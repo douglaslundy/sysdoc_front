@@ -13,6 +13,7 @@ import { Dado } from '../ui/dado';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../ui/dialogo';
 import { Paginacao } from '../ui/paginacao';
 import { Pilula } from '../ui/pilula';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../secretaria/CampoSecretariaObrigatorio';
 
 const STATUS_META = {
   recebida: { tom: 'neutro', label: 'Recebida' },
@@ -46,6 +47,7 @@ export default function RequisicoesPage() {
   const [secretarias, setSecretarias] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [feedback, setFeedback] = useState(null);
+  const secretariaDona = useSecretariaObrigatoria();
   const [updatingId, setUpdatingId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -82,10 +84,17 @@ export default function RequisicoesPage() {
   }));
 
   const submit = async () => {
-    await api.post('/almoxarifado/requisicoes', {
-      ...form,
-      itens: form.itens.filter((item) => item.almoxarifado_produto_id && item.quantidade_solicitada),
-    });
+    if (!secretariaDona.validar()) return;
+    try {
+      await api.post('/almoxarifado/requisicoes', {
+        ...form,
+        ...secretariaDona.payload(),
+        itens: form.itens.filter((item) => item.almoxarifado_produto_id && item.quantidade_solicitada),
+      });
+    } catch (error) {
+      if (secretariaDona.tratarErro(error)) return;
+      throw error;
+    }
     setOpen(false);
     setForm(EMPTY);
     await load();
@@ -197,7 +206,7 @@ export default function RequisicoesPage() {
           onKeyDown={(e) => { if (e.key === 'Enter') load(); }}
         />
         {capabilities?.almoxarifado_create && (
-          <Button onClick={() => setOpen(true)}><Plus /> Nova requisição</Button>
+          <Button onClick={() => { secretariaDona.limpar(); setOpen(true); }}><Plus /> Nova requisição</Button>
         )}
       </div>
 
@@ -222,7 +231,8 @@ export default function RequisicoesPage() {
             submit();
           }}
         >
-          <CampoSelecao id="req-secretaria" label="Secretaria" value={form.almoxarifado_secretaria_id} onChange={(e) => setForm((prev) => ({ ...prev, almoxarifado_secretaria_id: e.target.value }))}>
+          <CampoSecretariaObrigatorio controle={secretariaDona} id="req-secretaria-dona" label="Secretaria (dona do almoxarifado)" />
+          <CampoSelecao id="req-secretaria" label="Secretaria solicitante" value={form.almoxarifado_secretaria_id} onChange={(e) => setForm((prev) => ({ ...prev, almoxarifado_secretaria_id: e.target.value }))}>
             <option value="">Selecione</option>
             {secretarias.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}
           </CampoSelecao>

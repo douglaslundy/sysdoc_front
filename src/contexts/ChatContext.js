@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import Router from "next/router";
 import { AuthContext } from "./AuthContext";
+import useSecretariaAtiva from "../components/secretaria/useSecretariaAtiva";
 import { api } from "../services/api";
 import {
   appendMessageOnce,
@@ -17,6 +18,7 @@ import {
   applySentMessage,
   createSingleFlight,
   markConversationRead,
+  presenceChannelName,
   sortConversations,
   unreadTotalOf,
   upsertConversation,
@@ -78,6 +80,7 @@ const showBrowserNotification = (title, body, onClick) => {
 
 export function ChatProvider({ children }) {
   const { isAuthenticated, user, canUseChat } = useContext(AuthContext);
+  const secretariaAtiva = useSecretariaAtiva();
   const [isOpen, setIsOpen] = useState(false);
   const [connected, setConnected] = useState(false);
   const [users, setUsers] = useState([]);
@@ -344,9 +347,10 @@ export function ChatProvider({ children }) {
   );
 
   const startConversation = useCallback(
-    async (userId) => {
+    async (userId, extra = {}) => {
       const response = await api.post("/chat/conversations", {
         user_id: userId,
+        ...extra,
       });
       setConversations((current) => upsertConversation(current, response.data));
       await openConversation(response.data);
@@ -773,10 +777,11 @@ export function ChatProvider({ children }) {
           )
         );
       });
-      const presenceChannel = echo.private("chat.presence");
-      presenceChannel.listen(".presence.updated", (event) => {
-        setUsers((current) => applyPresenceEvent(current, event));
-      });
+      if (presenceChannelName(secretariaAtiva)) {
+        echo.private(presenceChannelName(secretariaAtiva)).listen(".presence.updated", (event) => {
+          setUsers((current) => applyPresenceEvent(current, event));
+        });
+      }
       channel.listen(".typing.started", (event) => {
         setTyping((current) => ({
           ...current,
@@ -796,7 +801,7 @@ export function ChatProvider({ children }) {
     return () => {
       cancelled = true;
       echoRef.current?.leave(`chat.user.${user}`);
-      echoRef.current?.leave("chat.presence");
+      if (presenceChannelName(secretariaAtiva)) echoRef.current?.leave(presenceChannelName(secretariaAtiva));
       echoRef.current?.disconnect();
       echoRef.current = null;
     };
@@ -810,6 +815,7 @@ export function ChatProvider({ children }) {
     refreshConversations,
     refreshUsers,
     user,
+    secretariaAtiva,
   ]);
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '../ui/button';
 import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
 import { CampoDeBusca } from '../ui/campo-de-busca';
 import { CampoSelecao, CampoTexto } from '../ui/campos';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../secretaria/CampoSecretariaObrigatorio';
 import { DataTable } from '../ui/data-table';
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
 import { Paginacao } from '../ui/paginacao';
@@ -49,6 +50,7 @@ export default function Documentos() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ document_type_id: '', sigilo: '', status: '' });
   const [form, setForm] = useState(initialForm);
+  const secretaria = useSecretariaObrigatoria({ ativo: !form.id });
   const [file, setFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [alertState, setAlertState] = useState({ visible: false, type: 'success', message: '' });
@@ -166,6 +168,7 @@ export default function Documentos() {
   };
 
   const closeModal = () => {
+    secretaria.limpar();
     setIsModalOpen(false);
     setForm(initialForm);
     setFile(null);
@@ -179,6 +182,7 @@ export default function Documentos() {
   };
 
   const saveDocument = async () => {
+    if (!form.id && !secretaria.validar()) return;
     const payload = new FormData();
     payload.append('document_type_id', form.document_type_id || '');
     payload.append('titulo', form.titulo || '');
@@ -187,6 +191,9 @@ export default function Documentos() {
     payload.append('status', form.status || 'rascunho');
     if (file) {
       payload.append('arquivo', file);
+    }
+    if (!form.id) {
+      Object.entries(secretaria.payload()).forEach(([k, v]) => payload.append(k, v));
     }
 
     try {
@@ -208,6 +215,7 @@ export default function Documentos() {
       closeModal();
       await loadDocuments();
     } catch (error) {
+      if (secretaria.tratarErro(error)) return;
       setAlertState({ visible: true, type: 'error', message: error?.response?.data?.message || 'Não foi possível salvar o documento.' });
     }
   };
@@ -397,6 +405,7 @@ export default function Documentos() {
       <Dialogo aberto={isModalOpen} aoFechar={closeModal} tamanho="lg">
         <DialogoCabecalho>{form.id ? 'Editar Documento' : 'Novo Documento'}</DialogoCabecalho>
         <div className="grid gap-4">
+          <CampoSecretariaObrigatorio controle={secretaria} id="doc-secretaria" />
           <CampoTexto id="doc-titulo" label="Título" value={form.titulo} onChange={(e) => setForm((prev) => ({ ...prev, titulo: e.target.value }))} />
           <CampoSelecao id="doc-tipo" label="Tipo" value={form.document_type_id} onChange={(e) => setForm((prev) => ({ ...prev, document_type_id: e.target.value }))}>
             <option value="">Selecione</option>

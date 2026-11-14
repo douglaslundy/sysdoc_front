@@ -41,7 +41,7 @@ export const getMedicinesSelect = (params = {}) => {
     };
 };
 
-export const addMedicineFetch = (data, onSuccess, onError) => {
+export const addMedicineFetch = (data, onSuccess, onError, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/medicines', data)
@@ -53,6 +53,7 @@ export const addMedicineFetch = (data, onSuccess, onError) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 const message = extractApiErrorMessage(error, 'Não foi possível cadastrar o medicamento.');
                 onError ? onError(message) : dispatch(addAlertMessage(message));
                 dispatch(turnLoading());

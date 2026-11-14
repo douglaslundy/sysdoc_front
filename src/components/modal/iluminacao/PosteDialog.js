@@ -6,6 +6,7 @@ import CampoFotos from "../../iluminacao/CampoFotos";
 import CapturaLocalizacao, { PRECISAO_MAXIMA_M } from "../../iluminacao/CapturaLocalizacao";
 import { Banner } from "../../ui/banner";
 import { FormularioModal } from "../../ui/formulario-modal";
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from "../../secretaria/CampoSecretariaObrigatorio";
 
 const VAZIO = { ponto_referencia: "", logradouro: "", numero: "", bairro: "" };
 const CHAVE_RASCUNHO = "iluminacao.rascunho";
@@ -57,9 +58,12 @@ export default function PosteDialog({ open, onClose, poste = null, onSuccess }) 
   const [salvando, setSalvando] = useState(false);
   const uuid = useRef(null);
 
+  const secretaria = useSecretariaObrigatoria();
+
   useEffect(() => {
     if (!open) return;
     setErro("");
+    secretaria.limpar();
     setFotos([]);
     setCapturouAgora(false);
     uuid.current = novoUuid();
@@ -86,6 +90,7 @@ export default function PosteDialog({ open, onClose, poste = null, onSuccess }) 
   const podeGravar = Boolean(coords) && !(coords.precisao > PRECISAO_MAXIMA_M);
 
   const gravar = async () => {
+    if (!poste && !secretaria.validar()) return;
     setSalvando(true);
     setErro("");
     const texto = { ...form, numero: form.numero || null };
@@ -93,10 +98,11 @@ export default function PosteDialog({ open, onClose, poste = null, onSuccess }) 
     try {
       const resposta = poste
         ? await atualizarPoste(poste.id, { ...texto, ...(capturouAgora ? posicao : {}) })
-        : await criarPoste({ ...texto, ...posicao, client_uuid: uuid.current }, fotos);
+        : await criarPoste({ ...texto, ...posicao, ...secretaria.payload(), client_uuid: uuid.current }, fotos);
       if (!poste) limparRascunho();
       onSuccess && onSuccess(resposta);
     } catch (e) {
+      if (secretaria.tratarErro(e)) return;
       setErro(mensagemDeErro(e, "Não foi possível gravar o poste."));
     } finally {
       setSalvando(false);
@@ -115,6 +121,7 @@ export default function PosteDialog({ open, onClose, poste = null, onSuccess }) 
       gravando={salvando || !podeGravar}
       antes={(
         <div className="mb-4 space-y-3">
+          {!poste && <CampoSecretariaObrigatorio controle={secretaria} id="poste-secretaria" />}
           {erro ? <Banner tom="perigo">{erro}</Banner> : null}
           <CapturaLocalizacao valor={coords} aoCapturar={aoCapturar} desabilitado={salvando} />
         </div>

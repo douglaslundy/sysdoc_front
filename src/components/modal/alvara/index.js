@@ -4,6 +4,7 @@ import { addAlvaraFetch, editAlvaraFetch } from '../../../store/fetchActions/alv
 import { getEstabelecimentosSelect } from '../../../store/fetchActions/estabelecimentos';
 import { Banner } from '../../ui/banner';
 import { FormularioModal } from '../../ui/formulario-modal';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 const STATUS_OPTIONS = [
     'Não requerido', 'Dispensado', 'Protocolado', 'Em análise', 'Em exigência',
@@ -25,11 +26,13 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
     const { selectList } = useSelector(state => state.estabelecimentos);
     const [form, setForm] = useState(EMPTY);
     const [localError, setLocalError] = useState('');
+    const secretaria = useSecretariaObrigatoria();
 
     useEffect(() => {
         if (open) {
             dispatch(getEstabelecimentosSelect());
             setLocalError('');
+            secretaria.limpar();
             setForm(alvara
                 ? {
                     estabelecimento_id: alvara.estabelecimento_id || '',
@@ -56,7 +59,8 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
         if (alvara?.id) {
             dispatch(editAlvaraFetch(alvara.id, dados, onSuccess, setLocalError));
         } else {
-            dispatch(addAlvaraFetch(dados, onSuccess, setLocalError));
+            if (!secretaria.validar()) return;
+            dispatch(addAlvaraFetch({ ...dados, ...secretaria.payload() }, onSuccess, setLocalError, secretaria.tratarErro));
         }
     };
 
@@ -82,6 +86,7 @@ export default function AlvaraDialog({ open, onClose, alvara, onSuccess }) {
             tamanho="md"
             antes={(
                 <div className="mb-4 space-y-3">
+                    {!editando && <CampoSecretariaObrigatorio controle={secretaria} id="alvara-secretaria" />}
                     {localError && <Banner tom="perigo">{localError}</Banner>}
                     {editando && <p className="text-sm text-muted-foreground">Número: <strong>{alvara.numero_alvara}</strong> (gerado automaticamente, não editável)</p>}
                 </div>

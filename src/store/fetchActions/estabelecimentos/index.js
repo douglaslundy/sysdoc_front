@@ -32,7 +32,7 @@ export const getEstabelecimentosSelect = () => {
     };
 };
 
-export const addEstabelecimentoFetch = (dados, onSuccess) => {
+export const addEstabelecimentoFetch = (dados, onSuccess, aoErroSecretaria) => {
     return (dispatch) => {
         dispatch(turnLoading());
         api.post('/estabelecimentos', dados)
@@ -44,6 +44,7 @@ export const addEstabelecimentoFetch = (dados, onSuccess) => {
                 onSuccess && onSuccess();
             })
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error?.response?.data?.message || 'Erro ao cadastrar estabelecimento'));
                 dispatch(turnLoading());
             });

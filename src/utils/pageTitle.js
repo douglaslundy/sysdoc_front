@@ -18,6 +18,8 @@ const TITLE_OVERRIDES = {
   "/peticao-motivos": "Motivos de Petição",
   "/protocolo/caixa-entrada": "Caixa de Entrada",
   "/trips/agenda": "Agenda de Viagens",
+  "/ordem-servico": "Ordens de Serviço",
+  "/ordem-servico/configuracao": "Configuração de OS",
   "/protocolo/estrutura": "Estrutura Organizacional",
   "/protocolo/configuracoes": "Configurações",
   "/protocolo/tipos": "Tipos de Protocolo",
@@ -158,6 +160,9 @@ export const getPageTitle = (pathname) => {
   if (normalized.startsWith("/showqueue")) return "Consulta de Senha";
   if (normalized.startsWith("/painel-esus")) return "Painel eSUS";
   if (normalized.startsWith("/protocolo")) return "Protocolo";
+  if (normalized.startsWith("/ordem-servico")) return "Ordem de Serviço";
+  if (normalized.startsWith("/iluminacao/cadastro")) return "Iluminação — Cadastro";
+  if (normalized.startsWith("/iluminacao/servico")) return "Iluminação — Serviço";
 
   return fallbackTitle(pathname);
 };

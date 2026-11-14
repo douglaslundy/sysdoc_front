@@ -2,10 +2,12 @@ import { turnLoading, addAlertMessage } from "../../ducks/Layout";
 import { setAuthToken } from "../../../services/api";
 import Router from "next/router";
 import { destroyCookie } from 'nookies';
+import { limparAtiva } from "../../ducks/secretaria";
 
 export const loginFetch = (dataUser) => {
     return (dispatch) => {
         dispatch(turnLoading());
+        dispatch(limparAtiva()); // outro usuário pode herdar a ativa do anterior neste navegador
 
         const doLogin = async () => {
             const body = JSON.stringify(dataUser);
@@ -43,6 +45,7 @@ export const logoutFetch = () => {
     return (dispatch) => {
         dispatch(turnLoading());
 
+        dispatch(limparAtiva());
         fetch('/api/auth/logout', { method: 'POST' })
             .then(() => {
                 setAuthToken(null);

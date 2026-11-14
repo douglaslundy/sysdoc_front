@@ -17,7 +17,7 @@ export const getAllSpecialities = () => {
     }
 }
 
-export const addSpecialityFetch = (speciality, cleanForm) => {
+export const addSpecialityFetch = (speciality, cleanForm, aoErroSecretaria) => {
 
     return (dispatch) => {
         const { 'sysvendas.id': user } = parseCookies();
@@ -46,6 +46,7 @@ export const addSpecialityFetch = (speciality, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';

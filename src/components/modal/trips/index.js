@@ -16,6 +16,7 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { CampoTexto } from '../../ui/campos';
 import { Dialogo, DialogoCabecalho, DialogoDescricao, DialogoRodape } from '../../ui/dialogo';
+import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
 export default function TripModal(props) {
     const [form, setForm] = useState({
@@ -36,6 +37,7 @@ export default function TripModal(props) {
     const { routes } = useSelector(state => state.routes);
     const { trip, drivers } = useSelector(state => state.trips);
     const [texto, setTexto] = useState();
+    const secretaria = useSecretariaObrigatoria();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [createdTrip, setCreatedTrip] = useState(null);
     const [replicateOpen, setReplicateOpen] = useState(false);
@@ -62,6 +64,7 @@ export default function TripModal(props) {
             obs: ""
         });
         setTexto('');
+        secretaria.limpar();
         dispatch(closeTripModal());
         dispatch(showTrip({}));
     }
@@ -70,6 +73,7 @@ export default function TripModal(props) {
         if (trip && trip.id) {
             handlePutData();
         } else {
+            if (!secretaria.validar()) return;
             setConfirmOpen(true);
         }
     };
@@ -81,7 +85,7 @@ export default function TripModal(props) {
 
     const handlePostData = async () => {
         dispatch(changeTitleAlert(`Viagem Cadastrada com sucesso!`));
-        dispatch(addTripFetch(form, cleanForm, (trip) => setCreatedTrip(trip)));
+        dispatch(addTripFetch({ ...form, ...secretaria.payload() }, cleanForm, (trip) => setCreatedTrip(trip), secretaria.tratarErro));
     };
 
     const handlePutData = async () => {
@@ -139,6 +143,7 @@ export default function TripModal(props) {
                 {texto && <div className="mb-4"><Banner tom="alerta">{texto}</Banner></div>}
 
                 <div className="grid gap-4">
+                    {!(trip && trip.id) && <CampoSecretariaObrigatorio controle={secretaria} id="viagem-secretaria" />}
                     <div className="grid gap-4 md:grid-cols-2">
                         <BasicDatePicker
                             id="departure_date"

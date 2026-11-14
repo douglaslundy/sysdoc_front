@@ -54,7 +54,7 @@ export const getQueueSpecialityOptions = () => {
     }
 }
 
-export const addQueueFetch = (queue, callbacks = {}) => {
+export const addQueueFetch = (queue, callbacks = {}, aoErroSecretaria) => {
     const { 'sysvendas.id': user } = parseCookies();
     const { 'sysvendas.username': username } = parseCookies();
     let {
@@ -96,6 +96,7 @@ export const addQueueFetch = (queue, callbacks = {}) => {
                 onSuccess && onSuccess(res.data?.data || res.data)
             ))
             .catch((error) => {
+                aoErroSecretaria && aoErroSecretaria(error);
                 dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 onError && onError(error);
