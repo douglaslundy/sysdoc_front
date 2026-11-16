@@ -23,6 +23,8 @@ export default function AtalhosDashboard() {
   const [busca, setBusca] = useState('');
   const [escolhida, setEscolhida] = useState(null);
   const [erroAdd, setErroAdd] = useState(null);
+  const [arrastando, setArrastando] = useState(null);
+  const [sobre, setSobre] = useState(null);
 
   const carregar = useCallback(() => {
     api.get('/dashboard/meus-atalhos').then((r) => setAtalhos(r.data)).catch((e) => setErro(msgErro(e)));
@@ -62,6 +64,23 @@ export default function AtalhosDashboard() {
     }
   };
 
+  // Arrastar um atalho para outra posição: a lista muda na hora e a ordem é gravada no servidor.
+  const soltar = async (destino) => {
+    const origem = arrastando;
+    setArrastando(null);
+    setSobre(null);
+    if (origem === null || origem === destino) return;
+    const nova = [...atalhos];
+    nova.splice(destino, 0, nova.splice(origem, 1)[0]);
+    setAtalhos(nova);
+    try {
+      await api.put('/dashboard/meus-atalhos/ordem', { ids: nova.map((a) => a.id) });
+    } catch (e) {
+      setErro(msgErro(e));
+      carregar();
+    }
+  };
+
   if (!atalhos) return erro ? <Banner tom="perigo">{erro}</Banner> : <Esqueleto className="h-32 w-full" />;
 
   const botaoMais = (
@@ -79,8 +98,16 @@ export default function AtalhosDashboard() {
     <div>
       {erro && <div className="mb-4"><Banner tom="perigo" onDispensar={() => setErro(null)}>{erro}</Banner></div>}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {atalhos.map((a) => (
-          <div key={a.id} className="group relative">
+        {atalhos.map((a, i) => (
+          <div
+            key={a.id}
+            draggable
+            onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(a.id)); setArrastando(i); }}
+            onDragOver={(e) => { e.preventDefault(); if (sobre !== i) setSobre(i); }}
+            onDrop={(e) => { e.preventDefault(); soltar(i); }}
+            onDragEnd={() => { setArrastando(null); setSobre(null); }}
+            className={`group relative cursor-grab active:cursor-grabbing ${arrastando === i ? 'opacity-40' : ''} ${arrastando !== null && sobre === i && arrastando !== i ? 'rounded-xl ring-2 ring-primary' : ''}`}
+          >
             <button
               type="button"
               onClick={() => router.push(a.url)}
@@ -101,7 +128,7 @@ export default function AtalhosDashboard() {
         ))}
         {atalhos.length < MAXIMO && botaoMais}
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">{atalhos.length} de {MAXIMO} atalhos.</p>
+      <p className="mt-3 text-xs text-muted-foreground">{atalhos.length} de {MAXIMO} atalhos.{atalhos.length > 1 && ' Arraste um atalho para mudar a ordem.'}</p>
 
       <Dialogo aberto={aberto} aoFechar={fechar}>
         <DialogoCabecalho>Adicionar atalho</DialogoCabecalho>
