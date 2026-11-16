@@ -88,7 +88,7 @@ export default function MedicinesPanel() {
       </header>
 
       <div className="overflow-hidden px-6 pt-[5px] pb-6" style={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-        <div className="relative z-[2] grid grid-cols-1 items-center gap-4 bg-background md:grid-cols-2" style={{ height: `${COLUMN_HEADER_HEIGHT}px` }}>
+        <div className="relative z-[2] grid grid-cols-2 items-center gap-4 bg-background" style={{ height: `${COLUMN_HEADER_HEIGHT}px` }}>
           {columns.map((column) => (
             <h2 key={column.title} className={`font-display text-2xl font-bold ${column.texto}`}>
               {column.title} ({column.items.length})
@@ -97,7 +97,7 @@ export default function MedicinesPanel() {
         </div>
 
         <div className="overflow-hidden" style={{ height: `calc(100vh - ${PANEL_CONTENT_OFFSET}px)` }}>
-          <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid h-full grid-cols-2 gap-4">
             {columns.map((column) => {
               const shouldLoop = column.items.length > 8;
               const loopItems = shouldLoop ? [...column.items, ...column.items] : column.items;
