@@ -119,7 +119,7 @@ const colunasViagens = [
 const colunasFilas = [
   { chave: "especialidade", titulo: "Especialidade", render: (item) => item?.speciality?.name?.toUpperCase() || item?.name?.toUpperCase() || "Não informado" },
   { chave: "criado", titulo: "Cadastrado em", render: (item) => item?.created_at && format(parseISO(item?.created_at), 'dd/MM/yyyy') },
-  { chave: "status", titulo: "Status", render: (item) => (item?.done === '1' ? 'REALIZADO' : 'NÃO REALIZADO') },
+  { chave: "status", titulo: "Status", render: (item) => (Number(item?.done) === 1 ? 'REALIZADO' : 'NÃO REALIZADO') },
   { chave: "realizado", titulo: "Realizado em", render: (item) => item?.date_of_realized && format(parseISO(item?.date_of_realized), 'dd/MM/yyyy') },
   { chave: "obs", titulo: "Observações", render: (item) => item?.obs?.toUpperCase() || "Sem observações" },
 ];
