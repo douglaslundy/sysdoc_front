@@ -258,7 +258,7 @@ export default function TripScheduleAgenda() {
   const Resumo = ({ lista, max }) => (
     <div className="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
       {lista.slice(0, max).map((e) => (
-        <span key={e.id} title={e.client?.name} className={`block truncate border-l-2 pl-1 text-[10px] leading-tight ${(STATUS_AGENDA[e.status] || STATUS_AGENDA.agendado).borda} ${e.status === 'cancelado' ? 'line-through opacity-60' : ''}`}>
+        <span key={e.id} title={[e.client?.name, e.time && `Horário: ${e.time}`, `Destino: ${e.destination_location || 'não informado'}`, e.departure_location && `Origem: ${e.departure_location}`].filter(Boolean).join('\n')} className={`block truncate border-l-2 pl-1 text-[10px] leading-tight ${(STATUS_AGENDA[e.status] || STATUS_AGENDA.agendado).borda} ${e.status === 'cancelado' ? 'line-through opacity-60' : ''}`}>
           {e.person_type === 'companion' ? '↳ ' : ''}{String(e.client?.name || '').toUpperCase()}
         </span>
       ))}
