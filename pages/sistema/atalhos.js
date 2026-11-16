@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Banner } from "../../src/components/ui/banner";
 import { Button } from "../../src/components/ui/button";
 import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
-import { CampoSelecao, CampoTexto } from "../../src/components/ui/campos";
+import { CampoSelecao, CampoTexto, Label } from "../../src/components/ui/campos";
+import { Combobox } from "../../src/components/ui/combobox";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../../src/components/ui/dialogo";
 import { IconeDinamico } from "../../src/components/ui/icone-dinamico";
 import { useConfirmacao } from "../../src/components/ui/confirmacao";
@@ -19,11 +20,26 @@ export default function AtalhosAdminPage() {
   const [msg, setMsg] = useState(null);
   const [erroForm, setErroForm] = useState(null);
   const [confirmar, dialogoConfirmacao] = useConfirmacao();
+  const [paginas, setPaginas] = useState([]);
+  const [busca, setBusca] = useState("");
 
   const carregar = useCallback(() => {
     api.get("/admin/dashboard-atalhos").then((r) => setLista(r.data)).catch((e) => setMsg({ tom: "perigo", texto: msgErro(e) }));
   }, []);
   useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    api.get("/system-pages").then((r) => setPaginas((Array.isArray(r.data) ? r.data : []).filter((p) => p.ativo !== false))).catch(() => {});
+  }, []);
+
+  const termo = busca.trim().toLowerCase();
+  const opcoes = paginas.filter((p) => !termo || `${p.titulo} ${p.path}`.toLowerCase().includes(termo)).slice(0, 50);
+  const paginaAtual = paginas.find((p) => p.path === form?.url) || null;
+  const escolherPagina = (p) => setForm((f) => ({
+    ...f,
+    url: p.path,
+    titulo: f.titulo.trim() ? f.titulo : String(p.titulo).replace(/^Dashboard - /, ""),
+    icone: f.id || f.icone !== "link" ? f.icone : (ICONES_ATALHO.includes(p.icone) ? p.icone : f.icone),
+  }));
 
   const set = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
   const urlInvalida = form && form.url !== "" && !URL_VALIDA.test(form.url);
@@ -83,7 +99,12 @@ export default function AtalhosAdminPage() {
           <div className="grid gap-3">
             {erroForm && <Banner tom="perigo">{erroForm}</Banner>}
             <CampoTexto id="at-titulo" label="Nome do botão" value={form.titulo} onChange={set("titulo")} maxLength={60} />
-            <CampoTexto id="at-url" label="Página que o botão abre" value={form.url} onChange={set("url")} maxLength={500}
+            <div className="grid gap-1.5">
+              <Label htmlFor="at-pagina">Buscar página do sistema</Label>
+              <Combobox id="at-pagina" opcoes={opcoes} selecionado={paginaAtual} aoSelecionar={escolherPagina} aoDigitar={setBusca}
+                chaveDaOpcao={(p) => p.id} rotuloDaOpcao={(p) => `${p.titulo} — ${p.path}`} placeholder="Digite o nome da página" vazio="Nenhuma página encontrada." />
+            </div>
+            <CampoTexto id="at-url" label="Endereço que o botão abre (preenchido ao escolher; pode digitar um site externo)" value={form.url} onChange={set("url")} maxLength={500}
               erro={urlInvalida ? "Use um caminho do sistema (/clients) ou um endereço https://." : null} dica="Ex.: /clients, /trips ou https://site.com" />
             <CampoSelecao id="at-icone" label="Ícone" value={form.icone} onChange={set("icone")}>
               {ICONES_ATALHO.map((i) => <option key={i} value={i}>{i}</option>)}

@@ -49,7 +49,8 @@ export default function MyApp(props) {
 
   // showLayout based on route (not cookies) so SSR and client agree — prevents hydration mismatch.
   // Auth redirect (missing cookies) handled by useEffect; token handling by AuthContext.
-  const showLayout = !isPublicRoute(router.pathname);
+  // ?embed=1: página aberta dentro do painel público; só o conteúdo, sem menu nem cabeçalho.
+  const showLayout = !isPublicRoute(router.pathname) && router.query.embed !== "1";
 
   useEffect(() => {
     if (isPublicRoute(router.pathname)) return;
