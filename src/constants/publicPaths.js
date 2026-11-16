@@ -16,6 +16,9 @@ export const PUBLIC_PATHS = [
     '/transparency/medicines',
     '/transparency/medicines-panel',
     '/transparency/medicines-monthly-acquisitions',
+    '/painel-publico',
+    '/painel-psf',
+    '/painel-esus',
 ];
 
 export function isPublicPath(pathname) {

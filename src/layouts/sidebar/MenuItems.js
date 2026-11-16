@@ -120,6 +120,8 @@ const Menuitems = [
       { title: "Mensagens enviadas", icon: "send", href: "/sistema/mensagens-enviadas" },
       { title: "IPs banidos", icon: "slash", href: "/sistema/ips-banidos", profile: ["admin"] },
       { title: "Secretarias", icon: "building", href: "/sistema/secretarias", profile: ["admin"] },
+      { title: "Painel público", icon: "monitor", href: "/sistema/painel-publico", profile: ["admin"] },
+      { title: "Atalhos do dashboard", icon: "link", href: "/sistema/atalhos", profile: ["admin"] },
       { title: "Configurações WhatsApp", icon: "message-circle", href: "/configuracoes/whatsapp", profile: ["admin"] },
       { title: "Configurações E-mail", icon: "mail", href: "/configuracoes/email", profile: ["admin"] },
     ],

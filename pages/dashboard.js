@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { Abas } from '../src/components/ui/abas';
 import InicioDashboard from '../src/components/dashboard/InicioDashboard';
+import AtalhosDashboard from '../src/components/dashboard/AtalhosDashboard';
 import ConformidadesDashboard from '../src/components/dashboard/ConformidadesDashboard';
 import LabDashboard from '../src/components/dashboard/LabDashboard';
 import FilaDashboard from '../src/components/dashboard/FilaDashboard';
@@ -25,7 +26,8 @@ export default function DashboardPage() {
     };
 
     const ABAS = [
-        { label: 'Início',               permission: '/dashboard/inicio',      component: <InicioDashboard onNavigateToSetor={handleNavigateToSetor} /> },
+        { label: 'Início',               permission: '/dashboard/atalhos',     component: <AtalhosDashboard /> },
+        { label: 'Resultados',           permission: '/dashboard/inicio',      component: <InicioDashboard onNavigateToSetor={handleNavigateToSetor} /> },
         { label: 'Conformidades',        permission: '/dashboard/conformidades', component: <ConformidadesDashboard /> },
         { label: 'Vigilância Sanitária', permission: '/dashboard/vigilancia',  component: <VigilanciaDashboard /> },
         { label: 'Laboratório',          permission: '/dashboard/laboratorio', component: <LabDashboard /> },
