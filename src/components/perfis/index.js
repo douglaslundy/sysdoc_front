@@ -25,6 +25,7 @@ const FORM_INICIAL = {
     client_trips_view_enabled: false,
     client_report_view_enabled: false,
     client_history_view_enabled: false,
+    os_encaminhar_enabled: false,
     // Protocolo: null = sem restrição de tipo/status; visibilidades null = só privado.
     protocol_allowed_types: null,
     protocol_allowed_statuses: null,
@@ -46,6 +47,7 @@ const PERMISSOES_OPERACIONAIS = [
     ['client_trips_view_enabled', 'Ver viagens do cliente (Cidadãos)'],
     ['client_report_view_enabled', 'Ver relatório detalhado do cliente'],
     ['client_history_view_enabled', 'Ver histórico do cidadão (auditoria)'],
+    ['os_encaminhar_enabled', 'Ordem de serviço: abrir para qualquer secretaria e encaminhar a outra secretaria ou técnico'],
 ];
 
 function agruparPorCategoria(pages, pageCategoryById) {
@@ -112,6 +114,7 @@ export default function Perfis() {
             client_trips_view_enabled: Boolean(profile.client_trips_view_enabled),
             client_report_view_enabled: Boolean(profile.client_report_view_enabled),
             client_history_view_enabled: Boolean(profile.client_history_view_enabled),
+            os_encaminhar_enabled: Boolean(profile.os_encaminhar_enabled),
             protocol_allowed_types: Array.isArray(profile.protocol_allowed_types) ? profile.protocol_allowed_types : null,
             protocol_allowed_statuses: Array.isArray(profile.protocol_allowed_statuses) ? profile.protocol_allowed_statuses : null,
             protocol_allowed_visibilities: Array.isArray(profile.protocol_allowed_visibilities) ? profile.protocol_allowed_visibilities : null,

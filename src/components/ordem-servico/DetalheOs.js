@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { ArrowLeft, FileDown } from "lucide-react";
 import { mensagemDeErro } from "../../lib/mensagemDeErro";
 import {
-  atribuirOs, baixarFotoOs, baixarPdfOs, cancelarOs, concluirOs, iniciarOs, obterOs, tecnicosDeOs,
+  atribuirOs, baixarFotoOs, baixarPdfOs, cancelarOs, concluirOs, encaminharOs, iniciarOs, listarTipos, obterOs, secretariasDeOs, tecnicosDeOs,
 } from "../../services/ordemServico";
 import CampoFotos from "../iluminacao/CampoFotos";
 import { Banner } from "../ui/banner";
@@ -36,6 +36,8 @@ export default function DetalheOs({ id }) {
   const [form, setForm] = useState({});
   const [fotos, setFotos] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
+  const [secretarias, setSecretarias] = useState([]);
+  const [tipos, setTipos] = useState([]);
   const [ocupado, setOcupado] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -54,8 +56,19 @@ export default function DetalheOs({ id }) {
     if (qual === "atribuir") {
       try { setTecnicos((await tecnicosDeOs(os.secretaria_id)).tecnicos); } catch (e) { setTecnicos([]); }
     }
+    if (qual === "encaminhar") {
+      try { setSecretarias(await secretariasDeOs()); } catch (e) { setSecretarias([]); }
+      setTipos([]); setTecnicos([]);
+    }
     setAcao(qual);
   };
+
+  // Ao escolher a secretaria de destino, carrega os tipos de serviço e os técnicos dela.
+  useEffect(() => {
+    if (acao !== "encaminhar" || !form.secretaria_id) { setTipos([]); setTecnicos([]); return; }
+    listarTipos(form.secretaria_id).then(setTipos).catch(() => setTipos([]));
+    tecnicosDeOs(form.secretaria_id).then((r) => setTecnicos(r.tecnicos)).catch(() => setTecnicos([]));
+  }, [acao, form.secretaria_id]);
 
   const executar = async (fn) => {
     setOcupado(true);
@@ -80,13 +93,23 @@ export default function DetalheOs({ id }) {
     URL.revokeObjectURL(a.href);
   });
 
-  const aoMudar = ({ target: { name, value } }) => setForm((f) => ({ ...f, [name]: value }));
+  const aoMudar = ({ target: { name, value } }) => setForm((f) => ({ ...f, [name]: value, ...(name === "secretaria_id" ? { tipo_servico_id: "", tecnico_id: "" } : {}) }));
 
   if (!os) return erro ? <Banner tom="perigo">{erro}</Banner> : <Carregando />;
 
   const pode = os.pode || {};
   const camposAcao = {
     atribuir: { titulo: "Atribuir técnico", rotulo: "Atribuir", campos: [{ name: "tecnico_id", label: "Técnico", required: true, options: tecnicos.map((t) => ({ value: t.id, label: t.name })) }], gravar: () => atribuirOs(id, form.tecnico_id) },
+    encaminhar: {
+      titulo: "Encaminhar OS", rotulo: "Encaminhar",
+      campos: [
+        { name: "secretaria_id", label: "Secretaria de destino", required: true, options: secretarias.map((s) => ({ value: s.id, label: s.nome })) },
+        { name: "tipo_servico_id", label: "Tipo de serviço", required: true, options: tipos.map((t) => ({ value: t.id, label: t.nome })), disabled: !form.secretaria_id },
+        { name: "tecnico_id", label: "Técnico (opcional)", options: tecnicos.map((t) => ({ value: t.id, label: t.name })), vazio: "Deixar para a secretaria", disabled: !form.secretaria_id },
+        { name: "observacao", label: "Observação (opcional)", rows: 2, max: 500 },
+      ],
+      gravar: () => encaminharOs(id, { secretaria_id: form.secretaria_id, tipo_servico_id: form.tipo_servico_id, tecnico_id: form.tecnico_id || null, observacao: form.observacao }),
+    },
     concluir: {
       titulo: "Concluir OS", rotulo: "Concluir",
       campos: [
@@ -109,6 +132,7 @@ export default function DetalheOs({ id }) {
             <Button variant="outline" onClick={() => router.push("/ordem-servico")}><ArrowLeft /> Voltar</Button>
             <Button variant="outline" disabled={ocupado} onClick={baixarPdf}><FileDown /> PDF</Button>
             {pode.atribuir ? <Button variant="outline" onClick={() => abrir("atribuir")}>{os.tecnico ? "Trocar técnico" : "Atribuir técnico"}</Button> : null}
+            {pode.encaminhar ? <Button variant="outline" onClick={() => abrir("encaminhar")}>Encaminhar</Button> : null}
             {pode.iniciar ? <Button disabled={ocupado} onClick={() => executar(() => iniciarOs(id))}>Iniciar atendimento</Button> : null}
             {pode.concluir ? <Button onClick={() => abrir("concluir")}>Concluir</Button> : null}
             {pode.cancelar ? <Button variant="outline" onClick={() => abrir("cancelar")}>Cancelar OS</Button> : null}

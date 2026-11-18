@@ -16,6 +16,7 @@ const corpo = (res) => res.data;
 export const listarOs = (params) => api.get("/ordens-servico", { params }).then(corpo);
 export const obterOs = (id) => api.get(`/ordens-servico/${id}`).then(corpo);
 export const criarOs = (dados, fotos) => api.post("/ordens-servico", montarForm(dados, fotos), UPLOAD).then(corpo);
+export const encaminharOs = (id, dados) => api.post(`/ordens-servico/${id}/encaminhar`, dados).then(corpo);
 export const atribuirOs = (id, tecnico_id) => api.post(`/ordens-servico/${id}/atribuir`, { tecnico_id }).then(corpo);
 export const iniciarOs = (id) => api.post(`/ordens-servico/${id}/iniciar`).then(corpo);
 export const concluirOs = (id, dados, fotos) => api.post(`/ordens-servico/${id}/concluir`, montarForm(dados, fotos), UPLOAD).then(corpo);
