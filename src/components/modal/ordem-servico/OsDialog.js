@@ -26,7 +26,11 @@ export default function OsDialog({ open, onClose, onSuccess }) {
   useEffect(() => {
     if (!open) return;
     setForm(VAZIO); setCoords(null); setFotos([]); setErro(""); setTipos([]); setTecnicos({ permitido: false, tecnicos: [] });
-    secretariasDeOs().then(setSecretarias).catch(() => setErro("Não foi possível carregar as secretarias."));
+    // O back já devolve só as secretarias do usuário (todas, para o admin); com uma só, ela vem preenchida.
+    secretariasDeOs().then((lista) => {
+      setSecretarias(lista);
+      if (lista.length === 1) setForm((f) => ({ ...f, secretaria_id: lista[0].id }));
+    }).catch(() => setErro("Não foi possível carregar as secretarias."));
   }, [open]);
 
   useEffect(() => {
@@ -39,7 +43,7 @@ export default function OsDialog({ open, onClose, onSuccess }) {
     setForm((f) => ({ ...f, [name]: value, ...(name === "secretaria_id" ? { tipo_servico_id: "", tecnico_id: "" } : {}) }));
 
   const campos = [
-    { name: "secretaria_id", label: "Secretaria", required: true, options: secretarias.map((s) => ({ value: s.id, label: s.nome })), span: 6 },
+    { name: "secretaria_id", label: "Secretaria", required: true, options: secretarias.map((s) => ({ value: s.id, label: s.nome })), disabled: secretarias.length === 1, span: 6 },
     { name: "tipo_servico_id", label: "Tipo de serviço", required: true, options: tipos.map((t) => ({ value: t.id, label: t.nome })), disabled: !form.secretaria_id, span: 6 },
     ...(tecnicos.permitido ? [{ name: "tecnico_id", label: "Técnico (opcional)", options: tecnicos.tecnicos.map((t) => ({ value: t.id, label: t.name })), vazio: "Deixar para a secretaria", span: 6 }] : []),
     { name: "prioridade", label: "Prioridade", options: PRIORIDADES, span: tecnicos.permitido ? 3 : 6 },
