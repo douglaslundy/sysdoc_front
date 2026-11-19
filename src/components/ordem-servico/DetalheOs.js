@@ -65,7 +65,9 @@ export default function DetalheOs({ id }) {
 
   // Ao escolher a secretaria de destino, carrega os tipos de serviço e os técnicos dela.
   useEffect(() => {
-    if (acao !== "encaminhar" || !form.secretaria_id) { setTipos([]); setTecnicos([]); return; }
+    // Só mexe na lista quando a ação é "encaminhar": em "atribuir" a lista vem do abrir() e não pode ser zerada.
+    if (acao !== "encaminhar") return;
+    if (!form.secretaria_id) { setTipos([]); setTecnicos([]); return; }
     listarTipos(form.secretaria_id).then(setTipos).catch(() => setTipos([]));
     tecnicosDeOs(form.secretaria_id).then((r) => setTecnicos(r.tecnicos)).catch(() => setTecnicos([]));
   }, [acao, form.secretaria_id]);
