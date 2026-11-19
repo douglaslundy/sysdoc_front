@@ -59,6 +59,12 @@ function agruparPorCategoria(pages, pageCategoryById) {
     }, {});
 }
 
+const COLUNAS_FILA = [
+    ['can_view', 'Ver'],
+    ['can_edit', 'Editar'],
+    ['can_insert', 'Inserir paciente'],
+];
+
 export default function Perfis() {
     const dispatch = useDispatch();
     const { profiles, pages, pageCategories } = useSelector((state) => state.accessProfiles);
@@ -68,6 +74,27 @@ export default function Perfis() {
     const [form, setForm] = useState(FORM_INICIAL);
     const [busca, setBusca] = useState('');
     const [tiposProtocolo, setTiposProtocolo] = useState([]);
+    // Acesso às filas por especialidade (definido no perfil; admin sempre acessa tudo).
+    const [filas, setFilas] = useState([]);
+    const [filasCarregadas, setFilasCarregadas] = useState(false);
+
+    const alternarFila = (specialityId, campo) => setFilas((atual) => atual.map((item) => {
+        if (item.speciality_id !== specialityId) return item;
+        const prox = { ...item, [campo]: !item[campo] };
+        if ((campo === 'can_edit' || campo === 'can_insert') && prox[campo]) prox.can_view = true;
+        if (campo === 'can_view' && !prox.can_view) { prox.can_edit = false; prox.can_insert = false; }
+        return prox;
+    }));
+
+    const alternarTodasFilas = (campo) => setFilas((atual) => {
+        const ligar = !(atual.length > 0 && atual.every((item) => item[campo]));
+        return atual.map((item) => {
+            const prox = { ...item, [campo]: ligar };
+            if ((campo === 'can_edit' || campo === 'can_insert') && ligar) prox.can_view = true;
+            if (campo === 'can_view' && !ligar) { prox.can_edit = false; prox.can_insert = false; }
+            return prox;
+        });
+    });
 
     useEffect(() => {
         api.get('/protocolos/tipos')
@@ -97,11 +124,20 @@ export default function Perfis() {
     const handleNovo = () => {
         setEditId(null);
         setForm(FORM_INICIAL);
+        setFilas([]);
+        setFilasCarregadas(false);
         setOpenModal(true);
     };
 
     const handleEditar = (profile) => {
         setEditId(profile.id);
+        setFilas([]);
+        setFilasCarregadas(false);
+        if (profile.slug !== 'admin') {
+            api.get(`/access-profiles/${profile.id}/speciality-permissions`)
+                .then(({ data }) => { setFilas(Array.isArray(data) ? data : []); setFilasCarregadas(true); })
+                .catch(() => {});
+        }
         setForm({
             nome: profile.nome,
             slug: profile.slug,
@@ -134,7 +170,15 @@ export default function Perfis() {
     };
 
     const handleSave = () => {
-        const aoConcluir = () => { setOpenModal(false); dispatch(getAllProfiles()); };
+        const aoConcluir = async () => {
+            if (editId && filasCarregadas) {
+                await api.put(`/access-profiles/${editId}/speciality-permissions`, {
+                    permissions: filas.map((f) => ({ speciality_id: f.speciality_id, can_view: f.can_view, can_edit: f.can_edit, can_insert: f.can_insert })),
+                }).catch(() => {});
+            }
+            setOpenModal(false);
+            dispatch(getAllProfiles());
+        };
         if (editId) {
             dispatch(editProfileFetch(editId, form, aoConcluir));
         } else {
@@ -269,6 +313,57 @@ export default function Perfis() {
                             Pode alterar a visibilidade de um protocolo já cadastrado
                         </Interruptor>
                     </div>
+
+                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Filas por especialidade</h3>
+                    {!editId ? (
+                        <p className="text-sm text-muted-foreground">Grave o perfil primeiro; depois edite-o para definir o acesso às filas.</p>
+                    ) : form.slug === 'admin' ? (
+                        <p className="text-sm text-muted-foreground">O administrador acessa todas as filas.</p>
+                    ) : !filasCarregadas ? (
+                        <p className="text-sm text-muted-foreground">Carregando especialidades...</p>
+                    ) : filas.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Nenhuma especialidade cadastrada.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-left text-sm">
+                                <thead>
+                                    <tr className="border-b border-border">
+                                        <th className="py-2 pr-3 font-semibold">Especialidade</th>
+                                        {COLUNAS_FILA.map(([campo, rotulo]) => (
+                                            <th key={campo} className="px-2 py-2 text-center font-semibold">
+                                                <div className="flex flex-col items-center gap-1">
+                                                    {rotulo}
+                                                    <CaixaDeMarcacao
+                                                        aria-label={`${rotulo}: todas`}
+                                                        marcado={filas.length > 0 && filas.every((item) => Boolean(item[campo]))}
+                                                        aoMudar={() => alternarTodasFilas(campo)}
+                                                    />
+                                                </div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filas.map((item) => (
+                                        <tr key={item.speciality_id} className="border-b border-border last:border-0">
+                                            <td className="py-2 pr-3">{item.speciality_name}</td>
+                                            {COLUNAS_FILA.map(([campo, rotulo]) => (
+                                                <td key={campo} className="px-2 py-2">
+                                                    <div className="flex justify-center">
+                                                        <CaixaDeMarcacao
+                                                            aria-label={`${rotulo}: ${item.speciality_name}`}
+                                                            marcado={Boolean(item[campo])}
+                                                            aoMudar={() => alternarFila(item.speciality_id, campo)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
 
                     <h3 className="mb-3 mt-6 font-display text-base font-bold">Páginas com Acesso</h3>
                     <div className="grid gap-4">

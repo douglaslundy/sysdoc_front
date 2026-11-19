@@ -45,7 +45,7 @@ export default function OsDialog({ open, onClose, onSuccess }) {
   const campos = [
     { name: "secretaria_id", label: "Secretaria", required: true, options: secretarias.map((s) => ({ value: s.id, label: s.nome })), disabled: secretarias.length === 1, span: 6 },
     { name: "tipo_servico_id", label: "Tipo de serviço", required: true, options: tipos.map((t) => ({ value: t.id, label: t.nome })), disabled: !form.secretaria_id, span: 6 },
-    ...(tecnicos.permitido ? [{ name: "tecnico_id", label: "Técnico (opcional)", options: tecnicos.tecnicos.map((t) => ({ value: t.id, label: t.name })), vazio: "Deixar para a secretaria", span: 6 }] : []),
+    ...(tecnicos.permitido ? [{ name: "tecnico_id", label: "Técnico (opcional)", options: tecnicos.tecnicos.map((t) => ({ value: t.id, label: t.name })), vazio: "Deixar para a secretaria", span: 6, dica: tecnicos.tecnicos.length === 0 ? "Nenhum técnico disponível: o usuário precisa ter o perfil Técnico (principal ou adicional), estar ativo e vinculado à secretaria desta OS." : undefined }] : []),
     { name: "prioridade", label: "Prioridade", options: PRIORIDADES, span: tecnicos.permitido ? 3 : 6 },
     { name: "prazo", label: "Prazo", type: "date", span: tecnicos.permitido ? 3 : 6 },
     { name: "local", label: "Local", required: true, max: 160 },

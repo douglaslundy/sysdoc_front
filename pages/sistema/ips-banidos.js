@@ -25,6 +25,7 @@ export default function IpsBanidosPage() {
   const [ip, setIp] = useState("");
   const [reason, setReason] = useState("");
   const [limit, setLimit] = useState("5");
+  const [days, setDays] = useState("30");
   const [saved, setSaved] = useState(false);
   const [page, setPage] = useState(0); // base 0 (Paginacao); a API usa base 1
   const [perPage, setPerPage] = useState(10);
@@ -80,19 +81,20 @@ export default function IpsBanidosPage() {
 
   useEffect(() => {
     api.get("/banned-ips/settings")
-      .then((res) => setLimit(String(res.data.strike_limit)))
-      .catch(() => setError("Não foi possível carregar a configuração de tentativas."));
+      .then((res) => { setLimit(String(res.data.strike_limit)); setDays(String(res.data.ban_days ?? 30)); })
+      .catch(() => setError("Não foi possível carregar a configuração de banimento."));
   }, []);
 
   const saveLimit = async () => {
     try {
-      const res = await api.put("/banned-ips/settings", { strike_limit: Number(limit) });
+      const res = await api.put("/banned-ips/settings", { strike_limit: Number(limit), ban_days: Number(days) });
       setLimit(String(res.data.strike_limit));
+      setDays(String(res.data.ban_days));
       setError("");
       setSaved(true);
     } catch (e) {
       setSaved(false);
-      setError(e?.response?.data?.errors?.strike_limit?.[0] || e?.response?.data?.message || "Não foi possível salvar.");
+      setError(e?.response?.data?.errors?.strike_limit?.[0] || e?.response?.data?.errors?.ban_days?.[0] || e?.response?.data?.message || "Não foi possível salvar.");
     }
   };
 
@@ -132,7 +134,7 @@ export default function IpsBanidosPage() {
     <div className="flex flex-col gap-4">
       <CabecalhoDePagina
         titulo={`IPs banidos — ${total} ${total === 1 ? "registro" : "registros"}`}
-        subtitulo="Robôs que varrem rotas inexistentes são banidos automaticamente. O limite conta 404 em rotas inexistentes em 10 minutos (padrão 5)."
+        subtitulo="Robôs que varrem rotas inexistentes são banidos automaticamente. O limite conta 404 em rotas inexistentes em 10 minutos (padrão 5). O IP fica banido pelos dias definidos abaixo (padrão 30), tanto no banimento automático quanto no manual."
       />
 
       {error ? <Banner tom="perigo">{error}</Banner> : null}
@@ -151,7 +153,18 @@ export default function IpsBanidosPage() {
                 onChange={(e) => { setLimit(e.target.value); setSaved(false); }}
               />
             </div>
-            <Button disabled={!limit || Number(limit) < 1} onClick={saveLimit}>Salvar</Button>
+            <div className="w-[220px] max-w-full">
+              <CampoTexto
+                id="ip-dias"
+                type="number"
+                label="Dias de banimento"
+                value={days}
+                min={1}
+                max={3650}
+                onChange={(e) => { setDays(e.target.value); setSaved(false); }}
+              />
+            </div>
+            <Button disabled={!limit || Number(limit) < 1 || !days || Number(days) < 1} onClick={saveLimit}>Salvar</Button>
             {saved ? <span className="pb-2 text-sm text-success-text">Salvo.</span> : null}
           </div>
 

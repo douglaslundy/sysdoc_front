@@ -99,7 +99,7 @@ export default function DetalheOs({ id }) {
 
   const pode = os.pode || {};
   const camposAcao = {
-    atribuir: { titulo: "Atribuir técnico", rotulo: "Atribuir", campos: [{ name: "tecnico_id", label: "Técnico", required: true, options: tecnicos.map((t) => ({ value: t.id, label: t.name })) }], gravar: () => atribuirOs(id, form.tecnico_id) },
+    atribuir: { titulo: "Atribuir técnico", rotulo: "Atribuir", campos: [{ name: "tecnico_id", label: "Técnico", required: true, options: tecnicos.map((t) => ({ value: t.id, label: t.name })), dica: tecnicos.length === 0 ? "Nenhum técnico disponível: o usuário precisa ter o perfil Técnico (principal ou adicional), estar ativo e vinculado à secretaria desta OS." : undefined }], gravar: () => atribuirOs(id, form.tecnico_id) },
     encaminhar: {
       titulo: "Encaminhar OS", rotulo: "Encaminhar",
       campos: [
