@@ -29,6 +29,7 @@ const TITLE_OVERRIDES = {
   "/sistema/ips-banidos": "IPs banidos",
   "/sistema/painel-publico": "Painel público",
   "/sistema/atalhos": "Atalhos do dashboard",
+  "/sistema/documentacao-api": "Documentação da API",
   "/painel-publico": "Painel público",
   "/painel-psf": "Painel PSF",
   "/documentos": "Documentos",
