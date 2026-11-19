@@ -22,6 +22,7 @@ import { Gaveta } from "../../src/components/ui/gaveta";
 import { Interruptor } from "../../src/components/ui/interruptor";
 import { Paginacao } from "../../src/components/ui/paginacao";
 import { Pilula, tomDaCor } from "../../src/components/ui/pilula";
+import { ActionEditButton } from "../../src/components/actions";
 import { StatCard } from "../../src/components/ui/stat-card";
 
 const routes = {
@@ -48,6 +49,11 @@ const initialUnitForm = {
 };
 
 const initialAlertForm = {
+  id: null,
+  sistema: false,
+  assunto: "",
+  variaveis: [],
+  padrao_template: null,
   nome: "",
   descricao: "",
   modulo: "protocolo",
@@ -78,6 +84,8 @@ const alertModuleOptions = [
   { value: "laboratorio", label: "Laboratório" },
   { value: "cadastros", label: "Cadastros" },
   { value: "sistema", label: "Sistema" },
+  { value: "os", label: "Ordem de serviço" },
+  { value: "vigilancia", label: "Vigilância" },
 ];
 
 const alertTriggerOptions = {
@@ -759,17 +767,64 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     setSaving(true);
     setMessage("");
     try {
-      await api.post("/protocolos/alertas", {
-        ...alertForm,
+      const { id, sistema, variaveis, padrao_template, ...dados } = alertForm;
+      const corpo = {
+        ...dados,
         condicoes: normalizeStringList(alertForm.condicoes),
         canais: normalizeStringList(alertForm.canais),
         destinatarios: normalizeStringList(alertForm.destinatarios),
-      });
-      setMessage("Alerta cadastrado com sucesso.");
+      };
+      if (id) {
+        await api.put(`/protocolos/alertas/${id}`, corpo);
+        setMessage("Alerta atualizado com sucesso.");
+      } else {
+        await api.post("/protocolos/alertas", corpo);
+        setMessage("Alerta cadastrado com sucesso.");
+      }
       setAlertForm(initialAlertForm);
       await loadData();
     } catch (error) {
-      setMessage("Não foi possível cadastrar o alerta.");
+      setMessage(error?.response?.data?.message || "Não foi possível salvar o alerta.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditAlert = (alert) => {
+    setMessage("");
+    setAlertForm({
+      ...initialAlertForm,
+      id: alert.id,
+      sistema: Boolean(alert.sistema),
+      nome: alert.nome || "",
+      descricao: alert.descricao || "",
+      modulo: alert.modulo || "protocolo",
+      gatilho: alert.gatilho || "",
+      condicoes: Array.isArray(alert.condicoes) ? alert.condicoes : [],
+      canais: Array.isArray(alert.canais) ? alert.canais : [],
+      destinatarios: Array.isArray(alert.destinatarios) ? alert.destinatarios : [],
+      template: alert.template || "",
+      assunto: alert.assunto || "",
+      frequencia: alert.frequencia || "",
+      ativo: Boolean(alert.ativo),
+      prevenir_duplicidade: Boolean(alert.prevenir_duplicidade),
+      variaveis: Array.isArray(alert.variaveis) ? alert.variaveis : [],
+      padrao_template: alert.padrao_template || null,
+    });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleRestoreAlert = async () => {
+    if (!alertForm.id) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const { data } = await api.post(`/protocolos/alertas/${alertForm.id}/restaurar`);
+      setAlertForm((prev) => ({ ...prev, template: data.template || "", assunto: data.assunto || "" }));
+      setMessage("Texto padrão restaurado.");
+      await loadData();
+    } catch (error) {
+      setMessage(error?.response?.data?.message || "Não foi possível restaurar o texto padrão.");
     } finally {
       setSaving(false);
     }
@@ -1532,13 +1587,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
     { chave: "nome", titulo: "Nome", render: (alert) => alert.nome },
     { chave: "modulo", titulo: "Módulo", render: (alert) => alert.modulo },
     { chave: "gatilho", titulo: "Gatilho", render: (alert) => alert.gatilho },
+    { chave: "tipo", titulo: "Tipo", render: (alert) => <Pilula tom={alert.sistema ? "info" : "neutro"}>{alert.sistema ? "Mensagem do sistema" : "Personalizado"}</Pilula> },
     { chave: "status", titulo: "Status", render: (alert) => <Pilula tom={alert.ativo ? "sucesso" : "neutro"}>{alert.ativo ? "Ativo" : "Inativo"}</Pilula> },
+    { chave: "acoes", titulo: "Ações", render: (alert) => <ActionEditButton title="Editar texto e configuração" onClick={() => handleEditAlert(alert)} /> },
   ];
 
   const renderAlerts = () => (
     <div className="flex flex-col gap-4">
       <Card>
-        <CardHeader><CardTitle>Novo alerta</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{alertForm.id ? (alertForm.sistema ? "Editar mensagem do sistema" : "Editar alerta") : "Novo alerta"}</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmitAlert} className="flex flex-col gap-4">
             <div className="grid gap-4 md:grid-cols-12">
@@ -1550,6 +1607,15 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   onChange={(e) => setAlertForm((prev) => ({ ...prev, nome: e.target.value }))}
                 />
               </div>
+              {alertForm.sistema ? (
+                <div className="md:col-span-12">
+                  <Banner tom="info">
+                    Mensagem enviada pelo sistema: o módulo ({alertForm.modulo}), o gatilho ({alertForm.gatilho}), os canais e os destinatários são definidos pelo próprio sistema.
+                    Aqui você edita o assunto, o texto e se ela deve ser enviada. {alertForm.descricao}
+                  </Banner>
+                </div>
+              ) : null}
+              {!alertForm.sistema ? (<>
               <div className="md:col-span-6">
                 <CampoSelecao
                   id="al-modulo"
@@ -1618,6 +1684,18 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   placeholder="Ex.: vencido"
                 />
               </div>
+              </>) : null}
+              {alertForm.sistema ? (
+                <div className="md:col-span-12">
+                  <CampoTexto
+                    id="al-assunto"
+                    label="Assunto (e-mail)"
+                    maxLength={255}
+                    value={alertForm.assunto}
+                    onChange={(e) => setAlertForm((prev) => ({ ...prev, assunto: e.target.value }))}
+                  />
+                </div>
+              ) : null}
               <div className="md:col-span-12">
                 <CampoTexto
                   id="al-template"
@@ -1627,9 +1705,10 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   placeholder="Ex.: Olá {{nome}}, o alerta {{gatilho}} foi disparado para {{modulo}}."
                   value={alertForm.template}
                   onChange={(e) => setAlertForm((prev) => ({ ...prev, template: e.target.value }))}
+                  dica={alertForm.sistema && alertForm.variaveis.length ? `Variáveis: ${alertForm.variaveis.map((v) => `{{${v}}}`).join(" ")}` : undefined}
                 />
               </div>
-              <div className="md:col-span-12">
+              {!alertForm.sistema ? (<div className="md:col-span-12">
                 <CampoTexto
                   id="al-descricao"
                   label="Descrição"
@@ -1639,17 +1718,19 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                   value={alertForm.descricao}
                   onChange={(e) => setAlertForm((prev) => ({ ...prev, descricao: e.target.value }))}
                 />
-              </div>
+              </div>) : null}
               <div className="flex flex-wrap gap-6 md:col-span-12">
                 <Interruptor id="al-ativo" marcado={Boolean(alertForm.ativo)} aoMudar={(marcado) => setAlertForm((prev) => ({ ...prev, ativo: marcado }))}>
                   Ativo
                 </Interruptor>
-                <Interruptor id="al-duplicidade" marcado={Boolean(alertForm.prevenir_duplicidade)} aoMudar={(marcado) => setAlertForm((prev) => ({ ...prev, prevenir_duplicidade: marcado }))}>
+                {!alertForm.sistema ? <Interruptor id="al-duplicidade" marcado={Boolean(alertForm.prevenir_duplicidade)} aoMudar={(marcado) => setAlertForm((prev) => ({ ...prev, prevenir_duplicidade: marcado }))}>
                   Prevenir duplicidade
-                </Interruptor>
+                </Interruptor> : null}
               </div>
             </div>
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              {alertForm.id ? <Button type="button" variant="outline" onClick={() => setAlertForm(initialAlertForm)}>Cancelar edição</Button> : null}
+              {alertForm.sistema && alertForm.padrao_template ? <Button type="button" variant="outline" disabled={saving} onClick={handleRestoreAlert}>Restaurar texto padrão</Button> : null}
               <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
             </div>
           </form>
