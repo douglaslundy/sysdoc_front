@@ -61,16 +61,16 @@ export default function SecretariasAdmin() {
 
   if (!admin) return null;
 
-  const abrirNovo = () => { setErroForm(""); setForm({ nome: "", ativa: true, page_ids: [] }); };
+  const abrirNovo = () => { setErroForm(""); setForm({ nome: "", ativa: true, ouvidoria_publica: false, page_ids: [] }); };
   const abrirEdicao = (s) => {
     setErroForm("");
-    setForm({ id: s.id, nome: s.nome, ativa: Boolean(s.ativa), page_ids: (s.pages || []).map((p) => p.id) });
+    setForm({ id: s.id, nome: s.nome, ativa: Boolean(s.ativa), ouvidoria_publica: Boolean(s.ouvidoria_publica), page_ids: (s.pages || []).map((p) => p.id) });
   };
   const alternar = (id) =>
     setForm((f) => ({ ...f, page_ids: f.page_ids.includes(id) ? f.page_ids.filter((x) => x !== id) : [...f.page_ids, id] }));
 
   const salvar = async () => {
-    const corpo = { nome: form.nome.trim(), ativa: form.ativa, page_ids: form.page_ids };
+    const corpo = { nome: form.nome.trim(), ativa: form.ativa, ouvidoria_publica: form.ouvidoria_publica, page_ids: form.page_ids };
     try {
       if (form.id) await api.put(`/secretarias-admin/${form.id}`, corpo);
       else await api.post("/secretarias-admin", corpo);
@@ -96,6 +96,7 @@ export default function SecretariasAdmin() {
     { chave: "nome", titulo: "Nome", render: (s) => <span className="font-semibold">{s.nome}</span> },
     { chave: "slug", titulo: "Slug", render: (s) => <span className="text-sm">{s.slug}</span> },
     { chave: "ativa", titulo: "Situação", render: (s) => <Pilula tom={s.ativa ? "sucesso" : "neutro"}>{s.ativa ? "Ativa" : "Inativa"}</Pilula> },
+    { chave: "portal", titulo: "Portal da Ouvidoria", render: (s) => <Pilula tom={s.ouvidoria_publica ? "sucesso" : "neutro"} contorno>{s.ouvidoria_publica ? "Disponível" : "Oculta"}</Pilula> },
     { chave: "paginas", titulo: "Páginas", render: (s) => <span className="text-sm">{(s.pages || []).length}</span> },
     {
       chave: "acoes",
@@ -132,6 +133,10 @@ export default function SecretariasAdmin() {
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={form.ativa} onChange={(e) => setForm({ ...form, ativa: e.target.checked })} />
               Secretaria ativa
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={Boolean(form.ouvidoria_publica)} onChange={(e) => setForm({ ...form, ouvidoria_publica: e.target.checked })} />
+              Disponível no portal público da Ouvidoria
             </label>
             <fieldset className="flex flex-col gap-3">
               <legend className="text-sm font-semibold">Módulos liberados</legend>
