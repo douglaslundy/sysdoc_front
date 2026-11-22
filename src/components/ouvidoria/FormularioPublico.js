@@ -24,7 +24,7 @@ function mascaraTelefone(v) {
 
 export default function FormularioPublico() {
     const [form, setForm] = useState(VAZIO);
-    const [opcoes, setOpcoes] = useState({ secretarias: [], tipos: [], desafio: null });
+    const [opcoes, setOpcoes] = useState({ secretarias: [], tipos: [], desafio: null, iniciado: '' });
     const [identificar, setIdentificar] = useState(false);
     const [anexos, setAnexos] = useState([]);
     const [indisponivel, setIndisponivel] = useState(false);
@@ -39,7 +39,7 @@ export default function FormularioPublico() {
         setFalhaCarga(false);
         try {
             const dados = await opcoesOuvidoria();
-            setOpcoes({ secretarias: dados.secretarias || [], tipos: dados.tipos || [], desafio: dados.desafio || null });
+            setOpcoes({ secretarias: dados.secretarias || [], tipos: dados.tipos || [], desafio: dados.desafio || null, iniciado: dados.iniciado || '' });
         } catch (err) {
             if ([403, 404].includes(err?.response?.status)) setIndisponivel(true);
             else setFalhaCarga(true);
@@ -69,6 +69,7 @@ export default function FormularioPublico() {
                 captcha_token: opcoes.desafio?.token || '',
                 captcha_resposta: form.captcha_resposta,
                 website: form.website, // isca: humano nunca preenche
+                iniciado: opcoes.iniciado, // selo de abertura: o servidor mede o tempo de preenchimento
             };
             if (identificar) {
                 Object.assign(dados, { identificar: 1, nome: form.nome, email: form.email, phone: soDigitos(form.phone), cpf: form.cpf });
@@ -86,7 +87,7 @@ export default function FormularioPublico() {
                 const e = err.response.data?.errors || {};
                 const msgs = Object.fromEntries(Object.entries(e).map(([k, v]) => [k, [].concat(v)[0]]));
                 setErros(msgs);
-                setErro('Revise os campos destacados.');
+                setErro(msgs.iniciado || 'Revise os campos destacados.');
             } else setErro('Não foi possível enviar agora. Tente novamente.');
             setForm((f) => ({ ...f, captcha_resposta: '' }));
         } finally {
