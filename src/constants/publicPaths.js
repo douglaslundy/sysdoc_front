@@ -10,6 +10,8 @@ export const PUBLIC_PATHS = [
     '/petition/track',
     '/denuncia',
     '/denuncia/consulta',
+    '/ouvidoria',
+    '/ouvidoria/consulta',
     '/esqueci-senha',
     '/redefinir-senha',
     '/attendance/panel',
