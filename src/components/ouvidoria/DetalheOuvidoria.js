@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Banner } from "../ui/banner";
 import { Button } from "../ui/button";
@@ -8,6 +8,7 @@ import {
   baixarAnexoOuvidoria, comentarManifestacao, destinatariosOuvidoria, encaminharManifestacao,
   mudarStatusManifestacao, obterManifestacao, responderManifestacao,
 } from "../../services/ouvidoria";
+import { AuthContext } from "../../contexts/AuthContext";
 import { StatusOuvidoria } from "./StatusOuvidoria";
 
 const formatar = (iso) => (iso ? new Date(iso).toLocaleString("pt-BR") : "—");
@@ -17,6 +18,7 @@ const ACOES = { registrada: "Registrada", respondida: "Respondida", resposta_alt
 
 export default function DetalheOuvidoria({ id }) {
   const router = useRouter();
+  const { profile } = useContext(AuthContext);
   const [m, setM] = useState(null);
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
@@ -65,7 +67,10 @@ export default function DetalheOuvidoria({ id }) {
 
   if (!m) return erro ? <Banner tom="perigo">{erro}</Banner> : <p className="text-sm text-muted-foreground">Carregando...</p>;
 
-  const pode = m.pode_agir && !["encerrada", "arquivada"].includes(m.status);
+  const final = ["encerrada", "arquivada"].includes(m.status);
+  const pode = m.pode_agir && !final;
+  // Só o administrador reabre uma manifestação encerrada ou arquivada.
+  const podeReabrir = m.pode_agir && final && profile === "admin";
   const destinoEscolhido = destinos.find((d) => String(d.id) === String(destinoId));
 
   return (
@@ -164,6 +169,13 @@ export default function DetalheOuvidoria({ id }) {
             <CampoTexto id="comentario" label="Comentário interno (o cidadão não vê)" multiline rows={2} maxLength={2000} value={comentario} onChange={(e) => setComentario(e.target.value)} />
             <div><Button variant="outline" disabled={comentario.trim().length < 2} onClick={() => executar(() => comentarManifestacao(m.id, comentario.trim()), "Comentário registrado.", () => setComentario(""))}>Comentar</Button></div>
           </div>
+        </section>
+      ) : null}
+
+      {podeReabrir ? (
+        <section className="flex flex-wrap items-end gap-2 rounded-lg border border-input p-4">
+          <div className="min-w-0 flex-1"><CampoTexto id="obs-reabrir" label="Motivo da reabertura (opcional)" maxLength={1000} value={obsStatus} onChange={(e) => setObsStatus(e.target.value)} /></div>
+          <Button variant="outline" onClick={() => executar(() => mudarStatusManifestacao(m.id, "em_analise", obsStatus || undefined), "Manifestação reaberta.", () => setObsStatus(""))}>Reabrir (em análise)</Button>
         </section>
       ) : null}
 
