@@ -29,5 +29,6 @@ export const mudarStatusManifestacao = (id, status, observacao) =>
   api.post(`/ouvidoria/${id}/status`, { status, observacao }).then(corpo);
 export const comentarManifestacao = (id, observacao) => api.post(`/ouvidoria/${id}/comentarios`, { observacao }).then(corpo);
 export const encaminharManifestacao = (id, dados) => api.post(`/ouvidoria/${id}/encaminhar`, dados).then(corpo);
+export const revelarDadosOuvidoria = (id) => api.post(`/ouvidoria/${id}/dados-pessoais`).then(corpo);
 export const destinatariosOuvidoria = () => api.get("/ouvidoria/destinatarios").then(corpo);
 export const baixarAnexoOuvidoria = (id, anexoId) => api.get(`/ouvidoria/${id}/anexos/${anexoId}`, { responseType: "blob" }).then(corpo);

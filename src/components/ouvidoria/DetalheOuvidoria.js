@@ -6,7 +6,7 @@ import { CabecalhoDePagina } from "../ui/cabecalho-de-pagina";
 import { CampoSelecao, CampoTexto } from "../ui/campos";
 import {
   baixarAnexoOuvidoria, comentarManifestacao, destinatariosOuvidoria, encaminharManifestacao,
-  mudarStatusManifestacao, obterManifestacao, responderManifestacao,
+  mudarStatusManifestacao, obterManifestacao, responderManifestacao, revelarDadosOuvidoria,
 } from "../../services/ouvidoria";
 import { AuthContext } from "../../contexts/AuthContext";
 import { StatusOuvidoria } from "./StatusOuvidoria";
@@ -30,10 +30,11 @@ export default function DetalheOuvidoria({ id }) {
   const [destinoId, setDestinoId] = useState("");
   const [destinoSec, setDestinoSec] = useState("");
   const [obsEnc, setObsEnc] = useState("");
+  const [revelado, setRevelado] = useState(null);
 
   const carregar = useCallback(() =>
     obterManifestacao(id)
-      .then((d) => { setM(d); setResposta(""); setErro(""); })
+      .then((d) => { setM(d); setResposta(""); setErro(""); setRevelado(null); })
       .catch((e) => setErro(e?.response?.status === 404 ? "Manifestação não encontrada." : "Não foi possível carregar a manifestação.")), [id]);
 
   useEffect(() => { if (id) carregar(); }, [id, carregar]);
@@ -62,6 +63,15 @@ export default function DetalheOuvidoria({ id }) {
       URL.revokeObjectURL(url);
     } catch {
       setErro("Não foi possível baixar o anexo.");
+    }
+  };
+
+  const revelar = async () => {
+    setErro("");
+    try {
+      setRevelado(await revelarDadosOuvidoria(m.id));
+    } catch (e) {
+      setErro(mensagem(e, "Não foi possível revelar os dados."));
     }
   };
 
@@ -95,12 +105,20 @@ export default function DetalheOuvidoria({ id }) {
       <section className="rounded-lg border border-input p-4 text-sm">
         <h2 className="mb-2 font-semibold">Cidadão</h2>
         {m.anonimo ? <p>Manifestação anônima.</p> : (
-          <ul className="space-y-1">
-            <li>Nome: {m.nome}</li>
-            {m.email ? <li>E-mail: {m.email}</li> : null}
-            {m.phone ? <li>Telefone: {m.phone}</li> : null}
-            {m.cpf ? <li>CPF: {m.cpf}</li> : null}
-          </ul>
+          <>
+            <ul className="space-y-1">
+              <li>Nome: {(revelado || m).nome}</li>
+              {(revelado || m).email ? <li>E-mail: {(revelado || m).email}</li> : null}
+              {(revelado || m).phone ? <li>Telefone: {(revelado || m).phone}</li> : null}
+              {(revelado || m).cpf ? <li>CPF: {(revelado || m).cpf}</li> : null}
+            </ul>
+            {m.pode_agir && !revelado ? (
+              <div className="mt-3">
+                <Button variant="outline" onClick={revelar}>Mostrar dados</Button>
+                <p className="mt-1 text-xs text-muted-foreground">O acesso aos dados completos fica registrado na auditoria.</p>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
 
