@@ -4,6 +4,8 @@ import { Banner } from "../src/components/ui/banner";
 import { Button } from "../src/components/ui/button";
 import { CampoDeBusca } from "../src/components/ui/campo-de-busca";
 import { CampoSelecao, CampoTexto } from "../src/components/ui/campos";
+import { EditorTexto } from "../src/components/ui/editor-texto";
+import { textoSemTags } from "../src/utils/textoRico";
 import { Carregando } from "../src/components/ui/carregando";
 import { useConfirmacao } from "../src/components/ui/confirmacao";
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from "../src/components/ui/dialogo";
@@ -134,8 +136,8 @@ function KanbanCard({ item, onOpen, onDragStart, dragging, onOpenFiscalizacao })
           <p className="mb-1.5 text-xs font-bold [overflow-wrap:anywhere]">{item.protocol.criado_por.name}</p>
         ) : null}
         <p className="text-sm leading-tight font-extrabold [overflow-wrap:anywhere]">{item.titulo}</p>
-        <p className="mt-1.5 text-sm leading-snug text-muted-foreground [overflow-wrap:anywhere]">
-          {item.descricao || "Sem descrição"}
+        <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-muted-foreground [overflow-wrap:anywhere]">
+          {textoSemTags(item.descricao) || "Sem descrição"}
         </p>
       </div>
 
@@ -193,7 +195,7 @@ function TaskDialog({ open, onClose, onSave, onDelete, item, saving, initialStat
       <form onSubmit={handleSubmit} className="grid gap-4">
         <CampoSecretariaObrigatorio controle={secretaria} id="kb-secretaria" />
         <CampoTexto id="kb-titulo" label="Título" obrigatorio required value={form.titulo} onChange={campo("titulo")} />
-        <CampoTexto id="kb-descricao" label="Descrição" multiline rows={3} value={form.descricao} onChange={campo("descricao")} />
+        <EditorTexto id="kb-descricao" label="Descrição" value={form.descricao || ""} onChange={(html) => campo("descricao")({ target: { value: html } })} minAltura={120} />
         <div className="grid gap-4 sm:grid-cols-2">
           <CampoSelecao id="kb-status" label="Status" value={form.status} onChange={campo("status")}>
             {STATUS_OPTIONS.map((option) => (
@@ -337,7 +339,7 @@ function ProtocolDialog({ open, item, onClose, onChanged }) {
         <div className="flex flex-col gap-4">
           {message && <Banner tom="perigo">{message}</Banner>}
           <CampoTexto id="kbp-assunto" label="Assunto" value={form.assunto || ""} onChange={campo("assunto")} />
-          <CampoTexto id="kbp-descricao" label="Descrição" multiline rows={3} value={form.descricao || ""} onChange={campo("descricao")} />
+          <EditorTexto id="kbp-descricao" label="Descrição" value={form.descricao || ""} onChange={(html) => campo("descricao")({ target: { value: html } })} minAltura={120} />
           <div className="grid gap-4 md:grid-cols-6">
             <div className="md:col-span-2">
               <CampoSelecao id="kbp-tipo" label="Tipo" value={form.tipo || ""} onChange={campo("tipo")}>
@@ -465,7 +467,7 @@ export default function KanbanPage() {
     return items.filter((item) => {
       const matchesSearch =
         !term ||
-        [item.titulo, item.descricao, item.protocol?.numero, item.protocol?.assunto]
+        [item.titulo, textoSemTags(item.descricao), item.protocol?.numero, item.protocol?.assunto]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(term));
       const matchesPriority = !priorityFilter || String(item.prioridade || "").toLowerCase() === priorityFilter;

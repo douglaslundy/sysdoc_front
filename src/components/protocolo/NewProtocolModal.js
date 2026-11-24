@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useContext } from "react";
 import { Banner } from "../ui/banner";
 import { Button, buttonVariants } from "../ui/button";
 import { CampoSelecao, CampoTexto } from "../ui/campos";
+import { EditorTexto } from "../ui/editor-texto";
 import { Dialogo, DialogoCabecalho, DialogoRodape } from "../ui/dialogo";
 import { AuthContext } from "../../contexts/AuthContext";
 import { api } from "../../services/api";
@@ -317,7 +318,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
             </CampoSelecao>
           </div>
           <div className="md:col-span-12">
-            <CampoTexto id="protocolo-descricao" label="Descrição" name="descricao" multiline rows={4} value={protocolForm.descricao} onChange={mudar} />
+            <EditorTexto id="protocolo-descricao" label="Descrição" value={protocolForm.descricao || ""} onChange={(html) => setProtocolForm((prev) => ({ ...prev, descricao: html }))} minAltura={140} />
           </div>
           <div className="md:col-span-12">
             <label className={`${buttonVariants({ variant: "outline" })} cursor-pointer has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>

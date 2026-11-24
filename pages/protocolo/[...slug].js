@@ -13,6 +13,9 @@ import { CabecalhoDePagina } from "../../src/components/ui/cabecalho-de-pagina";
 import { CaixaDeMarcacao } from "../../src/components/ui/caixa-de-marcacao";
 import { CampoDeBusca } from "../../src/components/ui/campo-de-busca";
 import { CampoSelecao, CampoTexto } from "../../src/components/ui/campos";
+import { EditorTexto } from "../../src/components/ui/editor-texto";
+import { TextoFormatado } from "../../src/components/ui/texto-formatado";
+import { textoSemTags } from "../../src/utils/textoRico";
 import { Card, CardContent, CardHeader, CardTitle } from "../../src/components/ui/card";
 import { Carregando } from "../../src/components/ui/carregando";
 import { Dado } from "../../src/components/ui/dado";
@@ -1083,7 +1086,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <div className="flex flex-wrap justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="text-xl font-bold">{p.assunto || "Sem assunto"}</h2>
-                <p className="text-sm text-muted-foreground">{p.descricao || "Sem descrição"}</p>
+                {p.descricao ? <TextoFormatado valor={p.descricao} className="text-muted-foreground" /> : <p className="text-sm text-muted-foreground">Sem descrição</p>}
               </div>
               <div className="flex flex-wrap items-start gap-2">
                 <Pilula tom={tomDaCor(statusColor(p.status))}>{String(p.status || "—").replace(/_/g, " ")}</Pilula>
@@ -1152,7 +1155,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
           </DialogoCabecalho>
           <div className="flex flex-col gap-4">
             <CampoTexto id="edit-assunto" label="Assunto" value={editForm.assunto || ""} onChange={(e) => setEditForm((f) => ({ ...f, assunto: e.target.value }))} />
-            <CampoTexto id="edit-descricao" label="Descrição" multiline rows={3} value={editForm.descricao || ""} onChange={(e) => setEditForm((f) => ({ ...f, descricao: e.target.value }))} />
+            <EditorTexto id="edit-descricao" label="Descrição" value={editForm.descricao || ""} onChange={(html) => setEditForm((f) => ({ ...f, descricao: html }))} minAltura={140} />
             <CampoSelecao id="edit-tipo" label="Tipo" value={editForm.tipo || ""} onChange={(e) => setEditForm((f) => ({ ...f, tipo: e.target.value }))}>
               {editTypes.filter((t) => t.ativo !== false || t.codigo === editForm.tipo).map((t) => (
                 <option key={t.codigo} value={t.codigo}>{t.nome}</option>
@@ -1281,13 +1284,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             <CardHeader><CardTitle>Comentário</CardTitle></CardHeader>
             <CardContent>
               <form onSubmit={handleSubmitComment} className="flex flex-col gap-4">
-                <CampoTexto
+                <EditorTexto
                   id="com-texto"
                   label="Escreva um comentário"
-                  multiline
-                  rows={3}
                   value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
+                  onChange={setCommentText}
+                  minAltura={120}
                 />
                 <Interruptor id="com-privado" marcado={commentPrivate} aoMudar={setCommentPrivate}>
                   Comentário privado
@@ -1363,7 +1365,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
                       <span className="text-xs text-muted-foreground">{formatDateTime(comment.created_at)}</span>
                     </div>
                   </div>
-                  <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">{comment.conteudo}</p>
+                  <TextoFormatado valor={comment.conteudo} className="mt-1 text-muted-foreground" />
                 </div>
               )) : <p className="py-2 text-muted-foreground">Nenhum comentário registrado.</p>}
             </div>
@@ -1404,7 +1406,7 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               : null,
             destinationUnit ? `Destino: ${destinationUnit}` : null,
             destinationUser ? `Responsável: ${destinationUser}` : null,
-            item.observacao ? `Descrição: ${item.observacao}` : null,
+            item.observacao ? `Descrição: ${textoSemTags(item.observacao)}` : null,
           ].filter(Boolean).join("\n"),
           timestamp: item.created_at,
         };
