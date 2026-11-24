@@ -1,9 +1,11 @@
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { temHtml, textoSemTags } from '../../utils/textoRico';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const formatValue = (value) => (value === null || value === undefined ? '—' : String(value));
+// Textos do editor rico entram no PDF sem as tags.
+const formatValue = (value) => (value === null || value === undefined ? '—' : temHtml(value) ? textoSemTags(value) : String(value));
 
 export function auditoriaPDF(log) {
     const dataHora = new Date(log?.created_at ?? Date.now()).toLocaleString('pt-BR');

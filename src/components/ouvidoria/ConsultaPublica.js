@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { Banner } from '../ui/banner';
 import { Button } from '../ui/button';
 import { CampoTexto } from '../ui/campos';
+import { TextoFormatado } from '../ui/texto-formatado';
 import { consultarOuvidoria } from '../../services/ouvidoria';
 import { StatusOuvidoria } from './StatusOuvidoria';
 
@@ -59,7 +60,7 @@ export default function ConsultaPublica() {
                     {resultado.resposta ? (
                         <div className="rounded-lg bg-surface p-3">
                             <p className="mb-1 text-xs text-muted-foreground">Resposta{resultado.respondida_em ? ` em ${formatar(resultado.respondida_em)}` : ''}</p>
-                            <p className="whitespace-pre-wrap">{resultado.resposta}</p>
+                            <TextoFormatado valor={resultado.resposta} />
                         </div>
                     ) : (
                         <p className="text-muted-foreground">Ainda não há resposta. Volte a consultar mais tarde.</p>

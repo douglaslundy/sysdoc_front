@@ -4,6 +4,9 @@ import { Banner } from "../ui/banner";
 import { Button } from "../ui/button";
 import { CabecalhoDePagina } from "../ui/cabecalho-de-pagina";
 import { CampoSelecao, CampoTexto } from "../ui/campos";
+import { EditorTexto } from "../ui/editor-texto";
+import { TextoFormatado } from "../ui/texto-formatado";
+import { textoSemTags } from "../../utils/textoRico";
 import {
   baixarAnexoOuvidoria, comentarManifestacao, destinatariosOuvidoria, encaminharManifestacao,
   mudarStatusManifestacao, obterManifestacao, responderManifestacao, revelarDadosOuvidoria,
@@ -136,7 +139,7 @@ export default function DetalheOuvidoria({ id }) {
       {m.resposta ? (
         <section className="rounded-lg border border-input bg-surface p-4 text-sm">
           <h2 className="mb-2 font-semibold">Resposta oficial</h2>
-          <p className="whitespace-pre-wrap">{m.resposta}</p>
+          <TextoFormatado valor={m.resposta} />
           <p className="mt-2 text-xs text-muted-foreground">Respondida em {formatar(m.respondida_em)}</p>
         </section>
       ) : null}
@@ -146,8 +149,8 @@ export default function DetalheOuvidoria({ id }) {
           <h2 className="font-semibold">Ações</h2>
 
           <div className="flex flex-col gap-2">
-            <CampoTexto id="resposta" label="Resposta ao cidadão" multiline rows={5} maxLength={5000} value={resposta} onChange={(e) => setResposta(e.target.value)} />
-            <div><Button disabled={resposta.trim().length < 5} onClick={() => executar(() => responderManifestacao(m.id, resposta.trim()), "Resposta registrada.")}>Responder</Button></div>
+            <EditorTexto id="resposta" label="Resposta ao cidadão" maxLength={5000} value={resposta} onChange={setResposta} minAltura={160} />
+            <div><Button disabled={textoSemTags(resposta).length < 5 || textoSemTags(resposta).length > 5000} onClick={() => executar(() => responderManifestacao(m.id, resposta), "Resposta registrada.")}>Responder</Button></div>
           </div>
 
           <div className="flex flex-wrap items-end gap-2">
@@ -184,8 +187,8 @@ export default function DetalheOuvidoria({ id }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <CampoTexto id="comentario" label="Comentário interno (o cidadão não vê)" multiline rows={2} maxLength={2000} value={comentario} onChange={(e) => setComentario(e.target.value)} />
-            <div><Button variant="outline" disabled={comentario.trim().length < 2} onClick={() => executar(() => comentarManifestacao(m.id, comentario.trim()), "Comentário registrado.", () => setComentario(""))}>Comentar</Button></div>
+            <EditorTexto id="comentario" label="Comentário interno (o cidadão não vê)" maxLength={2000} value={comentario} onChange={setComentario} minAltura={100} />
+            <div><Button variant="outline" disabled={textoSemTags(comentario).length < 2 || textoSemTags(comentario).length > 2000} onClick={() => executar(() => comentarManifestacao(m.id, comentario), "Comentário registrado.", () => setComentario(""))}>Comentar</Button></div>
           </div>
         </section>
       ) : null}
@@ -206,7 +209,7 @@ export default function DetalheOuvidoria({ id }) {
               {h.status_para ? ` → ${h.status_para.replace("_", " ")}` : ""}
               {h.interno ? <span className="ml-1 text-xs text-muted-foreground">(interno)</span> : null}
               <span className="ml-1 text-xs text-muted-foreground">{formatar(h.created_at)}{h.user?.name ? ` · ${h.user.name}` : " · cidadão"}</span>
-              {h.observacao ? <p className="whitespace-pre-wrap text-muted-foreground">{h.observacao}</p> : null}
+              {h.observacao ? <TextoFormatado valor={h.observacao} className="text-muted-foreground" /> : null}
             </li>
           ))}
         </ul>
