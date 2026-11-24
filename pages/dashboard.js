@@ -13,6 +13,7 @@ import ChatDashboard from '../src/components/dashboard/ChatDashboard';
 import AlmoxarifadoDashboard from '../src/components/dashboard/AlmoxarifadoDashboard';
 import ArquivoDashboard from '../src/components/dashboard/ArquivoDashboard';
 import OsDashboard from '../src/components/dashboard/OsDashboard';
+import ProtocolosDashboard from '../src/components/dashboard/ProtocolosDashboard';
 import { AuthContext } from '../src/contexts/AuthContext';
 
 export default function DashboardPage() {
@@ -40,6 +41,7 @@ export default function DashboardPage() {
         { label: 'Almoxarifado',        permission: '/dashboard/almoxarifado', component: <AlmoxarifadoDashboard /> },
         { label: 'Arquivo',             permission: '/dashboard/arquivo',      component: <ArquivoDashboard /> },
         { label: 'OS',                  permission: '/dashboard/ordens-servico', component: <OsDashboard /> },
+        { label: 'Protocolos',          permission: '/dashboard/protocolos',   component: <ProtocolosDashboard /> },
     ];
 
     const abasVisiveis = useMemo(() => {

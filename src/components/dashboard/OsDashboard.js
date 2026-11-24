@@ -30,7 +30,7 @@ export function formatarDuracao(horas) {
   return `${dias} d ${Math.round(h - dias * 24)} h`;
 }
 
-function Distribuicao({ titulo, itens, rotulo }) {
+export function Distribuicao({ titulo, itens, rotulo }) {
   const maximo = Math.max(1, ...itens.map((item) => Number(item.total)));
   return (
     <Card>
