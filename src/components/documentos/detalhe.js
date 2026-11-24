@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Carregando } from '../ui/carregando';
 import { Gaveta } from '../ui/gaveta';
 import { Pilula } from '../ui/pilula';
+import { TextoFormatado } from '../ui/texto-formatado';
 
 const SIGILO_LABELS = {
   publico: 'Público',
@@ -209,7 +210,7 @@ export default function DocumentoDetalhe({ documentId = null, embedded = false, 
 
               <div>
                 <Rotulo>Resumo</Rotulo>
-                <p className="whitespace-pre-wrap text-base">{documento.resumo || 'Sem resumo informado.'}</p>
+                {documento.resumo ? <TextoFormatado valor={documento.resumo} className="text-base" /> : <p className="text-base">Sem resumo informado.</p>}
               </div>
 
               <div className="grid gap-1 text-sm text-muted-foreground">

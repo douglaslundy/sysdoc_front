@@ -7,6 +7,8 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { Carregando } from '../../ui/carregando';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { EditorTexto } from '../../ui/editor-texto';
+import { temHtml, textoParaHtml } from '../../../utils/textoRico';
 import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { getTextOpenAi, showLetter, editLetter, addLetter } from '../../../store/ducks/letters';
@@ -334,7 +336,7 @@ export default function LetterModal(props) {
     }, [letter]);
 
     useEffect(() => {
-        setForm((prev) => ({ ...prev, obs: textOpenAi }));
+        setForm((prev) => ({ ...prev, obs: textOpenAi && !temHtml(textOpenAi) ? textoParaHtml(textOpenAi) : textOpenAi }));
     }, [textOpenAi]);
 
     useEffect(() => {
@@ -391,7 +393,7 @@ export default function LetterModal(props) {
                         <CampoTexto id="recipient" label="Destinatário" name="recipient" value={recipient || ''} onChange={changeItem} obrigatorio maxLength={50} dica={restantes(recipient, 50)} className="uppercase" />
                         <CampoTexto id="subject_matter" label="Assunto" name="subject_matter" multiline rows={2} value={subject_matter || ''} onChange={changeItem} obrigatorio maxLength={100} dica={restantes(subject_matter, 100)} className="uppercase" />
                         <CampoTexto id="summary" label="Resumo" name="summary" multiline rows={2} value={summary || ''} onChange={changeItem} maxLength={500} dica={restantes(summary, 500)} className="uppercase" />
-                        <CampoTexto id="obs" label="Campo destinado a IA" name="obs" multiline rows={10} value={obs || ''} disabled readOnly dica={obs ? `O modelo gerado pela IA possui ${obs.length} caracteres` : undefined} />
+                        <EditorTexto id="obs" label="Texto do ofício" value={obs || ''} onChange={(html) => setForm((prev) => ({ ...prev, obs: html }))} maxLength={10000} minAltura={280} dica="A IA escreve o texto; você pode ajustar e formatar antes de salvar." />
                     </div>
 
                     <AnexosDoRegistro

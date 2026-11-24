@@ -15,6 +15,7 @@ import AlertModal from "../messagesModal";
 import { Button } from "../ui/button";
 import { PaginaDeLista } from "../ui/pagina-de-lista";
 import { usePaginacaoLocal } from "../../lib/usePaginacaoLocal";
+import { textoSemTags } from "../../utils/textoRico";
 
 const CAMPOS_DA_BUSCA = ['number', 'title', 'subject', 'summary', 'content', 'legal_basis', 'signatory_name'];
 
@@ -43,7 +44,7 @@ export default function Ordinances() {
         const termo = searchValue.toString().toLowerCase();
         const doAno = ordinances.filter(item => new Date(item.created_at).getFullYear() == year);
         setAllOrdinances(termo
-            ? doAno.filter(item => CAMPOS_DA_BUSCA.some(campo => item[campo] && item[campo].toString().toLowerCase().includes(termo)))
+            ? doAno.filter(item => CAMPOS_DA_BUSCA.some(campo => item[campo] && textoSemTags(item[campo].toString()).toLowerCase().includes(termo)))
             : doAno);
     }, [searchValue, ordinances, year]);
 

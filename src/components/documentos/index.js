@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '../ui/button';
 import { CabecalhoDePagina } from '../ui/cabecalho-de-pagina';
 import { CampoDeBusca } from '../ui/campo-de-busca';
 import { CampoSelecao, CampoTexto } from '../ui/campos';
+import { EditorTexto } from '../ui/editor-texto';
 import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../secretaria/CampoSecretariaObrigatorio';
 import { DataTable } from '../ui/data-table';
 import { Dialogo, DialogoCabecalho, DialogoRodape, DialogoTitulo } from '../ui/dialogo';
@@ -426,7 +427,7 @@ export default function Documentos() {
               <option key={value} value={value}>{label}</option>
             ))}
           </CampoSelecao>
-          <CampoTexto id="doc-resumo" label="Resumo" multiline rows={4} value={form.resumo} onChange={(e) => setForm((prev) => ({ ...prev, resumo: e.target.value }))} />
+          <EditorTexto id="doc-resumo" label="Resumo" value={form.resumo || ''} onChange={(html) => setForm((prev) => ({ ...prev, resumo: html }))} minAltura={140} />
           <CampoTexto
             id="doc-arquivo"
             label="Arquivo"

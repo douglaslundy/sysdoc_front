@@ -5,6 +5,7 @@ import { showOrdinance } from '../../../../store/ducks/ordinances';
 import { turnModalViewLetter } from '../../../../store/ducks/Layout';
 import { Button } from '../../../ui/button';
 import { Dado } from '../../../ui/dado';
+import { TextoFormatado } from '../../../ui/texto-formatado';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
 
 const VAZIO = {
@@ -41,7 +42,7 @@ export default function ViewOrdinanceModal(props) {
                     <Dado rotulo="Signatário">{item.signatory_name} {item.signatory_role ? `- ${item.signatory_role}` : ''}</Dado>
                     <Dado rotulo="Resumo">{item.summary}</Dado>
                     <Dado rotulo="Fundamentação Legal">{item.legal_basis}</Dado>
-                    <Dado rotulo="Conteúdo da Portaria"><span className="whitespace-pre-wrap">{item.content}</span></Dado>
+                    <Dado rotulo="Conteúdo da Portaria"><TextoFormatado valor={item.content} /></Dado>
                     <Dado rotulo="Data de Publicação">{item.publication_date || '---'}</Dado>
                     <Dado rotulo="Observações">{item.notes}</Dado>
                     <div className="text-right text-sm">

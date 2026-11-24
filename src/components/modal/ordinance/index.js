@@ -7,6 +7,8 @@ import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { Carregando } from '../../ui/carregando';
 import { CampoSelecao, CampoTexto } from '../../ui/campos';
+import { EditorTexto } from '../../ui/editor-texto';
+import { temHtml, textoParaHtml } from '../../../utils/textoRico';
 import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { getTextOpenAi, showOrdinance, editOrdinance } from '../../../store/ducks/ordinances';
@@ -187,7 +189,7 @@ export default function OrdinanceModal(props) {
     }, [ordinance]);
 
     useEffect(() => {
-        setForm(prev => ({ ...prev, content: textOpenAi }));
+        setForm(prev => ({ ...prev, content: textOpenAi && !temHtml(textOpenAi) ? textoParaHtml(textOpenAi) : textOpenAi }));
     }, [textOpenAi]);
 
     useEffect(() => {
@@ -245,7 +247,7 @@ export default function OrdinanceModal(props) {
                         <CampoTexto id="ordinance-summary" label="Resumo" multiline rows={4} name="summary" value={summary || ''} onChange={changeItem} maxLength={1000} dica={restantes(summary, 1000)} />
                         <CampoTexto id="ordinance-legal" label="Fundamentação Legal" multiline rows={3} name="legal_basis" value={legal_basis || ''} onChange={changeItem} />
                         <CampoTexto id="ordinance-ai" label="Instruções adicionais para IA" multiline rows={2} name="additional_instructions" value={additional_instructions || ''} onChange={changeItem} />
-                        <CampoTexto id="ordinance-content" label="Conteúdo da portaria" multiline rows={12} name="content" value={content || ''} onChange={changeItem} dica={content ? `O modelo gerado possui ${content.length} caracteres` : undefined} />
+                        <EditorTexto id="ordinance-content" label="Conteúdo da portaria" value={content || ''} onChange={(html) => setForm((prev) => ({ ...prev, content: html }))} maxLength={60000} minAltura={320} />
                         <CampoTexto id="ordinance-notes" label="Observações" multiline rows={3} name="notes" value={notes || ''} onChange={changeItem} />
                     </div>
 

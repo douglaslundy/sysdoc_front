@@ -5,6 +5,7 @@ import { showLetter } from '../../../../store/ducks/letters';
 import { turnModalViewLetter } from '../../../../store/ducks/Layout';
 import { Button } from '../../../ui/button';
 import { Dado } from '../../../ui/dado';
+import { TextoFormatado } from '../../../ui/texto-formatado';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../../ui/dialogo';
 
 const VAZIO = { sender: '', recipient: '', subject_matter: '', obs: '', summary: '', created_at: '' };
@@ -37,7 +38,7 @@ export default function ViewLetterModal(props) {
                     <Dado rotulo="Destinatário"><span className="uppercase">{recipient}</span></Dado>
                     <Dado rotulo="Assunto"><span className="uppercase">{subject_matter}</span></Dado>
                     <Dado rotulo="Resumo"><span className="uppercase">{summary}</span></Dado>
-                    <Dado rotulo="Modelo Criado com Inteligência Artificial"><span className="whitespace-pre-wrap">{obs}</span></Dado>
+                    <Dado rotulo="Texto do ofício"><TextoFormatado valor={obs} /></Dado>
                     <div className="text-right text-sm">
                         <p className="font-semibold">{letter && letter.user && letter.user.name}</p>
                         <p>{created_at && format(parseISO(created_at), 'dd/MM/yyyy HH:mm:ss')}</p>
