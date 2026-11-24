@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import AuthCard from '../../src/components/auth/AuthCard';
+import OuvidoriaLayout from '../../src/components/ouvidoria/OuvidoriaLayout';
 import FormularioPublico from '../../src/components/ouvidoria/FormularioPublico';
 
 const DESTAQUE = {
@@ -15,8 +15,8 @@ const DESTAQUE = {
 
 export default function OuvidoriaPublica() {
     return (
-        <AuthCard
-            titulo="Ouvidoria"
+        <OuvidoriaLayout
+            titulo="Nova manifestação"
             descricao="Registre sua manifestação."
             destaque={DESTAQUE}
             rodape={
@@ -26,6 +26,6 @@ export default function OuvidoriaPublica() {
             }
         >
             <FormularioPublico />
-        </AuthCard>
+        </OuvidoriaLayout>
     );
 }

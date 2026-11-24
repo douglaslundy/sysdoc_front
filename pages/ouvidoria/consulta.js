@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import AuthCard from '../../src/components/auth/AuthCard';
+import OuvidoriaLayout from '../../src/components/ouvidoria/OuvidoriaLayout';
 import ConsultaPublica from '../../src/components/ouvidoria/ConsultaPublica';
 
 const DESTAQUE = {
@@ -11,7 +11,7 @@ const DESTAQUE = {
 
 export default function ConsultaOuvidoria() {
     return (
-        <AuthCard
+        <OuvidoriaLayout
             titulo="Consultar manifestação"
             descricao="Protocolo e senha."
             destaque={DESTAQUE}
@@ -22,6 +22,6 @@ export default function ConsultaOuvidoria() {
             }
         >
             <ConsultaPublica />
-        </AuthCard>
+        </OuvidoriaLayout>
     );
 }
