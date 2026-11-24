@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { Plus, Trash2 } from "lucide-react";
+import { AuthContext } from "../../contexts/AuthContext";
 import { Banner } from "../ui/banner";
 import { Button } from "../ui/button";
 import { CabecalhoDePagina } from "../ui/cabecalho-de-pagina";
@@ -18,6 +20,20 @@ const msgErro = (e, padrao) => e?.response?.data?.message || padrao;
 
 /** Tela do admin: textos, itens e logo do portal público da ouvidoria. */
 export default function ConfigPortal() {
+  const { profile } = useContext(AuthContext) || {};
+  const naoAdmin = Boolean(profile) && profile !== "admin";
+  const router = useRouter();
+
+  useEffect(() => {
+    // Só o admin edita (a API responde 403): quem não é volta para a caixa da ouvidoria.
+    if (naoAdmin) router.replace("/sistema/ouvidoria");
+  }, [naoAdmin, router]);
+
+  if (naoAdmin) return null;
+  return <FormConfigPortal />;
+}
+
+function FormConfigPortal() {
   const [form, setForm] = useState(null);
   const [logoUrl, setLogoUrl] = useState(null);
   const [msg, setMsg] = useState(null);
