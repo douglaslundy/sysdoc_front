@@ -15,6 +15,7 @@ const montarForm = (campos = {}, anexos = []) => {
 };
 
 // ---- portal público ----
+export const buscarConfigPortal = () => api.get("/public/ouvidoria/config", PUBLICA).then(corpo);
 export const opcoesOuvidoria = () => api.get("/public/ouvidoria/opcoes", PUBLICA).then(corpo);
 export const registrarOuvidoria = (dados, anexos = []) =>
   api.post("/public/ouvidoria", montarForm(dados, anexos), { ...PUBLICA, ...UPLOAD }).then(corpo);

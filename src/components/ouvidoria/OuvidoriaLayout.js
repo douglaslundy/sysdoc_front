@@ -2,15 +2,29 @@ import React, { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { buscarConfigPortal } from "../../services/ouvidoria";
+import { CONFIG_PADRAO } from "./configPadrao";
 
 /**
  * Moldura das páginas públicas da ouvidoria: cabeçalho com a marca e o botão de tema,
  * formulário centralizado e largura que se adapta do celular ao computador.
+ * Marca, títulos e itens vêm da configuração do admin (secao = "registrar" | "consultar").
  * Sempre abre no tema escuro. A troca vale só aqui: não grava a preferência do sistema
  * e devolve o tema anterior ao sair da página.
  */
-export default function OuvidoriaLayout({ titulo, descricao, destaque, children, rodape }) {
+export default function OuvidoriaLayout({ secao, titulo, descricao, children, rodape }) {
   const [modo, setModo] = useState("dark");
+  const [config, setConfig] = useState(CONFIG_PADRAO);
+
+  useEffect(() => {
+    let ativo = true;
+    buscarConfigPortal()
+      .then((dados) => { if (ativo && dados?.[secao]) setConfig(dados); })
+      .catch(() => {});
+    return () => { ativo = false; };
+  }, [secao]);
+
+  const destaque = config[secao];
 
   useEffect(() => {
     const anterior = document.documentElement.getAttribute("data-theme");
@@ -29,8 +43,12 @@ export default function OuvidoriaLayout({ titulo, descricao, destaque, children,
     <main className="ui-raiz flex min-h-dvh flex-col bg-background font-sans text-foreground">
       <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2.5">
-          <span className="flex size-[30px] items-center justify-center rounded-[7px] bg-primary font-display text-[13px] font-extrabold text-primary-foreground">DL</span>
-          <span className="font-display text-base font-extrabold tracking-[0.03em]">DL Sistemas</span>
+          {config.logo_url ? (
+            <img src={config.logo_url} alt={config.nome_marca} className="h-[30px] w-auto max-w-[120px] object-contain" />
+          ) : (
+            <span className="flex size-[30px] items-center justify-center rounded-[7px] bg-primary font-display text-[13px] font-extrabold text-primary-foreground">DL</span>
+          )}
+          <span className="font-display text-base font-extrabold tracking-[0.03em]">{config.nome_marca}</span>
         </div>
         <Button
           variant="outline"
@@ -48,10 +66,10 @@ export default function OuvidoriaLayout({ titulo, descricao, destaque, children,
           <section className="w-full max-w-xl text-center">
             <h1 className="font-display text-2xl font-extrabold sm:text-3xl">{destaque.titulo}</h1>
             {destaque.texto ? <p className="mt-2 text-sm text-muted-foreground sm:text-base">{destaque.texto}</p> : null}
-            {destaque.beneficios?.length ? (
+            {destaque.itens?.length ? (
               <ul className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-5">
-                {destaque.beneficios.map((item) => (
-                  <li key={item} className="flex gap-2">
+                {destaque.itens.map((item, i) => (
+                  <li key={`${i}-${item}`} className="flex gap-2">
                     <span aria-hidden className="text-primary-text">✓</span>
                     {item}
                   </li>
