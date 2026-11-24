@@ -37,8 +37,9 @@ export function htmlVazio(html) {
   return !textoSemTags(html) && !/<img\b/i.test(String(html || ''));
 }
 
-const TAGS = ['p', 'br', 'strong', 'em', 'u', 's', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'span'];
-const CSS = ['font-size', 'text-align', 'color'];
+// h1 e background-color só na exibição: existem em avisos antigos do Quill (o back não grava mais).
+const TAGS = ['p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'span'];
+const CSS = ['font-size', 'text-align', 'color', 'background-color'];
 const URL_OK = /^(https?:|mailto:)/i;
 
 export const PERMITIDOS = {

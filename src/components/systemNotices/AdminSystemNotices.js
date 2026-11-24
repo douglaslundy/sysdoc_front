@@ -3,8 +3,8 @@ import { Eye, Image as ImagemIcone, Save } from 'lucide-react';
 import ConfirmDialog from '../confirmDialog';
 import { AuthContext } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
-import NoticeRichTextEditor from './NoticeRichTextEditor';
 import NoticeModal from './NoticeModal';
+import { EditorTexto } from '../ui/editor-texto';
 import { Banner } from '../ui/banner';
 import { Button, buttonVariants } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -168,13 +168,14 @@ export default function AdminSystemNotices() {
           <form onSubmit={submit} className="grid gap-4">
             <CampoTexto id="aviso-titulo" name="title" label="Título" value={form.title} onChange={change} required obrigatorio />
             <CampoTexto id="aviso-subtitulo" name="subtitle" label="Subtítulo" value={form.subtitle} onChange={change} />
-            <div>
-              <p className="mb-2 text-sm font-semibold">Texto do aviso</p>
-              <NoticeRichTextEditor
-                value={form.body}
-                onChange={(content) => setForm((current) => ({ ...current, body: content }))}
-              />
-            </div>
+            <EditorTexto
+              id="aviso-texto"
+              label="Texto do aviso"
+              obrigatorio
+              placeholder="Digite e formate o conteúdo do aviso..."
+              value={form.body}
+              onChange={(content) => setForm((current) => ({ ...current, body: content }))}
+            />
             <label className={`${buttonVariants({ variant: 'outline' })} cursor-pointer self-start has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-primary/25`}>
               <ImagemIcone /> Inserir imagem
               <input type="file" accept="image/*" className="sr-only" onChange={handleImage} />

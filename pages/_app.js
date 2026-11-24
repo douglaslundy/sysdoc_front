@@ -6,7 +6,6 @@ import FullLayout from "../src/layouts/FullLayout";
 import "../styles/crm-tokens.css";
 import "../styles/style.css";
 import "leaflet/dist/leaflet.css";
-import "react-quill/dist/quill.snow.css";
 import { Provider } from "react-redux";
 import store from "../src/store";
 import Messages from "../src/components/messages";
