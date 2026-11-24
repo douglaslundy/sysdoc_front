@@ -22,6 +22,16 @@ export const registrarOuvidoria = (dados, anexos = []) =>
 export const consultarOuvidoria = (protocolo, senha) =>
   api.post("/public/ouvidoria/consulta", { protocolo, senha }, PUBLICA).then(corpo);
 
+// ---- configuração do portal (só admin) ----
+export const buscarConfigAdmin = () => api.get("/admin/ouvidoria/config").then(corpo);
+export const salvarConfig = (dados) => api.put("/admin/ouvidoria/config", dados).then(corpo);
+export const enviarLogo = (arquivo) => {
+  const form = new FormData();
+  form.append("logo", arquivo);
+  return api.post("/admin/ouvidoria/config/logo", form, UPLOAD).then(corpo);
+};
+export const removerLogo = () => api.delete("/admin/ouvidoria/config/logo").then(corpo);
+
 // ---- área interna ----
 export const listarManifestacoes = (params) => api.get("/ouvidoria", { params }).then(corpo);
 export const obterManifestacao = (id) => api.get(`/ouvidoria/${id}`).then(corpo);

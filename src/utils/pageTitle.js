@@ -28,6 +28,7 @@ const TITLE_OVERRIDES = {
   "/sistema/mensagens-enviadas": "Mensagens enviadas",
   "/sistema/ips-banidos": "IPs banidos",
   "/sistema/painel-publico": "Painel público",
+  "/sistema/ouvidoria/configuracao": "Configuração do portal",
   "/sistema/atalhos": "Atalhos do dashboard",
   "/sistema/documentacao-api": "Documentação da API",
   "/painel-publico": "Painel público",
