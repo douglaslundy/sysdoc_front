@@ -87,6 +87,7 @@ export default function Perfis() {
     // A lista de filas é longa: começa oculta e o botão alterna.
     const [mostrarFilas, setMostrarFilas] = useState(false);
     const [mostrarDestinos, setMostrarDestinos] = useState(false);
+    const [mostrarPaginas, setMostrarPaginas] = useState(false);
     const [unidades, setUnidades] = useState([]);
 
     const alternarFila = (specialityId, campo) => setFilas((atual) => atual.map((item) => {
@@ -426,8 +427,13 @@ export default function Perfis() {
                         </div>
                     ) : null}
 
-                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Páginas com Acesso</h3>
-                    <div className="grid gap-4">
+                    <div className="mb-3 mt-6 flex items-center justify-between gap-3">
+                        <h3 className="font-display text-base font-bold">Páginas com Acesso</h3>
+                        <Button type="button" size="sm" variant="outline" aria-expanded={mostrarPaginas} onClick={() => setMostrarPaginas((v) => !v)}>
+                            {mostrarPaginas ? 'Ocultar páginas' : 'Mostrar páginas'}
+                        </Button>
+                    </div>
+                    <div className={mostrarPaginas ? 'grid gap-4' : 'hidden'}>
                         {Object.entries(categorias).map(([categoria, catPages]) => (
                             <fieldset key={categoria} className="min-w-0 border-0 p-0">
                                 <legend className="mb-2 text-sm font-semibold text-primary-text">{categoria}</legend>
