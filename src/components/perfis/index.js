@@ -77,6 +77,8 @@ export default function Perfis() {
     // Acesso às filas por especialidade (definido no perfil; admin sempre acessa tudo).
     const [filas, setFilas] = useState([]);
     const [filasCarregadas, setFilasCarregadas] = useState(false);
+    // A lista de filas é longa: começa oculta e o botão alterna.
+    const [mostrarFilas, setMostrarFilas] = useState(false);
 
     const alternarFila = (specialityId, campo) => setFilas((atual) => atual.map((item) => {
         if (item.speciality_id !== specialityId) return item;
@@ -314,8 +316,13 @@ export default function Perfis() {
                         </Interruptor>
                     </div>
 
-                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Filas por especialidade</h3>
-                    {!editId ? (
+                    <div className="mb-3 mt-6 flex items-center justify-between gap-3">
+                        <h3 className="font-display text-base font-bold">Filas por especialidade</h3>
+                        <Button type="button" size="sm" variant="outline" aria-expanded={mostrarFilas} onClick={() => setMostrarFilas((v) => !v)}>
+                            {mostrarFilas ? 'Ocultar filas' : 'Mostrar filas'}
+                        </Button>
+                    </div>
+                    {!mostrarFilas ? null : !editId ? (
                         <p className="text-sm text-muted-foreground">Grave o perfil primeiro; depois edite-o para definir o acesso às filas.</p>
                     ) : form.slug === 'admin' ? (
                         <p className="text-sm text-muted-foreground">O administrador acessa todas as filas.</p>
