@@ -31,8 +31,13 @@ const FORM_INICIAL = {
     protocol_allowed_statuses: null,
     protocol_allowed_visibilities: null,
     protocol_can_change_visibility: false,
+    // Unidades para onde o perfil pode enviar protocolo (cada uma vale com as subunidades); vazio = qualquer destino.
+    protocol_destino_unit_ids: [],
     page_ids: [],
 };
+
+/** Árvore de unidades achatada com o nível, para listar com recuo. */
+const achatarUnidades = (nos, nivel = 0) => (Array.isArray(nos) ? nos : []).flatMap((n) => [{ ...n, nivel }, ...achatarUnidades(n.children, nivel + 1)]);
 
 const STATUS_PROTOCOLO = [
     ['novo', 'Novo'], ['recebido', 'Recebido'], ['encaminhado', 'Encaminhado'],
@@ -79,6 +84,8 @@ export default function Perfis() {
     const [filasCarregadas, setFilasCarregadas] = useState(false);
     // A lista de filas é longa: começa oculta e o botão alterna.
     const [mostrarFilas, setMostrarFilas] = useState(false);
+    const [mostrarDestinos, setMostrarDestinos] = useState(false);
+    const [unidades, setUnidades] = useState([]);
 
     const alternarFila = (specialityId, campo) => setFilas((atual) => atual.map((item) => {
         if (item.speciality_id !== specialityId) return item;
@@ -101,6 +108,10 @@ export default function Perfis() {
     useEffect(() => {
         api.get('/protocolos/tipos')
             .then(({ data }) => setTiposProtocolo((Array.isArray(data) ? data : []).filter((t) => t.ativo !== false)))
+            .catch(() => {});
+        // Todas as secretarias: o perfil pode liberar destino em outra secretaria.
+        api.get('/protocolos/unidades-organizacionais', { params: { todas: 1 } })
+            .then(({ data }) => setUnidades(achatarUnidades(data)))
             .catch(() => {});
     }, []);
 
@@ -157,6 +168,7 @@ export default function Perfis() {
             protocol_allowed_statuses: Array.isArray(profile.protocol_allowed_statuses) ? profile.protocol_allowed_statuses : null,
             protocol_allowed_visibilities: Array.isArray(profile.protocol_allowed_visibilities) ? profile.protocol_allowed_visibilities : null,
             protocol_can_change_visibility: Boolean(profile.protocol_can_change_visibility),
+            protocol_destino_unit_ids: Array.isArray(profile.protocol_destino_unit_ids) ? profile.protocol_destino_unit_ids : [],
             page_ids: profile.pages?.map((p) => p.id) || [],
         });
         setOpenModal(true);
@@ -371,6 +383,38 @@ export default function Perfis() {
                             </table>
                         </div>
                     )}
+
+                    <div className="mb-3 mt-6 flex items-center justify-between gap-3">
+                        <h3 className="font-display text-base font-bold">Protocolos: destinos permitidos</h3>
+                        <Button type="button" size="sm" variant="outline" aria-expanded={mostrarDestinos} onClick={() => setMostrarDestinos((v) => !v)}>
+                            {mostrarDestinos ? 'Ocultar destinos' : 'Mostrar destinos'}
+                        </Button>
+                    </div>
+                    {mostrarDestinos ? (
+                        <div className="grid gap-1">
+                            <p className="mb-1 text-sm text-muted-foreground">
+                                Marque a secretaria, o departamento ou o subdepartamento para onde este perfil pode enviar protocolo; cada item vale com tudo o que está abaixo dele. Nenhum marcado: pode enviar para qualquer destino.
+                            </p>
+                            {unidades.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">Nenhuma unidade cadastrada.</p>
+                            ) : unidades.map((u) => (
+                                <div key={u.id} style={{ paddingLeft: `${u.nivel * 1.25}rem` }}>
+                                    <CaixaDeMarcacao
+                                        id={`perfil-destino-${u.id}`}
+                                        marcado={form.protocol_destino_unit_ids.includes(u.id)}
+                                        aoMudar={(marcado) => setForm((f) => ({
+                                            ...f,
+                                            protocol_destino_unit_ids: marcado
+                                                ? [...f.protocol_destino_unit_ids, u.id]
+                                                : f.protocol_destino_unit_ids.filter((id) => id !== u.id),
+                                        }))}
+                                    >
+                                        {u.nome}
+                                    </CaixaDeMarcacao>
+                                </div>
+                            ))}
+                        </div>
+                    ) : null}
 
                     <h3 className="mb-3 mt-6 font-display text-base font-bold">Páginas com Acesso</h3>
                     <div className="grid gap-4">

@@ -350,6 +350,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
   const [protocols, setProtocols] = useState([]);
   const [protocolDetail, setProtocolDetail] = useState(null);
   const [units, setUnits] = useState([]);
+  // Destinos do encaminhar, filtrados pelo perfil (permitido === false = só caminho).
+  const [forwardUnits, setForwardUnits] = useState([]);
+  const forwardUnitOptions = useMemo(() => flattenUnits(forwardUnits).filter((unit) => unit.ativo !== false), [forwardUnits]);
   const [showInactiveUnits, setShowInactiveUnits] = useState(false);
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -491,6 +494,9 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
         setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
         if (mode === "detail" && protocolId) {
+          api.get("/protocolos/unidades-organizacionais", { params: { destinos: 1 } })
+            .then(({ data }) => setForwardUnits(Array.isArray(data) ? data : []))
+            .catch(() => setForwardUnits([]));
           await loadDetail(protocolId);
         }
       } else if (mode === "alertas") {
@@ -1203,8 +1209,8 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
               onChange={(e) => setDetailForwardUnit(e.target.value)}
             >
               <option value="">Selecione</option>
-              {unitOptions.map((unit) => (
-                <option key={unit.id} value={String(unit.id)}>
+              {forwardUnitOptions.map((unit) => (
+                <option key={unit.id} value={String(unit.id)} disabled={unit.permitido === false}>
                   {`${"  ".repeat(unit.level)}${unit.nome}`}
                 </option>
               ))}

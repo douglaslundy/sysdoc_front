@@ -68,6 +68,8 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [units, setUnits] = useState([]);
+  // Destino vem filtrado pelo perfil (destinos=1): nós com permitido === false só montam o caminho.
+  const [destinoUnits, setDestinoUnits] = useState([]);
   const [destinationUsers, setDestinationUsers] = useState([]);
   const [protocolTypes, setProtocolTypes] = useState([]);
   const [creationContext, setCreationContext] = useState(null);
@@ -81,6 +83,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
     () => unitOptions.filter((unit) => unit.ativo !== false),
     [unitOptions]
   );
+  const destinoOptions = useMemo(() => flattenUnits(destinoUnits).filter((unit) => unit.ativo !== false), [destinoUnits]);
   const protocolTypeOptions = useMemo(() => {
     const activeTypes = protocolTypes.filter((type) => type?.ativo !== false);
     const base = activeTypes.length > 0 ? activeTypes : protocolTypeFallbackOptions;
@@ -105,9 +108,11 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
       api.get("/protocolos/unidades-organizacionais"),
       api.get("/protocolos/tipos"),
       api.get("/protocolos/contexto-novo"),
+      api.get("/protocolos/unidades-organizacionais", { params: { destinos: 1 } }),
     ])
-      .then(([unitsRes, typesRes, contextRes]) => {
+      .then(([unitsRes, typesRes, contextRes, destinosRes]) => {
         setUnits(Array.isArray(unitsRes.data) ? unitsRes.data : []);
+        setDestinoUnits(Array.isArray(destinosRes?.data) ? destinosRes.data : []);
         setProtocolTypes(Array.isArray(typesRes?.data) ? typesRes.data : []);
         setCreationContext(contextRes?.data || null);
         const ctx = contextRes?.data || {};
@@ -220,7 +225,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
 
   const mudar = ({ target: { name, value } }) => setProtocolForm((prev) => ({ ...prev, [name]: value }));
   const opcaoDeUnidade = (unit) => (
-    <option key={unit.id} value={String(unit.id)}>{`${"— ".repeat(unit.level)}${unit.nome}`}</option>
+    <option key={unit.id} value={String(unit.id)} disabled={unit.permitido === false}>{`${"— ".repeat(unit.level)}${unit.nome}`}</option>
   );
 
   return (
@@ -296,7 +301,7 @@ export default function NewProtocolModal({ open, onClose, onCreated }) {
           <div className="md:col-span-4">
             <CampoSelecao id="protocolo-destino" label="Destino" name="destino_unit_id" value={protocolForm.destino_unit_id} onChange={mudar} required obrigatorio>
               <option value="">Selecione o destino</option>
-              {secretariatOptions.map(opcaoDeUnidade)}
+              {destinoOptions.map(opcaoDeUnidade)}
             </CampoSelecao>
           </div>
           <div className="md:col-span-4">
