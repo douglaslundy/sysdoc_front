@@ -7,11 +7,12 @@ import AlertModal from '../../messagesModal';
 import { Banner } from '../../ui/banner';
 import { Button } from '../../ui/button';
 import { Campo, Input } from '../../ui/campos';
+import { CaixaDeMarcacao } from '../../ui/caixa-de-marcacao';
 import { Dialogo, DialogoCabecalho, DialogoRodape } from '../../ui/dialogo';
 import { Interruptor } from '../../ui/interruptor';
 import CampoSecretariaObrigatorio, { useSecretariaObrigatoria } from '../../secretaria/CampoSecretariaObrigatorio';
 
-const FORM_VAZIO = { name: "", allows_session_scheduling: false };
+const FORM_VAZIO = { name: "", allows_session_scheduling: false, liberar_perfis_fila: false };
 
 export default function SpecialityModal(props) {
     const [form, setForm] = useState(FORM_VAZIO);
@@ -82,6 +83,12 @@ export default function SpecialityModal(props) {
                     <Interruptor id="especialidade-sessoes" marcado={allows_session_scheduling} aoMudar={(v) => setForm(atual => ({ ...atual, allows_session_scheduling: v }))}>
                         Permite agendamento por sessões (ex: Fisioterapia)
                     </Interruptor>
+                    <CaixaDeMarcacao id="especialidade-liberar-perfis" marcado={Boolean(form.liberar_perfis_fila)} aoMudar={(v) => setForm(atual => ({ ...atual, liberar_perfis_fila: v }))}>
+                        Liberar para todos os perfis com acesso às filas (ver, editar e inserir paciente)
+                    </CaixaDeMarcacao>
+                    {editando && speciality.liberar_perfis_fila && !form.liberar_perfis_fila ? (
+                        <Banner tom="alerta">Ao gravar, esta especialidade será removida de todos os perfis. Depois habilite nos perfis que quiser.</Banner>
+                    ) : null}
                     <DialogoRodape>
                         <Button type="button" variant="outline" onClick={cleanForm}>Cancelar</Button>
                         <Button type="submit">Gravar</Button>

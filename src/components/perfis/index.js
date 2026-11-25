@@ -82,6 +82,8 @@ export default function Perfis() {
     // Acesso às filas por especialidade (definido no perfil; admin sempre acessa tudo).
     const [filas, setFilas] = useState([]);
     const [filasCarregadas, setFilasCarregadas] = useState(false);
+    // Lista de filas só é gravada se o perfil já tinha Filas ao abrir: senão sobrescreveria a liberação automática.
+    const [tinhaFila, setTinhaFila] = useState(false);
     // A lista de filas é longa: começa oculta e o botão alterna.
     const [mostrarFilas, setMostrarFilas] = useState(false);
     const [mostrarDestinos, setMostrarDestinos] = useState(false);
@@ -144,6 +146,7 @@ export default function Perfis() {
 
     const handleEditar = (profile) => {
         setEditId(profile.id);
+        setTinhaFila(Boolean(profile.pages?.some((p) => p.path === '/queue')));
         setFilas([]);
         setFilasCarregadas(false);
         if (profile.slug !== 'admin') {
@@ -185,7 +188,7 @@ export default function Perfis() {
 
     const handleSave = () => {
         const aoConcluir = async () => {
-            if (editId && filasCarregadas) {
+            if (editId && filasCarregadas && tinhaFila && temFila) {
                 await api.put(`/access-profiles/${editId}/speciality-permissions`, {
                     permissions: filas.map((f) => ({ speciality_id: f.speciality_id, can_view: f.can_view, can_edit: f.can_edit, can_insert: f.can_insert })),
                 }).catch(() => {});
@@ -201,6 +204,9 @@ export default function Perfis() {
     };
 
     const categorias = agruparPorCategoria(pages, pageCategoryById);
+    // Só perfil com a página de Filas tem acesso às filas por especialidade.
+    const paginaFilaId = pages.find((p) => p.path === '/queue')?.id;
+    const temFila = paginaFilaId != null && form.page_ids.includes(paginaFilaId);
     const termo = busca.toLowerCase();
     const perfisFiltrados = profiles.filter((profile) =>
         profile.nome?.toLowerCase().includes(termo) ||
@@ -338,6 +344,10 @@ export default function Perfis() {
                         <p className="text-sm text-muted-foreground">Grave o perfil primeiro; depois edite-o para definir o acesso às filas.</p>
                     ) : form.slug === 'admin' ? (
                         <p className="text-sm text-muted-foreground">O administrador acessa todas as filas.</p>
+                    ) : !temFila ? (
+                        <p className="text-sm text-muted-foreground">Este perfil não tem acesso à página de Filas.</p>
+                    ) : !tinhaFila ? (
+                        <p className="text-sm text-muted-foreground">Grave o perfil com a página de Filas; depois edite-o para ajustar as especialidades.</p>
                     ) : !filasCarregadas ? (
                         <p className="text-sm text-muted-foreground">Carregando especialidades...</p>
                     ) : filas.length === 0 ? (
