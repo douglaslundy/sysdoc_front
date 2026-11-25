@@ -9,7 +9,7 @@ import { FormularioModal } from "../../ui/formulario-modal";
 
 const VAZIO = {
   secretaria_id: "", tipo_servico_id: "", tecnico_id: "", local: "", endereco: "", descricao: "", problema: "",
-  prioridade: "normal", prazo: "", contato_nome: "", contato_telefone: "",
+  prioridade: "normal", prazo_dias: "", contato_nome: "", contato_telefone: "",
 };
 
 /** Abertura de OS: escolhe a secretaria destino, o tipo (da secretaria) e, se permitido, o técnico. */
@@ -47,7 +47,7 @@ export default function OsDialog({ open, onClose, onSuccess }) {
     { name: "tipo_servico_id", label: "Tipo de serviço", required: true, options: tipos.map((t) => ({ value: t.id, label: t.nome })), disabled: !form.secretaria_id, span: 6 },
     ...(tecnicos.permitido ? [{ name: "tecnico_id", label: "Técnico (opcional)", options: tecnicos.tecnicos.map((t) => ({ value: t.id, label: t.name })), vazio: "Deixar para a secretaria", span: 6, dica: tecnicos.tecnicos.length === 0 ? "Nenhum técnico disponível: o usuário precisa ter o perfil Técnico (principal ou adicional), estar ativo e vinculado à secretaria desta OS." : undefined }] : []),
     { name: "prioridade", label: "Prioridade", options: PRIORIDADES, span: tecnicos.permitido ? 3 : 6 },
-    { name: "prazo", label: "Prazo", type: "date", span: tecnicos.permitido ? 3 : 6 },
+    { name: "prazo_dias", label: "Prazo (dias)", type: "number", span: tecnicos.permitido ? 3 : 6, dica: "Dias corridos a partir de hoje. Em branco: 10 dias." },
     { name: "local", label: "Local", required: true, max: 160 },
     { name: "endereco", label: "Endereço", max: 255 },
     { name: "descricao", label: "O que deve ser feito", required: true, rows: 3, max: 5000 },
