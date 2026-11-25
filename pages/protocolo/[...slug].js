@@ -1186,8 +1186,12 @@ export default function ProtocoloPage({ forcedMode = null } = {}) {
             </CampoSelecao>
             <CampoSelecao id="edit-destino" label="Destino" value={editForm.destino_unit_id || ""} onChange={(e) => setEditForm((f) => ({ ...f, destino_unit_id: e.target.value }))}>
               <option value="">Selecione</option>
-              {unitOptions.map((unit) => (
-                <option key={unit.id} value={String(unit.id)}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>
+              {/* Destinos permitidos pelo perfil; o destino atual continua visível mesmo se estiver fora deles. */}
+              {[
+                ...unitOptions.filter((unit) => String(unit.id) === String(editForm.destino_unit_id) && !forwardUnitOptions.some((u) => u.id === unit.id)),
+                ...forwardUnitOptions,
+              ].map((unit) => (
+                <option key={unit.id} value={String(unit.id)} disabled={unit.permitido === false}>{`${"  ".repeat(unit.level)}${unit.nome}`}</option>
               ))}
             </CampoSelecao>
           </div>
