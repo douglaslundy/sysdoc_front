@@ -88,6 +88,8 @@ export default function Perfis() {
     const [mostrarFilas, setMostrarFilas] = useState(false);
     const [mostrarDestinos, setMostrarDestinos] = useState(false);
     const [mostrarPaginas, setMostrarPaginas] = useState(false);
+    const [mostrarOperacionais, setMostrarOperacionais] = useState(false);
+    const [mostrarCadastroProtocolo, setMostrarCadastroProtocolo] = useState(false);
     const [unidades, setUnidades] = useState([]);
 
     const alternarFila = (specialityId, campo) => setFilas((atual) => atual.map((item) => {
@@ -279,15 +281,25 @@ export default function Perfis() {
                         </div>
                     </div>
 
-                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Permissões operacionais</h3>
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="mb-3 mt-6 flex items-center justify-between gap-3">
+                        <h3 className="font-display text-base font-bold">Permissões operacionais</h3>
+                        <Button type="button" size="sm" variant="outline" aria-expanded={mostrarOperacionais} onClick={() => setMostrarOperacionais((v) => !v)}>
+                            {mostrarOperacionais ? 'Ocultar permissões' : 'Mostrar permissões'}
+                        </Button>
+                    </div>
+                    <div className={mostrarOperacionais ? 'grid gap-3 md:grid-cols-2' : 'hidden'}>
                         {PERMISSOES_OPERACIONAIS.map(([nome, rotulo]) => (
                             <Interruptor key={nome} id={`perfil-${nome}`} marcado={form[nome]} aoMudar={(v) => campo(nome, v)}>{rotulo}</Interruptor>
                         ))}
                     </div>
 
-                    <h3 className="mb-3 mt-6 font-display text-base font-bold">Protocolos: o que este perfil pode cadastrar</h3>
-                    <div className="grid gap-2 rounded-lg border border-border p-3">
+                    <div className="mb-3 mt-6 flex items-center justify-between gap-3">
+                        <h3 className="font-display text-base font-bold">Protocolos: o que este perfil pode cadastrar</h3>
+                        <Button type="button" size="sm" variant="outline" aria-expanded={mostrarCadastroProtocolo} onClick={() => setMostrarCadastroProtocolo((v) => !v)}>
+                            {mostrarCadastroProtocolo ? 'Ocultar regras' : 'Mostrar regras'}
+                        </Button>
+                    </div>
+                    <div className={mostrarCadastroProtocolo ? 'grid gap-2 rounded-lg border border-border p-3' : 'hidden'}>
                         <Interruptor
                             id="perfil-restringir-tipos"
                             marcado={Array.isArray(form.protocol_allowed_types)}
