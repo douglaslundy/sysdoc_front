@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import {
     inactiveOrdinance,
     addOrdinance,
@@ -59,7 +60,7 @@ export const addOrdinanceFetch = (ordinance, cleanForm, aoErro) => {
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(
-                    error.response ? `ERROR - ${error.response.data.message}` : 'Erro desconhecido'
+                    mensagemDeErro(error)
                 ));
                 dispatch(turnLoading());
                 if (aoErro) aoErro(error.response?.data);
@@ -86,7 +87,7 @@ export const getTextAIOrdinance = (ordinance) => {
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(
-                    error.response ? `ERROR - ${error.response.data.message}` : 'Erro desconhecido'
+                    mensagemDeErro(error)
                 ));
                 dispatch(turnLoading());
             });
@@ -107,7 +108,7 @@ export const editOrdinanceFetch = (ordinance, cleanForm) => {
             ))
             .catch((error) => {
                 dispatch(addAlertMessage(
-                    error.response ? `ERROR - ${error.response.data.message}` : 'Erro desconhecido'
+                    mensagemDeErro(error)
                 ));
                 dispatch(turnLoading());
             });
@@ -126,7 +127,7 @@ export const inactiveOrdinanceFetch = (ordinance) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response?.data?.message || 'Erro desconhecido'}`));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
             });
     };

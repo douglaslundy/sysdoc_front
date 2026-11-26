@@ -2,6 +2,7 @@ import { api } from "../../../services/api";
 import { inactiveLetter, addLetter, editLetter, addLetters, getTextOpenAi, showLetter } from "../../ducks/letters";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 
 export const getAllLetters = () => {
 
@@ -46,7 +47,7 @@ export const addLetterFetch = (letter, cleanForm, aoErro) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error, "Não foi possível gravar o ofício.")));
                 dispatch(turnLoading());
                 if (aoErro) aoErro(error.response?.data);
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -75,7 +76,7 @@ export const getTextAI = (letter) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {                
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error, "Não foi possível gerar o modelo com a IA.")));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -96,7 +97,7 @@ export const editLetterFetch = (letter, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error, "Não foi possível atualizar o ofício.")));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -116,7 +117,7 @@ export const inactiveLetterFetch = (letter) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
+                dispatch(addAlertMessage(mensagemDeErro(error, "Não foi possível excluir o ofício.")));
                 dispatch(turnLoading());
             })
     }

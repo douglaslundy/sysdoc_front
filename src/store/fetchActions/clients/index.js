@@ -1,4 +1,5 @@
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { api } from "../../../services/api";
 import { inactiveClient, addClient, editClient, addClients, addClientReport, clearClientReport, showClient, setClientsPagination } from "../../ducks/clients";
@@ -134,7 +135,7 @@ export const addClientFetch = (client, cleanForm, aoErro) => {
             ))
             .catch((error) => {
                 if (typeof aoErro === 'function') aoErro(mensagensDeErro(error));
-                else dispatch(addAlertMessage(error ? `ERROR - ${error?.response?.data?.message} ` : 'Erro desconhecido'));
+                else dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -184,7 +185,7 @@ export const editClientFetch = (client, cleanForm, aoErro) => {
             ))
             .catch((error) => {
                 if (typeof aoErro === 'function') aoErro(mensagensDeErro(error));
-                else dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                else dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error?.response?.data?.message || 'erro desconhecido';
             })
@@ -215,7 +216,7 @@ export const inactiveClientFetch = (client) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
             })
     }

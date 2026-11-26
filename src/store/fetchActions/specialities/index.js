@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { inactiveSpeciality, addSpeciality, addSpecialities, editSpeciality } from "../../ducks/specialities";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
@@ -47,7 +48,7 @@ export const addSpecialityFetch = (speciality, cleanForm, aoErroSecretaria) => {
             ))
             .catch((error) => {
                 aoErroSecretaria && aoErroSecretaria(error);
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -68,7 +69,7 @@ export const editSpecialityFetch = (speciality, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -88,7 +89,7 @@ export const inactiveSpecialityFetch = (speciality) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response.data.message} `));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
             })
     }

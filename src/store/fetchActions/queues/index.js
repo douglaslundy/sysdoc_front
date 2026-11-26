@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { inactiveQueue, addQueue, editQueue, addQueues, setQueuesPagination, setQueueSpecialityOptions } from "../../ducks/queues";
 import { turnAlert, addMessage, addAlertMessage, turnLoading } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
@@ -97,7 +98,7 @@ export const addQueueFetch = (queue, callbacks = {}, aoErroSecretaria) => {
             ))
             .catch((error) => {
                 aoErroSecretaria && aoErroSecretaria(error);
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 onError && onError(error);
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -220,7 +221,7 @@ export const editQueueFetch = (queue, cleanForm) => {
                     onSuccess && onSuccess(res.data?.data || res.data)
                 ))
                 .catch((error) => {
-                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(addAlertMessage(mensagemDeErro(error)));
                     dispatch(turnLoading());
                     onError && onError(error);
                     return error.response ? error.response.data : 'erro desconhecido';
@@ -246,7 +247,7 @@ export const editQueueFetch = (queue, cleanForm) => {
                 cleanForm && cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             });

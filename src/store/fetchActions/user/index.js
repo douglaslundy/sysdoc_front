@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { cleanCpfCnpj } from "../../../components/helpers/formatt/cpf_cnpj";
 import { cleanPhone } from "../../../components/helpers/formatt/phone";
 import { inactiveUser, addUser, editUser, addUsers, showUser } from "../../ducks/users";
@@ -37,7 +38,7 @@ export const addUserFetch = (user, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -64,7 +65,7 @@ export const editUserFetch = (user, cleanForm) => {
                 cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -81,7 +82,7 @@ export const getUserFetch = (user) => {
                     dispatch(turnLoading()),
                 ))
                 .catch((error) => {
-                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(addAlertMessage(mensagemDeErro(error)));
                     dispatch(turnLoading());
                     return error.response ? error.response.data : 'erro desconhecido';
                 })
@@ -100,7 +101,7 @@ export const inactiveUserFetch = (user) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addMessage(`ERROR - ${error} `));
+                dispatch(addAlertMessage(mensagemDeErro(error, "Não foi possível excluir o usuário.")));
                 dispatch(turnLoading())
                 return error;
             })

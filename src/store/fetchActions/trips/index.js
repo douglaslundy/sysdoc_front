@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { mensagemDeErro } from "../../../lib/mensagemDeErro";
 import { inactiveTrip, addTrip, addTrips, editTrip, showTrip, addReplicatedTrips, addDrivers } from "../../ducks/trips";
 import { turnAlert, addMessage, addAlertMessage, turnLoading, changeTitleAlert } from "../../ducks/Layout";
 import { parseCookies } from "nookies";
@@ -75,7 +76,7 @@ export const addTripFetch = (trip, cleanForm, onCreated, aoErroSecretaria) => {
             ))
             .catch((error) => {
                 aoErroSecretaria && aoErroSecretaria(error);
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
             })
@@ -101,7 +102,7 @@ export const editTripFetch = (trip, cleanForm) => {
                     cleanForm()
                 ))
                 .catch((error) => {
-                    dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                    dispatch(addAlertMessage(mensagemDeErro(error)));
                     dispatch(turnLoading());
                     return error.response ? error.response.data : 'erro desconhecido';
                 })
@@ -123,7 +124,7 @@ export const excludeTripFetch = (trip) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response?.data.message} `));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
             })
     }
@@ -144,7 +145,7 @@ export const excludeClientTripFetch = (cli) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(`ERROR - ${error.response?.data.message} `));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
             })
     }
@@ -176,7 +177,7 @@ export const insertClientTrip = (client, cleanForm) => {
                 cleanForm && cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -211,7 +212,7 @@ export const editClientTrip = (client, cleanForm) => {
                 cleanForm && cleanForm()
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -233,7 +234,7 @@ export const confirmedClientTrip = (client) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -255,7 +256,7 @@ export const unConfirmedClientTrip = (client) => {
                 dispatch(turnLoading())
             ))
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 // dispatch(addAlertMessage(error ? `ERROR - ${error} ` : 'Erro desconhecido'));
                 dispatch(turnLoading());
                 return error.response ? error.response.data : 'erro desconhecido';
@@ -303,7 +304,7 @@ export const replicateTripFetch = (tripId, dates, onSuccess, onError) => {
                 onSuccess && onSuccess(res.data.trips);
             })
             .catch((error) => {
-                dispatch(addAlertMessage(error.response ? `ERROR - ${error.response.data.message} ` : 'Erro desconhecido'));
+                dispatch(addAlertMessage(mensagemDeErro(error)));
                 dispatch(turnLoading());
                 onError && onError(error);
             })
